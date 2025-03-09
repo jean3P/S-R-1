@@ -14,10 +14,10 @@ source /storage/homefs/jp22b083/SSI/S-R-1/.venv/bin/activate
 # Navigate to the project directory
 cd /storage/homefs/jp22b083/SSI/S-R-1 || exit
 
-# Set environment variables for better GPU utilization
+# Set environment variables
 export PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
-export TRANSFORMERS_OFFLINE=0  # Set to 1 if you're running without internet
-export PYTHONPATH=$(pwd)       # Add the current directory to Python path
+export TRANSFORMERS_OFFLINE=0
+export PYTHONPATH=$(pwd)
 export TOKENIZERS_PARALLELISM=false
 
 # Log machine information for reproducibility
@@ -36,8 +36,10 @@ mkdir -p configs/experiments
 mkdir -p results
 mkdir -p problems
 
-# Define experiment name and problem file
-EXPERIMENT_NAME="qwen_coder_experiment"
+# Define experiment names and problem file
+EXPERIMENT_NAME_QWEN="qwen_coder_experiment"
+EXPERIMENT_NAME_QWQ="qwq_experiment"
+EXPERIMENT_NAME_DS="deepseek_experiment"
 PROBLEM_FILE="./problems/coding_problem.txt"
 
 # Create a sample problem file if it doesn't exist
@@ -76,6 +78,42 @@ config:
   repetition_penalty: 1.1
 EOF
     echo "Created Qwen model configuration"
+fi
+
+# Create QwQ model config
+if [ ! -f "configs/models/qwq_preview.yaml" ]; then
+    cat > configs/models/qwq_preview.yaml << EOF
+id: "qwq_preview"
+type: "huggingface"
+config:
+  model_name: "Qwen/QwQ-32B-Preview"
+  device_map: "auto"
+  use_fp16: true
+  use_8bit: false
+  max_length: 4096
+  temperature: 0.2
+  top_p: 0.9
+  repetition_penalty: 1.1
+EOF
+    echo "Created QwQ model configuration"
+fi
+
+# Create DeepSeek model config
+if [ ! -f "configs/models/deepseek_qwen.yaml" ]; then
+    cat > configs/models/deepseek_qwen.yaml << EOF
+id: "deepseek_qwen"
+type: "huggingface"
+config:
+  model_name: "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
+  device_map: "auto"
+  use_fp16: true
+  use_8bit: false
+  max_length: 4096
+  temperature: 0.2
+  top_p: 0.9
+  repetition_penalty: 1.1
+EOF
+    echo "Created DeepSeek model configuration"
 fi
 
 # Create agent configuration if it doesn't exist
@@ -158,26 +196,77 @@ EOF
     echo "Created evaluator configuration"
 fi
 
-# Check if experiment config exists, otherwise create it
-if [ ! -f "configs/experiments/${EXPERIMENT_NAME}.yaml" ]; then
-    echo "Creating experiment configuration..."
-    # Use the -m flag to run the module correctly
+# ------------------------------------------------------------------------
+# Create experiment configs if they don't already exist
+# ------------------------------------------------------------------------
+
+# 1) Qwen Coder Experiment
+if [ ! -f "configs/experiments/${EXPERIMENT_NAME_QWEN}.yaml" ]; then
+    echo "Creating experiment configuration for Qwen coder..."
     python -m src.main create \
-      --name "${EXPERIMENT_NAME}" \
+      --name "${EXPERIMENT_NAME_QWEN}" \
       --agent code_refinement \
       --model qwen_coder \
       --prompt code_gen \
       --evaluator python_exec \
       --task "$PROBLEM_FILE" \
-      --output "configs/experiments/${EXPERIMENT_NAME}.yaml"
+      --output "configs/experiments/${EXPERIMENT_NAME_QWEN}.yaml"
 fi
 
-# Run the experiment
-echo "Starting experiment execution..."
-# Use the -m flag to run the module correctly
+# 2) QwQ Experiment
+if [ ! -f "configs/experiments/${EXPERIMENT_NAME_QWQ}.yaml" ]; then
+    echo "Creating experiment configuration for QwQ..."
+    python -m src.main create \
+      --name "${EXPERIMENT_NAME_QWQ}" \
+      --agent code_refinement \
+      --model qwq_preview \
+      --prompt code_gen \
+      --evaluator python_exec \
+      --task "$PROBLEM_FILE" \
+      --output "configs/experiments/${EXPERIMENT_NAME_QWQ}.yaml"
+fi
+
+# 3) DeepSeek Experiment
+if [ ! -f "configs/experiments/${EXPERIMENT_NAME_DS}.yaml" ]; then
+    echo "Creating experiment configuration for DeepSeek..."
+    python -m src.main create \
+      --name "${EXPERIMENT_NAME_DS}" \
+      --agent code_refinement \
+      --model deepseek_qwen \
+      --prompt code_gen \
+      --evaluator python_exec \
+      --task "$PROBLEM_FILE" \
+      --output "configs/experiments/${EXPERIMENT_NAME_DS}.yaml"
+fi
+
+# ------------------------------------------------------------------------
+# Run each experiment
+# ------------------------------------------------------------------------
+
+echo "Starting Qwen Coder experiment..."
 python -m src.main run \
-  --config "configs/experiments/${EXPERIMENT_NAME}.yaml" \
-  --output-dir "results/${EXPERIMENT_NAME}_$(date +%Y%m%d_%H%M%S)" \
+  --config "configs/experiments/${EXPERIMENT_NAME_QWEN}.yaml" \
+  --output-dir "results/${EXPERIMENT_NAME_QWEN}_$(date +%Y%m%d_%H%M%S)" \
   --log-level INFO
 
-echo "Job completed"
+echo "Starting QwQ experiment..."
+python -m src.main run \
+  --config "configs/experiments/${EXPERIMENT_NAME_QWQ}.yaml" \
+  --output-dir "results/${EXPERIMENT_NAME_QWQ}_$(date +%Y%m%d_%H%M%S)" \
+  --log-level INFO
+
+echo "Starting DeepSeek experiment..."
+python -m src.main run \
+  --config "configs/experiments/${EXPERIMENT_NAME_DS}.yaml" \
+  --output-dir "results/${EXPERIMENT_NAME_DS}_$(date +%Y%m%d_%H%M%S)" \
+  --log-level INFO
+
+# ------------------------------------------------------------------------
+# Compare model results
+# ------------------------------------------------------------------------
+
+echo "All experiments complete! Now comparing results..."
+python -m src.utils.compare_models --results-dir "results"
+
+# (Optional) pipe the comparison output to a file, e.g.:
+python -m src.utils.compare_models --results-dir "results" > "comparison_$(date +%Y%m%d_%H%M%S).txt"

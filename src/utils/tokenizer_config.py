@@ -25,6 +25,14 @@ MODEL_CONFIG = {
         "path": "Qwen/Qwen2.5-Coder-32B-Instruct",
         "aliases": ["qwen", "qwen2.5", "qwen2.5-coder"],
     },
+    "qwq_preview": {
+        "path": "Qwen/QwQ-32B-Preview",
+        "aliases": ["qwq", "qwq32b"],
+    },
+    "deepseek_qwen": {
+        "path": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+        "aliases": ["deepseek", "deepseek-r1"],
+    },
     "llama3": {
         "path": "meta-llama/Llama-3-70b-instruct",
         "aliases": ["llama", "llama3"]
