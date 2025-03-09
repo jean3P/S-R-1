@@ -1,0 +1,445 @@
+@startuml "AI Self-Reflection System"
+
+' Style settings
+skinparam classAttributeIconSize 0
+skinparam classFontStyle bold
+skinparam classBackgroundColor #f0f8ff
+skinparam classBorderColor #2E8BC0
+skinparam packageBackgroundColor #EEEEEE
+skinparam packageBorderColor #999999
+skinparam arrowColor #2E8BC0
+skinparam stereotypeCBackgroundColor #ADD8E6
+
+' Title
+title AI Self-Reflection System - Class Diagram
+
+' Packages
+package "src.agents" {
+  abstract class BaseAgent {
+    -model
+    -prompt
+    -evaluator
+    -config
+    -max_iterations
+    -logger
+    -metrics
+    +__init__(model_id, prompt_id, evaluator_id, config)
+    +{abstract} reflect(initial_prompt, task): Dict
+    #_start_metrics()
+    #_end_metrics()
+    #_record_generation(tokens_used, generation_time, success)
+    #_measure_execution(func, *args, **kwargs): Tuple
+  }
+
+  class CodeRefinementAgent {
+    +reflect(initial_prompt, task): Dict
+  }
+
+  class ReasoningAgent {
+    +reflect(initial_prompt, task): Dict
+    -_format_reasoning_prompt(...): str
+    -_format_solution_prompt(...): str
+    -_parse_reasoning_output(...): Dict
+    -_update_reasoning_state(...): Dict
+    -_generate_next_prompt(...): str
+  }
+
+  class AgentRegistry {
+    -AGENT_REGISTRY: Dict
+    +register_agent(agent_type, agent_class)
+    +get_agent_class(agent_type): Type
+    +get_agent(agent_id, model_id, prompt_id, evaluator_id, config): BaseAgent
+    +list_available_agents(): Dict
+  }
+
+  BaseAgent <|-- CodeRefinementAgent
+  BaseAgent <|-- ReasoningAgent
+}
+
+package "src.models" {
+  abstract class BaseModel {
+    -config
+    -logger
+    -metrics
+    +__init__(config)
+    +{abstract} generate(prompt): str
+    +{abstract} tokenize(text): Dict
+    #_record_request(tokens_in, tokens_out, success)
+    +get_metrics(): Dict
+    +reset_metrics()
+  }
+
+  class HuggingFaceModel {
+    -model_name
+    -device_map
+    -use_fp16
+    -temperature
+    ...
+    +load_model()
+    +generate(prompt): str
+    +tokenize(text): Dict
+    +count_tokens(text): int
+    +clear_cuda_cache()
+  }
+
+  class OpenAIModel {
+    -model_name
+    -api_key
+    -temperature
+    -max_tokens
+    ...
+    -_setup_client()
+    +generate(prompt): str
+    +tokenize(text): Dict
+    +count_tokens(text): int
+  }
+
+  class AnthropicModel {
+    -model_name
+    -api_key
+    -temperature
+    -max_tokens
+    ...
+    -_setup_client()
+    +generate(prompt): str
+    +tokenize(text): Dict
+    +count_tokens(text): int
+  }
+
+  class ModelRegistry {
+    -MODEL_REGISTRY: Dict
+    -_model_instances: Dict
+    +register_model(model_type, model_class)
+    +get_model_class(model_type): Type
+    +get_model(model_id): BaseModel
+    +list_available_models(): Dict
+    +clear_model_cache()
+    +get_model_configs(): Dict
+  }
+
+  BaseModel <|-- HuggingFaceModel
+  BaseModel <|-- OpenAIModel
+  BaseModel <|-- AnthropicModel
+}
+
+package "src.prompts" {
+  abstract class BasePrompt {
+    -config
+    -logger
+    -templates
+    -system_message
+    +__init__(config)
+    +{abstract} format_generation(prompt, task): str
+    +{abstract} format_reflection(original_prompt, solution, output, errors, task): str
+    #_merge_variables(template_vars): Dict
+    #_validate_template(template, variables): List
+    #_format_template(template, variables): str
+  }
+
+  class CodeGenerationPrompt {
+    +__init__(config)
+    +format_generation(prompt, task): str
+    +format_reflection(original_prompt, solution, output, errors, task): str
+  }
+
+  class ReasoningPrompt {
+    +__init__(config)
+    +format_generation(prompt, task): str
+    +format_reflection(original_prompt, solution, output, errors, task): str
+    +format_reasoning(current_prompt, reasoning_state, reasoning_strategy, step, task): str
+    +format_solution(initial_prompt, reasoning_steps, reasoning_state, task): str
+  }
+
+  class PromptRegistry {
+    -PROMPT_REGISTRY: Dict
+    -_prompt_instances: Dict
+    +register_prompt(prompt_type, prompt_class)
+    +get_prompt_class(prompt_type): Type
+    +get_prompt(prompt_id): BasePrompt
+    +list_available_prompts(): Dict
+    +clear_prompt_cache()
+    +get_prompt_configs(): Dict
+  }
+
+  BasePrompt <|-- CodeGenerationPrompt
+  BasePrompt <|-- ReasoningPrompt
+}
+
+package "src.evaluators" {
+  abstract class BaseEvaluator {
+    -config
+    -logger
+    -metrics
+    +__init__(config)
+    +{abstract} evaluate(code): Tuple
+    +run_test_cases(code): Dict
+    #_record_evaluation(success, execution_time)
+    +get_metrics(): Dict
+    +reset_metrics()
+  }
+
+  class PythonExecutor {
+    -timeout
+    -python_path
+    -forbidden_modules
+    -include_test_cases
+    ...
+    +evaluate(code): Tuple
+    -_execute_file(filename): Tuple
+    -_check_code_security(code): Dict
+    -_generate_test_code(code): str
+    +run_test_cases(code): Dict
+  }
+
+  class UnitTester {
+    -timeout
+    -python_path
+    -use_pytest
+    ...
+    +evaluate(code): Tuple
+    -_generate_test_code(code, function_name): str
+    -_run_unittest(test_filename): Tuple
+    -_run_pytest(test_filename): Tuple
+    +run_test_cases(code): Dict
+    -_parse_unittest_output(output, errors): Dict
+    -_parse_pytest_output(output, errors): Dict
+  }
+
+  class CodeAnalyzer {
+    -timeout
+    -python_path
+    -use_pylint
+    -use_flake8
+    ...
+    +evaluate(code): Tuple
+    -_analyze_ast(code): Tuple
+    -_run_pylint(filename): Tuple
+    -_run_flake8(filename): Tuple
+    -_run_mypy(filename): Tuple
+  }
+
+  class EvaluatorRegistry {
+    -EVALUATOR_REGISTRY: Dict
+    -_evaluator_instances: Dict
+    +register_evaluator(evaluator_type, evaluator_class)
+    +get_evaluator_class(evaluator_type): Type
+    +get_evaluator(evaluator_id): BaseEvaluator
+    +list_available_evaluators(): Dict
+    +clear_evaluator_cache()
+    +get_evaluator_configs(): Dict
+  }
+
+  BaseEvaluator <|-- PythonExecutor
+  BaseEvaluator <|-- UnitTester
+  BaseEvaluator <|-- CodeAnalyzer
+}
+
+package "src.datasets" {
+  abstract class BaseDataset {
+    -config
+    -logger
+    -data
+    -_loaded
+    +__init__(config)
+    +{abstract} load()
+    +{abstract} save()
+    +{abstract} __iter__(): Iterator
+    +{abstract} __len__(): int
+    +__getitem__(idx): Dict
+    +filter(condition): List
+    +split(train_ratio, val_ratio, test_ratio, shuffle): Tuple
+    +get_stats(): Dict
+  }
+
+  class JSONDataset {
+    -file_path
+    -auto_load
+    -key_field
+    -data_field
+    +__init__(config)
+    +load()
+    +save()
+    +__iter__(): Iterator
+    +__len__(): int
+    +add_example(example)
+    +remove_example(index): Dict
+    +find(key_field, value): List
+  }
+
+  class CSVDataset {
+    -file_path
+    -auto_load
+    -delimiter
+    -has_header
+    ...
+    +__init__(config)
+    +load()
+    +save()
+    +__iter__(): Iterator
+    +__len__(): int
+    +add_example(example)
+    -_convert_value(value): Any
+  }
+
+  class CodingProblemsDataset {
+    -difficulty_levels
+    -languages
+    -problem_categories
+    -schema
+    +__init__(config)
+    +load()
+    -_validate_example(example): List
+    +get_by_difficulty(difficulty): List
+    +get_by_category(category): List
+    +get_problem_by_id(problem_id): Dict
+    +add_problem(problem)
+    +add_solution(problem_id, language, solution): bool
+  }
+
+  class DatasetRegistry {
+    -DATASET_REGISTRY: Dict
+    -_dataset_instances: Dict
+    +register_dataset(dataset_type, dataset_class)
+    +get_dataset_class(dataset_type): Type
+    +get_dataset(dataset_id): BaseDataset
+    +list_available_datasets(): Dict
+    +clear_dataset_cache()
+    +get_dataset_configs(): Dict
+  }
+
+  BaseDataset <|-- JSONDataset
+  BaseDataset <|-- CSVDataset
+  JSONDataset <|-- CodingProblemsDataset
+}
+
+package "src.config" {
+  class ConfigManager {
+    -config_dir
+    -default_config
+    -configs
+    -experiment_config
+    +__init__(config_dir)
+    +load_experiment_config(experiment_id): Dict
+    -_load_component_configs(experiment_config): Dict
+    +get_component_configs(component_type): Dict
+    +get_experiment_configs(): Dict
+    +save_experiment_config(experiment_id, config): str
+    +save_component_config(component_type, component_id, config): str
+    +create_experiment_config(name, description, ...): Dict
+  }
+
+  class ConfigSettings {
+    +load_config(config_path): Dict
+    +save_config(config, config_path)
+    +get_config_value(config, key_path, default): Any
+    +merge_configs(base_config, override_config): Dict
+    +load_default_config(): Dict
+    -_process_env_vars(config): Any
+  }
+
+  class ConfigValidation {
+    +validate_config(config, schema_type): Tuple
+    +validate_experiment_config(config): Tuple
+    +validate_component_references(config, available_components): Dict
+  }
+}
+
+package "src.utils" {
+  class FileUtils {
+    +save_json(data, file_path, indent)
+    +load_json(file_path): Dict
+    +save_yaml(data, file_path)
+    +load_yaml(file_path): Dict
+    +save_to_temp_file(content, suffix): str
+    +remove_file(file_path)
+    +ensure_directory(directory_path)
+    +list_files(directory_path, pattern): List
+    +read_text_file(file_path, encoding): str
+    +write_text_file(content, file_path, encoding)
+    +get_file_size(file_path): int
+    +get_file_extension(file_path): str
+  }
+
+  class Logging {
+    +setup_logging(log_dir, log_level, ...): Logger
+    +get_logger(name, log_level): Logger
+    +log_exception(logger, exc, context)
+  }
+
+  class Metrics {
+    +calculate_code_metrics(code): Dict
+    +compare_solutions(solution1, solution2): Dict
+    -_estimate_complexity(code): float
+    -_count_line_types(code): Dict
+    -_count_imports(tree): int
+    -_calculate_docstring_coverage(tree): float
+    -_get_function_complexity(tree): Dict
+    -_calculate_similarity(text1, text2): float
+  }
+
+  class Parsing {
+    +extract_code_blocks(text): List
+    +extract_python_function(text, function_name): str
+    +parse_execution_result(stdout, stderr): Dict
+    +extract_imports(code): List
+    +count_lines_of_code(code): Dict
+    +extract_comments(code): List
+  }
+
+  class Tokenization {
+    -_default_tokenizer(text): List
+    -_tokenizer_registry: Dict
+    +register_tokenizer(model_name, tokenizer_fn)
+    +get_tokenizer(model_name): Callable
+    +count_tokens(text, model_name): int
+    +truncate_to_token_limit(text, max_tokens, model_name): str
+    -_gpt_tokenizer(text): List
+    -_claude_tokenizer(text): List
+  }
+
+  class TokenizerConfig {
+    -MODEL_CONFIG: Dict
+    +register_model_tokenizer(model_id, model_config): bool
+    +setup_tokenizers(): bool
+    +get_model_info(): Dict
+  }
+
+  class Validation {
+    +validate_config(config, schema_type): Dict
+    +validate_file_path(file_path, must_exist, file_type): List
+    +validate_model_input(prompt, model_constraints): Dict
+    +validate_python_code(code): Dict
+    +validate_required_functions(code, required_functions): Dict
+  }
+}
+
+' Main module
+class Main {
+  +parse_arguments(): Args
+  +run_experiment(config_path, output_dir, log_level): Dict
+  +list_components(component_type)
+  +generate_solution(model_id, prompt_id, evaluator_id, problem, iterations, output_path): Dict
+  +create_experiment_config(name, agent_id, model_id, prompt_id, evaluator_id, task, output_path): Dict
+  +main()
+}
+
+' Relationships between components across packages
+BaseAgent --> BaseModel : uses
+BaseAgent --> BasePrompt : uses
+BaseAgent --> BaseEvaluator : uses
+ConfigManager --> BaseModel : loads
+ConfigManager --> BasePrompt : loads
+ConfigManager --> BaseEvaluator : loads
+ConfigManager --> BaseAgent : loads
+Main --> ConfigManager : uses
+Main --> BaseAgent : uses
+PythonExecutor --> Parsing : uses
+CodeRefinementAgent --> Metrics : uses
+CodeRefinementAgent --> Parsing : uses
+ReasoningAgent --> FileUtils : uses
+BaseModel --> Tokenization : uses
+HuggingFaceModel --> TokenizerConfig : uses
+PythonExecutor --> FileUtils : uses
+UnitTester --> FileUtils : uses
+
+@enduml
