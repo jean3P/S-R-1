@@ -42,6 +42,14 @@ EXPERIMENT_NAME_QWQ="qwq_experiment"
 EXPERIMENT_NAME_DS="deepseek_experiment"
 PROBLEM_FILE="./problems/coding_problem.txt"
 
+# Define main experiment timestamp and results directory
+MAIN_TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+RESULTS_DIR="results/experiment_run_${MAIN_TIMESTAMP}"
+mkdir -p "${RESULTS_DIR}"
+
+# Each model will get its own timestamped directory with clear model identifier
+# This preserves timing info while making results easier to compare
+
 # Create a sample problem file if it doesn't exist
 if [ ! -f "$PROBLEM_FILE" ]; then
     cat > "$PROBLEM_FILE" << EOF
@@ -123,7 +131,7 @@ id: "code_refinement"
 type: "code_refinement"
 config:
   max_iterations: 3
-  early_stop_on_success: true
+  early_stop_on_success: false
   save_results: true
   output_dir: "results"
 EOF
@@ -244,29 +252,128 @@ fi
 # ------------------------------------------------------------------------
 
 echo "Starting Qwen Coder experiment..."
+QWEN_TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+QWEN_RESULTS="${RESULTS_DIR}/qwen_coder_${QWEN_TIMESTAMP}"
 python -m src.main run \
   --config "configs/experiments/${EXPERIMENT_NAME_QWEN}.yaml" \
-  --output-dir "results/${EXPERIMENT_NAME_QWEN}_$(date +%Y%m%d_%H%M%S)" \
+  --output-dir "${QWEN_RESULTS}" \
   --log-level INFO
 
 echo "Starting QwQ experiment..."
+QWQ_TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+QWQ_RESULTS="${RESULTS_DIR}/qwq_preview_${QWQ_TIMESTAMP}"
 python -m src.main run \
   --config "configs/experiments/${EXPERIMENT_NAME_QWQ}.yaml" \
-  --output-dir "results/${EXPERIMENT_NAME_QWQ}_$(date +%Y%m%d_%H%M%S)" \
+  --output-dir "${QWQ_RESULTS}" \
   --log-level INFO
 
 echo "Starting DeepSeek experiment..."
+DEEPSEEK_TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+DEEPSEEK_RESULTS="${RESULTS_DIR}/deepseek_qwen_${DEEPSEEK_TIMESTAMP}"
 python -m src.main run \
   --config "configs/experiments/${EXPERIMENT_NAME_DS}.yaml" \
-  --output-dir "results/${EXPERIMENT_NAME_DS}_$(date +%Y%m%d_%H%M%S)" \
+  --output-dir "${DEEPSEEK_RESULTS}" \
   --log-level INFO
 
+# Function for professional file copying with proper error handling
+copy_experiment_results() {
+    local experiment_name=$1
+    local target_dir=$2
+    local timestamp=$(date +"%Y%m%d")
+
+    echo "INFO: Looking for result files for experiment '${experiment_name}'..."
+
+    # Create experiment directory if it doesn't exist
+    mkdir -p "$target_dir"
+
+    # Find the most recent result file for this experiment (exact match with experiment name)
+    local result_files=($(find "results/" -maxdepth 1 -name "${experiment_name}_*.json" -type f -printf "%T@ %p\n" 2>/dev/null | sort -nr | cut -d' ' -f2-))
+
+    if [[ ${#result_files[@]} -eq 0 ]]; then
+        echo "WARNING: No exact result files found for ${experiment_name}. Trying alternative pattern..."
+
+        # Try an alternative pattern that might match
+        result_files=($(find "results/" -maxdepth 1 -name "*${experiment_name}*.json" -type f -printf "%T@ %p\n" 2>/dev/null | sort -nr | cut -d' ' -f2-))
+
+        if [[ ${#result_files[@]} -eq 0 ]]; then
+            echo "ERROR: No result files found for experiment '${experiment_name}' - comparison may be incomplete"
+            return 1
+        fi
+    fi
+
+    # Get the most recent file (first in the sorted list)
+    local source_file="${result_files[0]}"
+    local dest_file="${target_dir}/$(basename "$source_file")"
+
+    # Log what we found
+    echo "INFO: Found result file: $source_file"
+
+    # Copy the file with proper error handling
+    if cp "$source_file" "$dest_file"; then
+        echo "INFO: Successfully copied $(basename "$source_file") to experiment directory"
+
+        # Create a symlink to the experiment_results.json filename that the compare script expects
+        ln -sf "$(basename "$source_file")" "${target_dir}/experiment_results.json"
+        echo "INFO: Created experiment_results.json symlink"
+
+        # List files in target directory to verify
+        ls -la "${target_dir}/"
+
+        return 0
+    else
+        echo "ERROR: Failed to copy result file for ${experiment_name}"
+        return 1
+    fi
+}
+
+# Copy result files to experiment directories for comparison
+echo "Copying result files to experiment directories for comparison..."
+
+# Copy each model's results to its directory with proper error handling
+copy_experiment_results "${EXPERIMENT_NAME_QWEN}" "${QWEN_RESULTS}"
+copy_experiment_results "${EXPERIMENT_NAME_QWQ}" "${QWQ_RESULTS}"
+copy_experiment_results "${EXPERIMENT_NAME_DS}" "${DEEPSEEK_RESULTS}"
+
 # ------------------------------------------------------------------------
-# Compare model results
+# Compare model results - using the new specific results directory
 # ------------------------------------------------------------------------
 
 echo "All experiments complete! Now comparing results..."
-python -m src.utils.compare_models --results-dir "results"
+python -m src.utils.compare_models --results-dir "${RESULTS_DIR}"
 
-# (Optional) pipe the comparison output to a file, e.g.:
-python -m src.utils.compare_models --results-dir "results" > "comparison_$(date +%Y%m%d_%H%M%S).txt"
+# Save the comparison to a dedicated file
+COMPARISON_FILE="${RESULTS_DIR}/model_comparison.txt"
+python -m src.utils.compare_models --results-dir "${RESULTS_DIR}" --output "${COMPARISON_FILE}"
+echo "Comparison saved to ${COMPARISON_FILE}"
+
+# Also save a timestamped copy in the root results directory for easy access
+cp "${COMPARISON_FILE}" "results/comparison_${MAIN_TIMESTAMP}.txt"
+echo "Comparison also saved to results/comparison_${MAIN_TIMESTAMP}.txt"
+
+# Create a metadata file with experiment details
+cat > "${RESULTS_DIR}/experiment_metadata.json" << EOF
+{
+  "experiment_id": "${MAIN_TIMESTAMP}",
+  "execution_date": "$(date -Iseconds)",
+  "models": [
+    {
+      "name": "qwen_coder",
+      "timestamp": "${QWEN_TIMESTAMP}",
+      "results_dir": "${QWEN_RESULTS}"
+    },
+    {
+      "name": "qwq_preview",
+      "timestamp": "${QWQ_TIMESTAMP}",
+      "results_dir": "${QWQ_RESULTS}"
+    },
+    {
+      "name": "deepseek_qwen",
+      "timestamp": "${DEEPSEEK_TIMESTAMP}",
+      "results_dir": "${DEEPSEEK_RESULTS}"
+    }
+  ],
+  "problem_file": "${PROBLEM_FILE}"
+}
+EOF
+
+echo "Created experiment metadata at ${RESULTS_DIR}/experiment_metadata.json"
