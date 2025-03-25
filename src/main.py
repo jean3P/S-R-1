@@ -21,6 +21,8 @@ from src.prompts import get_prompt
 from src.evaluators import get_evaluator
 from src.datasets import get_dataset
 from src.utils import tokenizer_config
+from src.scripts.run_swe_bench import run_swe_bench_evaluation
+
 
 
 def parse_arguments():
@@ -61,6 +63,26 @@ def parse_arguments():
     create_parser.add_argument("--evaluator", type=str, required=True, help="Evaluator ID to use")
     create_parser.add_argument("--task", type=str, required=True, help="Task description or path to task file")
     create_parser.add_argument("--output", type=str, help="Path to save experiment configuration")
+
+    # SWE-bench command
+    swe_bench_parser = subparsers.add_parser("swe-bench", help="Run SWE-bench evaluation")
+    swe_bench_parser.add_argument("--experiment", type=str, default="swe_bench_experiment",
+                                  help="Experiment configuration name")
+    swe_bench_parser.add_argument("--dataset", type=str, default="swe_bench_lite",
+                                  help="Dataset name")
+    swe_bench_parser.add_argument("--instance-id", type=str,
+                                  help="Specific instance ID to evaluate")
+    swe_bench_parser.add_argument("--output-dir", type=str, default="results/swe_bench",
+                                  help="Directory to save results")
+    swe_bench_parser.add_argument("--max-instances", type=int, default=0,
+                                  help="Maximum number of instances to evaluate (0 for all)")
+
+    swe_bench_parser.add_argument("--log-level", type=str, default="INFO",
+                                  choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+                                  help="Logging level to use for swe-bench runs")
+    swe_bench_parser.add_argument("--batch-size", type=int, default=1,
+                                  help="Batch size for processing instances")
+
 
     return parser.parse_args()
 
@@ -310,6 +332,15 @@ def main():
             create_experiment_config(
                 args.name, args.agent, args.model, args.prompt,
                 args.evaluator, args.task, args.output
+            )
+        elif args.command == "swe-bench":
+            run_swe_bench_evaluation(
+                experiment_name=args.experiment,
+                dataset_name=args.dataset,
+                instance_id=args.instance_id,
+                output_dir=args.output_dir,
+                log_level=args.log_level,
+                max_instances=args.max_instances
             )
         else:
             print("No command specified. Use --help for usage information.")

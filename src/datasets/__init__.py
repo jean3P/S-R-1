@@ -17,6 +17,7 @@ from src.datasets.base_dataset import BaseDataset
 from src.datasets.json_dataset import JSONDataset
 from src.datasets.csv_dataset import CSVDataset
 from src.datasets.coding_problems import CodingProblemsDataset
+from src.datasets.swe_bench import SWEBenchDataset
 from src.datasets.registry import (
     register_dataset,
     get_dataset,
@@ -34,6 +35,7 @@ __all__ = [
     'JSONDataset',
     'CSVDataset',
     'CodingProblemsDataset',
+    'SWEBenchDataset',
     'register_dataset',
     'get_dataset',
     'get_dataset_class',
