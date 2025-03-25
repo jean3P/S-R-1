@@ -21,12 +21,14 @@ class SWEBenchPrompt(BasePrompt):
             self.templates["generation"] = (
                 "# GitHub Issue: {issue_id}\n\n"
                 "{problem_statement}\n\n"
+                "{repository_context}\n\n"  # NEW: Add repository context placeholder
                 "# Repository Information\n"
                 "Repository: {repo}\n"
                 "Base commit: {base_commit}\n\n"
                 "# Task\n"
                 "Your task is to create a patch that fixes this issue. The patch should be in the format of a git diff.\n"
-                "Focus on creating a minimal change that addresses the issue while maintaining the code's integrity.\n\n"
+                "Focus on creating a minimal change that addresses the issue while maintaining the code's integrity.\n"
+                "Make sure to use the correct file paths based on the repository context provided.\n\n"  # NEW: Added guidance
                 "Please provide a patch in git diff format."
             )
 

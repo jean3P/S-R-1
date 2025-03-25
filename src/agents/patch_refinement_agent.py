@@ -9,6 +9,7 @@ from src.utils.tokenization import count_tokens
 from src.utils.metrics import compare_solutions, calculate_code_metrics
 from src.utils.parsing import parse_execution_result
 from src.utils.logging import get_logger
+from src.utils.repo_explorer import RepoExplorer
 
 
 class PatchRefinementAgent(BaseAgent):
@@ -40,6 +41,34 @@ class PatchRefinementAgent(BaseAgent):
         current_prompt = initial_prompt
         best_solution = None
         best_solution_metrics = None
+
+        # NEW: Extract repository path from task
+        repo_info = task.get("repo_info", {})
+        repo_name = repo_info.get("repo", "")
+        repo_path = None
+
+        if repo_name:
+            # Convert GitHub repo format to local path
+            repo_path = os.path.join(self.config.get("repos_dir", "data/repositories"),
+                                     repo_name.replace("/", "_"))
+
+            # NEW: Analyze the issue to extract rule IDs
+            rule_ids = self._extract_rule_ids(initial_prompt)
+
+            if rule_ids and os.path.exists(repo_path):
+                # NEW: Explore repository to find relevant files
+                explorer = RepoExplorer(repo_path)
+                rule_contexts = {}
+
+                for rule_id in rule_ids:
+                    rule_info = explorer.find_rule_definition(rule_id)
+                    if rule_info:
+                        rule_contexts[rule_id] = rule_info
+
+                # NEW: Enhance prompt with repository insights
+                if rule_contexts:
+                    current_prompt = self._enhance_prompt_with_context(
+                        current_prompt, rule_contexts, repo_path)
 
         # 2) Main iteration loop
         for i in range(1, self.max_iterations + 1):
@@ -157,3 +186,61 @@ class PatchRefinementAgent(BaseAgent):
 
         self.logger.info(f"Completed patch refinement with {len(iterations)} iterations")
         return results
+
+    def _extract_rule_ids(self, prompt: str) -> List[str]:
+        """Extract rule IDs from the issue description."""
+        import re
+
+        # Look for rule ID patterns like L031, L060
+        rule_pattern = re.compile(r'\b([Ll][0-9]{3})\b')
+        matches = rule_pattern.findall(prompt)
+
+        # Normalize to uppercase
+        rule_ids = [m.upper() for m in matches]
+
+        if rule_ids:
+            self.logger.info(f"Extracted rule IDs from prompt: {', '.join(rule_ids)}")
+        else:
+            self.logger.info("No rule IDs found in prompt")
+
+        return rule_ids
+
+    # src/agents/patch_refinement_agent.py
+    def _enhance_prompt_with_context(self, prompt: str, rule_contexts: Dict[str, Dict[str, Any]],
+                                     repo_path: str) -> str:
+        """
+        Enhance the initial prompt with repository insights.
+
+        Args:
+            prompt: Original prompt
+            rule_contexts: Dictionary mapping rule IDs to their context information
+            repo_path: Path to the repository
+
+        Returns:
+            Enhanced prompt with file locations and context
+        """
+        # Create repository context section
+        repo_context = "\n\n# Repository Context\n\n"
+        repo_context += "I found the following relevant files in the repository:\n\n"
+
+        for rule_id, rule_info in rule_contexts.items():
+            file_path = rule_info["file_path"]
+            rel_path = os.path.relpath(file_path, repo_path) if repo_path in file_path else file_path
+
+            repo_context += f"## Rule {rule_id} is defined in `{rel_path}`\n\n"
+
+            # Fix: Access the nested context dictionary
+            inner_context = rule_info["context"]  # This is the nested context dictionary
+
+            if inner_context["line_number"]:
+                repo_context += f"The rule description is at line {inner_context['line_number']}.\n\n"
+
+            if inner_context["code_snippet"]:
+                repo_context += "Relevant code snippet:\n\n```python\n"
+                repo_context += inner_context["code_snippet"] + "\n```\n\n"
+
+        repo_context += "Please use the correct file paths in your patch.\n"
+
+        # Add to the original prompt
+        enhanced_prompt = prompt + repo_context
+        return enhanced_prompt
