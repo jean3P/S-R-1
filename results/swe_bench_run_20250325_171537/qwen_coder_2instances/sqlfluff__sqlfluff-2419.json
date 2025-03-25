@@ -1,0 +1,108 @@
+{
+  "task": {
+    "name": "sqlfluff__sqlfluff-2419",
+    "language": "python",
+    "initial_prompt": "# GitHub Issue: sqlfluff__sqlfluff-2419\n\nRule L060 could give a specific error message\nAt the moment rule L060 flags something like this:\r\n\r\n```\r\nL:  21 | P:   9 | L060 | Use 'COALESCE' instead of 'IFNULL' or 'NVL'.\r\n```\r\n\r\nSince we likely know the wrong word, it might be nice to actually flag that instead of both `IFNULL` and `NVL` - like most of the other rules do.\r\n\r\nThat is it should flag this:\r\n\r\n```\r\nL:  21 | P:   9 | L060 | Use 'COALESCE' instead of 'IFNULL'.\r\n```\r\n Or this:\r\n\r\n```\r\nL:  21 | P:   9 | L060 | Use 'COALESCE' instead of 'NVL'.\r\n```\r\n\r\nAs appropriate.\r\n\r\nWhat do you think @jpy-git ?\r\n\n\n\n# Additional context and hints:\n@tunetheweb Yeah definitely, should be a pretty quick change \ud83d\ude0a\n\n# Repository: sqlfluff/sqlfluff\n# Base commit: f1dba0e1dd764ae72d67c3d5e1471cf14d3db030",
+    "repo_info": {
+      "repo": "sqlfluff/sqlfluff",
+      "base_commit": "f1dba0e1dd764ae72d67c3d5e1471cf14d3db030",
+      "environment_setup_commit": "a5c4eae4e3e419fe95460c9afd9cf39a35a470c4"
+    },
+    "test_info": {
+      "fail_to_pass": [
+        "test/rules/std_L060_test.py::test__rules__std_L060_raised"
+      ],
+      "pass_to_pass": []
+    }
+  },
+  "initial_prompt": "# GitHub Issue: sqlfluff__sqlfluff-2419\n\nRule L060 could give a specific error message\nAt the moment rule L060 flags something like this:\r\n\r\n```\r\nL:  21 | P:   9 | L060 | Use 'COALESCE' instead of 'IFNULL' or 'NVL'.\r\n```\r\n\r\nSince we likely know the wrong word, it might be nice to actually flag that instead of both `IFNULL` and `NVL` - like most of the other rules do.\r\n\r\nThat is it should flag this:\r\n\r\n```\r\nL:  21 | P:   9 | L060 | Use 'COALESCE' instead of 'IFNULL'.\r\n```\r\n Or this:\r\n\r\n```\r\nL:  21 | P:   9 | L060 | Use 'COALESCE' instead of 'NVL'.\r\n```\r\n\r\nAs appropriate.\r\n\r\nWhat do you think @jpy-git ?\r\n\n\n\n# Additional context and hints:\n@tunetheweb Yeah definitely, should be a pretty quick change \ud83d\ude0a\n\n# Repository: sqlfluff/sqlfluff\n# Base commit: f1dba0e1dd764ae72d67c3d5e1471cf14d3db030",
+  "iterations": [
+    {
+      "iteration": 1,
+      "timestamp": "2025-03-25T17:24:21",
+      "prompt": "You are an expert software developer tasked with fixing GitHub issues. You understand how to read issue descriptions, identify the underlying problems, and create patches to fix them. Follow best software engineering practices and ensure your patches are minimal and focused on solving the specific issue.\n\n# GitHub Issue: sqlfluff__sqlfluff-2419\n\n# GitHub Issue: sqlfluff__sqlfluff-2419\n\nRule L060 could give a specific error message\nAt the moment rule L060 flags something like this:\r\n\r\n```\r\nL:  21 | P:   9 | L060 | Use 'COALESCE' instead of 'IFNULL' or 'NVL'.\r\n```\r\n\r\nSince we likely know the wrong word, it might be nice to actually flag that instead of both `IFNULL` and `NVL` - like most of the other rules do.\r\n\r\nThat is it should flag this:\r\n\r\n```\r\nL:  21 | P:   9 | L060 | Use 'COALESCE' instead of 'IFNULL'.\r\n```\r\n Or this:\r\n\r\n```\r\nL:  21 | P:   9 | L060 | Use 'COALESCE' instead of 'NVL'.\r\n```\r\n\r\nAs appropriate.\r\n\r\nWhat do you think @jpy-git ?\r\n\n\n\n# Additional context and hints:\n@tunetheweb Yeah definitely, should be a pretty quick change \ud83d\ude0a\n\n# Repository: sqlfluff/sqlfluff\n# Base commit: f1dba0e1dd764ae72d67c3d5e1471cf14d3db030\n\n# Repository Information\nRepository: sqlfluff/sqlfluff\nBase commit: f1dba0e1dd764ae72d67c3d5e1471cf14d3db030\n\n# Task\nYour task is to create a patch that fixes this issue. The patch should be in the format of a git diff.\nFocus on creating a minimal change that addresses the issue while maintaining the code's integrity.\n\nPlease provide a patch in git diff format.\n",
+      "solution": "```diff\n--- a/sqlfluff/rules/L060.py.orig\t2023-08-01 13:45:58 UTC\n+++ sqlfluff/rules/L060.py\n@@ -12,7 +12,7 @@ def _eval(node):\n         if (\n             node.type == \"function\"\n             and node.name == \"IFNULL\"\n-            and len(node.children) == 2\n+            and node.name.lower() == \"ifnull\"  # Flagging IFNULL as well as NVL\n             and node.children[0].type == \"expression\"\n             and node.children[1].type == \"expression\":\n     return True\n```\n\n---\n\n--- a/sqlfluff/rules/L060.py.orig\t2023-08-01 13:45:58 UTC\n+++ sqlfluff/rules/L060.py\n@@ -12,7 +12,7 @@ def _eval(node):\n         if (\n             node.type == \"function\"\n             and node.name == \"IFNULL\"\n-            and len(node.children) == 2\n+            and (node.name.lower() == \"ifnull\" or node.name.lower() == \"nvl\")  # Flagging both IFNULL and NVL\n             and node.children[0].type == \"expression\"\n             and node.children[1].type == \"expression\":\n     return True",
+      "patch_text": "```diff\n--- a/sqlfluff/rules/L060.py.orig\t2023-08-01 13:45:58 UTC\n+++ sqlfluff/rules/L060.py\n@@ -12,7 +12,7 @@ def _eval(node):\n         if (\n             node.type == \"function\"\n             and node.name == \"IFNULL\"\n-            and len(node.children) == 2\n+            and node.name.lower() == \"ifnull\"  # Flagging IFNULL as well as NVL\n             and node.children[0].type == \"expression\"\n             and node.children[1].type == \"expression\":\n     return True\n```\n\n---\n\n--- a/sqlfluff/rules/L060.py.orig\t2023-08-01 13:45:58 UTC\n+++ sqlfluff/rules/L060.py\n@@ -12,7 +12,7 @@ def _eval(node):\n         if (\n             node.type == \"function\"\n             and node.name == \"IFNULL\"\n-            and len(node.children) == 2\n+            and (node.name.lower() == \"ifnull\" or node.name.lower() == \"nvl\")  # Flagging both IFNULL and NVL\n             and node.children[0].type == \"expression\"\n             and node.children[1].type == \"expression\":\n     return True",
+      "execution_output": "",
+      "execution_errors": "Error applying patch: Git apply failed: error: corrupt patch at line 27\n",
+      "execution_result": {
+        "success": false,
+        "stdout": "",
+        "stderr": "Error applying patch: Git apply failed: error: corrupt patch at line 27\n",
+        "has_output": false,
+        "has_errors": true,
+        "error_line": 27
+      },
+      "code_metrics": {
+        "line_count": 27,
+        "char_count": 967,
+        "complexity": 2,
+        "blank_lines": 2,
+        "comment_lines": 0,
+        "docstring_lines": 0,
+        "code_lines": 25,
+        "imports_count": 0,
+        "function_count": 0,
+        "class_count": 0,
+        "has_syntax_errors": true
+      },
+      "comparison": null,
+      "is_best": true,
+      "reflection_prompt": "You are an expert software developer tasked with fixing GitHub issues. You understand how to read issue descriptions, identify the underlying problems, and create patches to fix them. Follow best software engineering practices and ensure your patches are minimal and focused on solving the specific issue.\n\n# GitHub Issue: sqlfluff__sqlfluff-2419\n\n# GitHub Issue: sqlfluff__sqlfluff-2419\n\nRule L060 could give a specific error message\nAt the moment rule L060 flags something like this:\r\n\r\n```\r\nL:  21 | P:   9 | L060 | Use 'COALESCE' instead of 'IFNULL' or 'NVL'.\r\n```\r\n\r\nSince we likely know the wrong word, it might be nice to actually flag that instead of both `IFNULL` and `NVL` - like most of the other rules do.\r\n\r\nThat is it should flag this:\r\n\r\n```\r\nL:  21 | P:   9 | L060 | Use 'COALESCE' instead of 'IFNULL'.\r\n```\r\n Or this:\r\n\r\n```\r\nL:  21 | P:   9 | L060 | Use 'COALESCE' instead of 'NVL'.\r\n```\r\n\r\nAs appropriate.\r\n\r\nWhat do you think @jpy-git ?\r\n\n\n\n# Additional context and hints:\n@tunetheweb Yeah definitely, should be a pretty quick change \ud83d\ude0a\n\n# Repository: sqlfluff/sqlfluff\n# Base commit: f1dba0e1dd764ae72d67c3d5e1471cf14d3db030\n\n# Your Previous Solution\n```diff\n--- a/sqlfluff/rules/L060.py.orig\t2023-08-01 13:45:58 UTC\n+++ sqlfluff/rules/L060.py\n@@ -12,7 +12,7 @@ def _eval(node):\n         if (\n             node.type == \"function\"\n             and node.name == \"IFNULL\"\n-            and len(node.children) == 2\n+            and node.name.lower() == \"ifnull\"  # Flagging IFNULL as well as NVL\n             and node.children[0].type == \"expression\"\n             and node.children[1].type == \"expression\":\n     return True\n```\n\n---\n\n--- a/sqlfluff/rules/L060.py.orig\t2023-08-01 13:45:58 UTC\n+++ sqlfluff/rules/L060.py\n@@ -12,7 +12,7 @@ def _eval(node):\n         if (\n             node.type == \"function\"\n             and node.name == \"IFNULL\"\n-            and len(node.children) == 2\n+            and (node.name.lower() == \"ifnull\" or node.name.lower() == \"nvl\")  # Flagging both IFNULL and NVL\n             and node.children[0].type == \"expression\"\n             and node.children[1].type == \"expression\":\n     return True\n\n# Test Results\nNo test output\n\n# Errors\nError applying patch: Git apply failed: error: corrupt patch at line 27\n\n\n# Task\nBased on the test results above, please refine your solution. The patch should be in the format of a git diff.\nFocus on creating a minimal change that addresses the issue while maintaining the code's integrity.\nMake sure your solution passes all the required tests.\n\nPlease provide your refined patch in git diff format.\n",
+      "refined_solution": "```diff\n--- a/sqlfluff/rules/L060.py.orig\t2023-08-01 13:45:58 UTC\n+++ sqlfluff/rules/L060.py\n@@ -12,7 +12,7 @@ def _eval(node):\n         if (\n             node.type == \"function\"\n             and node.name == \"IFNULL\"\n-            and len(node.children) == 2\n+            and any(name.lower() == \"ifnull\" for name in [\"ifnull\", \"nvl\"])  # Flagging both IFNULL and NVL\n             and node.children[0].type == \"expression\"\n             and node.children[1].type == \"expression\":\n     return True\n```"
+    },
+    {
+      "iteration": 2,
+      "timestamp": "2025-03-25T17:25:03",
+      "prompt": "You are an expert software developer tasked with fixing GitHub issues. You understand how to read issue descriptions, identify the underlying problems, and create patches to fix them. Follow best software engineering practices and ensure your patches are minimal and focused on solving the specific issue.\n\n# GitHub Issue: sqlfluff__sqlfluff-2419\n\n```diff\n--- a/sqlfluff/rules/L060.py.orig\t2023-08-01 13:45:58 UTC\n+++ sqlfluff/rules/L060.py\n@@ -12,7 +12,7 @@ def _eval(node):\n         if (\n             node.type == \"function\"\n             and node.name == \"IFNULL\"\n-            and len(node.children) == 2\n+            and any(name.lower() == \"ifnull\" for name in [\"ifnull\", \"nvl\"])  # Flagging both IFNULL and NVL\n             and node.children[0].type == \"expression\"\n             and node.children[1].type == \"expression\":\n     return True\n```\n\n# Repository Information\nRepository: sqlfluff/sqlfluff\nBase commit: f1dba0e1dd764ae72d67c3d5e1471cf14d3db030\n\n# Task\nYour task is to create a patch that fixes this issue. The patch should be in the format of a git diff.\nFocus on creating a minimal change that addresses the issue while maintaining the code's integrity.\n\nPlease provide a patch in git diff format.\n",
+      "solution": "```diff\ndiff --git a/sqlfluff/rules/L060.py b/sqlfluff/rules/L060.py\nindex 1a3f6b7..a6d0fbd 100644\n--- a/sqlfluff/rules/L060.py\n+++ b/sqlfluff/rules/L060.py\n@@ -12,7 +12,7 @@ def _eval(node):\n         if (\n             node.type == \"function\"\n             and node.name == \"IFNULL\"\n-            and len(node.children) == 2\n+            and (node.name.lower() == \"ifnull\" or any(c.name.lower() == \"ifnull\" for c in node.children))  # Check function name or child names\n             and node.children[0].type == \"expression\"\n             and node.children[1].type == \"expression\":\n     return True\n```",
+      "patch_text": "```diff\ndiff --git a/sqlfluff/rules/L060.py b/sqlfluff/rules/L060.py\nindex 1a3f6b7..a6d0fbd 100644\n--- a/sqlfluff/rules/L060.py\n+++ b/sqlfluff/rules/L060.py\n@@ -12,7 +12,7 @@ def _eval(node):\n         if (\n             node.type == \"function\"\n             and node.name == \"IFNULL\"\n-            and len(node.children) == 2\n+            and (node.name.lower() == \"ifnull\" or any(c.name.lower() == \"ifnull\" for c in node.children))  # Check function name or child names\n             and node.children[0].type == \"expression\"\n             and node.children[1].type == \"expression\":\n     return True\n```",
+      "execution_output": "",
+      "execution_errors": "Error applying patch: Git apply failed: error: sqlfluff/rules/L060.py: No such file or directory\n",
+      "execution_result": {
+        "success": false,
+        "stdout": "",
+        "stderr": "Error applying patch: Git apply failed: error: sqlfluff/rules/L060.py: No such file or directory\n",
+        "has_output": false,
+        "has_errors": true
+      },
+      "code_metrics": {
+        "line_count": 15,
+        "char_count": 599,
+        "complexity": 2,
+        "blank_lines": 0,
+        "comment_lines": 0,
+        "docstring_lines": 0,
+        "code_lines": 15,
+        "imports_count": 0,
+        "function_count": 0,
+        "class_count": 0,
+        "has_syntax_errors": true
+      },
+      "comparison": {
+        "line_count_diff": -12,
+        "char_count_diff": -368,
+        "complexity_diff": 0,
+        "similarity": 0.6885245901639344,
+        "improvements": [
+          "more_concise"
+        ]
+      },
+      "is_best": false,
+      "reflection_prompt": "You are an expert software developer tasked with fixing GitHub issues. You understand how to read issue descriptions, identify the underlying problems, and create patches to fix them. Follow best software engineering practices and ensure your patches are minimal and focused on solving the specific issue.\n\n# GitHub Issue: sqlfluff__sqlfluff-2419\n\n```diff\n--- a/sqlfluff/rules/L060.py.orig\t2023-08-01 13:45:58 UTC\n+++ sqlfluff/rules/L060.py\n@@ -12,7 +12,7 @@ def _eval(node):\n         if (\n             node.type == \"function\"\n             and node.name == \"IFNULL\"\n-            and len(node.children) == 2\n+            and any(name.lower() == \"ifnull\" for name in [\"ifnull\", \"nvl\"])  # Flagging both IFNULL and NVL\n             and node.children[0].type == \"expression\"\n             and node.children[1].type == \"expression\":\n     return True\n```\n\n# Your Previous Solution\n```diff\ndiff --git a/sqlfluff/rules/L060.py b/sqlfluff/rules/L060.py\nindex 1a3f6b7..a6d0fbd 100644\n--- a/sqlfluff/rules/L060.py\n+++ b/sqlfluff/rules/L060.py\n@@ -12,7 +12,7 @@ def _eval(node):\n         if (\n             node.type == \"function\"\n             and node.name == \"IFNULL\"\n-            and len(node.children) == 2\n+            and (node.name.lower() == \"ifnull\" or any(c.name.lower() == \"ifnull\" for c in node.children))  # Check function name or child names\n             and node.children[0].type == \"expression\"\n             and node.children[1].type == \"expression\":\n     return True\n```\n\n# Test Results\nNo test output\n\n# Errors\nError applying patch: Git apply failed: error: sqlfluff/rules/L060.py: No such file or directory\n\n\n# Task\nBased on the test results above, please refine your solution. The patch should be in the format of a git diff.\nFocus on creating a minimal change that addresses the issue while maintaining the code's integrity.\nMake sure your solution passes all the required tests.\n\nPlease provide your refined patch in git diff format.\n",
+      "refined_solution": "```diff\ndiff --git a/sqlfluff/rules/L060.py b/sqlfluff/rules/L060.py\nindex 1a3f6b7..a6d0fbd 100644\n--- a/sqlfluff/rules/L060.py\n+++ b/sqlfluff/rules/L060.py\n@@ -12,7 +12,7 @@ def _eval(node):\n         if (\n             node.type == \"function\"\n             and node.name == \"IFNULL\"\n-            and len(node.children) == 2\n+            and (node.name.lower() == \"ifnull\" or any(c.name.lower() == \"ifnull\" for c in node.children))  # Check function name or child names\n             and node.children[0].type == \"expression\"\n             and node.children[1].type == \"expression\":\n     return True\n```"
+    }
+  ],
+  "metrics": {
+    "start_time": "2025-03-25T17:23:25.378137",
+    "end_time": "2025-03-25T17:25:03.088807",
+    "total_iterations": 4,
+    "successful_iterations": 4,
+    "failed_iterations": 0,
+    "total_tokens_used": 2069,
+    "average_generation_time": 24.36512976884842
+  },
+  "best_solution": "```diff\n--- a/sqlfluff/rules/L060.py.orig\t2023-08-01 13:45:58 UTC\n+++ sqlfluff/rules/L060.py\n@@ -12,7 +12,7 @@ def _eval(node):\n         if (\n             node.type == \"function\"\n             and node.name == \"IFNULL\"\n-            and len(node.children) == 2\n+            and node.name.lower() == \"ifnull\"  # Flagging IFNULL as well as NVL\n             and node.children[0].type == \"expression\"\n             and node.children[1].type == \"expression\":\n     return True\n```\n\n---\n\n--- a/sqlfluff/rules/L060.py.orig\t2023-08-01 13:45:58 UTC\n+++ sqlfluff/rules/L060.py\n@@ -12,7 +12,7 @@ def _eval(node):\n         if (\n             node.type == \"function\"\n             and node.name == \"IFNULL\"\n-            and len(node.children) == 2\n+            and (node.name.lower() == \"ifnull\" or node.name.lower() == \"nvl\")  # Flagging both IFNULL and NVL\n             and node.children[0].type == \"expression\"\n             and node.children[1].type == \"expression\":\n     return True",
+  "best_iteration": 1,
+  "success": false
+}
