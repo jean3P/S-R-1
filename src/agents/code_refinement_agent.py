@@ -48,9 +48,22 @@ class CodeRefinementAgent(BaseAgent):
             # Record metrics
             self._record_generation(tokens_used, generation_time, True)
 
-            # Step 2: Extract code from solution
-            code_blocks = extract_code_blocks(solution)
-            code = code_blocks[0] if code_blocks else solution
+            # >>> DETECT A SWE-BENCH TASK <<<
+            is_swe_bench = False
+            # Example detection if your SWEBenchDataset sets a "type" or if there's repo_info:
+            if task.get("repo_info") and task.get("name", "").startswith("sqlfluff__"):
+                # or check 'swe_bench' key in dataset config, etc.
+                is_swe_bench = True
+
+            if is_swe_bench:
+                # Step 2 (SWE-bench mode): Just treat the entire solution as the patch (no Python extraction)
+                code = solution  # The entire text is presumably a 'git diff'
+            else:
+                # Step 2 (normal code mode): Extract code from solution
+                code_blocks = extract_code_blocks(solution)
+                code = code_blocks[0] if code_blocks else solution
+
+            self.evaluator.config["task"] = task
 
             # Step 3: Evaluate the generated code
             output, errors = self.evaluator.evaluate(code)

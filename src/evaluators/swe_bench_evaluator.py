@@ -38,6 +38,7 @@ class SWEBenchEvaluator(BaseEvaluator):
         Returns:
             Tuple of (output, errors)
         """
+        task = self.config.get("task")
         if not task:
             return "", "Error: Task information is required for SWE-bench evaluation"
 

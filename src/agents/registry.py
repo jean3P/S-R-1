@@ -1,5 +1,7 @@
 # src/agents/registry.py
 from typing import Dict, Any, Type, Optional
+
+from src.agents.patch_refinement_agent import PatchRefinementAgent
 from src.agents.base_agent import BaseAgent
 from src.agents.code_refinement_agent import CodeRefinementAgent
 from src.agents.reasoning_agent import ReasoningAgent
@@ -13,6 +15,7 @@ logger = get_logger("agent_registry")
 AGENT_REGISTRY = {
     "code_refinement": CodeRefinementAgent,
     "reasoning": ReasoningAgent,
+    "patch_refinement": PatchRefinementAgent,
     # Add more agent types as they are implemented
 }
 
