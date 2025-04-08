@@ -138,13 +138,21 @@ class TreeOfThoughtPatchAgent(BaseAgent):
                 self.logger.info(f"Generation completed in {generation_time:.2f}s")
 
                 # Extract patch if present
-                patches = extract_patches(solution)
+                patches = self._extract_patches_improved(solution)
                 patch = patches[0] if patches else None
                 
                 if patch:
                     self.logger.info(f"Extracted patch of length {len(patch)}")
                 else:
                     self.logger.info("No patch extracted from response")
+                    # Try to extract patch from code blocks if no patch was found
+                    import re
+                    code_blocks = re.findall(r'```(?:diff)?(.*?)```', solution, re.DOTALL)
+                    for block in code_blocks:
+                        if 'diff --git' in block or '+++' in block or '---' in block:
+                            patch = block.strip()
+                            self.logger.info(f"Extracted patch from code block, length: {len(patch)}")
+                            break
 
                 # Create branch node
                 branch_id = f"{parent_node['id']}-{depth}-{i}"
@@ -178,6 +186,59 @@ class TreeOfThoughtPatchAgent(BaseAgent):
                 }
 
         return branches
+        
+    def _extract_patches_improved(self, text: str) -> List[str]:
+        """
+        Extract patches from text with improved heuristics.
+        
+        This method uses multiple strategies to find git patches in the text:
+        1. Look for standard diff format
+        2. Look for code blocks that might contain patches
+        3. Look for sections that have patch-like formatting
+        
+        Args:
+            text: Text to extract patches from
+            
+        Returns:
+            List of extracted patches
+        """
+        import re
+        
+        # First try the standard extract_patches function
+        patches = extract_patches(text)
+        if patches:
+            return patches
+            
+        # Try to find diff blocks
+        diff_blocks = []
+        
+        # Look for diff --git style patches
+        diff_pattern = re.compile(r'diff --git.*?(?=diff --git|\Z)', re.DOTALL)
+        matches = diff_pattern.findall(text)
+        diff_blocks.extend(matches)
+        
+        # Look for +++ and --- style patches
+        plusminus_pattern = re.compile(r'(?:---.*?\n\+\+\+.*?\n)(?:@@.*?@@.*?)(?=\n---|\Z)', re.DOTALL)
+        matches = plusminus_pattern.findall(text)
+        diff_blocks.extend(matches)
+        
+        # Look for code blocks that might contain patches
+        code_block_pattern = re.compile(r'```(?:diff)?(.*?)```', re.DOTALL)
+        code_blocks = code_block_pattern.findall(text)
+        
+        for block in code_blocks:
+            if 'diff --git' in block or '+++' in block or '---' in block or '@@ ' in block:
+                diff_blocks.append(block.strip())
+                
+        # Clean up and return unique patches
+        cleaned_patches = []
+        for patch in diff_blocks:
+            # Clean up the patch
+            patch = patch.strip()
+            if patch and len(patch) > 10:  # Minimum size for a valid patch
+                cleaned_patches.append(patch)
+                
+        return list(set(cleaned_patches))
 
     def _create_branch_prompt(self, parent_node: Dict[str, Any], depth: int, branch_index: int) -> str:
         """Create a prompt for a specific reasoning branch."""
@@ -218,16 +279,32 @@ class TreeOfThoughtPatchAgent(BaseAgent):
             self.logger.info("Evaluating patch with evaluator")
             
             # Ensure task has required fields for SWE-bench evaluation
-            if self.task and not self.task.get("repo_info"):
+            if self.task is None:
+                self.logger.error("Task is None, cannot evaluate")
+                return {"success": False, "error": "Task information is missing"}
+                
+            # Create a deep copy of the task to avoid modifying the original
+            import copy
+            task_copy = copy.deepcopy(self.task)
+            
+            # Ensure repo_info exists and has required fields
+            if not task_copy.get("repo_info"):
                 self.logger.warning("Task missing repo_info, adding placeholder")
-                self.task["repo_info"] = {
-                    "repo": self.task.get("repo", "unknown"),
-                    "base_commit": self.task.get("base_commit", "unknown")
+                task_copy["repo_info"] = {
+                    "repo": task_copy.get("repo", "unknown"),
+                    "base_commit": task_copy.get("base_commit", "unknown")
                 }
+            else:
+                # Ensure repo_info has required fields
+                repo_info = task_copy["repo_info"]
+                if not repo_info.get("repo"):
+                    repo_info["repo"] = task_copy.get("repo", "unknown")
+                if not repo_info.get("base_commit"):
+                    repo_info["base_commit"] = task_copy.get("base_commit", "unknown")
             
             # Wrap in try-except to catch any evaluator errors
             try:
-                output, errors = self.evaluator.evaluate(patch, task=self.task)
+                output, errors = self.evaluator.evaluate(patch, task=task_copy)
             except Exception as eval_error:
                 self.logger.error(f"Evaluator error: {str(eval_error)}")
                 return {
