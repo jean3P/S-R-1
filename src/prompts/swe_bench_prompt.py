@@ -361,32 +361,74 @@ class SWEBenchPrompt(BasePrompt):
 
         return result
 
-    # Implementation in src/prompts/swe_bench_prompt.py:
     def format_tot_reasoning(self, original_prompt: str, parent_reasoning: str,
                              depth: int, strategy: str, task: Dict[str, Any]) -> str:
         """
         Format a prompt for Tree of Thought reasoning about GitHub patches.
+        
+        Args:
+            original_prompt: Original problem statement
+            parent_reasoning: Reasoning from parent node
+            depth: Current reasoning depth
+            strategy: Reasoning strategy to focus on
+            task: Task details
+            
+        Returns:
+            Formatted ToT reasoning prompt
         """
+        self.logger.info(f"[SWE-BENCH PROMPT] Formatting Tree of Thought reasoning prompt (depth: {depth})")
+        
         repo_info = task.get("repo_info", {})
-
-        template = f"""# GitHub Issue: {task.get('name', '')}
-
-        {original_prompt}
-    
-        # Repository Informatio Repository: {repo_info.get('repo', '')} Base commit: {repo_info.get('base_commit', '')}
-    
-        # Tree of Thought Reasoning (Depth {depth}) You are exploring different reasoning paths to solve this problem.  Focus on: {strategy}
-    
-        # Previous Reasoning {parent_reasoning}
-    
-        # Instructions
-        1. Analyze the problem and previous reasoning carefully
-        2. Think step-by-step about the best approach
-        3. Consider potential solutions and their implications
-        4. Develop a specific patch to solve the issue
-        5. Output your reasoning and a complete git patch in standard diff format
-    
-        Please provide your complete reasoning and patch.
-        """
-            return template
+        repo_name = repo_info.get("repo", "")
+        base_commit = repo_info.get("base_commit", "")
+        
+        # Prepare variables for template
+        variables = {
+            "issue_id": task.get("name", ""),
+            "original_prompt": original_prompt,
+            "parent_reasoning": parent_reasoning,
+            "depth": depth,
+            "strategy": strategy,
+            "repo": repo_name,
+            "base_commit": base_commit
+        }
+        
+        # Check if we have a ToT template in config
+        if "tot_reasoning" in self.templates:
+            self.logger.info(f"[SWE-BENCH PROMPT] Using custom ToT reasoning template from config")
+            template = self.templates["tot_reasoning"]
+        else:
+            # Default template
+            self.logger.info(f"[SWE-BENCH PROMPT] Using default ToT reasoning template")
+            template = (
+                "# GitHub Issue: {issue_id}\n\n"
+                "{original_prompt}\n\n"
+                "# Repository Information\n"
+                "Repository: {repo}\n"
+                "Base commit: {base_commit}\n\n"
+                "# Tree of Thought Reasoning (Depth {depth})\n"
+                "You are exploring different reasoning paths to solve this problem.\n"
+                "Focus on: {strategy}\n\n"
+                "# Previous Reasoning\n{parent_reasoning}\n\n"
+                "# Instructions\n"
+                "1. Analyze the problem and previous reasoning carefully\n"
+                "2. Think step-by-step about the best approach\n"
+                "3. Consider potential solutions and their implications\n"
+                "4. Develop a specific patch to solve the issue\n"
+                "5. Output your reasoning and a complete git patch in standard diff format\n\n"
+                "Please provide your complete reasoning and patch."
+            )
+        
+        # Merge with default variables
+        variables = self._merge_variables(variables)
+        
+        # Format the template
+        formatted_prompt = self._format_template(template, variables)
+        
+        # Add system message if available and not already included
+        if self.system_message and "{system_message}" not in template:
+            formatted_prompt = f"{self.system_message}\n\n{formatted_prompt}"
+            
+        self.logger.info(f"[SWE-BENCH PROMPT] ToT reasoning prompt length: {len(formatted_prompt)} chars")
+        return formatted_prompt
 
