@@ -251,7 +251,25 @@ class TreeOfThoughtPatchAgent(BaseAgent):
         start_time = time.time()
         
         try:
-            self.knowledge_graph.build_graph()
+            # Limit the number of files to process for large repositories
+            max_files = self.config.get("kg_max_files", 300)
+            
+            # Get Python files in the repository
+            python_files = []
+            for root, _, files in os.walk(repo_path):
+                for file in files:
+                    if file.endswith('.py'):
+                        python_files.append(os.path.join(root, file))
+                        if len(python_files) >= max_files:
+                            break
+                if len(python_files) >= max_files:
+                    break
+            
+            self.logger.info(f"Building knowledge graph from {len(python_files)} files (limited to {max_files})")
+            
+            # Build the graph with the limited set of files
+            self.knowledge_graph.build_graph(python_files)
+            
             build_time = time.time() - start_time
             self.logger.info(f"✅ Knowledge graph built in {build_time:.2f} seconds")
             

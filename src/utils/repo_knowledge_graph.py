@@ -221,7 +221,19 @@ class RepoKnowledgeGraph:
             if isinstance(base, ast.Name):
                 bases.append(base.id)
             elif isinstance(base, ast.Attribute):
-                bases.append(f"{base.value.id}.{base.attr}")
+                # Handle more complex attribute chains
+                try:
+                    if isinstance(base.value, ast.Name):
+                        bases.append(f"{base.value.id}.{base.attr}")
+                    else:
+                        # For more complex expressions, use ast.unparse if available
+                        try:
+                            bases.append(ast.unparse(base))
+                        except (AttributeError, ValueError):
+                            # Fallback for older Python versions
+                            bases.append(f"<complex>.{base.attr}")
+                except Exception as e:
+                    self.logger.debug(f"Error extracting base class: {e}")
 
         # Get class source code
         start_line = node.lineno - 1
@@ -296,10 +308,25 @@ class RepoKnowledgeGraph:
         # Extract return annotation if available
         returns = None
         if node.returns:
-            if isinstance(node.returns, ast.Name):
-                returns = node.returns.id
-            elif isinstance(node.returns, ast.Subscript):
-                returns = ast.unparse(node.returns)
+            try:
+                if isinstance(node.returns, ast.Name):
+                    returns = node.returns.id
+                elif isinstance(node.returns, ast.Subscript):
+                    # Use ast.unparse if available (Python 3.9+)
+                    try:
+                        returns = ast.unparse(node.returns)
+                    except (AttributeError, ValueError):
+                        # Fallback for older Python versions
+                        returns = "complex_type"
+                else:
+                    # For other types of annotations
+                    try:
+                        returns = ast.unparse(node.returns)
+                    except (AttributeError, ValueError):
+                        returns = "complex_type"
+            except Exception as e:
+                self.logger.debug(f"Error extracting return annotation: {e}")
+                returns = "unknown"
 
         # Get function source code
         start_line = node.lineno - 1
@@ -348,38 +375,54 @@ class RepoKnowledgeGraph:
 
         for subnode in ast.walk(node):
             if isinstance(subnode, ast.Call):
-                if isinstance(subnode.func, ast.Name):
-                    calls.add(subnode.func.id)
-                elif isinstance(subnode.func, ast.Attribute):
-                    if isinstance(subnode.func.value, ast.Name):
-                        calls.add(f"{subnode.func.value.id}.{subnode.func.attr}")
+                try:
+                    if isinstance(subnode.func, ast.Name):
+                        calls.add(subnode.func.id)
+                    elif isinstance(subnode.func, ast.Attribute):
+                        if isinstance(subnode.func.value, ast.Name):
+                            calls.add(f"{subnode.func.value.id}.{subnode.func.attr}")
+                        else:
+                            # For more complex expressions, just add the method name
+                            calls.add(subnode.func.attr)
+                except Exception as e:
+                    self.logger.debug(f"Error extracting function call: {e}")
 
         return calls
 
     def _build_cross_file_relationships(self) -> None:
         """Build relationships between entities across different files."""
         # Find all class inheritance relationships
+        inheritance_edges = []
         for node_id, node_data in self.graph.nodes(data=True):
             if node_data.get('type') == 'class':
                 for base in node_data.get('bases', []):
+                    # Extract the base class name (last part after dot)
+                    base_name = base.split('.')[-1]
                     # Look for the base class in the graph
                     for other_id, other_data in self.graph.nodes(data=True):
                         if (other_data.get('type') == 'class' and
-                                other_data.get('name') == base.split('.')[-1]):
-                            self.graph.add_edge(node_id, other_id, type="inherits_from")
+                                other_data.get('name') == base_name):
+                            inheritance_edges.append((node_id, other_id, {"type": "inherits_from"}))
+        
+        # Add all inheritance edges at once
+        self.graph.add_edges_from(inheritance_edges)
 
         # Find all function call relationships
+        call_edges = []
         for node_id, node_data in self.graph.nodes(data=True):
             if node_data.get('type') in ('function', 'method'):
                 # Get outgoing call edges
-                for _, target_id, edge_data in self.graph.out_edges(node_id, data=True):
+                for _, target_id, edge_data in list(self.graph.out_edges(node_id, data=True)):
                     if edge_data.get('type') == 'calls':
                         # Find the actual function node
                         target_name = target_id.split(':')[-1]
                         for other_id, other_data in self.graph.nodes(data=True):
                             if (other_data.get('type') in ('function', 'method') and
                                     other_data.get('name') == target_name):
-                                self.graph.add_edge(node_id, other_id, type="calls")
+                                call_edges.append((node_id, other_id, {"type": "calls"}))
+        
+        # Add all call edges at once
+        self.graph.add_edges_from(call_edges)
 
     def _generate_embeddings(self) -> None:
         """Generate embeddings for all entities in the graph."""
