@@ -287,7 +287,6 @@ class TreeOfThoughtPatchAgent(BaseAgent):
         Returns:
             List of extracted patches
         """
-        import re
         
         # First try the standard extract_patches function
         patches = extract_patches(text)
