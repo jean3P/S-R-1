@@ -1,6 +1,8 @@
 # src/agents/tree_of_thought_patch_agent.py
 
-from typing import Dict, Any, List
+import os
+import re
+from typing import Dict, Any, List, Optional
 from src.agents.base_agent import BaseAgent
 from src.utils.parsing import extract_patches
 
@@ -368,7 +370,6 @@ class TreeOfThoughtPatchAgent(BaseAgent):
         Returns:
             List of file paths
         """
-        import re
         
         # Look for file paths with extensions
         file_pattern = re.compile(r'\b([a-zA-Z0-9_/.-]+\.(py|sql|js|html|css|java|cpp|h|md|json|yaml|yml))\b')
@@ -432,7 +433,6 @@ class TreeOfThoughtPatchAgent(BaseAgent):
         Returns:
             File content or None if file cannot be read
         """
-        import os
         
         # Form repository path
         repo_path = os.path.join(self.config.get("repos_dir", "data/repositories"), 
