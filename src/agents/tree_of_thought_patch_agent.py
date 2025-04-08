@@ -42,13 +42,15 @@ class TreeOfThoughtPatchAgent(BaseAgent):
         """
         self._start_metrics()
         self.task = task
-        self.logger.info(f"Starting Tree-of-Thought patch generation for issue")
-        # Log the task structure to see what's actually in it
+        self.logger.info(f"===== STARTING TREE OF THOUGHT PATCH GENERATION =====")
+        self.logger.info(f"Task: {task.get('name')}")
         self.logger.info(f"Task structure: name={task.get('name')}, keys={list(task.keys())}")
         self.logger.info(f"repo_info keys: {list(task.get('repo_info', {}).keys())}")
+        self.logger.info(f"Initial prompt length: {len(initial_prompt)} characters")
         
         # Initialize knowledge graph if enabled
         if self.use_knowledge_graph:
+            self.logger.info(f"Initializing knowledge graph for repository analysis")
             self._initialize_knowledge_graph(task)
 
         # Initialize the reasoning tree with the root node
@@ -63,6 +65,7 @@ class TreeOfThoughtPatchAgent(BaseAgent):
                 "status": "pending"
             }
         }
+        self.logger.info(f"Initialized reasoning tree with root node")
 
         # Track active branches for exploration
         active_branches = ["root"]
@@ -73,22 +76,27 @@ class TreeOfThoughtPatchAgent(BaseAgent):
             "score": float('-inf'),
             "node_id": None
         }
+        self.logger.info(f"Maximum exploration depth: {self.max_depth}, branches per node: {self.max_branches}")
 
         # Execute ToT reasoning process
         for depth in range(1, self.max_depth + 1):
-            self.logger.info(f"Exploring reasoning depth {depth}")
+            self.logger.info(f"===== EXPLORING REASONING DEPTH {depth}/{self.max_depth} =====")
 
             # Set temperature for this depth
             temperature = self.temperature_schedule[min(depth - 1, len(self.temperature_schedule) - 1)]
+            self.logger.info(f"Using temperature {temperature} for depth {depth}")
 
             # Generate and evaluate new branches
             next_active_branches = []
+            self.logger.info(f"Processing {len(active_branches)} active branches at depth {depth}")
 
             for parent_id in active_branches:
                 parent_node = reasoning_tree[parent_id]
+                self.logger.info(f"Generating branches from parent node {parent_id}")
 
                 # Generate branches (different reasoning paths)
                 branches = self._generate_branches(parent_node, depth, temperature, self.max_branches)
+                self.logger.info(f"Generated {len(branches)} branches from parent {parent_id}")
 
                 for branch_id, branch in branches.items():
                     reasoning_tree[branch_id] = branch
@@ -96,6 +104,7 @@ class TreeOfThoughtPatchAgent(BaseAgent):
 
                     # Evaluate the solution if one was generated
                     if branch.get("solution"):
+                        self.logger.info(f"Evaluating solution from branch {branch_id} (length: {len(branch['solution'])})")
                         evaluation = self._evaluate_solution(branch["solution"])
                         branch["evaluation"] = evaluation
 
@@ -105,7 +114,9 @@ class TreeOfThoughtPatchAgent(BaseAgent):
                             best_solution["patch"] = branch["solution"]
                             best_solution["score"] = score
                             best_solution["node_id"] = branch_id
-                            self.logger.info(f"Found better solution with score {score:.2f}")
+                            self.logger.info(f"✅ Found better solution with score {score:.2f} in branch {branch_id}")
+                        else:
+                            self.logger.info(f"Solution score {score:.2f} not better than current best {best_solution['score']:.2f}")
 
                     # Add promising branches to next iteration
                     if branch["status"] == "active":
@@ -117,27 +128,34 @@ class TreeOfThoughtPatchAgent(BaseAgent):
 
             # Early stopping if we've found a good solution
             if best_solution["score"] >= self.config.get("early_stop_threshold", 0.8):
-                self.logger.info(f"Early stopping at depth {depth}: found good solution")
+                self.logger.info(f"🎯 Early stopping at depth {depth}: found good solution with score {best_solution['score']:.2f}")
                 break
 
             # Also stop if we have no active branches
             if not active_branches:
-                self.logger.info(f"Stopping at depth {depth}: no active branches")
+                self.logger.info(f"⛔ Stopping at depth {depth}: no active branches")
                 break
 
         # If we didn't find a solution but generated patches, use the last one
         if best_solution["patch"] is None:
+            self.logger.info(f"No solution evaluated as successful, searching for any valid patch...")
             # Find any branch with a solution
             for branch_id, branch in reasoning_tree.items():
                 if branch.get("solution"):
                     best_solution["patch"] = branch["solution"]
                     best_solution["node_id"] = branch_id
                     best_solution["score"] = 0.5  # Assign a moderate score
-                    self.logger.info(f"No evaluated solution found, using solution from {branch_id}")
+                    self.logger.info(f"Using solution from {branch_id} as fallback (score: 0.5)")
                     break
+            
+            if best_solution["patch"] is None:
+                self.logger.info(f"❌ No valid patch found in any branch")
+            else:
+                self.logger.info(f"Found fallback solution of length {len(best_solution['patch'])}")
 
         # Finalize metrics
         self._end_metrics()
+        self.logger.info(f"Tree of Thought exploration completed in {self.metrics.get('average_generation_time', 0):.2f}s average per branch")
 
         # Extract reasoning path if we have a solution
         reasoning_path = []
@@ -151,6 +169,7 @@ class TreeOfThoughtPatchAgent(BaseAgent):
                     "reasoning": node.get("reasoning", ""),
                     "solution": node.get("solution", "")
                 }]
+                self.logger.info(f"Extracted reasoning path at depth {node['depth']}")
 
         # Prepare results
         results = {
@@ -165,6 +184,11 @@ class TreeOfThoughtPatchAgent(BaseAgent):
         
         # Save results to JSON file if configured
         self._save_results(results, task)
+        
+        self.logger.info(f"===== TREE OF THOUGHT PATCH GENERATION COMPLETED =====")
+        self.logger.info(f"Final solution found: {'Yes' if best_solution['patch'] else 'No'}")
+        self.logger.info(f"Best solution score: {best_solution['score']:.2f}")
+        self.logger.info(f"Solution length: {len(best_solution['patch']) if best_solution['patch'] else 0} characters")
         
         return results
     
@@ -183,16 +207,17 @@ class TreeOfThoughtPatchAgent(BaseAgent):
         repo_name = repo_info.get("repo", "")
         
         if not repo_name:
-            self.logger.warning("Repository name not found in task, knowledge graph disabled")
+            self.logger.warning("⚠️ Repository name not found in task, knowledge graph disabled")
             self.use_knowledge_graph = False
             return
         
         # Form repository path
         repos_dir = self.config.get("repos_dir", "data/repositories")
         repo_path = os.path.join(repos_dir, repo_name.replace("/", "_"))
+        self.logger.info(f"Repository path: {repo_path}")
         
         if not os.path.exists(repo_path):
-            self.logger.warning(f"Repository path not found: {repo_path}, knowledge graph disabled")
+            self.logger.warning(f"⚠️ Repository path not found: {repo_path}, knowledge graph disabled")
             self.use_knowledge_graph = False
             return
         
@@ -201,6 +226,7 @@ class TreeOfThoughtPatchAgent(BaseAgent):
         
         # Check if we have a cached knowledge graph
         cache_file = os.path.join(self.kg_cache_dir, f"{repo_name.replace('/', '_')}.json")
+        self.logger.info(f"Knowledge graph cache file: {cache_file}")
         
         # Initialize knowledge graph
         kg_config = self.config.get("knowledge_graph_config", {})
@@ -208,29 +234,33 @@ class TreeOfThoughtPatchAgent(BaseAgent):
         
         if os.path.exists(cache_file):
             # Load from cache
-            self.logger.info(f"Loading knowledge graph from cache: {cache_file}")
+            self.logger.info(f"📂 Loading knowledge graph from cache: {cache_file}")
             try:
                 self.knowledge_graph.load_graph(cache_file)
-                self.logger.info("Knowledge graph loaded successfully")
+                self.logger.info("✅ Knowledge graph loaded successfully from cache")
                 return
             except Exception as e:
-                self.logger.error(f"Error loading knowledge graph from cache: {e}")
+                self.logger.error(f"❌ Error loading knowledge graph from cache: {e}")
+                self.logger.info("Will build knowledge graph from scratch")
                 # Fall through to build the graph
+        else:
+            self.logger.info("No cached knowledge graph found, building from scratch")
         
         # Build the knowledge graph
-        self.logger.info(f"Building knowledge graph for repository: {repo_name}")
+        self.logger.info(f"🔄 Building knowledge graph for repository: {repo_name}")
         start_time = time.time()
         
         try:
             self.knowledge_graph.build_graph()
             build_time = time.time() - start_time
-            self.logger.info(f"Knowledge graph built in {build_time:.2f} seconds")
+            self.logger.info(f"✅ Knowledge graph built in {build_time:.2f} seconds")
             
             # Save to cache
             self.knowledge_graph.save_graph(cache_file)
-            self.logger.info(f"Knowledge graph saved to cache: {cache_file}")
+            self.logger.info(f"💾 Knowledge graph saved to cache: {cache_file}")
         except Exception as e:
-            self.logger.error(f"Error building knowledge graph: {e}")
+            self.logger.error(f"❌ Error building knowledge graph: {e}")
+            self.logger.warning("Knowledge graph functionality will be disabled")
             self.use_knowledge_graph = False
     
     def _save_results(self, results: Dict[str, Any], task: Dict[str, Any]) -> None:
@@ -283,36 +313,41 @@ class TreeOfThoughtPatchAgent(BaseAgent):
                            temperature: float, max_branches: int) -> Dict[str, Dict[str, Any]]:
         """Generate new reasoning branches from a parent node."""
         branches = {}
+        self.logger.info(f"Generating {max_branches} branches at depth {depth} from parent {parent_node['id']}")
 
         # Create distinct reasoning prompts for different branches
         for i in range(max_branches):
             try:
                 # Generate prompt that includes specific reasoning strategy or focus
+                self.logger.info(f"Creating prompt for branch {i+1}/{max_branches}")
                 branch_prompt = self._create_branch_prompt(parent_node, depth, i)
+                prompt_length = len(branch_prompt)
+                self.logger.info(f"Branch {i+1} prompt created (length: {prompt_length} chars)")
 
                 # Generate a solution for this branch
-                self.logger.info(f"Generating branch {i+1}/{max_branches} at depth {depth} with temperature {temperature}")
+                self.logger.info(f"🔄 Generating branch {i+1}/{max_branches} at depth {depth} with temperature {temperature}")
                 solution, generation_time = self._measure_execution(
                     self.model.generate,
                     branch_prompt
                 )
-                self.logger.info(f"Generation completed in {generation_time:.2f}s")
+                self.logger.info(f"✅ Generation completed in {generation_time:.2f}s (response length: {len(solution)} chars)")
 
                 # Extract patch if present
                 patches = self._extract_patches_improved(solution)
                 patch = patches[0] if patches else None
                 
                 if patch:
-                    self.logger.info(f"Extracted patch of length {len(patch)}")
+                    self.logger.info(f"📄 Extracted patch of length {len(patch)}")
                 else:
-                    self.logger.info("No patch extracted from response")
+                    self.logger.info("⚠️ No patch extracted from response, trying alternative extraction")
                     # Try to extract patch from code blocks if no patch was found
                     import re
                     code_blocks = re.findall(r'```(?:diff)?(.*?)```', solution, re.DOTALL)
+                    self.logger.info(f"Found {len(code_blocks)} code blocks in response")
                     for block in code_blocks:
                         if 'diff --git' in block or '+++' in block or '---' in block:
                             patch = block.strip()
-                            self.logger.info(f"Extracted patch from code block, length: {len(patch)}")
+                            self.logger.info(f"📄 Extracted patch from code block, length: {len(patch)}")
                             break
 
                 # Create branch node
@@ -329,8 +364,14 @@ class TreeOfThoughtPatchAgent(BaseAgent):
                     "children": [],
                     "status": "active" if patch else "terminated"
                 }
+                
+                if patch:
+                    self.logger.info(f"Branch {branch_id} created with valid patch")
+                else:
+                    self.logger.info(f"Branch {branch_id} created but no valid patch found (status: terminated)")
+                
             except Exception as e:
-                self.logger.error(f"Error generating branch {i} at depth {depth}: {str(e)}")
+                self.logger.error(f"❌ Error generating branch {i} at depth {depth}: {str(e)}")
                 # Create a fallback branch node
                 branch_id = f"{parent_node['id']}-{depth}-{i}"
                 branches[branch_id] = {
@@ -345,7 +386,9 @@ class TreeOfThoughtPatchAgent(BaseAgent):
                     "children": [],
                     "status": "terminated"
                 }
+                self.logger.info(f"Created fallback branch {branch_id} due to error")
 
+        self.logger.info(f"Generated {len(branches)} branches, {sum(1 for b in branches.values() if b['status'] == 'active')} active")
         return branches
         
     def _extract_patches_improved(self, text: str) -> List[str]:
@@ -693,23 +736,23 @@ class TreeOfThoughtPatchAgent(BaseAgent):
 
         # Use the evaluator to test the patch
         try:
-            self.logger.info("Evaluating patch with evaluator")
+            self.logger.info("🧪 Evaluating patch with evaluator")
 
             # Ensure task has required fields for SWE-bench evaluation
             if self.task is None:
-                self.logger.error("Task is None, cannot evaluate")
+                self.logger.error("❌ Task is None, cannot evaluate")
                 return {"success": False, "error": "Task information is missing"}
 
             # Ensure task has the required structure before passing to evaluator
             if not isinstance(self.task, dict):
-                self.logger.error(f"Task is not a dictionary: {type(self.task)}")
+                self.logger.error(f"❌ Task is not a dictionary: {type(self.task)}")
                 return {"success": False, "error": "Task is not in the correct format"}
                 
             # Ensure task has the minimum required fields
             required_fields = ['name', 'repo_info', 'test_info']
             missing_fields = [field for field in required_fields if field not in self.task]
             if missing_fields:
-                self.logger.error(f"Task is missing required fields: {missing_fields}")
+                self.logger.error(f"❌ Task is missing required fields: {missing_fields}")
                 return {"success": False, "error": f"Task is missing required fields: {missing_fields}"}
                 
             # Log task structure for debugging
@@ -718,8 +761,14 @@ class TreeOfThoughtPatchAgent(BaseAgent):
             self.logger.info(f"test_info keys: {list(self.task.get('test_info', {}).keys())}")
 
             # Call evaluate with the task as a keyword argument
+            self.logger.info(f"Calling evaluator with patch of length {len(patch)}")
             output, errors = self.evaluator.evaluate(patch, task=self.task)
 
+            if errors:
+                self.logger.info(f"❌ Evaluation failed with errors: {errors[:100]}...")
+            else:
+                self.logger.info(f"✅ Evaluation succeeded")
+                
             self.logger.info(
                 f"Evaluation result: output={output[:100] if output else ''}, errors={errors[:100] if errors else 'None'}")
 
@@ -730,7 +779,7 @@ class TreeOfThoughtPatchAgent(BaseAgent):
                 "errors": errors
             }
         except Exception as eval_error:
-            self.logger.error(f"Evaluator error: {str(eval_error)}")
+            self.logger.error(f"❌ Evaluator error: {str(eval_error)}")
             return {
                 "success": False,
                 "output": "",
@@ -763,11 +812,17 @@ class TreeOfThoughtPatchAgent(BaseAgent):
     def _select_branches(self, branches: List[str], reasoning_tree: Dict[str, Dict[str, Any]]) -> List[str]:
         """Select which branches to continue exploring."""
         if not branches:
+            self.logger.info("No branches to select from")
             return []
+
+        self.logger.info(f"Selecting branches using strategy: {self.selection_strategy}")
+        self.logger.info(f"Selecting from {len(branches)} candidate branches")
 
         if self.selection_strategy == "breadth_first":
             # Explore all branches up to max_branches
-            return branches[:self.max_branches]
+            selected = branches[:self.max_branches]
+            self.logger.info(f"Breadth-first selection: {len(selected)}/{len(branches)} branches")
+            return selected
 
         elif self.selection_strategy == "best_first":
             # Sort branches by evaluation score and take the best ones
@@ -792,8 +847,15 @@ class TreeOfThoughtPatchAgent(BaseAgent):
             # Sort by score (descending) and take top branches
             scored_branches.sort(key=lambda x: x[1], reverse=True)
             selected = [branch_id for branch_id, _ in scored_branches[:self.max_branches]]
-            self.logger.info(f"Selected branches: {selected}")
+            
+            # Log selection details
+            self.logger.info(f"Best-first selection: {len(selected)}/{len(branches)} branches")
+            if selected:
+                top_scores = [f"{branch_id}:{score:.2f}" for branch_id, score in scored_branches[:self.max_branches]]
+                self.logger.info(f"Top branches: {', '.join(top_scores)}")
+            
             return selected
 
         else:  # Default to all branches
+            self.logger.info(f"Using default selection strategy (all branches)")
             return branches
