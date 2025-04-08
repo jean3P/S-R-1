@@ -125,34 +125,57 @@ class TreeOfThoughtPatchAgent(BaseAgent):
 
         # Create distinct reasoning prompts for different branches
         for i in range(max_branches):
-            # Generate prompt that includes specific reasoning strategy or focus
-            branch_prompt = self._create_branch_prompt(parent_node, depth, i)
+            try:
+                # Generate prompt that includes specific reasoning strategy or focus
+                branch_prompt = self._create_branch_prompt(parent_node, depth, i)
 
-            # Generate a solution for this branch
-            solution, generation_time = self._measure_execution(
-                self.model.generate,
-                branch_prompt,
-                temperature=temperature
-            )
+                # Generate a solution for this branch
+                self.logger.info(f"Generating branch {i+1}/{max_branches} at depth {depth} with temperature {temperature}")
+                solution, generation_time = self._measure_execution(
+                    self.model.generate,
+                    branch_prompt
+                )
+                self.logger.info(f"Generation completed in {generation_time:.2f}s")
 
-            # Extract patch if present
-            patches = extract_patches(solution)
-            patch = patches[0] if patches else None
+                # Extract patch if present
+                patches = extract_patches(solution)
+                patch = patches[0] if patches else None
+                
+                if patch:
+                    self.logger.info(f"Extracted patch of length {len(patch)}")
+                else:
+                    self.logger.info("No patch extracted from response")
 
-            # Create branch node
-            branch_id = f"{parent_node['id']}-{depth}-{i}"
-            branches[branch_id] = {
-                "id": branch_id,
-                "parent": parent_node["id"],
-                "depth": depth,
-                "branch_index": i,
-                "prompt": branch_prompt,
-                "reasoning": solution,
-                "solution": patch,
-                "evaluation": None,
-                "children": [],
-                "status": "active" if patch else "terminated"
-            }
+                # Create branch node
+                branch_id = f"{parent_node['id']}-{depth}-{i}"
+                branches[branch_id] = {
+                    "id": branch_id,
+                    "parent": parent_node["id"],
+                    "depth": depth,
+                    "branch_index": i,
+                    "prompt": branch_prompt,
+                    "reasoning": solution,
+                    "solution": patch,
+                    "evaluation": None,
+                    "children": [],
+                    "status": "active" if patch else "terminated"
+                }
+            except Exception as e:
+                self.logger.error(f"Error generating branch {i} at depth {depth}: {str(e)}")
+                # Create a fallback branch node
+                branch_id = f"{parent_node['id']}-{depth}-{i}"
+                branches[branch_id] = {
+                    "id": branch_id,
+                    "parent": parent_node["id"],
+                    "depth": depth,
+                    "branch_index": i,
+                    "prompt": "Error generating prompt",
+                    "reasoning": f"Error occurred: {str(e)}",
+                    "solution": None,
+                    "evaluation": None,
+                    "children": [],
+                    "status": "terminated"
+                }
 
         return branches
 
@@ -192,7 +215,23 @@ class TreeOfThoughtPatchAgent(BaseAgent):
 
         # Use the evaluator to test the patch
         try:
-            output, errors = self.evaluator.evaluate(patch, task=self.task)
+            self.logger.info("Evaluating patch with evaluator")
+            # Wrap in try-except to catch any evaluator errors
+            try:
+                output, errors = self.evaluator.evaluate(patch, task=self.task)
+            except Exception as eval_error:
+                self.logger.error(f"Evaluator error: {str(eval_error)}")
+                return {
+                    "success": False,
+                    "output": "",
+                    "errors": f"Evaluation error: {str(eval_error)}"
+                }
+            
+            # Log evaluation results
+            if errors:
+                self.logger.info(f"Evaluation failed with errors: {errors[:100]}...")
+            else:
+                self.logger.info("Evaluation succeeded")
 
             # Parse evaluation results
             return {

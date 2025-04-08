@@ -254,4 +254,4 @@ python -m src.scripts.run_reasoning_experiment \
   --output-dir "${IMPROVED_RESULTS}" \
   --log-level INFO
 
-echo "=== ImprovedCodeRefinementAgent SWE-bench evaluation complete! ==="
+echo "=== Tree of Thought Patch Agent SWE-bench evaluation complete! ==="
