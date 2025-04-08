@@ -518,6 +518,26 @@ class TreeOfThoughtPatchAgent(BaseAgent):
             with open(full_path, 'r', encoding='utf-8') as f:
                 return f.read()
         except Exception as e:
+            # Try alternative paths if the direct path fails
+            try:
+                # Try without any directory structure
+                base_filename = os.path.basename(clean_file_path)
+                alt_path = os.path.join(repo_path, base_filename)
+                with open(alt_path, 'r', encoding='utf-8') as f:
+                    self.logger.info(f"Found file at alternative path: {alt_path}")
+                    return f.read()
+            except Exception:
+                # Try searching for the file in the repository
+                try:
+                    import glob
+                    possible_files = glob.glob(f"{repo_path}/**/{os.path.basename(clean_file_path)}", recursive=True)
+                    if possible_files:
+                        with open(possible_files[0], 'r', encoding='utf-8') as f:
+                            self.logger.info(f"Found file by searching: {possible_files[0]}")
+                            return f.read()
+                except Exception:
+                    pass
+                    
             self.logger.error(f"Error reading file {full_path}: {e}")
             return None
 
