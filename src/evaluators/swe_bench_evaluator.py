@@ -38,6 +38,10 @@ class SWEBenchEvaluator(BaseEvaluator):
         Returns:
             Tuple of (output, errors)
         """
+        # The issue might be here - checking if task is None or if it's coming from config
+        if task is None:
+            task = self.config.get("task")
+
         task = self.config.get("task")
         if not task:
             return "", "Error: Task information is required for SWE-bench evaluation"
@@ -127,14 +131,10 @@ class SWEBenchEvaluator(BaseEvaluator):
 
     def _apply_patch(self, repo_path: str, patch_code: str) -> Dict[str, Any]:
         """
-        Apply a patch to the repository.
-
-        Args:
-            repo_path: Path to the repository
-            patch_code: Patch code to apply
+        Apply a patch to the repository using git, assuming patch is valid.
 
         Returns:
-            Dictionary with result info
+            Dict with 'success' and optional 'error'.
         """
         result = {
             "success": False,
@@ -142,23 +142,22 @@ class SWEBenchEvaluator(BaseEvaluator):
         }
 
         try:
-            # Write the patch to a temporary file
             with tempfile.NamedTemporaryFile(mode='w', suffix='.patch', delete=False) as patch_file:
                 patch_file.write(patch_code)
+                patch_file.flush()
                 patch_path = patch_file.name
 
-            # Apply the patch
-            apply_cmd = ["git", "-C", repo_path, "apply", patch_path]
+            # Try applying with -p1 (standard for diffs with a/ and b/ prefixes)
+            apply_cmd = ["git", "-C", repo_path, "apply", "--whitespace=nowarn", patch_path]
             proc = subprocess.run(apply_cmd, capture_output=True, text=True)
 
-            # Remove the temporary file
             os.unlink(patch_path)
 
-            if proc.returncode != 0:
-                result["error"] = f"Git apply failed: {proc.stderr}"
-                return result
+            if proc.returncode == 0:
+                result["success"] = True
+            else:
+                result["error"] = proc.stderr.strip()
 
-            result["success"] = True
             return result
 
         except Exception as e:
