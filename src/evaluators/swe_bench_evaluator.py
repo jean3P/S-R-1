@@ -48,6 +48,15 @@ class SWEBenchEvaluator(BaseEvaluator):
             
         if not task:
             return "", "Error: Task information is required for SWE-bench evaluation"
+            
+        # Validate that task has the required fields
+        if not all(key in task for key in ['name', 'repo_info', 'test_info']):
+            return "", f"Error: Task is missing required fields. Found: {list(task.keys())}"
+            
+        # Validate repo_info
+        repo_info = task.get('repo_info', {})
+        if not all(key in repo_info for key in ['repo', 'base_commit']):
+            return "", f"Error: repo_info is missing required fields. Found: {list(repo_info.keys())}"
 
         self.logger.info(f"Evaluating SWE-bench solution for {task.get('name')}")
 

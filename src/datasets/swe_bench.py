@@ -247,6 +247,23 @@ class SWEBenchDataset(BaseDataset):
         if not problem:
             raise ValueError(f"Problem with instance_id {instance_id} not found")
 
+        # Ensure we have the required fields
+        if not problem.get("repo"):
+            raise ValueError(f"Problem {instance_id} is missing 'repo' field")
+        if not problem.get("base_commit"):
+            raise ValueError(f"Problem {instance_id} is missing 'base_commit' field")
+        if not problem.get("environment_setup_commit"):
+            raise ValueError(f"Problem {instance_id} is missing 'environment_setup_commit' field")
+
+        # Parse test information safely
+        try:
+            fail_to_pass = json.loads(problem.get("FAIL_TO_PASS", "[]"))
+            pass_to_pass = json.loads(problem.get("PASS_TO_PASS", "[]"))
+        except json.JSONDecodeError as e:
+            self.logger.error(f"Error parsing test info for {instance_id}: {e}")
+            fail_to_pass = []
+            pass_to_pass = []
+
         # Format the problem as a task for the agent
         task = {
             "name": instance_id,
@@ -258,10 +275,15 @@ class SWEBenchDataset(BaseDataset):
                 "environment_setup_commit": problem.get("environment_setup_commit")
             },
             "test_info": {
-                "fail_to_pass": json.loads(problem.get("FAIL_TO_PASS", "[]")),
-                "pass_to_pass": json.loads(problem.get("PASS_TO_PASS", "[]"))
+                "fail_to_pass": fail_to_pass,
+                "pass_to_pass": pass_to_pass
             }
         }
+
+        # Log the task structure for debugging
+        self.logger.info(f"Prepared task for {instance_id} with keys: {list(task.keys())}")
+        self.logger.info(f"repo_info keys: {list(task['repo_info'].keys())}")
+        self.logger.info(f"test_info keys: {list(task['test_info'].keys())}")
 
         return task
 

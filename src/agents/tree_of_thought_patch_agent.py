@@ -315,25 +315,35 @@ class TreeOfThoughtPatchAgent(BaseAgent):
                 self.logger.error("Task is None, cannot evaluate")
                 return {"success": False, "error": "Task information is missing"}
 
-            # When we use evaluator.evaluate, we need to pass the task explicitly
-            # The SWEBenchEvaluator expects the task to be passed as keyword argument
-            try:
-                # The issue is likely here - we need to pass the task directly
-                # First, log the task for debugging
-                self.logger.info(f"Task keys: {list(self.task.keys())}")
+            # Ensure task has the required structure before passing to evaluator
+            if not isinstance(self.task, dict):
+                self.logger.error(f"Task is not a dictionary: {type(self.task)}")
+                return {"success": False, "error": "Task is not in the correct format"}
+                
+            # Ensure task has the minimum required fields
+            required_fields = ['name', 'repo_info', 'test_info']
+            missing_fields = [field for field in required_fields if field not in self.task]
+            if missing_fields:
+                self.logger.error(f"Task is missing required fields: {missing_fields}")
+                return {"success": False, "error": f"Task is missing required fields: {missing_fields}"}
+                
+            # Log task structure for debugging
+            self.logger.info(f"Task keys: {list(self.task.keys())}")
+            self.logger.info(f"repo_info keys: {list(self.task.get('repo_info', {}).keys())}")
+            self.logger.info(f"test_info keys: {list(self.task.get('test_info', {}).keys())}")
 
-                # Call evaluate with the task as a keyword argument
-                output, errors = self.evaluator.evaluate(patch, task=self.task)
+            # Call evaluate with the task as a keyword argument
+            output, errors = self.evaluator.evaluate(patch, task=self.task)
 
-                self.logger.info(
-                    f"Evaluation result: output={output[:100] if output else ''}, errors={errors[:100] if errors else 'None'}")
+            self.logger.info(
+                f"Evaluation result: output={output[:100] if output else ''}, errors={errors[:100] if errors else 'None'}")
 
-                # Parse evaluation results
-                return {
-                    "success": not errors,
-                    "output": output,
-                    "errors": errors
-                }
+            # Parse evaluation results
+            return {
+                "success": not errors,
+                "output": output,
+                "errors": errors
+            }
             except Exception as eval_error:
                 self.logger.error(f"Evaluator error: {str(eval_error)}")
                 return {
