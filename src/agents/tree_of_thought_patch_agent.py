@@ -216,6 +216,15 @@ class TreeOfThoughtPatchAgent(BaseAgent):
         # Use the evaluator to test the patch
         try:
             self.logger.info("Evaluating patch with evaluator")
+            
+            # Ensure task has required fields for SWE-bench evaluation
+            if self.task and not self.task.get("repo_info"):
+                self.logger.warning("Task missing repo_info, adding placeholder")
+                self.task["repo_info"] = {
+                    "repo": self.task.get("repo", "unknown"),
+                    "base_commit": self.task.get("base_commit", "unknown")
+                }
+            
             # Wrap in try-except to catch any evaluator errors
             try:
                 output, errors = self.evaluator.evaluate(patch, task=self.task)

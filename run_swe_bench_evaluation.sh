@@ -201,12 +201,12 @@ config:
 EOF
 echo "Created improved code refinement agent configuration"
 
-# Create SWE-bench experiment configuration with improved agent
+# Create SWE-bench experiment configuration with Tree of Thought patch agent
 cat > configs/experiments/${EXPERIMENT_NAME}.yaml << EOF
 name: "${EXPERIMENT_NAME}"
-description: "SWE-bench evaluation using token-efficient ImprovedCodeRefinementAgent on GTX 1080 GPUs"
+description: "SWE-bench evaluation using Tree of Thought patch agent for exploring multiple reasoning paths"
 agent:
-  id: "improved_code_refinement"
+  id: "tree_of_thought_patch"
 model:
   id: "qwen_coder"
 prompt:
@@ -218,7 +218,7 @@ task:
   language: "python"
   initial_prompt: "This is a placeholder. The actual prompt will be generated from the SWE-bench dataset."
 EOF
-echo "Created improved SWE-bench experiment configuration"
+echo "Created Tree of Thought patch experiment configuration"
 
 
 # List available registered prompt types
@@ -236,9 +236,9 @@ python -m src.main list --type agents
 # Run SWE-bench evaluation with improved agent (just one instance initially)
 MAX_INSTANCES=1
 
-echo "=== Starting SWE-bench evaluation with improved code refinement agent ==="
+echo "=== Starting SWE-bench evaluation with Tree of Thought patch agent ==="
 echo "Model: Qwen/Qwen2-7B-Instruct"
-echo "Agent: ImprovedCodeRefinementAgent with token-efficient architecture"
+echo "Agent: TreeOfThoughtPatchAgent"
 echo "Max instances: ${MAX_INSTANCES}"
 echo "Using 4x GTX 1080 GPUs with model distributed across them"
 
