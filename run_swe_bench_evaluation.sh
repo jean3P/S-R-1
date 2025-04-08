@@ -1,5 +1,5 @@
 #!/bin/bash
-# SWE-Bench Evaluation Script for GTX 1080 GPUs
+# SWE-Bench Evaluation Script for GTX 1080 GPUs with ImprovedCodeRefinementAgent
 # This script runs evaluation without SLURM batch commands
 
 # Activate virtual environment (adjust path if needed)
@@ -31,31 +31,32 @@ mkdir -p data/repositories
 mkdir -p results/swe_bench
 mkdir -p offload_folder
 mkdir -p jobs_logs
+mkdir -p src/context
 
-# Define SWE-bench experiment name
-EXPERIMENT_NAME="qwen_swe_bench"
+# Define improved SWE-bench experiment name
+EXPERIMENT_NAME="tot_patch_experiment"
 
 # Define main experiment timestamp and results directory
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-RESULTS_DIR="results/swe_bench_run_${TIMESTAMP}"
+RESULTS_DIR="results/improved_swe_bench_${TIMESTAMP}"
 mkdir -p "${RESULTS_DIR}"
 
-# Create results directory for Qwen
-QWEN_RESULTS="${RESULTS_DIR}/qwen_coder"
-mkdir -p "${QWEN_RESULTS}"
+# Create results directory for Qwen with improved agent
+IMPROVED_RESULTS="${RESULTS_DIR}/improved_agent"
+mkdir -p "${IMPROVED_RESULTS}"
 
 # Create log file
-LOG_FILE="jobs_logs/swe_bench_${TIMESTAMP}.log"
+LOG_FILE="jobs_logs/improved_swe_bench_${TIMESTAMP}.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
 # Create SWE-bench dataset configuration
-cat > configs/datasets/swe_bench_lite.yaml << EOF
-id: "swe_bench_lite"
+cat > configs/datasets/swe_bench_verified.yaml << EOF
+id: "swe_bench_verified"
 type: "swe_bench"
 config:
   dataset_name: "princeton-nlp/SWE-bench_Lite"
   retrieval_type: "standard"
-  file_path: "data/datasets/swe_bench_lite.json"
+  file_path: "data/datasets/swe_bench_verified.json"
   repos_dir: "data/repositories"
   cache_dir: "data/datasets"
   auto_load: true
@@ -86,6 +87,8 @@ config:
 
       {problem_statement}
 
+      {repository_context}
+
       # Repository Information
       Repository: {repo}
       Base commit: {base_commit}
@@ -110,6 +113,9 @@ config:
       # Errors
       {errors}
 
+      # Continuity Context
+      {continuity}
+
       # Task
       Based on the test results above, please refine your solution. The patch should be in the format of a git diff.
       Focus on creating a minimal change that addresses the issue while maintaining the code's integrity.
@@ -120,8 +126,10 @@ config:
     issue_id: "unknown"
     repo: "unknown"
     base_commit: "unknown"
+    continuity: ""
+    repository_context: ""
 EOF
-echo "Created SWE-bench prompt configuration"
+echo "Created SWE-bench prompt configuration with improved context handling"
 
 # Create Qwen model configuration - optimized for GTX 1080 with 8GB VRAM
 cat > configs/models/qwen_coder.yaml << EOF
@@ -134,8 +142,8 @@ config:
   use_4bit: true
   use_8bit: false      # Enable 8-bit quantization for VRAM efficiency
   max_length: 2048
-  temperature: 0.2
-  top_p: 0.9
+  temperature: 0.1
+  top_p: 0.3
   repetition_penalty: 1.1
   cache_dir: "data/model_cache"
   offload_folder: "offload_folder"
@@ -145,24 +153,60 @@ config:
 EOF
 echo "Created Qwen model configuration"
 
-# Create agent configuration
-cat > configs/agents/patch_refinement.yaml << EOF
-id: "patch_refinement"
-type: "patch_refinement"
-config:
-  max_iterations: 2
-  early_stop_on_success: true
-  save_results: true
-  output_dir: "results"
-EOF
-echo "Created agent configuration"
+# Create improved agent configuration
+cat > configs/agents/improved_code_refinement.yaml << EOF
+id: "improved_code_refinement"
+type: "improved_code_refinement"  # Must match the agent class name without "Agent"
+description: "Improved agent that generates and refines code through self-reflection with token-efficient architecture"
 
-# Create SWE-bench experiment configuration
+config:
+  # General configuration
+  max_iterations: 3
+  save_results: false
+  early_stop_on_success: true
+  output_dir: "results/improved_patches"
+  repos_dir: "data/repositories"
+
+  # Model generation parameters
+  temperature: 0.2
+  max_tokens: 4000
+
+  # Token optimization settings
+  summarizer_config:
+    include_docstrings: true
+    include_signatures: true
+    include_imports: true
+
+  context_manager_config:
+    relevance_threshold: 0.1
+    max_files: 10
+    include_imports: true
+    include_related_functions: true
+
+  disclosure_config:
+    max_depth: 3
+    max_context_per_file: 2000
+
+  memory_manager_config:
+    max_history_items: 5
+    max_memory_tokens: 1000
+
+  # Evaluation options
+  test_timeout: 1000
+  enable_file_exploration: true
+
+  # Logging and debugging
+  verbose_logging: true
+  save_intermediate_patches: true
+EOF
+echo "Created improved code refinement agent configuration"
+
+# Create SWE-bench experiment configuration with improved agent
 cat > configs/experiments/${EXPERIMENT_NAME}.yaml << EOF
 name: "${EXPERIMENT_NAME}"
-description: "SWE-bench evaluation using Qwen model on GTX 1080 GPUs"
+description: "SWE-bench evaluation using token-efficient ImprovedCodeRefinementAgent on GTX 1080 GPUs"
 agent:
-  id: "patch_refinement"
+  id: "improved_code_refinement"
 model:
   id: "qwen_coder"
 prompt:
@@ -174,7 +218,8 @@ task:
   language: "python"
   initial_prompt: "This is a placeholder. The actual prompt will be generated from the SWE-bench dataset."
 EOF
-echo "Created SWE-bench experiment configuration"
+echo "Created improved SWE-bench experiment configuration"
+
 
 # List available registered prompt types
 echo "Checking registered prompt types..."
@@ -184,42 +229,29 @@ python -m src.main list --type prompts
 echo "Checking registered evaluator types..."
 python -m src.main list --type evaluators
 
-# Run SWE-bench evaluation with just one instance initially
+# List available registered agent types
+echo "Checking registered agent types..."
+python -m src.main list --type agents
+
+# Run SWE-bench evaluation with improved agent (just one instance initially)
 MAX_INSTANCES=1
 
-echo "=== Starting SWE-bench evaluation ==="
+echo "=== Starting SWE-bench evaluation with improved code refinement agent ==="
 echo "Model: Qwen/Qwen2-7B-Instruct"
+echo "Agent: ImprovedCodeRefinementAgent with token-efficient architecture"
 echo "Max instances: ${MAX_INSTANCES}"
 echo "Using 4x GTX 1080 GPUs with model distributed across them"
 
 # Run the evaluation
-python -m src.main swe-bench \
-  --experiment "${EXPERIMENT_NAME}" \
-  --dataset "swe_bench_lite" \
-  --output-dir "${QWEN_RESULTS}" \
+python -m src.scripts.run_reasoning_experiment \
+  --name "${EXPERIMENT_NAME}" \
+  --dataset "swe_bench_verified" \
+  --agent "tree_of_thought_patch" \
+  --model "qwen_coder" \
+  --prompt "swe_bench_prompt" \
+  --evaluator "swe_bench_eval" \
   --max-instances ${MAX_INSTANCES} \
-  --log-level INFO \
-  --batch-size 1
+  --output-dir "${IMPROVED_RESULTS}" \
+  --log-level INFO
 
-# Check if the evaluation was successful
-if [ $? -eq 0 ]; then
-  echo "Evaluation completed successfully!"
-
-  # If successful with one instance, try more
-  echo "Trying with 2 instances..."
-  MAX_INSTANCES=2
-  QWEN_RESULTS_2="${RESULTS_DIR}/qwen_coder_2instances"
-  mkdir -p "${QWEN_RESULTS_2}"
-
-  python -m src.main swe-bench \
-    --experiment "${EXPERIMENT_NAME}" \
-    --dataset "swe_bench_lite" \
-    --output-dir "${QWEN_RESULTS_2}" \
-    --max-instances ${MAX_INSTANCES} \
-    --log-level INFO \
-    --batch-size 1
-else
-  echo "Evaluation failed. Check the logs for errors."
-fi
-
-echo "=== SWE-bench evaluation complete! ==="
+echo "=== ImprovedCodeRefinementAgent SWE-bench evaluation complete! ==="
