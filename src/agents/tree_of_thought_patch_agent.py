@@ -5,6 +5,7 @@ import re
 from typing import Dict, Any, List, Optional
 from src.agents.base_agent import BaseAgent
 from src.utils.parsing import extract_patches
+from src.utils.repo_knowledge_graph import RepoKnowledgeGraph
 
 
 class TreeOfThoughtPatchAgent(BaseAgent):
@@ -21,6 +22,12 @@ class TreeOfThoughtPatchAgent(BaseAgent):
         self.max_depth = config.get("max_depth", 3)  # Maximum reasoning depth
         self.selection_strategy = config.get("selection_strategy", "best_first")  # Strategy for selecting branches
         self.temperature_schedule = config.get("temperature_schedule", [0.7, 0.5, 0.3])  # Decreasing temperature
+        
+        # Knowledge graph parameters
+        self.use_knowledge_graph = config.get("use_knowledge_graph", True)
+        self.knowledge_graph = None
+        self.kg_cache_dir = config.get("kg_cache_dir", "data/knowledge_graphs")
+        self.kg_max_entities = config.get("kg_max_entities", 5)
 
     def reflect(self, initial_prompt: str, task: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -39,6 +46,10 @@ class TreeOfThoughtPatchAgent(BaseAgent):
         # Log the task structure to see what's actually in it
         self.logger.info(f"Task structure: name={task.get('name')}, keys={list(task.keys())}")
         self.logger.info(f"repo_info keys: {list(task.get('repo_info', {}).keys())}")
+        
+        # Initialize knowledge graph if enabled
+        if self.use_knowledge_graph:
+            self._initialize_knowledge_graph(task)
 
         # Initialize the reasoning tree with the root node
         reasoning_tree = {
@@ -156,6 +167,71 @@ class TreeOfThoughtPatchAgent(BaseAgent):
         self._save_results(results, task)
         
         return results
+    
+    def _initialize_knowledge_graph(self, task: Dict[str, Any]) -> None:
+        """
+        Initialize the knowledge graph for the repository.
+        
+        Args:
+            task: Task details including repository information
+        """
+        import os
+        import time
+        
+        # Get repository information
+        repo_info = task.get("repo_info", {})
+        repo_name = repo_info.get("repo", "")
+        
+        if not repo_name:
+            self.logger.warning("Repository name not found in task, knowledge graph disabled")
+            self.use_knowledge_graph = False
+            return
+        
+        # Form repository path
+        repos_dir = self.config.get("repos_dir", "data/repositories")
+        repo_path = os.path.join(repos_dir, repo_name.replace("/", "_"))
+        
+        if not os.path.exists(repo_path):
+            self.logger.warning(f"Repository path not found: {repo_path}, knowledge graph disabled")
+            self.use_knowledge_graph = False
+            return
+        
+        # Create cache directory if it doesn't exist
+        os.makedirs(self.kg_cache_dir, exist_ok=True)
+        
+        # Check if we have a cached knowledge graph
+        cache_file = os.path.join(self.kg_cache_dir, f"{repo_name.replace('/', '_')}.json")
+        
+        # Initialize knowledge graph
+        kg_config = self.config.get("knowledge_graph_config", {})
+        self.knowledge_graph = RepoKnowledgeGraph(repo_path, kg_config)
+        
+        if os.path.exists(cache_file):
+            # Load from cache
+            self.logger.info(f"Loading knowledge graph from cache: {cache_file}")
+            try:
+                self.knowledge_graph.load_graph(cache_file)
+                self.logger.info("Knowledge graph loaded successfully")
+                return
+            except Exception as e:
+                self.logger.error(f"Error loading knowledge graph from cache: {e}")
+                # Fall through to build the graph
+        
+        # Build the knowledge graph
+        self.logger.info(f"Building knowledge graph for repository: {repo_name}")
+        start_time = time.time()
+        
+        try:
+            self.knowledge_graph.build_graph()
+            build_time = time.time() - start_time
+            self.logger.info(f"Knowledge graph built in {build_time:.2f} seconds")
+            
+            # Save to cache
+            self.knowledge_graph.save_graph(cache_file)
+            self.logger.info(f"Knowledge graph saved to cache: {cache_file}")
+        except Exception as e:
+            self.logger.error(f"Error building knowledge graph: {e}")
+            self.use_knowledge_graph = False
     
     def _save_results(self, results: Dict[str, Any], task: Dict[str, Any]) -> None:
         """
@@ -383,6 +459,15 @@ class TreeOfThoughtPatchAgent(BaseAgent):
             
             # Combine texts to extract file paths
             combined_text = problem_statement + "\n" + parent_reasoning_text
+            
+            # Use knowledge graph if available
+            if self.use_knowledge_graph and self.knowledge_graph:
+                # Get knowledge graph context
+                kg_context = self._get_knowledge_graph_context(combined_text)
+                if kg_context:
+                    code_context["knowledge_graph"] = kg_context
+            
+            # Extract file paths and get their content
             file_paths = self._extract_file_paths_from_text(combined_text)
             
             # If we have file paths, try to get their content
@@ -409,6 +494,67 @@ class TreeOfThoughtPatchAgent(BaseAgent):
                 code_context["code_context"]["previous_solution"] = parent_node["solution"]
         
         return code_context
+    
+    def _get_knowledge_graph_context(self, query_text: str) -> Dict[str, Any]:
+        """
+        Get context from the knowledge graph based on the query text.
+        
+        Args:
+            query_text: Query text to search for relevant entities
+            
+        Returns:
+            Dictionary with knowledge graph context
+        """
+        if not self.knowledge_graph:
+            return {}
+        
+        try:
+            # Get context for the query
+            context = self.knowledge_graph.get_context_for_query(
+                query_text, 
+                max_entities=self.kg_max_entities
+            )
+            
+            # Format the context for inclusion in the prompt
+            formatted_context = {
+                "relevant_entities": [],
+                "entity_relationships": {}
+            }
+            
+            # Format entities
+            for entity in context.get("entities", []):
+                formatted_entity = {
+                    "type": entity.get("type"),
+                    "name": entity.get("name"),
+                    "description": entity.get("description"),
+                    "file": entity.get("file"),
+                    "code_snippet": entity.get("code")
+                }
+                formatted_context["relevant_entities"].append(formatted_entity)
+            
+            # Format relationships
+            for entity_id, relationships in context.get("relationships", {}).items():
+                entity_name = None
+                for entity in context.get("entities", []):
+                    if entity.get("id") == entity_id:
+                        entity_name = entity.get("name")
+                        break
+                
+                if entity_name:
+                    formatted_relationships = {}
+                    for rel_type, related_entities in relationships.items():
+                        formatted_relationships[rel_type] = [
+                            {"type": e.get("type"), "name": e.get("name")}
+                            for e in related_entities
+                        ]
+                    
+                    formatted_context["entity_relationships"][entity_name] = formatted_relationships
+            
+            return formatted_context
+        
+        except Exception as e:
+            self.logger.error(f"Error getting knowledge graph context: {e}")
+            return {}
         
     def _extract_file_paths_from_text(self, text: str) -> List[str]:
         """

@@ -229,9 +229,16 @@ echo "Created improved code refinement agent configuration"
 # Create SWE-bench experiment configuration with Tree of Thought patch agent
 cat > configs/experiments/${EXPERIMENT_NAME}.yaml << EOF
 name: "${EXPERIMENT_NAME}"
-description: "SWE-bench evaluation using Tree of Thought patch agent for exploring multiple reasoning paths"
+description: "SWE-bench evaluation using Tree of Thought patch agent with knowledge graph for exploring multiple reasoning paths"
 agent:
   id: "tree_of_thought_patch"
+  config:
+    use_knowledge_graph: true
+    kg_cache_dir: "data/knowledge_graphs"
+    kg_max_entities: 5
+    knowledge_graph_config:
+      use_embeddings: true
+      embedding_model: "all-MiniLM-L6-v2"
 model:
   id: "qwen_coder"
 prompt:
@@ -243,7 +250,11 @@ task:
   language: "python"
   initial_prompt: "This is a placeholder. The actual prompt will be generated from the SWE-bench dataset."
 EOF
-echo "Created Tree of Thought patch experiment configuration"
+echo "Created Tree of Thought patch experiment configuration with knowledge graph"
+
+# Install required dependencies
+echo "Installing required dependencies for knowledge graph..."
+pip install networkx sentence-transformers
 
 
 # List available registered prompt types

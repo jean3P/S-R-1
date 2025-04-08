@@ -25,6 +25,7 @@ class SWEBenchPrompt(BasePrompt):
                 "# GitHub Issue: {issue_id}\n\n"
                 "{problem_statement}\n\n"
                 "{repository_context}\n\n"  # Add repository context placeholder
+                "{knowledge_graph}\n\n"  # Add knowledge graph placeholder
                 "{code_context}\n\n"  # Add code context placeholder
                 "{relevant_files}\n\n"  # Add relevant files placeholder
                 "{expanded_details}\n\n"  # Add expanded details placeholder
@@ -122,6 +123,11 @@ class SWEBenchPrompt(BasePrompt):
             if context.get("relevant_files"):
                 self.logger.info(f"[SWE-BENCH PROMPT] Adding relevant files content")
                 variables["relevant_files"] = self._format_relevant_files(context["relevant_files"])
+                
+            # Add knowledge graph context if available
+            if context.get("knowledge_graph"):
+                self.logger.info(f"[SWE-BENCH PROMPT] Adding knowledge graph context")
+                variables["knowledge_graph"] = self._format_knowledge_graph(context["knowledge_graph"])
 
         # Extract rule or file context from the problem
         # self.logger.info(f"[SWE-BENCH PROMPT] Extracting rule IDs and file paths from prompt")
@@ -418,6 +424,12 @@ class SWEBenchPrompt(BasePrompt):
             result += code_context["stack_trace"]
             result += "\n```\n\n"
             
+        # Format previous solution if available
+        if "previous_solution" in code_context:
+            result += "### Previous Solution\n```diff\n"
+            result += code_context["previous_solution"]
+            result += "\n```\n\n"
+            
         return result
         
     def _format_relevant_files(self, relevant_files: Dict[str, str]) -> str:
@@ -443,6 +455,63 @@ class SWEBenchPrompt(BasePrompt):
             else:
                 result += f"### {file_path}\n```python\n{content}\n```\n\n"
                 
+        return result
+
+    def _format_knowledge_graph(self, knowledge_graph: Dict[str, Any]) -> str:
+        """
+        Format knowledge graph context into a readable format.
+        
+        Args:
+            knowledge_graph: Dictionary containing knowledge graph information
+            
+        Returns:
+            Formatted knowledge graph context as a string
+        """
+        if not knowledge_graph:
+            return ""
+            
+        result = "## Repository Knowledge Graph\n\n"
+        
+        # Format relevant entities
+        if "relevant_entities" in knowledge_graph:
+            result += "### Relevant Code Entities\n\n"
+            
+            for entity in knowledge_graph["relevant_entities"]:
+                entity_type = entity.get("type", "unknown").capitalize()
+                entity_name = entity.get("name", "unknown")
+                
+                result += f"#### {entity_type}: {entity_name}\n"
+                
+                if "description" in entity and entity["description"]:
+                    result += f"{entity['description']}\n\n"
+                
+                if "file" in entity:
+                    result += f"Defined in: {entity['file']}\n\n"
+                
+                if "code_snippet" in entity and entity["code_snippet"]:
+                    result += f"```python\n{entity['code_snippet']}\n```\n\n"
+        
+        # Format entity relationships
+        if "entity_relationships" in knowledge_graph:
+            result += "### Entity Relationships\n\n"
+            
+            for entity_name, relationships in knowledge_graph["entity_relationships"].items():
+                result += f"#### Relationships for {entity_name}\n\n"
+                
+                for rel_type, related_entities in relationships.items():
+                    # Format relationship type for readability
+                    readable_rel_type = rel_type.replace("_", " ").capitalize()
+                    
+                    result += f"**{readable_rel_type}**:\n"
+                    
+                    for related in related_entities:
+                        related_type = related.get("type", "").capitalize()
+                        related_name = related.get("name", "")
+                        
+                        result += f"- {related_type} `{related_name}`\n"
+                    
+                    result += "\n"
+        
         return result
 
     def format_tot_reasoning(self, original_prompt: str, parent_reasoning: str,
@@ -478,7 +547,8 @@ class SWEBenchPrompt(BasePrompt):
             "repo": repo_name,
             "base_commit": base_commit,
             "code_context": "",
-            "relevant_files": ""
+            "relevant_files": "",
+            "knowledge_graph": ""
         }
         
         # Add code context if available
@@ -488,6 +558,9 @@ class SWEBenchPrompt(BasePrompt):
                 
             if "relevant_files" in context:
                 variables["relevant_files"] = self._format_relevant_files(context["relevant_files"])
+                
+            if "knowledge_graph" in context:
+                variables["knowledge_graph"] = self._format_knowledge_graph(context["knowledge_graph"])
         
         # Check if we have a ToT template in config
         if "tot_reasoning" in self.templates:
@@ -502,6 +575,7 @@ class SWEBenchPrompt(BasePrompt):
                 "# Repository Information\n"
                 "Repository: {repo}\n"
                 "Base commit: {base_commit}\n\n"
+                "{knowledge_graph}\n\n"
                 "{code_context}\n\n"
                 "{relevant_files}\n\n"
                 "# Tree of Thought Reasoning (Depth {depth})\n"
