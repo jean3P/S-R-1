@@ -344,16 +344,13 @@ class TreeOfThoughtPatchAgent(BaseAgent):
                 "output": output,
                 "errors": errors
             }
-            except Exception as eval_error:
-                self.logger.error(f"Evaluator error: {str(eval_error)}")
-                return {
-                    "success": False,
-                    "output": "",
-                    "errors": f"Evaluation error: {str(eval_error)}"
-                }
-        except Exception as e:
-            self.logger.error(f"Error evaluating solution: {str(e)}")
-            return {"success": False, "error": str(e)}
+        except Exception as eval_error:
+            self.logger.error(f"Evaluator error: {str(eval_error)}")
+            return {
+                "success": False,
+                "output": "",
+                "errors": f"Evaluation error: {str(eval_error)}"
+            }
 
     def _calculate_solution_score(self, evaluation: Dict[str, Any]) -> float:
         """Calculate a score for a solution based on its evaluation."""
