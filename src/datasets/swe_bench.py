@@ -1,13 +1,13 @@
 # src/datasets/swe_bench.py
 
-from typing import Dict, Any, Optional, Iterator, List
+from typing import Dict, Any, Optional, Iterator
 import json
 import os
 from src.datasets.base_dataset import BaseDataset
 
 
 class SWEBenchDataset(BaseDataset):
-    """Dataset implementation for SWE-bench Lite with memory optimization."""
+    """Dataset implementation for SWE-bench with memory optimization."""
 
     def __init__(self, config: Dict[str, Any]):
         """
@@ -19,7 +19,7 @@ class SWEBenchDataset(BaseDataset):
         super().__init__(config)
 
         # Extract additional configuration
-        self.dataset_name = config.get("dataset_name", "princeton-nlp/SWE-bench_Lite")
+        self.dataset_name = config.get("dataset_name", "princeton-nlp/SWE-bench_Verified")  # Updated to Verified
         self.retrieval_type = config.get("retrieval_type", "standard")
         self.repos_dir = config.get("repos_dir", "data/repositories")
         self.cache_dir = config.get("cache_dir", "data/datasets")

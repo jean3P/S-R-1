@@ -34,6 +34,10 @@ class TreeOfThoughtPatchAgent(BaseAgent):
         self._start_metrics()
         self.task = task
         self.logger.info(f"Starting Tree-of-Thought patch generation for issue")
+        # Log the task structure to see what's actually in it
+        self.logger.info(f"Task structure: name={task.get('name')}, keys={list(task.keys())}")
+        self.logger.info(f"repo_info keys: {list(task.get('repo_info', {}).keys())}")
+        self.logger.info(f"Starting Tree-of-Thought patch generation for issue")
 
         # Initialize the reasoning tree with the root node
         reasoning_tree = {
@@ -305,47 +309,31 @@ class TreeOfThoughtPatchAgent(BaseAgent):
         # Use the evaluator to test the patch
         try:
             self.logger.info("Evaluating patch with evaluator")
-            
-            # For SWE-bench evaluation, we need to mock a successful evaluation
-            # since we don't have the actual repository and test environment
-            self.logger.info("Using mock evaluation for SWE-bench task")
-            
-            # Create a simulated evaluation result
-            return {
-                "success": True,
-                "output": "Mock evaluation passed",
-                "errors": ""
-            }
-            
-            # The following code is kept for reference but not executed
-            """
+
             # Ensure task has required fields for SWE-bench evaluation
             if self.task is None:
                 self.logger.error("Task is None, cannot evaluate")
                 return {"success": False, "error": "Task information is missing"}
-                
-            # Create a deep copy of the task to avoid modifying the original
-            import copy
-            task_copy = copy.deepcopy(self.task)
-            
-            # Ensure repo_info exists and has required fields
-            if not task_copy.get("repo_info"):
-                self.logger.warning("Task missing repo_info, adding placeholder")
-                task_copy["repo_info"] = {
-                    "repo": task_copy.get("repo", "unknown"),
-                    "base_commit": task_copy.get("base_commit", "unknown")
-                }
-            else:
-                # Ensure repo_info has required fields
-                repo_info = task_copy["repo_info"]
-                if not repo_info.get("repo"):
-                    repo_info["repo"] = task_copy.get("repo", "unknown")
-                if not repo_info.get("base_commit"):
-                    repo_info["base_commit"] = task_copy.get("base_commit", "unknown")
-            
-            # Wrap in try-except to catch any evaluator errors
+
+            # When we use evaluator.evaluate, we need to pass the task explicitly
+            # The SWEBenchEvaluator expects the task to be passed as keyword argument
             try:
-                output, errors = self.evaluator.evaluate(patch, task=task_copy)
+                # The issue is likely here - we need to pass the task directly
+                # First, log the task for debugging
+                self.logger.info(f"Task keys: {list(self.task.keys())}")
+
+                # Call evaluate with the task as a keyword argument
+                output, errors = self.evaluator.evaluate(patch, task=self.task)
+
+                self.logger.info(
+                    f"Evaluation result: output={output[:100] if output else ''}, errors={errors[:100] if errors else 'None'}")
+
+                # Parse evaluation results
+                return {
+                    "success": not errors,
+                    "output": output,
+                    "errors": errors
+                }
             except Exception as eval_error:
                 self.logger.error(f"Evaluator error: {str(eval_error)}")
                 return {
@@ -353,20 +341,6 @@ class TreeOfThoughtPatchAgent(BaseAgent):
                     "output": "",
                     "errors": f"Evaluation error: {str(eval_error)}"
                 }
-            
-            # Log evaluation results
-            if errors:
-                self.logger.info(f"Evaluation failed with errors: {errors[:100]}...")
-            else:
-                self.logger.info("Evaluation succeeded")
-
-            # Parse evaluation results
-            return {
-                "success": not errors,
-                "output": output,
-                "errors": errors
-            }
-            """
         except Exception as e:
             self.logger.error(f"Error evaluating solution: {str(e)}")
             return {"success": False, "error": str(e)}
