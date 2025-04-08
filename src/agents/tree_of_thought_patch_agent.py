@@ -39,7 +39,6 @@ class TreeOfThoughtPatchAgent(BaseAgent):
         # Log the task structure to see what's actually in it
         self.logger.info(f"Task structure: name={task.get('name')}, keys={list(task.keys())}")
         self.logger.info(f"repo_info keys: {list(task.get('repo_info', {}).keys())}")
-        self.logger.info(f"Starting Tree-of-Thought patch generation for issue")
 
         # Initialize the reasoning tree with the root node
         reasoning_tree = {
@@ -142,7 +141,8 @@ class TreeOfThoughtPatchAgent(BaseAgent):
                     "solution": node.get("solution", "")
                 }]
 
-        return {
+        # Prepare results
+        results = {
             "task": task,
             "reasoning_tree": reasoning_tree,
             "best_solution": best_solution["patch"],
@@ -151,6 +151,57 @@ class TreeOfThoughtPatchAgent(BaseAgent):
             "metrics": self.metrics,
             "success": best_solution["patch"] is not None
         }
+        
+        # Save results to JSON file if configured
+        self._save_results(results, task)
+        
+        return results
+    
+    def _save_results(self, results: Dict[str, Any], task: Dict[str, Any]) -> None:
+        """
+        Save results to a JSON file.
+        
+        Args:
+            results: Results to save
+            task: Task details
+        """
+        import json
+        import os
+        from datetime import datetime
+        
+        # Create output directory if it doesn't exist
+        output_dir = self.config.get("output_dir", "results/swe_bench")
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Create a filename based on task name and timestamp
+        task_name = task.get("name", "unknown")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"{task_name}_{timestamp}.json"
+        
+        # Full path to output file
+        output_path = os.path.join(output_dir, filename)
+        
+        try:
+            # Save results to file
+            with open(output_path, 'w', encoding='utf-8') as f:
+                # Use a smaller subset of results to avoid huge files
+                compact_results = {
+                    "task_name": task.get("name", "unknown"),
+                    "timestamp": timestamp,
+                    "success": results.get("success", False),
+                    "best_solution": results.get("best_solution", ""),
+                    "metrics": results.get("metrics", {})
+                }
+                
+                # Add reasoning path if available
+                if results.get("reasoning_path"):
+                    compact_results["reasoning_path"] = results["reasoning_path"]
+                
+                json.dump(compact_results, f, indent=2)
+                
+            self.logger.info(f"Results saved to {output_path}")
+        except Exception as e:
+            self.logger.error(f"Error saving results to {output_path}: {e}")
 
     def _generate_branches(self, parent_node: Dict[str, Any], depth: int,
                            temperature: float, max_branches: int) -> Dict[str, Dict[str, Any]]:
@@ -381,10 +432,23 @@ class TreeOfThoughtPatchAgent(BaseAgent):
         diff_matches = diff_pattern.findall(text)
         file_paths.extend(diff_matches)
         
+        # Look for file paths in error messages
+        error_pattern = re.compile(r'(?:Error|Exception|Traceback).*?[\'"]([a-zA-Z0-9_/.-]+\.[a-zA-Z0-9]+)[\'"]', re.IGNORECASE)
+        error_matches = error_pattern.findall(text)
+        file_paths.extend(error_matches)
+        
         # Remove duplicates while preserving order
         unique_paths = []
         seen = set()
         for path in file_paths:
+            # Clean path by removing a/ or b/ prefixes
+            if path.startswith('a/') or path.startswith('b/'):
+                path = path[2:]
+            
+            # Remove .orig suffix if present
+            if path.endswith('.orig'):
+                path = path[:-5]
+                
             if path not in seen:
                 seen.add(path)
                 unique_paths.append(path)
@@ -438,8 +502,16 @@ class TreeOfThoughtPatchAgent(BaseAgent):
         repo_path = os.path.join(self.config.get("repos_dir", "data/repositories"), 
                                 repo_name.replace("/", "_"))
         
-        # Form full file path
-        full_path = os.path.join(repo_path, file_path)
+        # Form full file path - remove any 'a/' or 'b/' prefixes from git diff format
+        clean_file_path = file_path
+        if clean_file_path.startswith('a/') or clean_file_path.startswith('b/'):
+            clean_file_path = clean_file_path[2:]
+        
+        # Remove .orig suffix if present
+        if clean_file_path.endswith('.orig'):
+            clean_file_path = clean_file_path[:-5]
+            
+        full_path = os.path.join(repo_path, clean_file_path)
         
         # Try to read the file
         try:
