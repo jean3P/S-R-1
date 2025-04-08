@@ -289,6 +289,9 @@ class TreeOfThoughtPatchAgent(BaseAgent):
 
         # Select a strategy based on branch index (cycle through if more branches than strategies)
         strategy = strategies[branch_index % len(strategies)]
+        
+        # Prepare code context for this branch
+        code_context = self._prepare_code_context(parent_node, depth, branch_index)
 
         # Create comprehensive prompt template
         prompt_template = self.prompt.format_tot_reasoning(
@@ -296,10 +299,155 @@ class TreeOfThoughtPatchAgent(BaseAgent):
             parent_reasoning=parent_reasoning,
             depth=depth,
             strategy=strategy,
-            task=self.task
+            task=self.task,
+            context=code_context
         )
 
         return prompt_template
+        
+    def _prepare_code_context(self, parent_node: Dict[str, Any], depth: int, branch_index: int) -> Dict[str, Any]:
+        """
+        Prepare code context for a specific branch.
+        
+        Args:
+            parent_node: Parent node in the reasoning tree
+            depth: Current reasoning depth
+            branch_index: Branch index
+            
+        Returns:
+            Dictionary with code context
+        """
+        # Initialize code context
+        code_context = {}
+        
+        # If we have task information with repo_info and test_info
+        if self.task and "repo_info" in self.task:
+            repo_info = self.task.get("repo_info", {})
+            repo_name = repo_info.get("repo", "")
+            
+            # Extract file paths from the problem statement or parent reasoning
+            problem_statement = self.task.get("initial_prompt", "")
+            parent_reasoning_text = parent_node.get("reasoning", "")
+            
+            # Combine texts to extract file paths
+            combined_text = problem_statement + "\n" + parent_reasoning_text
+            file_paths = self._extract_file_paths_from_text(combined_text)
+            
+            # If we have file paths, try to get their content
+            if file_paths:
+                relevant_files = {}
+                for file_path in file_paths[:3]:  # Limit to 3 files to avoid context overflow
+                    file_content = self._get_file_content(repo_name, file_path)
+                    if file_content:
+                        relevant_files[file_path] = file_content
+                
+                if relevant_files:
+                    code_context["relevant_files"] = relevant_files
+            
+            # Extract error information if available
+            error_info = self._extract_error_info(combined_text)
+            if error_info:
+                code_context["code_context"] = {
+                    "error_location": error_info
+                }
+                
+            # If we have a previous solution, include it
+            if parent_node.get("solution"):
+                code_context["code_context"] = code_context.get("code_context", {})
+                code_context["code_context"]["previous_solution"] = parent_node["solution"]
+        
+        return code_context
+        
+    def _extract_file_paths_from_text(self, text: str) -> List[str]:
+        """
+        Extract file paths from text.
+        
+        Args:
+            text: Text to extract file paths from
+            
+        Returns:
+            List of file paths
+        """
+        import re
+        
+        # Look for file paths with extensions
+        file_pattern = re.compile(r'\b([a-zA-Z0-9_/.-]+\.(py|sql|js|html|css|java|cpp|h|md|json|yaml|yml))\b')
+        matches = file_pattern.findall(text)
+        file_paths = [m[0] for m in matches]  # Return just the full file paths
+        
+        # Also look for paths mentioned in diff format
+        diff_pattern = re.compile(r'(?:---|\+\+\+) [ab]/(.+?)(?:\s|$)')
+        diff_matches = diff_pattern.findall(text)
+        file_paths.extend(diff_matches)
+        
+        # Remove duplicates while preserving order
+        unique_paths = []
+        seen = set()
+        for path in file_paths:
+            if path not in seen:
+                seen.add(path)
+                unique_paths.append(path)
+                
+        return unique_paths
+        
+    def _extract_error_info(self, text: str) -> Dict[str, Any]:
+        """
+        Extract error information from text.
+        
+        Args:
+            text: Text to extract error information from
+            
+        Returns:
+            Dictionary with error information
+        """
+        import re
+        
+        error_info = {}
+        
+        # Look for file and line information in error messages
+        file_line_pattern = re.compile(r'File "([^"]+)", line (\d+)')
+        matches = file_line_pattern.findall(text)
+        
+        if matches:
+            file_path, line_number = matches[0]
+            error_info["file"] = file_path
+            error_info["line"] = line_number
+            
+            # Try to extract function/class context
+            function_pattern = re.compile(r'in (\w+)')
+            function_matches = function_pattern.findall(text)
+            if function_matches:
+                error_info["function"] = function_matches[0]
+        
+        return error_info
+        
+    def _get_file_content(self, repo_name: str, file_path: str) -> Optional[str]:
+        """
+        Get content of a file from the repository.
+        
+        Args:
+            repo_name: Repository name
+            file_path: Path to the file
+            
+        Returns:
+            File content or None if file cannot be read
+        """
+        import os
+        
+        # Form repository path
+        repo_path = os.path.join(self.config.get("repos_dir", "data/repositories"), 
+                                repo_name.replace("/", "_"))
+        
+        # Form full file path
+        full_path = os.path.join(repo_path, file_path)
+        
+        # Try to read the file
+        try:
+            with open(full_path, 'r', encoding='utf-8') as f:
+                return f.read()
+        except Exception as e:
+            self.logger.error(f"Error reading file {full_path}: {e}")
+            return None
 
     def _evaluate_solution(self, patch: str) -> Dict[str, Any]:
         """Evaluate a solution patch."""

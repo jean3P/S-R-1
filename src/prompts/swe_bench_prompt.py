@@ -25,6 +25,9 @@ class SWEBenchPrompt(BasePrompt):
                 "# GitHub Issue: {issue_id}\n\n"
                 "{problem_statement}\n\n"
                 "{repository_context}\n\n"  # Add repository context placeholder
+                "{code_context}\n\n"  # Add code context placeholder
+                "{relevant_files}\n\n"  # Add relevant files placeholder
+                "{expanded_details}\n\n"  # Add expanded details placeholder
                 "# Repository Information\n"
                 "Repository: {repo}\n"
                 "Base commit: {base_commit}\n\n"
@@ -105,10 +108,20 @@ class SWEBenchPrompt(BasePrompt):
 
         if context:
             self.logger.info(f"[SWE-BENCH PROMPT] Adding context information")
-            # You might want to add specific context elements to the prompt
+            # Add specific context elements to the prompt
             if context.get("expanded_details"):
                 self.logger.info(f"[SWE-BENCH PROMPT] Adding expanded details from context")
                 variables["expanded_details"] = self._format_expanded_details(context["expanded_details"])
+            
+            # Add code context if available
+            if context.get("code_context"):
+                self.logger.info(f"[SWE-BENCH PROMPT] Adding code context from context")
+                variables["code_context"] = self._format_code_context(context["code_context"])
+            
+            # Add relevant files content if available
+            if context.get("relevant_files"):
+                self.logger.info(f"[SWE-BENCH PROMPT] Adding relevant files content")
+                variables["relevant_files"] = self._format_relevant_files(context["relevant_files"])
 
         # Extract rule or file context from the problem
         # self.logger.info(f"[SWE-BENCH PROMPT] Extracting rule IDs and file paths from prompt")
@@ -360,9 +373,81 @@ class SWEBenchPrompt(BasePrompt):
                 result += f"#### {concept}\n{explanation}\n\n"
 
         return result
+        
+    def _format_code_context(self, code_context: Dict[str, Any]) -> str:
+        """
+        Format code context into a readable format.
+        
+        Args:
+            code_context: Dictionary containing code context information
+            
+        Returns:
+            Formatted code context as a string
+        """
+        if not code_context:
+            return ""
+            
+        result = "## Code Context\n\n"
+        
+        # Format error location if available
+        if "error_location" in code_context:
+            error_loc = code_context["error_location"]
+            result += f"### Error Location\n"
+            result += f"File: {error_loc.get('file', 'unknown')}\n"
+            result += f"Line: {error_loc.get('line', 'unknown')}\n"
+            if "function" in error_loc:
+                result += f"Function: {error_loc['function']}\n"
+            if "class" in error_loc:
+                result += f"Class: {error_loc['class']}\n"
+            result += "\n"
+            
+        # Format code snippets if available
+        if "code_snippets" in code_context:
+            result += "### Relevant Code Snippets\n"
+            for snippet in code_context["code_snippets"]:
+                file_path = snippet.get("file_path", "unknown")
+                start_line = snippet.get("start_line", "")
+                end_line = snippet.get("end_line", "")
+                line_info = f" (lines {start_line}-{end_line})" if start_line and end_line else ""
+                
+                result += f"#### {file_path}{line_info}\n```python\n{snippet.get('code', '')}\n```\n\n"
+                
+        # Format stack trace if available
+        if "stack_trace" in code_context:
+            result += "### Stack Trace\n```\n"
+            result += code_context["stack_trace"]
+            result += "\n```\n\n"
+            
+        return result
+        
+    def _format_relevant_files(self, relevant_files: Dict[str, str]) -> str:
+        """
+        Format relevant files content into a readable format.
+        
+        Args:
+            relevant_files: Dictionary mapping file paths to their content
+            
+        Returns:
+            Formatted files content as a string
+        """
+        if not relevant_files:
+            return ""
+            
+        result = "## Relevant Files\n\n"
+        
+        for file_path, content in relevant_files.items():
+            # Truncate very large files
+            if len(content) > 2000:
+                content_preview = content[:1000] + "\n\n... [content truncated] ...\n\n" + content[-1000:]
+                result += f"### {file_path} (truncated)\n```python\n{content_preview}\n```\n\n"
+            else:
+                result += f"### {file_path}\n```python\n{content}\n```\n\n"
+                
+        return result
 
     def format_tot_reasoning(self, original_prompt: str, parent_reasoning: str,
-                             depth: int, strategy: str, task: Dict[str, Any]) -> str:
+                             depth: int, strategy: str, task: Dict[str, Any],
+                             context: Dict[str, Any] = None) -> str:
         """
         Format a prompt for Tree of Thought reasoning about GitHub patches.
         
@@ -372,6 +457,7 @@ class SWEBenchPrompt(BasePrompt):
             depth: Current reasoning depth
             strategy: Reasoning strategy to focus on
             task: Task details
+            context: Additional context information (optional)
             
         Returns:
             Formatted ToT reasoning prompt
@@ -390,8 +476,18 @@ class SWEBenchPrompt(BasePrompt):
             "depth": depth,
             "strategy": strategy,
             "repo": repo_name,
-            "base_commit": base_commit
+            "base_commit": base_commit,
+            "code_context": "",
+            "relevant_files": ""
         }
+        
+        # Add code context if available
+        if context:
+            if "code_context" in context:
+                variables["code_context"] = self._format_code_context(context["code_context"])
+                
+            if "relevant_files" in context:
+                variables["relevant_files"] = self._format_relevant_files(context["relevant_files"])
         
         # Check if we have a ToT template in config
         if "tot_reasoning" in self.templates:
@@ -406,6 +502,8 @@ class SWEBenchPrompt(BasePrompt):
                 "# Repository Information\n"
                 "Repository: {repo}\n"
                 "Base commit: {base_commit}\n\n"
+                "{code_context}\n\n"
+                "{relevant_files}\n\n"
                 "# Tree of Thought Reasoning (Depth {depth})\n"
                 "You are exploring different reasoning paths to solve this problem.\n"
                 "Focus on: {strategy}\n\n"
