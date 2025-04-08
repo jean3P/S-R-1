@@ -38,11 +38,14 @@ class SWEBenchEvaluator(BaseEvaluator):
         Returns:
             Tuple of (output, errors)
         """
-        # The issue might be here - checking if task is None or if it's coming from config
+        # Use task parameter if provided, otherwise fall back to config
         if task is None:
             task = self.config.get("task")
-
-        task = self.config.get("task")
+            
+        # Store task in config for future use
+        if task is not None:
+            self.config["task"] = task
+            
         if not task:
             return "", "Error: Task information is required for SWE-bench evaluation"
 
