@@ -477,7 +477,12 @@ class SWEBenchPrompt(BasePrompt):
             result += "### Relevant Code Entities\n\n"
             
             for entity in knowledge_graph["relevant_entities"]:
-                entity_type = entity.get("type", "unknown").capitalize()
+                entity_type = entity.get("type", "unknown")
+                if entity_type is not None:
+                    entity_type = entity_type.capitalize()
+                else:
+                    entity_type = "Unknown"
+                    
                 entity_name = entity.get("name", "unknown")
                 
                 result += f"#### {entity_type}: {entity_name}\n"
@@ -500,13 +505,23 @@ class SWEBenchPrompt(BasePrompt):
                 
                 for rel_type, related_entities in relationships.items():
                     # Format relationship type for readability
-                    readable_rel_type = rel_type.replace("_", " ").capitalize()
+                    if rel_type is not None:
+                        readable_rel_type = rel_type.replace("_", " ").capitalize()
+                    else:
+                        readable_rel_type = "Related to"
                     
                     result += f"**{readable_rel_type}**:\n"
                     
                     for related in related_entities:
-                        related_type = related.get("type", "").capitalize()
+                        related_type = related.get("type", "")
+                        if related_type is not None:
+                            related_type = related_type.capitalize()
+                        else:
+                            related_type = "Entity"
+                            
                         related_name = related.get("name", "")
+                        if related_name is None:
+                            related_name = "unknown"
                         
                         result += f"- {related_type} `{related_name}`\n"
                     
