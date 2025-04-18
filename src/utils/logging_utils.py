@@ -27,7 +27,9 @@ def setup_logging(config, log_file: Optional[str] = None):
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         log_file = f"swereflect_{timestamp}.log"
 
+    # Ensure the parent directory of log_file exists
     log_path = log_dir / log_file
+    log_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Configure logging
     logging.basicConfig(

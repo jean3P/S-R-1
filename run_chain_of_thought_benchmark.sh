@@ -95,6 +95,11 @@ echo "Results saved to: ${RESULTS_DIR}"
 echo "Log file: ${LOG_FILE}"
 echo "Report directory: ${RESULTS_DIR}/report"
 
+# Install required dependencies
+echo ""
+echo "=== Installing required dependencies ==="
+pip install seaborn matplotlib pandas numpy
+
 # Generate visualizations of the results
 echo ""
 echo "=== Generating visualizations ==="
