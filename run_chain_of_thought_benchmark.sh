@@ -67,6 +67,13 @@ else
   echo "SWE-bench dataset found at $DATASET_FILE"
 fi
 
+# Create a symlink to ensure the dataset is accessible from the expected path
+mkdir -p src/data/swe-bench-verified
+if [ ! -f "src/data/swe-bench-verified/swe_bench_verified.json" ]; then
+  echo "Creating symlink to dataset..."
+  ln -sf "$(realpath $DATASET_FILE)" "src/data/swe-bench-verified/swe_bench_verified.json"
+fi
+
 echo "=== Starting Chain of Thought Benchmark Experiment ==="
 echo "Timestamp: ${TIMESTAMP}"
 echo "Results directory: ${RESULTS_DIR}"
