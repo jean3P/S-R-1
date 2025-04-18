@@ -109,7 +109,8 @@ class SWEBenchDataLoader:
         """
         issues = self.load_dataset()
         for issue in issues:
-            if issue.get("id") == issue_id:
+            # Check both instance_id and id fields to be compatible with different dataset formats
+            if issue.get("instance_id") == issue_id or issue.get("id") == issue_id:
                 return issue
         return None
 
@@ -123,9 +124,14 @@ class SWEBenchDataLoader:
         Returns:
             String containing the issue description.
         """
-        description = issue.get("description", "")
-        title = issue.get("title", "")
-        return f"Title: {title}\n\nDescription:\n{description}"
+        # Handle SWE-bench dataset format which uses problem_statement
+        if "problem_statement" in issue:
+            return f"Problem Statement:\n{issue.get('problem_statement', '')}"
+        else:
+            # Handle traditional format with title and description
+            description = issue.get("description", "")
+            title = issue.get("title", "")
+            return f"Title: {title}\n\nDescription:\n{description}"
 
     def get_codebase_context(self, issue: Dict[str, Any]) -> str:
         """
@@ -175,11 +181,12 @@ class SWEBenchDataLoader:
         Returns:
             String containing the solution patch.
         """
-        if "solution" in issue:
-            return issue["solution"]
-
-        # If solution is not directly available, try to find it in the patch
+        # Handle SWE-bench dataset format which uses patch field
         if "patch" in issue:
             return issue["patch"]
+        
+        # Handle traditional format
+        if "solution" in issue:
+            return issue["solution"]
 
         return ""

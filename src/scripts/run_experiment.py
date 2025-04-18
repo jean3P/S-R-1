@@ -60,7 +60,9 @@ def main():
     else:
         # Load all issues and take the first N
         all_issues = data_loader.load_dataset()
-        issue_ids = [issue["id"] for issue in all_issues[:args.limit]]
+        # Use instance_id instead of id based on SWE-bench dataset structure
+        issue_ids = [issue.get("instance_id", issue.get("id", f"issue_{i}")) 
+                    for i, issue in enumerate(all_issues[:args.limit])]
 
     # Determine which model to use
     model_name = None if args.model == "all" else args.model
