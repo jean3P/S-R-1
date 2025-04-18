@@ -44,15 +44,6 @@ class SWEBenchDataLoader:
                 logger.info(f"Loading dataset from specified file_path: {file_path}")
                 return self._load_json_dataset(file_path)
         
-        # Try the direct path from the config
-        direct_path = Path(self.config["data"]["file_path"])
-        if direct_path.exists():
-            logger.info(f"Loading dataset from direct path: {direct_path}")
-            if direct_path.suffix == '.jsonl':
-                return self._load_jsonl_dataset(direct_path)
-            else:
-                return self._load_json_dataset(direct_path)
-        
         # Then check the swe_bench_path
         dataset_path = self.data_path
         
@@ -68,7 +59,9 @@ class SWEBenchDataLoader:
             # Additional paths to check
             Path("data/datasets/swe_bench_verified.json"),
             Path("data/datasets/swe_bench_lite.json"),
-            Path("data/datasets/swe-bench-verified.json")
+            Path("data/datasets/swe-bench-verified.json"),
+            # Check for symlinked file
+            Path("src/data/swe-bench-verified/swe_bench_verified.json")
         ]
         
         for path in possible_paths:
