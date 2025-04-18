@@ -7,7 +7,7 @@ class DeepseekModel(BaseModel):
     """Implementation for Deepseek models."""
 
     def __init__(self, config: Dict[str, Any]):
-        super().__init__("deepseek-coder", config)
+        super().__init__("deepseek-32b", config)
 
     def format_prompt(self, instruction: str) -> str:
         """Format instruction according to Deepseek's prompt template."""

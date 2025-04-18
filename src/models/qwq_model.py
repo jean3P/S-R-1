@@ -7,7 +7,7 @@ class QwqModel(BaseModel):
     """Implementation for QWQ models."""
 
     def __init__(self, config: Dict[str, Any]):
-        super().__init__("yi-chat", config)
+        super().__init__("qwq-32b", config)
 
     def format_prompt(self, instruction: str) -> str:
         """Format instruction according to QWQ's prompt template."""
