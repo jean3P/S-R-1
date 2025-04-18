@@ -33,10 +33,14 @@ class BaseModel(ABC):
 
     def _load_model_and_tokenizer(self):
         """Load the model and tokenizer."""
-        repo_id = self.model_config["repo_id"]
+        # Use model_name as repo_id if repo_id is not specified
+        repo_id = self.model_config.get("repo_id", self.model_config.get("model_name"))
+        if not repo_id:
+            repo_id = self.model_name  # Fallback to the model name passed to __init__
+            
         revision = self.model_config.get("revision", "main")
         trust_remote_code = self.model_config.get("trust_remote_code", False)
-        cache_dir = self.config["models"]["repo_cache_dir"]
+        cache_dir = self.config["models"].get("repo_cache_dir", "data/model_cache")
 
         # Determine which model class to use
         model_class_name = self.model_config.get("model_class", "AutoModelForCausalLM")
