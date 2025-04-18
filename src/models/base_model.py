@@ -44,13 +44,9 @@ class BaseModel(ABC):
         
         # Get Hugging Face token from environment variable
         import os
-        from dotenv import load_dotenv
         
-        # Load .env file
-        load_dotenv()
-        
-        # Get token from environment
-        hf_token = os.environ.get("TOKEN_HUGG")
+        # Get token from environment - try both common environment variable names
+        hf_token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_TOKEN")
 
         # Determine which model class to use
         model_class_name = self.model_config.get("model_class", "AutoModelForCausalLM")
@@ -90,7 +86,7 @@ class BaseModel(ABC):
             quantization_config=quantization_config,
             torch_dtype=torch.float16 if self.config["models"]["precision"] == "fp16" else torch.float32,
             token=hf_token,  # Add token for authentication
-            use_flash_attention_2=True  # Enable Flash Attention 2 for better performance with large models
+            use_flash_attention_2=self.model_config.get("use_flash_attention", True)  # Make configurable
         )
 
         # Set padding token if needed

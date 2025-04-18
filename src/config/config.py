@@ -58,10 +58,20 @@ class Config:
 
     def _load_model_configs(self):
         """Load model-specific configurations from YAML file."""
-        model_config_path = self.base_dir / "config" / "model_configs.yaml"
-        if model_config_path.exists():
-            with open(model_config_path, 'r') as f:
-                return yaml.safe_load(f)
+        # Try multiple possible locations for the model configs
+        possible_paths = [
+            self.base_dir / "config" / "model_configs.yaml",
+            self.base_dir / "configs" / "models" / "model_configs.yaml",
+            Path("configs/models/model_configs.yaml")
+        ]
+        
+        for path in possible_paths:
+            if path.exists():
+                with open(path, 'r') as f:
+                    return yaml.safe_load(f)
+                
+        # If no config file found, log a warning and return empty dict
+        print("Warning: No model configuration file found. Using default configurations.")
         return {}
 
     def get_model_config(self, model_name):

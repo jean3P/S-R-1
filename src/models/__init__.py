@@ -21,6 +21,7 @@ def create_model(model_name: str, config):
     model_classes = {
         "deepseek-32b": DeepseekModel,
         "qwen-32b": QwenModel,
+        "qwen-coder-7b": QwenCoderModel,
         "qwq-32b": QwqModel,
     }
 
