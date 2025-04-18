@@ -100,12 +100,18 @@ echo ""
 echo "=== Installing required dependencies ==="
 pip install seaborn matplotlib pandas numpy
 
-# Generate visualizations of the results
-echo ""
-echo "=== Generating visualizations ==="
-python -m src.statistics.benchmark_report \
-  --input "${RESULTS_DIR}/report/results.json" \
-  --output "${RESULTS_DIR}/visualizations" \
-  --format "png"
+# Check if visualization was successful
+if [ -d "${RESULTS_DIR}/report" ] && [ -f "${RESULTS_DIR}/report/results.json" ]; then
+  # Generate visualizations of the results
+  echo ""
+  echo "=== Generating visualizations ==="
+  python -m src.statistics.benchmark_report \
+    --input "${RESULTS_DIR}/report/results.json" \
+    --output "${RESULTS_DIR}/visualizations" \
+    --format "png"
 
-echo "Visualizations saved to: ${RESULTS_DIR}/visualizations"
+  echo "Visualizations saved to: ${RESULTS_DIR}/visualizations"
+else
+  echo ""
+  echo "=== Skipping visualizations - report data not available ==="
+fi

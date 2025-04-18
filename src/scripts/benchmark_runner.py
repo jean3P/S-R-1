@@ -12,10 +12,17 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from ..config.config import Config
 from ..data.data_loader import SWEBenchDataLoader
 from ..solution.issue_solver import IssueSolver
-from ..evaluation.enhanced_visualization import EnhancedVisualizer
-from ..statistics.benchmark_report import BenchmarkReport
 from ..utils.logging_utils import setup_logging
 from ..utils.file_utils import FileUtils
+
+# Try to import visualization components, but handle if they're not available
+try:
+    from ..evaluation.enhanced_visualization import EnhancedVisualizer
+    from ..statistics.benchmark_report import BenchmarkReport
+    visualization_available = True
+except ImportError as e:
+    logging.warning(f"Visualization components not available: {str(e)}")
+    visualization_available = False
 
 
 def parse_args():
@@ -95,37 +102,59 @@ def main():
             logging.error(f"No existing results found at {output_file}")
             return 1
 
-    # Create enhanced visualizations
-    visualizer = EnhancedVisualizer(config)
-    viz_paths = visualizer.visualize_all(results)
-    logging.info(f"Visualizations saved to {results_dir / 'visualizations'}")
+    # Create enhanced visualizations and reports if visualization components are available
+    if visualization_available:
+        try:
+            # Create enhanced visualizations
+            visualizer = EnhancedVisualizer(config)
+            viz_paths = visualizer.visualize_all(results)
+            logging.info(f"Visualizations saved to {results_dir / 'visualizations'}")
 
-    # Generate benchmark reports
-    report_generator = BenchmarkReport(config, results)
-    full_report = report_generator.generate_full_report()
-    logging.info(f"Benchmark reports saved to {results_dir / 'reports'}")
+            # Generate benchmark reports
+            report_generator = BenchmarkReport(config, results)
+            full_report = report_generator.generate_full_report()
+            logging.info(f"Benchmark reports saved to {results_dir / 'reports'}")
 
-    # Generate model-specific reports
-    models = set()
-    for result in results:
-        if "solutions" in result:
-            models.update(result["solutions"].keys())
+            # Generate model-specific reports
+            models = set()
+            for result in results:
+                if "solutions" in result:
+                    models.update(result["solutions"].keys())
 
-    for model in models:
-        report_generator.generate_model_report(model)
+            for model in models:
+                report_generator.generate_model_report(model)
+                
+            # Store report for summary
+            report_summary = full_report.get("summary", {})
+        except Exception as e:
+            logging.error(f"Error generating visualizations or reports: {str(e)}")
+            visualization_available = False
+            report_summary = {}
+    else:
+        logging.warning("Skipping visualization and report generation due to missing dependencies")
+        report_summary = {}
 
     print(f"\nExperiment completed successfully!")
     print(f"Results saved to {output_file}")
-    print(f"Visualizations saved to {results_dir / 'visualizations'}")
-    print(f"Reports saved to {results_dir / 'reports'}")
+    
+    if visualization_available:
+        print(f"Visualizations saved to {results_dir / 'visualizations'}")
+        print(f"Reports saved to {results_dir / 'reports'}")
 
-    # Print summary from report
-    if "summary" in full_report:
-        summary = full_report["summary"]
-        print("\nResults Summary:")
-        print(f"  Best model: {summary.get('best_model', 'N/A')}")
-        print(f"  Best model score: {summary.get('best_model_score', 'N/A'):.4f}")
-        print(f"  Significant differences: {summary.get('num_significant_differences', 0)}")
+        # Print summary from report
+        if report_summary:
+            print("\nResults Summary:")
+            print(f"  Best model: {report_summary.get('best_model', 'N/A')}")
+            best_score = report_summary.get('best_model_score')
+            if best_score is not None:
+                print(f"  Best model score: {best_score:.4f}")
+            else:
+                print(f"  Best model score: N/A")
+            print(f"  Significant differences: {report_summary.get('num_significant_differences', 0)}")
+    else:
+        print("\nNote: Visualizations and reports were not generated due to missing dependencies.")
+        print("To enable visualizations, install required packages with:")
+        print("  pip install seaborn matplotlib pandas numpy")
 
 
 if __name__ == "__main__":
