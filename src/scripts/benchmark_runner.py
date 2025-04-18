@@ -33,7 +33,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Run experiments on SWE-bench-Verified dataset")
 
     parser.add_argument("--config", type=str, help="Path to configuration file")
-    parser.add_argument("--model", type=str, choices=["deepseek-32b", "qwen-32b", "qwq-32b", "all"],
+    parser.add_argument("--model", type=str, choices=["deepseek-coder", "qwen-coder", "yi-chat", "all"],
                         default="all", help="Model to use")
     parser.add_argument("--reasoning", type=str, choices=["chain_of_thought", "tree_of_thought"],
                         default="chain_of_thought", help="Reasoning type")

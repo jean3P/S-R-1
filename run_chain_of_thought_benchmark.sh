@@ -79,7 +79,7 @@ echo "Timestamp: ${TIMESTAMP}"
 echo "Results directory: ${RESULTS_DIR}"
 
 # Define models to benchmark
-MODELS=("deepseek-32b" "qwen-32b" "qwq-32b")
+MODELS=("deepseek-coder" "qwen-coder" "yi-chat")
 
 # Set maximum number of instances to process (just 1 for this benchmark)
 MAX_INSTANCES=1

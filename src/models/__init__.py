@@ -19,9 +19,9 @@ def create_model(model_name: str, config):
         An instance of the requested model.
     """
     model_classes = {
-        "deepseek-32b": DeepseekModel,
-        "qwen-32b": QwenModel,
-        "qwq-32b": QwqModel,
+        "deepseek-coder": DeepseekModel,
+        "qwen-coder": QwenModel,
+        "yi-chat": QwqModel,
     }
 
     if model_name not in model_classes:
