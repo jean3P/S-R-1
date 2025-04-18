@@ -22,13 +22,14 @@ class BasePrompt(ABC):
         self.system_message = config.get("system_message", "")
 
     @abstractmethod
-    def format_generation(self, prompt: str, task: Dict[str, Any]) -> str:
+    def format_generation(self, prompt: str, context: Dict[str, Any] = None, task: Dict[str, Any] = None) -> str:
         """
         Format the generation prompt.
 
         Args:
             prompt: Input prompt
-            task: Task details
+            context: Additional context (optional)
+            task: Task details (optional)
 
         Returns:
             Formatted prompt
@@ -42,7 +43,8 @@ class BasePrompt(ABC):
             solution: str,
             output: str,
             errors: str,
-            task: Dict[str, Any]
+            context: Dict[str, Any] = None,
+            task: Dict[str, Any] = None
     ) -> str:
         """
         Format the reflection prompt.
@@ -52,7 +54,8 @@ class BasePrompt(ABC):
             solution: Generated solution
             output: Execution output
             errors: Execution errors
-            task: Task details
+            context: Additional context (optional)
+            task: Task details (optional)
 
         Returns:
             Formatted reflection prompt
@@ -130,3 +133,21 @@ class BasePrompt(ABC):
             self.logger.error(f"Error formatting template: {str(e)}")
             # Return template with error message
             return template + f"\n\nError formatting template: {str(e)}"
+
+    @abstractmethod
+    def format_tot_reasoning(self, original_prompt: str, parent_reasoning: str,
+                             depth: int, strategy: str, task: Dict[str, Any]) -> str:
+        """
+        Format a prompt for Tree of Thought reasoning.
+
+        Args:
+            original_prompt: Original problem statement
+            parent_reasoning: Reasoning from parent node
+            depth: Current reasoning depth
+            strategy: Reasoning strategy to focus on
+            task: Task details
+
+        Returns:
+            Formatted ToT reasoning prompt
+        """
+        pass

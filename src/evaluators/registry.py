@@ -1,9 +1,9 @@
 # src/evaluators/registry.py
 
 from typing import Dict, Any, Type, Optional
+
+from src.evaluators import SWEBenchEvaluator
 from src.evaluators.base_evaluator import BaseEvaluator
-from src.evaluators.python_executor import PythonExecutor
-from src.evaluators.unit_tester import UnitTester
 from src.utils.logging import get_logger
 from src.config.settings import load_config
 
@@ -12,8 +12,7 @@ logger = get_logger("evaluator_registry")
 
 # Registry of available evaluators
 EVALUATOR_REGISTRY = {
-    "python_executor": PythonExecutor,
-    "unit_tester": UnitTester
+    "swe_bench_evaluator": SWEBenchEvaluator
     # Add more evaluator types as they are implemented
 }
 

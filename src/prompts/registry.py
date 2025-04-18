@@ -2,8 +2,6 @@
 
 from typing import Dict, Any, Type, Optional
 from src.prompts.base_prompt import BasePrompt
-from src.prompts.code_generation import CodeGenerationPrompt
-from src.prompts.reasoning import ReasoningPrompt
 from src.utils.logging import get_logger
 from src.config.settings import load_config
 
@@ -12,8 +10,6 @@ logger = get_logger("prompt_registry")
 
 # Registry of available prompts
 PROMPT_REGISTRY = {
-    "code_generation": CodeGenerationPrompt,
-    "reasoning": ReasoningPrompt
     # Add more prompt types as they are implemented
 }
 

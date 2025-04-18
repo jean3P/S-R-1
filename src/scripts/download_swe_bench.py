@@ -1,5 +1,4 @@
 # src/scripts/download_swe_bench.py
-#!/usr/bin/env python3
 
 """
 Download SWE-bench Lite dataset from Hugging Face.

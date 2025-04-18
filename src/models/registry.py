@@ -3,8 +3,6 @@
 from typing import Dict, Any, Type, Optional
 from src.models.base_model import BaseModel
 from src.models.huggingface_model import HuggingFaceModel
-from src.models.openai_model import OpenAIModel
-from src.models.anthropic_model import AnthropicModel
 from src.utils.logging import get_logger
 from src.config.settings import load_config
 
@@ -14,8 +12,6 @@ logger = get_logger("model_registry")
 # Registry of available models
 MODEL_REGISTRY = {
     "huggingface": HuggingFaceModel,
-    "openai": OpenAIModel,
-    "anthropic": AnthropicModel
 }
 
 # Cache for instantiated models

@@ -1,4 +1,4 @@
-# src/models/huggingface_model.py
+# src/models/openain_model.py
 
 
 import time

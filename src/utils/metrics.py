@@ -206,6 +206,78 @@ def _count_imports(tree: ast.AST) -> int:
     return count
 
 
+def calculate_patch_metrics(patch: str) -> Dict[str, Any]:
+    """
+    Calculate metrics for a git patch/diff.
+
+    Args:
+        patch: Patch/diff content to analyze
+
+    Returns:
+        Metrics dictionary
+    """
+    metrics = {
+        "line_count": len(patch.splitlines()),
+        "char_count": len(patch),
+        "files_touched": 0,
+        "lines_added": 0,
+        "lines_removed": 0,
+        "lines_changed": 0,
+        "hunks": 0,
+        "is_valid_patch": False
+    }
+
+    # Check if this looks like a valid patch
+    is_valid = bool(re.search(r'(?:diff --git|^--- |^\+\+\+)', patch, re.MULTILINE))
+    metrics["is_valid_patch"] = is_valid
+
+    if not is_valid:
+        return metrics
+
+    # Count files touched
+    files_git = len(re.findall(r'diff --git', patch, re.MULTILINE))
+    files_unified = len(re.findall(r'^--- [^\s]', patch, re.MULTILINE))
+    metrics["files_touched"] = max(files_git, files_unified) or 1  # At least 1 if patch is valid
+
+    # Count hunks
+    hunk_headers = re.findall(r'^@@.*?@@', patch, re.MULTILINE)
+    metrics["hunks"] = len(hunk_headers)
+
+    # Count line changes
+    added_lines = re.findall(r'^[\+](?!\+\+)', patch, re.MULTILINE)
+    removed_lines = re.findall(r'^[-](?!--)', patch, re.MULTILINE)
+
+    metrics["lines_added"] = len(added_lines)
+    metrics["lines_removed"] = len(removed_lines)
+    metrics["lines_changed"] = metrics["lines_added"] + metrics["lines_removed"]
+
+    # Calculate complexity based on patch size and dispersion
+    metrics["complexity"] = (metrics["lines_changed"] * 0.5) + (metrics["files_touched"] * 2) + (metrics["hunks"] * 1.5)
+
+    # Calculate estimated test coverage impact (how much of codebase might be affected)
+    # This is a very rough heuristic
+    metrics["test_impact"] = min(100, metrics["files_touched"] * 10 + metrics["hunks"] * 5)
+
+    # Calculate test pass percentage (placeholder for now)
+    metrics["test_pass_percentage"] = 0  # Should be filled in by actual test results
+
+    # Try to identify patch purpose
+    if re.search(r'(?i)(?:fix|bug|issue|crash|exception|error)', patch):
+        metrics["patch_type"] = "bugfix"
+    elif re.search(r'(?i)(?:feat|feature|add|new|implement)', patch):
+        metrics["patch_type"] = "feature"
+    elif re.search(r'(?i)(?:refactor|clean|improve|simplif)', patch):
+        metrics["patch_type"] = "refactor"
+    elif re.search(r'(?i)(?:test|unittest|pytest)', patch):
+        metrics["patch_type"] = "test"
+    elif re.search(r'(?i)(?:doc|comment|readme)', patch):
+        metrics["patch_type"] = "documentation"
+    else:
+        metrics["patch_type"] = "unknown"
+
+    return metrics
+
+
 def _calculate_docstring_coverage(tree: ast.AST) -> float:
     """
     Calculate docstring coverage for functions and classes.

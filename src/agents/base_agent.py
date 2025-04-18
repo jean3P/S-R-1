@@ -23,7 +23,7 @@ class BaseAgent(ABC):
             evaluator_id: ID of the evaluator to use
             config: Agent configuration
         """
-
+        self.task = None
         self.model = get_model(model_id)
         self.prompt = get_prompt(prompt_id)
         self.evaluator = get_evaluator(evaluator_id)

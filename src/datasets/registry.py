@@ -5,8 +5,6 @@ from typing import Dict, Any, Type, Optional
 from src.datasets.swe_bench import SWEBenchDataset
 from src.datasets.base_dataset import BaseDataset
 from src.datasets.json_dataset import JSONDataset
-from src.datasets.csv_dataset import CSVDataset
-from src.datasets.coding_problems import CodingProblemsDataset
 from src.utils.logging import get_logger
 from src.config.settings import load_config
 
@@ -16,8 +14,6 @@ logger = get_logger("dataset_registry")
 # Registry of available datasets
 DATASET_REGISTRY = {
     "json": JSONDataset,
-    "csv": CSVDataset,
-    "coding_problems": CodingProblemsDataset,
     "swe_bench": SWEBenchDataset
     # Add more dataset types as they are implemented
 }

@@ -1,11 +1,4 @@
 # src/config/__init__.py
-"""
-Configuration management for the AI system.
-
-This package provides utilities for loading, validating, and managing
-configuration for the system and its components.
-"""
-
 from src.config.settings import (
     load_config,
     save_config,

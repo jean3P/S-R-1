@@ -834,4 +834,99 @@ def parse_execution_result(stdout: str, stderr: str) -> Dict[str, Any]:
 
     return result
 
+def extract_docstring(node):
+    """
+    Extract docstring from an AST node.
 
+    Args:
+        node: AST node (function or class definition)
+
+    Returns:
+        Docstring text or None if no docstring exists
+    """
+    import ast
+
+    # Check if the node has a body
+    if not hasattr(node, 'body') or not node.body:
+        return None
+
+    # Check if the first statement in the body is a string (docstring)
+    first_node = node.body[0]
+    if isinstance(first_node, ast.Expr) and isinstance(first_node.value, ast.Str):
+        return first_node.value.s
+    elif isinstance(first_node, ast.Expr) and isinstance(first_node.value, ast.Constant) and isinstance(first_node.value.value, str):
+        # For Python 3.8+, docstrings are represented as Constants
+        return first_node.value.value
+
+    return None
+
+def extract_patches(text: str) -> List[str]:
+    """
+    Extract git patch/diff content from text with robust handling of various formats.
+
+    Args:
+        text: Text that may contain git patches/diffs
+
+    Returns:
+        List of extracted patches
+    """
+    # List to store extracted patches
+    patches = []
+
+    # Stage 1: Look for standard git diff format
+    diff_blocks = re.findall(r'(diff --git .*?)(?=diff --git|\Z)', text, re.DOTALL)
+    if diff_blocks:
+        for block in diff_blocks:
+            if block.strip():
+                patches.append(block.strip())
+        return patches
+
+    # Stage 2: Look for unified diff format
+    unified_diff_blocks = re.findall(r'(--- .*?\n\+\+\+ .*?(?:\n@@.*?@@.*?)(?:(?:\n@@.*?@@.*?)|(?:\Z)))', text,
+                                     re.DOTALL)
+    if unified_diff_blocks:
+        for block in unified_diff_blocks:
+            if block.strip():
+                patches.append(block.strip())
+        return patches
+
+    # Stage 3: Look for markdown-enclosed git diff blocks
+    markdown_blocks = re.findall(r'```(?:diff|patch)?\s*\n(diff --git .*?)```', text, re.DOTALL)
+    if not markdown_blocks:
+        # Try without the 'diff --git' constraint
+        markdown_blocks = re.findall(r'```(?:diff|patch)\s*\n(.*?)```', text, re.DOTALL)
+
+    if markdown_blocks:
+        for block in markdown_blocks:
+            if block.strip():
+                patches.append(block.strip())
+        return patches
+
+    # Stage 4: Look for any content that looks like a patch (more lenient)
+    if "---" in text and "+++" in text and "@@" in text:
+        # Look for sections that start with --- and +++ and contain @@ markers
+        potential_patches = re.findall(r'(---.*?\n\+\+\+.*?(?:\n@@.*?@@.*?)+)', text, re.DOTALL)
+        if potential_patches:
+            for patch in potential_patches:
+                if patch.strip():
+                    patches.append(patch.strip())
+            return patches
+
+    # Stage 5: If still nothing, look for file paths with a/b prefixes which is typical in diffs
+    if re.search(r'(?:^|\n)(?:a/|b/)[\w/.-]+', text):
+        # Try to extract the entire section that looks like it might be a diff
+        potential_sections = re.split(r'\n\s*\n\s*\n', text)
+        for section in potential_sections:
+            if re.search(r'(?:^|\n)(?:a/|b/)[\w/.-]+', section) and ('+' in section or '-' in section):
+                if section.strip():
+                    patches.append(section.strip())
+
+        if patches:
+            return patches
+
+    # If no patches found but the text has common diff markers, return the whole text
+    if re.search(r'(?:^|\n)(?:---|\+\+\+|@@|diff --git)', text):
+        return [text.strip()]
+
+    # No patches found
+    return []

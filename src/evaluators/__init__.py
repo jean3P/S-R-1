@@ -9,9 +9,6 @@ New evaluator types can be added by implementing the BaseEvaluator interface and
 registering them with the evaluator registry.
 """
 from src.evaluators.base_evaluator import BaseEvaluator
-from src.evaluators.python_executor import PythonExecutor
-from src.evaluators.unit_tester import UnitTester
-from src.evaluators.code_analyzer import CodeAnalyzer
 from src.evaluators.swe_bench_evaluator import SWEBenchEvaluator  # Import the SWE-bench evaluator
 
 from src.evaluators.registry import (
@@ -24,18 +21,12 @@ from src.evaluators.registry import (
 )
 
 # Register the evaluators
-register_evaluator("python_executor", PythonExecutor)
-register_evaluator("unit_tester", UnitTester)
-register_evaluator("code_analyzer", CodeAnalyzer)
 register_evaluator("swe_bench_evaluator", SWEBenchEvaluator)  # Register the SWE-bench evaluator
 
 # Version of the evaluators package
 __version__ = "0.1.0"
 __all__ = [
     'BaseEvaluator',
-    'PythonExecutor',
-    'UnitTester',
-    'CodeAnalyzer',
     'SWEBenchEvaluator',
     'register_evaluator',
     'get_evaluator',

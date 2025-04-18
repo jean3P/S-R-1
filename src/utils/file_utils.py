@@ -5,6 +5,7 @@ import json
 import yaml
 import tempfile
 from typing import Dict, Any, List
+from datetime import datetime
 
 
 def save_json(data: Dict[str, Any], file_path: str, indent: int = 4) -> None:
@@ -199,3 +200,27 @@ def get_file_extension(file_path: str) -> str:
         File extension (without dot)
     """
     return os.path.splitext(file_path)[1].lstrip(".")
+
+
+def get_result_output_path(task: dict, model_id: str, agent_id: str, base_dir: str = "results") -> str:
+    """
+    Generate a centralized output path for agent results.
+
+    Args:
+        task: Task dictionary (must include 'name' and optionally 'dataset')
+        model_id: The ID of the model used (e.g., 'qwen_coder')
+        agent_id: The class name or type of the agent (e.g., 'PatchRefinementAgent')
+        base_dir: Root directory for storing all results
+
+    Returns:
+        Full output file path (including file name)
+    """
+    dataset = task.get("dataset", "swe_bench")
+    task_name = task.get("name", "unknown_task")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # Example path: results/swe_bench/qwen_coder/PatchRefinementAgent/astropy__astropy-12907_20250401_170512.json
+    dir_path = os.path.join(base_dir, dataset, model_id, agent_id)
+    file_name = f"{task_name}_{timestamp}.json"
+
+    return os.path.join(dir_path, file_name)

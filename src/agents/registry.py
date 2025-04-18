@@ -1,10 +1,11 @@
 # src/agents/registry.py
+
 from typing import Dict, Any, Type, Optional
 
-from src.agents.patch_refinement_agent import PatchRefinementAgent
+from src.agents.tree_of_thought_patch_agent import TreeOfThoughtPatchAgent
+from src.agents.improved_code_refinement_agent import ImprovedCodeRefinementAgent
+from src.agents.tree_of_thought_diagnostic_agent import TreeOfThoughtDiagnosticAgent
 from src.agents.base_agent import BaseAgent
-from src.agents.code_refinement_agent import CodeRefinementAgent
-from src.agents.reasoning_agent import ReasoningAgent
 from src.utils.logging import get_logger
 from src.config.settings import load_config
 
@@ -13,9 +14,10 @@ logger = get_logger("agent_registry")
 
 # Registry of available agents
 AGENT_REGISTRY = {
-    "code_refinement": CodeRefinementAgent,
-    "reasoning": ReasoningAgent,
-    "patch_refinement": PatchRefinementAgent,
+    # "patch_refinement": PatchRefinementAgent,
+    "improved_code_refinement": ImprovedCodeRefinementAgent,
+    "tree_of_thought_diagnostic": TreeOfThoughtDiagnosticAgent,
+    "tree_of_thought_patch": TreeOfThoughtPatchAgent,
     # Add more agent types as they are implemented
 }
 

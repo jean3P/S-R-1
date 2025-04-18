@@ -119,3 +119,4 @@ def log_exception(logger: logging.Logger, exc: Exception, context: str = "") -> 
 
     # Log the full traceback at debug level
     logger.debug(f"Traceback:\n{''.join(traceback.format_tb(exc.__traceback__))}")
+
