@@ -89,7 +89,8 @@ class BaseModel(ABC):
             device_map="auto" if self.device == "cuda" else None,
             quantization_config=quantization_config,
             torch_dtype=torch.float16 if self.config["models"]["precision"] == "fp16" else torch.float32,
-            token=hf_token  # Add token for authentication
+            token=hf_token,  # Add token for authentication
+            use_flash_attention_2=True  # Enable Flash Attention 2 for better performance with large models
         )
 
         # Set padding token if needed
