@@ -7,7 +7,7 @@ class QwenModel(BaseModel):
     """Implementation for Qwen models."""
 
     def __init__(self, config: Dict[str, Any]):
-        super().__init__("qwen-7b", config)
+        super().__init__("qwen-32b", config)
 
     def format_prompt(self, instruction: str) -> str:
         """Format instruction according to Qwen's prompt template."""
