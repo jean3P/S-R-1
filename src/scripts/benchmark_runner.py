@@ -24,6 +24,9 @@ except ImportError as e:
     logging.warning(f"Visualization components not available: {str(e)}")
     visualization_available = False
 
+# Define visualization_available at module level to avoid reference before assignment
+visualization_available = False
+
 
 def parse_args():
     """Parse command line arguments."""
@@ -45,8 +48,12 @@ def parse_args():
     return parser.parse_args()
 
 
+# Initialize visualization_available at module level
+visualization_available = False
+
 def main():
     """Main function for running experiments."""
+    global visualization_available
     args = parse_args()
 
     # Load configuration
