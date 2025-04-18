@@ -41,6 +41,16 @@ class BaseModel(ABC):
         revision = self.model_config.get("revision", "main")
         trust_remote_code = self.model_config.get("trust_remote_code", False)
         cache_dir = self.config["models"].get("repo_cache_dir", "data/model_cache")
+        
+        # Get Hugging Face token from environment variable
+        import os
+        from dotenv import load_dotenv
+        
+        # Load .env file
+        load_dotenv()
+        
+        # Get token from environment
+        hf_token = os.environ.get("TOKEN_HUGG")
 
         # Determine which model class to use
         model_class_name = self.model_config.get("model_class", "AutoModelForCausalLM")
@@ -51,7 +61,8 @@ class BaseModel(ABC):
             repo_id,
             revision=revision,
             cache_dir=cache_dir,
-            trust_remote_code=trust_remote_code
+            trust_remote_code=trust_remote_code,
+            token=hf_token  # Add token for authentication
         )
 
         # Prepare quantization config if needed
@@ -77,7 +88,8 @@ class BaseModel(ABC):
             trust_remote_code=trust_remote_code,
             device_map="auto" if self.device == "cuda" else None,
             quantization_config=quantization_config,
-            torch_dtype=torch.float16 if self.config["models"]["precision"] == "fp16" else torch.float32
+            torch_dtype=torch.float16 if self.config["models"]["precision"] == "fp16" else torch.float32,
+            token=hf_token  # Add token for authentication
         )
 
         # Set padding token if needed

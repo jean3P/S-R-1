@@ -129,7 +129,7 @@ echo "Report directory: ${RESULTS_DIR}/report"
 # Install required dependencies
 echo ""
 echo "=== Installing required dependencies ==="
-pip install seaborn matplotlib pandas numpy
+pip install seaborn matplotlib pandas numpy python-dotenv
 
 # Check if visualization was successful
 if [ -d "${RESULTS_DIR}/report" ] && [ -f "${RESULTS_DIR}/report/results.json" ]; then
