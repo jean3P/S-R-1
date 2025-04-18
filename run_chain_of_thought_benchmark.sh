@@ -43,6 +43,30 @@ mkdir -p "${RESULTS_DIR}"
 LOG_FILE="jobs_logs/${EXPERIMENT_NAME}_${TIMESTAMP}.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
+# Download SWE-bench dataset if it doesn't exist
+echo "=== Checking for SWE-bench dataset ==="
+DATASET_DIR="data/datasets"
+DATASET_FILE="${DATASET_DIR}/swe_bench_verified.json"
+
+if [ ! -f "$DATASET_FILE" ]; then
+  echo "SWE-bench dataset not found. Downloading..."
+  
+  # Install required dependencies for download
+  pip install requests tqdm
+  
+  # Run the download script
+  python -m src.scripts.download_swe_bench --output "$DATASET_FILE" --lite
+  
+  if [ $? -ne 0 ]; then
+    echo "Error downloading dataset. Please check the logs."
+    exit 1
+  fi
+  
+  echo "Dataset downloaded to $DATASET_FILE"
+else
+  echo "SWE-bench dataset found at $DATASET_FILE"
+fi
+
 echo "=== Starting Chain of Thought Benchmark Experiment ==="
 echo "Timestamp: ${TIMESTAMP}"
 echo "Results directory: ${RESULTS_DIR}"

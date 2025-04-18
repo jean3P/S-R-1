@@ -36,18 +36,58 @@ class SWEBenchDataLoader:
         Returns:
             List of dictionaries containing issue information.
         """
-        dataset_path = self.data_path / "swe-bench-verified.jsonl"
-
-        if not dataset_path.exists():
-            raise FileNotFoundError(f"Dataset file not found at {dataset_path}")
-
+        # Try to find the dataset file
+        # First check if file_path is specified in config
+        if "file_path" in self.config["data"]:
+            file_path = Path(self.config["data"]["file_path"])
+            if file_path.exists():
+                logger.info(f"Loading dataset from specified file_path: {file_path}")
+                return self._load_json_dataset(file_path)
+        
+        # Then check the swe_bench_path
+        dataset_path = self.data_path
+        
+        # Try different file extensions and formats
+        possible_paths = [
+            dataset_path / "swe-bench-verified.jsonl",
+            dataset_path / "swe-bench-verified.json",
+            dataset_path / "swe_bench_verified.jsonl",
+            dataset_path / "swe_bench_verified.json",
+            dataset_path / "swe_bench_lite.json",
+            dataset_path
+        ]
+        
+        for path in possible_paths:
+            if path.exists() and path.is_file():
+                logger.info(f"Loading dataset from: {path}")
+                if path.suffix == '.jsonl':
+                    return self._load_jsonl_dataset(path)
+                else:
+                    return self._load_json_dataset(path)
+        
+        # If we get here, we couldn't find the dataset
+        raise FileNotFoundError(
+            f"Dataset file not found. Tried: {[str(p) for p in possible_paths]}. "
+            f"Please run the download script: python -m src.scripts.download_swe_bench"
+        )
+    
+    def _load_jsonl_dataset(self, file_path: Path) -> List[Dict[str, Any]]:
+        """Load dataset from a JSONL file."""
         issues = []
-        with open(dataset_path, 'r') as f:
+        with open(file_path, 'r') as f:
             for line in f:
                 issue_data = json.loads(line)
                 issues.append(issue_data)
-
-        logger.info(f"Loaded {len(issues)} issues from SWE-bench-Verified dataset")
+        
+        logger.info(f"Loaded {len(issues)} issues from JSONL dataset")
+        return issues
+    
+    def _load_json_dataset(self, file_path: Path) -> List[Dict[str, Any]]:
+        """Load dataset from a JSON file."""
+        with open(file_path, 'r') as f:
+            issues = json.load(f)
+        
+        logger.info(f"Loaded {len(issues)} issues from JSON dataset")
         return issues
 
     def load_issue(self, issue_id: str) -> Optional[Dict[str, Any]]:
