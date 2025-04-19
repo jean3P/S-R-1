@@ -1,4 +1,4 @@
-# benchmark_runner.py
+# src/scripts/benchmark_runner.py
 import os
 import sys
 import argparse

@@ -1,8 +1,10 @@
-# models/base_model.py
+# src/models/base_model.py
+
 from abc import ABC
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from typing import Dict, Any
+import os
 
 
 class BaseModel(ABC):
@@ -37,61 +39,92 @@ class BaseModel(ABC):
         repo_id = self.model_config.get("repo_id", self.model_config.get("model_name"))
         if not repo_id:
             repo_id = self.model_name  # Fallback to the model name passed to __init__
-            
+
         revision = self.model_config.get("revision", "main")
         trust_remote_code = self.model_config.get("trust_remote_code", False)
         cache_dir = self.config["models"].get("repo_cache_dir", "data/model_cache")
-        
-        # Get Hugging Face token from environment variable
-        import os
-        
-        # Get token from environment - try both common environment variable names
+
+        # Get Hugging Face token from environment variable - try both common environment variable names
         hf_token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_TOKEN")
 
-        # Determine which model class to use
-        model_class_name = self.model_config.get("model_class", "AutoModelForCausalLM")
-        tokenizer_class_name = self.model_config.get("tokenizer_class", "AutoTokenizer")
+        # If token is not set, log a warning
+        if not hf_token and 'qwen' in repo_id.lower():
+            print(f"Warning: HF_TOKEN environment variable not set. You may need to set it to access {repo_id}")
+            print("Try: export HF_TOKEN=your_huggingface_token")
 
-        # Load tokenizer
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            repo_id,
-            revision=revision,
-            cache_dir=cache_dir,
-            trust_remote_code=trust_remote_code,
-            token=hf_token  # Add token for authentication
-        )
-
-        # Prepare quantization config if needed
-        quantization_config = None
-        if "quantization" in self.model_config:
-            from transformers import BitsAndBytesConfig
-            quantization = self.model_config["quantization"]
-            quantization_config = BitsAndBytesConfig(
-                load_in_4bit=quantization.get("bits", 4) == 4,
-                load_in_8bit=quantization.get("bits", 4) == 8,
-                llm_int8_threshold=quantization.get("threshold", 6.0),
-                llm_int8_has_fp16_weight=quantization.get("fp16_weight", False),
-                bnb_4bit_compute_dtype=torch.float16,
-                bnb_4bit_use_double_quant=quantization.get("double_quant", True),
-                bnb_4bit_quant_type=quantization.get("quant_type", "nf4"),
+        try:
+            # Load tokenizer with proper error handling
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                repo_id,
+                revision=revision,
+                cache_dir=cache_dir,
+                trust_remote_code=trust_remote_code,
+                token=hf_token  # Add token for authentication
             )
 
-        # Load model
-        self.model = AutoModelForCausalLM.from_pretrained(
-            repo_id,
-            revision=revision,
-            cache_dir=cache_dir,
-            trust_remote_code=trust_remote_code,
-            device_map="auto" if self.device == "cuda" else None,
-            quantization_config=quantization_config,
-            torch_dtype=torch.float16 if self.config["models"]["precision"] == "fp16" else torch.float32,
-            token=hf_token,  # Add token for authentication
-            use_flash_attention_2=self.model_config.get("use_flash_attention", True)  # Make configurable
-        )
+            # Set padding token if needed
+            if self.tokenizer.pad_token is None:
+                self.tokenizer.pad_token = self.tokenizer.eos_token
 
-        # Set padding token if needed
-        if self.tokenizer.pad_token is None:
-            self.tokenizer.pad_token = self.tokenizer.eos_token
+            # Handle quantization - safely check if bitsandbytes is installed
+            quantization_config = None
+            if "quantization" in self.model_config:
+                try:
+                    import bitsandbytes
+                    from transformers import BitsAndBytesConfig
+
+                    quantization = self.model_config["quantization"]
+                    quantization_config = BitsAndBytesConfig(
+                        load_in_4bit=quantization.get("bits", 4) == 4,
+                        load_in_8bit=quantization.get("bits", 4) == 8,
+                        llm_int8_threshold=quantization.get("threshold", 6.0),
+                        llm_int8_has_fp16_weight=quantization.get("fp16_weight", False),
+                        bnb_4bit_compute_dtype=torch.float16,
+                        bnb_4bit_use_double_quant=quantization.get("double_quant", True),
+                        bnb_4bit_quant_type=quantization.get("quant_type", "nf4"),
+                    )
+                except ImportError:
+                    print("Warning: bitsandbytes package not found. Quantization will be disabled.")
+                    print("To enable quantization, install bitsandbytes: pip install bitsandbytes")
+                    # Fall back to no quantization
+                    self.model_config.pop("quantization", None)
+
+            # Check if flash attention is available and requested
+            use_flash_attention = self.model_config.get("use_flash_attention", True)
+            try:
+                if use_flash_attention:
+                    # Try to import to check if it's available
+                    import flash_attn
+                    flash_attention_available = True
+                else:
+                    flash_attention_available = False
+            except ImportError:
+                print("Warning: flash_attn package not found. Flash attention will be disabled.")
+                print("To enable flash attention, install flash-attn: pip install flash-attn")
+                flash_attention_available = False
+
+            # Load model
+            self.model = AutoModelForCausalLM.from_pretrained(
+                repo_id,
+                revision=revision,
+                cache_dir=cache_dir,
+                trust_remote_code=trust_remote_code,
+                device_map="auto" if self.device == "cuda" else None,
+                quantization_config=quantization_config,
+                torch_dtype=torch.float16 if self.config["models"]["precision"] == "fp16" else torch.float32,
+                token=hf_token,  # Add token for authentication
+                use_flash_attention_2=flash_attention_available
+            )
+
+        except Exception as e:
+            if "is not a local folder and is not a valid model identifier" in str(e):
+                raise Exception(f"Error loading model {repo_id}. This may be a private repository or does not exist. "
+                                f"Set the HF_TOKEN environment variable with your Hugging Face token or check if the model ID is correct.") from e
+            elif "No package metadata was found for bitsandbytes" in str(e):
+                raise Exception(f"Error loading model {repo_id}. The bitsandbytes package is not installed properly. "
+                                f"Try: pip install bitsandbytes==0.41.0 or disable quantization in the model config.") from e
+            else:
+                raise e
 
     def format_prompt(self, instruction: str) -> str:
         """Format instruction according to model's prompt template."""

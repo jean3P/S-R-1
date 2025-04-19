@@ -10,6 +10,7 @@ source .venv/bin/activate
 export PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
 export TRANSFORMERS_OFFLINE=0
 export PYTHONPATH=$(pwd)
+export HF_TOKEN=
 export TOKENIZERS_PARALLELISM=false
 export CUDA_VISIBLE_DEVICES=0,1,2,3  # Using all available GPUs
 
@@ -38,7 +39,7 @@ EXPERIMENT_NAME="chain_of_thought_benchmark"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 RESULTS_DIR="results/${EXPERIMENT_NAME}_${TIMESTAMP}"
 mkdir -p "${RESULTS_DIR}"
-
+NUM_ITERATIONS=1
 # Create log file
 LOG_FILE="jobs_logs/${EXPERIMENT_NAME}_${TIMESTAMP}.log"
 exec > >(tee -a "$LOG_FILE") 2>&1
@@ -79,7 +80,7 @@ echo "Timestamp: ${TIMESTAMP}"
 echo "Results directory: ${RESULTS_DIR}"
 
 # Define models to benchmark
-MODELS=("deepseek-32b" "qwen-32b" "qwq-32b")
+MODELS=("deepseek-r1-distill" "qwen2-5-coder" "qwq-preview")
 
 # Set maximum number of instances to process (just 1 for this benchmark)
 MAX_INSTANCES=1
@@ -102,6 +103,7 @@ for MODEL in "${MODELS[@]}"; do
     --model "${MODEL}" \
     --reasoning "chain_of_thought" \
     --limit ${MAX_INSTANCES} \
+    --iterations ${NUM_ITERATIONS} \
     --output "${MODEL_RESULTS_DIR}" \
     --log-file "${MODEL_RESULTS_DIR}/run.log" \
     --debug

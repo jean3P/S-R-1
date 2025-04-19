@@ -1,4 +1,4 @@
-# config/config.py
+# src/config/config.py
 import os
 import yaml
 from pathlib import Path
@@ -13,7 +13,7 @@ class Config:
             "data": {
                 "swe_bench_path": str(self.base_dir / "data" / "swe-bench-verified"),
                 "cache_dir": str(self.base_dir / "data" / "cache"),
-                "max_context_length": 9192,
+                "max_context_length": 10192,
             },
             "models": {
                 "device": "cuda" if os.environ.get("CUDA_VISIBLE_DEVICES") else "cpu",
@@ -39,6 +39,7 @@ class Config:
             }
         }
 
+        self.defaults["base_dir"] = str(self.base_dir)
         # Load configuration from file if provided
         if config_path:
             with open(config_path, 'r') as f:
