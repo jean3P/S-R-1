@@ -1,201 +1,135 @@
-# src/utils/file_utils.py
-
+# utils/file_utils.py
 import os
-import json
-import yaml
+import shutil
 import tempfile
-from typing import Dict, Any, List
+import json
+import logging
+from pathlib import Path
+from typing import Dict, List, Any, Optional, Union
+
+logger = logging.getLogger(__name__)
 
 
-def save_json(data: Dict[str, Any], file_path: str, indent: int = 4) -> None:
+class FileUtils:
     """
-    Save data to a JSON file.
-
-    Args:
-        data: Data to save
-        file_path: Path to the file
-        indent: Indentation level for the JSON file
+    Utilities for file operations.
     """
-    # Create directory if it doesn't exist
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=indent, ensure_ascii=False)
+    @staticmethod
+    def ensure_directory(directory: Union[str, Path]) -> Path:
+        """
+        Ensure a directory exists.
 
+        Args:
+            directory: Directory path.
 
-def load_json(file_path: str) -> Dict[str, Any]:
-    """
-    Load data from a JSON file.
+        Returns:
+            Path object for the directory.
+        """
+        directory_path = Path(directory)
+        if not directory_path.exists():
+            directory_path.mkdir(parents=True)
+        return directory_path
 
-    Args:
-        file_path: Path to the file
+    @staticmethod
+    def write_json(data: Any, file_path: Union[str, Path]) -> bool:
+        """
+        Write data to a JSON file.
 
-    Returns:
-        Loaded data
+        Args:
+            data: Data to write.
+            file_path: Path to the file.
 
-    Raises:
-        FileNotFoundError: If the file does not exist
-    """
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"File not found: {file_path}")
+        Returns:
+            True if successful, False otherwise.
+        """
+        try:
+            file_path = Path(file_path)
+            FileUtils.ensure_directory(file_path.parent)
 
-    with open(file_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=2)
+            return True
+        except Exception as e:
+            logger.error(f"Error writing JSON file: {str(e)}")
+            return False
 
+    @staticmethod
+    def read_json(file_path: Union[str, Path]) -> Optional[Any]:
+        """
+        Read data from a JSON file.
 
-def save_yaml(data: Dict[str, Any], file_path: str) -> None:
-    """
-    Save data to a YAML file.
+        Args:
+            file_path: Path to the file.
 
-    Args:
-        data: Data to save
-        file_path: Path to the file
-    """
-    # Create directory if it doesn't exist
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        Returns:
+            Loaded data or None if error.
+        """
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception as e:
+            logger.error(f"Error reading JSON file: {str(e)}")
+            return None
 
-    with open(file_path, "w", encoding="utf-8") as f:
-        yaml.dump(data, f, default_flow_style=False)
+    @staticmethod
+    def write_file(content: str, file_path: Union[str, Path]) -> bool:
+        """
+        Write content to a file.
 
+        Args:
+            content: Content to write.
+            file_path: Path to the file.
 
-def load_yaml(file_path: str) -> Dict[str, Any]:
-    """
-    Load data from a YAML file.
+        Returns:
+            True if successful, False otherwise.
+        """
+        try:
+            file_path = Path(file_path)
+            FileUtils.ensure_directory(file_path.parent)
 
-    Args:
-        file_path: Path to the file
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            return True
+        except Exception as e:
+            logger.error(f"Error writing file: {str(e)}")
+            return False
 
-    Returns:
-        Loaded data
+    @staticmethod
+    def read_file(file_path: Union[str, Path]) -> Optional[str]:
+        """
+        Read content from a file.
 
-    Raises:
-        FileNotFoundError: If the file does not exist
-    """
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"File not found: {file_path}")
+        Args:
+            file_path: Path to the file.
 
-    with open(file_path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+        Returns:
+            File content or None if error.
+        """
+        try:
+            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                return f.read()
+        except Exception as e:
+            logger.error(f"Error reading file: {str(e)}")
+            return None
 
+    @staticmethod
+    def create_temp_file(content: str, suffix: Optional[str] = None) -> Optional[str]:
+        """
+        Create a temporary file with the given content.
 
-def save_to_temp_file(content: str, suffix: str = ".py") -> str:
-    """
-    Save content to a temporary file.
+        Args:
+            content: Content to write.
+            suffix: Optional file suffix.
 
-    Args:
-        content: Content to save
-        suffix: File suffix
-
-    Returns:
-        Path to the temporary file
-    """
-    with tempfile.NamedTemporaryFile(mode="w", suffix=suffix, delete=False) as tmp_file:
-        tmp_file.write(content)
-        tmp_filename = tmp_file.name
-
-    return tmp_filename
-
-
-def remove_file(file_path: str) -> None:
-    """
-    Remove a file.
-
-    Args:
-        file_path: Path to the file
-    """
-    if os.path.exists(file_path):
-        os.remove(file_path)
-
-
-def ensure_directory(directory_path: str) -> None:
-    """
-    Ensure a directory exists, creating it if necessary.
-
-    Args:
-        directory_path: Path to the directory
-    """
-    os.makedirs(directory_path, exist_ok=True)
-
-
-def list_files(directory_path: str, pattern: str = "*") -> List[str]:
-    """
-    List files in a directory matching a pattern.
-
-    Args:
-        directory_path: Path to the directory
-        pattern: Glob pattern to match
-
-    Returns:
-        List of file paths
-    """
-    import glob
-    return glob.glob(os.path.join(directory_path, pattern))
-
-
-def read_text_file(file_path: str, encoding: str = "utf-8") -> str:
-    """
-    Read text from a file.
-
-    Args:
-        file_path: Path to the file
-        encoding: File encoding
-
-    Returns:
-        File contents as string
-
-    Raises:
-        FileNotFoundError: If the file does not exist
-    """
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"File not found: {file_path}")
-
-    with open(file_path, "r", encoding=encoding) as f:
-        return f.read()
-
-
-def write_text_file(content: str, file_path: str, encoding: str = "utf-8") -> None:
-    """
-    Write text to a file.
-
-    Args:
-        content: Content to write
-        file_path: Path to the file
-        encoding: File encoding
-    """
-    # Create directory if it doesn't exist
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
-    with open(file_path, "w", encoding=encoding) as f:
-        f.write(content)
-
-
-def get_file_size(file_path: str) -> int:
-    """
-    Get the size of a file in bytes.
-
-    Args:
-        file_path: Path to the file
-
-    Returns:
-        File size in bytes
-
-    Raises:
-        FileNotFoundError: If the file does not exist
-    """
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"File not found: {file_path}")
-
-    return os.path.getsize(file_path)
-
-
-def get_file_extension(file_path: str) -> str:
-    """
-    Get the extension of a file.
-
-    Args:
-        file_path: Path to the file
-
-    Returns:
-        File extension (without dot)
-    """
-    return os.path.splitext(file_path)[1].lstrip(".")
+        Returns:
+            Path to the temporary file or None if error.
+        """
+        try:
+            with tempfile.NamedTemporaryFile(mode='w', suffix=suffix, delete=False) as f:
+                f.write(content)
+                return f.name
+        except Exception as e:
+            logger.error(f"Error creating temporary file: {str(e)}")
+            return None
+        
