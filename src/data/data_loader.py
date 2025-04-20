@@ -124,14 +124,23 @@ class SWEBenchDataLoader:
         Returns:
             String containing the issue description.
         """
-        # Handle SWE-bench dataset format which uses problem_statement
+        # First check for problem_statement field (from SWE-bench dataset)
         if "problem_statement" in issue:
-            return f"Problem Statement:\n{issue.get('problem_statement', '')}"
-        else:
-            # Handle traditional format with title and description
-            description = issue.get("description", "")
-            title = issue.get("title", "")
+            return issue["problem_statement"]
+
+        # Fall back to traditional fields if problem_statement not found
+        description = issue.get("description", "")
+        title = issue.get("title", "")
+
+        if title or description:
             return f"Title: {title}\n\nDescription:\n{description}"
+
+        # Last resort - extract from the raw issue text if available
+        raw_issue = issue.get("raw_issue", "")
+        if raw_issue:
+            return f"Raw Issue:\n{raw_issue}"
+
+        return "No issue description available"
 
     def get_codebase_context(self, issue: Dict[str, Any]) -> str:
         """
@@ -190,3 +199,23 @@ class SWEBenchDataLoader:
             return issue["solution"]
 
         return ""
+
+    def get_hints(self, issue: Dict[str, Any]) -> Optional[str]:
+        """
+        Extract hints from an issue.
+
+        Args:
+            issue: Issue dictionary.
+
+        Returns:
+            String containing hints if available, None otherwise.
+        """
+        # Handle SWE-bench dataset format which might include hints_text
+        if "hints_text" in issue:
+            return issue.get("hints_text", "")
+
+        # Handle hints that might be in comments field
+        if "comments" in issue:
+            return "Comments from the issue:\n" + issue.get("comments", "")
+
+        return None

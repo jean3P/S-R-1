@@ -2,7 +2,8 @@
 
 import re
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, Tuple, List
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +84,32 @@ class SelfReflection:
 
                 REFLECTION:
                 """
+
+        # NEW: Enhanced template with patch validation feedback
+        self.enhanced_prompt_template = """
+            You are an expert software engineer reviewing a solution to a GitHub issue. You need to analyze the solution, reflect on it, and provide an improved version.
+
+            GITHUB ISSUE:
+            {issue_description}
+
+            RELEVANT CODEBASE CONTEXT:
+            {codebase_context}
+
+            INITIAL SOLUTION:
+            {solution}
+
+            TASK:
+            1. First, under "REFLECTION:", analyze the strengths and weaknesses of the solution, focusing on correctness, efficiency, and maintainability.
+            2. Pay special attention to creating a proper Git-formatted patch that modifies the correct files with accurate line numbers.
+            3. Then, under "REVISED SOLUTION:", provide an improved implementation that addresses any issues identified.
+
+            Make sure to wrap any code in ```python code blocks``` and ensure patches follow Git diff format.
+
+            Begin your analysis:
+
+            REFLECTION:
+        """
+
         self.iterations = config["reasoning"].get("reflection_iterations", 3)
         logger.info(f"SelfReflection initialized with model {model.model_name}")
 
@@ -108,11 +135,18 @@ class SelfReflection:
         reflections = []
         current_solution = solution
 
+        # Check if we have patch validation feedback in the context
+        has_validation_feedback = "PATCH VALIDATION FEEDBACK" in codebase_context
+        prompt_template = self.enhanced_prompt_template if has_validation_feedback else self.prompt_template
+
         for i in range(self.iterations):
             logger.info(f"Self-reflection iteration {i + 1}/{self.iterations}")
 
+            # Start timing
+            start_time = time.time()
+
             # Format the prompt
-            prompt = self.prompt_template.format(
+            prompt = prompt_template.format(
                 solution=current_solution,
                 issue_description=issue_description,
                 codebase_context=codebase_context
@@ -123,16 +157,21 @@ class SelfReflection:
             response = self.model.generate(prompt)
             logger.debug(f"Model response: {response[:500]}...")
 
+            # Calculate time taken
+            reflection_time = time.time() - start_time
+
             # Parse the reflection and revised solution
             reflection, revised_solution = self._parse_response(response)
 
             logger.info(
-                f"Reflection parsed, length: {len(reflection)}, revised solution length: {len(revised_solution)}")
+                f"Reflection parsed, length: {len(reflection)}, revised solution length: {len(revised_solution)}"
+            )
 
             reflections.append({
                 "iteration": i + 1,
                 "reflection": reflection,
-                "solution": revised_solution
+                "solution": revised_solution,
+                "reflection_time": reflection_time
             })
 
             # Update the current solution for the next iteration
@@ -188,7 +227,6 @@ class SelfReflection:
                     if len(parts) > 1:
                         revised_solution = parts[1].strip()
                     break
-
         # If no structured format detected, use heuristics
         if not reflection and not revised_solution:
             # Look for code blocks which often contain solutions
@@ -221,4 +259,3 @@ class SelfReflection:
                 revised_solution = "No explicit solution provided"
 
         return reflection, revised_solution
-
