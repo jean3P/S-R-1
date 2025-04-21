@@ -11,14 +11,15 @@ class Config:
         # Default configuration
         self.defaults = {
             "data": {
+                "repositories": str(self.base_dir.parent / "data" / "repositories"),
                 "swe_bench_path": str(self.base_dir / "data" / "swe-bench-verified"),
                 "cache_dir": str(self.base_dir / "data" / "cache"),
-                "max_context_length": 10192,
+                "max_context_length": 80192,
             },
             "models": {
                 "device": "cuda" if os.environ.get("CUDA_VISIBLE_DEVICES") else "cpu",
                 "precision": "fp16",
-                "max_new_tokens": 2048,
+                "max_new_tokens": 3048,
                 "temperature": 0.2,
                 "top_p": 0.95,
                 "repo_cache_dir": str(self.base_dir / "models" / "cache"),
@@ -86,3 +87,15 @@ class Config:
 
     def __setitem__(self, key, value):
         self.defaults[key] = value
+        
+    def get(self, key, default=None):
+        """Get a value from the configuration with a default fallback.
+        
+        Args:
+            key: The configuration key to look up.
+            default: The default value to return if the key is not found.
+            
+        Returns:
+            The configuration value or the default.
+        """
+        return self.defaults.get(key, default)

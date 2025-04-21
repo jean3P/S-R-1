@@ -112,24 +112,3 @@ class FileUtils:
         except Exception as e:
             logger.error(f"Error reading file: {str(e)}")
             return None
-
-    @staticmethod
-    def create_temp_file(content: str, suffix: Optional[str] = None) -> Optional[str]:
-        """
-        Create a temporary file with the given content.
-
-        Args:
-            content: Content to write.
-            suffix: Optional file suffix.
-
-        Returns:
-            Path to the temporary file or None if error.
-        """
-        try:
-            with tempfile.NamedTemporaryFile(mode='w', suffix=suffix, delete=False) as f:
-                f.write(content)
-                return f.name
-        except Exception as e:
-            logger.error(f"Error creating temporary file: {str(e)}")
-            return None
-        

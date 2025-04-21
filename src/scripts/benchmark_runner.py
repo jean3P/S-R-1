@@ -19,6 +19,7 @@ from ..utils.file_utils import FileUtils
 try:
     from ..evaluation.enhanced_visualization import EnhancedVisualizer
     from ..statistics.benchmark_report import BenchmarkReport
+
     visualization_available = True
 except ImportError as e:
     logging.warning(f"Visualization components not available: {str(e)}")
@@ -50,6 +51,7 @@ def parse_args():
 
 # Initialize visualization_available at module level
 visualization_available = False
+
 
 def main():
     """Main function for running experiments."""
@@ -130,7 +132,7 @@ def main():
 
             for model in models:
                 report_generator.generate_model_report(model)
-                
+
             # Store report for summary
             report_summary = full_report.get("summary", {})
         except Exception as e:
@@ -143,7 +145,7 @@ def main():
 
     print(f"\nExperiment completed successfully!")
     print(f"Results saved to {output_file}")
-    
+
     if visualization_available:
         print(f"Visualizations saved to {results_dir / 'visualizations'}")
         print(f"Reports saved to {results_dir / 'reports'}")

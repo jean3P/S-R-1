@@ -85,7 +85,7 @@ class SelfReflection:
                 REFLECTION:
                 """
 
-        # NEW: Enhanced template with patch validation feedback
+        # Enhanced template with patch validation feedback
         self.enhanced_prompt_template = """
             You are an expert software engineer reviewing a solution to a GitHub issue. You need to analyze the solution, reflect on it, and provide an improved version.
 
@@ -102,6 +102,38 @@ class SelfReflection:
             1. First, under "REFLECTION:", analyze the strengths and weaknesses of the solution, focusing on correctness, efficiency, and maintainability.
             2. Pay special attention to creating a proper Git-formatted patch that modifies the correct files with accurate line numbers.
             3. Then, under "REVISED SOLUTION:", provide an improved implementation that addresses any issues identified.
+
+            Make sure to wrap any code in ```python code blocks``` and ensure patches follow Git diff format.
+
+            Begin your analysis:
+
+            REFLECTION:
+        """
+        
+        # Template that incorporates test patches and hints
+        self.swe_bench_template = """
+            You are an expert software engineer reviewing a solution to a GitHub issue. You need to analyze the solution, reflect on it, and provide an improved version.
+
+            GITHUB ISSUE:
+            {issue_description}
+
+            RELEVANT CODEBASE CONTEXT:
+            {codebase_context}
+
+            INITIAL SOLUTION:
+            {solution}
+
+            {test_patch_section}
+
+            {hints_section}
+
+            {validation_feedback_section}
+
+            TASK:
+            1. First, under "REFLECTION:", analyze the strengths and weaknesses of the solution, focusing on correctness, efficiency, and maintainability.
+            2. Pay special attention to creating a proper Git-formatted patch that modifies the correct files with accurate line numbers.
+            3. Ensure your solution passes the test cases if test patches are provided.
+            4. Then, under "REVISED SOLUTION:", provide an improved implementation that addresses any issues identified.
 
             Make sure to wrap any code in ```python code blocks``` and ensure patches follow Git diff format.
 
@@ -135,9 +167,38 @@ class SelfReflection:
         reflections = []
         current_solution = solution
 
-        # Check if we have patch validation feedback in the context
-        has_validation_feedback = "PATCH VALIDATION FEEDBACK" in codebase_context
-        prompt_template = self.enhanced_prompt_template if has_validation_feedback else self.prompt_template
+        # Extract test patch and hints if present in the context
+        test_patch = ""
+        hints = ""
+        validation_feedback = ""
+        
+        # Check for test patch in context
+        test_patch_match = re.search(r'TEST PATCH:\n(.*?)(?=\n\n|\Z)', codebase_context, re.DOTALL)
+        if test_patch_match:
+            test_patch = test_patch_match.group(1)
+            
+        # Check for hints in issue description
+        hints_match = re.search(r'ADDITIONAL HINTS:\n(.*?)(?=\n\n|\Z)', issue_description, re.DOTALL)
+        if hints_match:
+            hints = hints_match.group(1)
+            
+        # Check for validation feedback
+        validation_match = re.search(r'PATCH VALIDATION FEEDBACK:\n(.*?)(?=\n\n|\Z)', codebase_context, re.DOTALL)
+        if validation_match:
+            validation_feedback = validation_match.group(1)
+        
+        # Determine which template to use
+        has_validation_feedback = bool(validation_feedback)
+        has_test_patch = bool(test_patch)
+        has_hints = bool(hints)
+        
+        if has_test_patch or has_hints or has_validation_feedback:
+            # Use the SWE-bench specific template
+            prompt_template = self.swe_bench_template
+        elif has_validation_feedback:
+            prompt_template = self.enhanced_prompt_template
+        else:
+            prompt_template = self.prompt_template
 
         for i in range(self.iterations):
             logger.info(f"Self-reflection iteration {i + 1}/{self.iterations}")
@@ -145,12 +206,27 @@ class SelfReflection:
             # Start timing
             start_time = time.time()
 
+            # Prepare template sections
+            test_patch_section = f"TEST PATCH TO PASS:\n{test_patch}" if has_test_patch else ""
+            hints_section = f"ADDITIONAL HINTS:\n{hints}" if has_hints else ""
+            validation_feedback_section = f"VALIDATION FEEDBACK:\n{validation_feedback}" if has_validation_feedback else ""
+            
             # Format the prompt
-            prompt = prompt_template.format(
-                solution=current_solution,
-                issue_description=issue_description,
-                codebase_context=codebase_context
-            )
+            if prompt_template == self.swe_bench_template:
+                prompt = prompt_template.format(
+                    solution=current_solution,
+                    issue_description=issue_description,
+                    codebase_context=codebase_context,
+                    test_patch_section=test_patch_section,
+                    hints_section=hints_section,
+                    validation_feedback_section=validation_feedback_section
+                )
+            else:
+                prompt = prompt_template.format(
+                    solution=current_solution,
+                    issue_description=issue_description,
+                    codebase_context=codebase_context
+                )
 
             # Generate reflection and revised solution
             logger.debug(f"Self-reflection prompt: {prompt[:500]}...")
@@ -171,7 +247,10 @@ class SelfReflection:
                 "iteration": i + 1,
                 "reflection": reflection,
                 "solution": revised_solution,
-                "reflection_time": reflection_time
+                "reflection_time": reflection_time,
+                "used_test_patch": has_test_patch,
+                "used_hints": has_hints,
+                "used_validation_feedback": has_validation_feedback
             })
 
             # Update the current solution for the next iteration
@@ -179,7 +258,10 @@ class SelfReflection:
 
         return {
             "reflections": reflections,
-            "final_solution": current_solution
+            "final_solution": current_solution,
+            "used_test_patch": has_test_patch,
+            "used_hints": has_hints,
+            "used_validation_feedback": has_validation_feedback
         }
 
     def _parse_response(self, response: str) -> tuple:

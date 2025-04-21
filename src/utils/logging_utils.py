@@ -34,7 +34,7 @@ def setup_logging(config, log_file: Optional[str] = None):
     # Configure logging
     logging.basicConfig(
         level=log_level,
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        format="%(asctime)s [%(levelname)s] %(name)s (%(filename)s:%(lineno)d): %(message)s",
         handlers=[
             logging.FileHandler(log_path),
             logging.StreamHandler()

@@ -219,3 +219,69 @@ class SWEBenchDataLoader:
             return "Comments from the issue:\n" + issue.get("comments", "")
 
         return None
+        
+    def get_test_patch(self, issue: Dict[str, Any]) -> Optional[str]:
+        """
+        Extract test patch from an issue.
+        
+        Args:
+            issue: Issue dictionary.
+            
+        Returns:
+            String containing test patch if available, None otherwise.
+        """
+        # Handle SWE-bench dataset format which includes test_patch
+        if "test_patch" in issue:
+            return issue.get("test_patch", "")
+            
+        return None
+        
+    def get_fail_to_pass_tests(self, issue: Dict[str, Any]) -> List[str]:
+        """
+        Extract tests that should go from failing to passing.
+        
+        Args:
+            issue: Issue dictionary.
+            
+        Returns:
+            List of test identifiers.
+        """
+        # Handle SWE-bench dataset format which includes FAIL_TO_PASS
+        if "FAIL_TO_PASS" in issue:
+            fail_to_pass = issue.get("FAIL_TO_PASS", "[]")
+            # It might be a JSON string or already parsed
+            if isinstance(fail_to_pass, str):
+                try:
+                    return json.loads(fail_to_pass)
+                except json.JSONDecodeError:
+                    logger.warning(f"Failed to parse FAIL_TO_PASS as JSON: {fail_to_pass}")
+                    return []
+            elif isinstance(fail_to_pass, list):
+                return fail_to_pass
+                
+        return []
+        
+    def get_pass_to_pass_tests(self, issue: Dict[str, Any]) -> List[str]:
+        """
+        Extract tests that should continue to pass.
+        
+        Args:
+            issue: Issue dictionary.
+            
+        Returns:
+            List of test identifiers.
+        """
+        # Handle SWE-bench dataset format which includes PASS_TO_PASS
+        if "PASS_TO_PASS" in issue:
+            pass_to_pass = issue.get("PASS_TO_PASS", "[]")
+            # It might be a JSON string or already parsed
+            if isinstance(pass_to_pass, str):
+                try:
+                    return json.loads(pass_to_pass)
+                except json.JSONDecodeError:
+                    logger.warning(f"Failed to parse PASS_TO_PASS as JSON: {pass_to_pass}")
+                    return []
+            elif isinstance(pass_to_pass, list):
+                return pass_to_pass
+                
+        return []
