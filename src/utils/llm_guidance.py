@@ -167,7 +167,20 @@ class LLMCodeLocationGuidance:
         # Get code snippets from relevant files
         code_snippets = ""
         for file_path in repo_exploration.get("relevant_files", [])[:3]:  # Limit to top 3 files
-            file_content = repo_exploration.get("file_contents", {}).get(file_path, {})
+            # Handle both dictionary and list formats for file_contents
+            file_content = {}
+            file_contents = repo_exploration.get("file_contents", {})
+
+            if isinstance(file_contents, dict):
+                # Original dictionary format
+                file_content = file_contents.get(file_path, {})
+            elif isinstance(file_contents, list):
+                # New list format from RepositoryRAG
+                for chunk in file_contents:
+                    if chunk.get("file_path") == file_path:
+                        file_content = chunk
+                        break
+
             if "content" in file_content:
                 code_snippets += f"\n### File: {file_path}\n"
                 content = file_content["content"]

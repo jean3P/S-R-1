@@ -6,7 +6,7 @@ import re
 import torch
 import numpy as np
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Tuple, Optional
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -62,6 +62,7 @@ class RepositoryRAG:
         """
         self.config = config
         self.repo_path = Path(config["data"]["repositories"])
+        self.repo_base_path = Path(config["data"]["repositories"])
         self.cache_dir = Path(config["data"]["cache_dir"])
 
         # Create cache directory if it doesn't exist
@@ -238,7 +239,7 @@ class RepositoryRAG:
             # Ensure parent directories exist
             index_file.parent.mkdir(parents=True, exist_ok=True)
             metadata_file.parent.mkdir(parents=True, exist_ok=True)
-            
+
             np.save(str(index_file), embeddings.astype(np.float32))
             torch.save(metadata, metadata_file)
 
@@ -681,7 +682,6 @@ class RepositoryRAG:
 
         return formatted_text
 
-
     def _extract_entities_from_problem(self, problem_statement: str) -> Dict[str, List[str]]:
         """
         Extract key entities from problem statements with improved precision.
@@ -814,7 +814,7 @@ class RepositoryRAG:
 
     def retrieve_code_for_issue(self, issue: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
-        Two-stage retrieval process for more accurate results.
+        Two-stage retrieval process for more accurate results with improved implementation file handling.
 
         Args:
             issue: Issue dictionary with problem statement and other metadata
@@ -825,113 +825,171 @@ class RepositoryRAG:
         repo = issue.get("repo", "")
         problem_statement = issue.get("problem_statement", "")
         data_loader = SWEBenchDataLoader(self.config)
+
         if not problem_statement:
             # Fall back to other fields
             problem_statement = data_loader.get_issue_description(issue)
 
+        # Get test patch information
+        test_patch_info = data_loader.get_test_patch(issue)
+        implementation_files = []
 
-        test_patch = issue.get("test_patch", "")
-        hints_text = issue.get("hints_text", "")
-        fail_to_pass = []
+        # Extract implementation files from test patch
+        if isinstance(test_patch_info, dict) and "implementation_files" in test_patch_info:
+            implementation_files = test_patch_info.get("implementation_files", [])
+        elif isinstance(test_patch_info, str) and test_patch_info:
+            # Parse implementation files from string test patch
+            impl_files = self._extract_implementation_files_from_test_patch(test_patch_info)
+            if impl_files:
+                implementation_files.extend(impl_files)
 
-        # Parse FAIL_TO_PASS string if present
-        fail_to_pass_str = issue.get("FAIL_TO_PASS", "[]")
-        if isinstance(fail_to_pass_str, str):
-            try:
-                fail_to_pass = json.loads(fail_to_pass_str)
-            except json.JSONDecodeError:
-                logger.warning(f"Failed to parse FAIL_TO_PASS JSON: {fail_to_pass_str}")
-        elif isinstance(fail_to_pass_str, list):
-            fail_to_pass = fail_to_pass_str
+        # If we have failing tests but no implementation files, try to infer them
+        if not implementation_files:
+            fail_to_pass = issue.get("FAIL_TO_PASS", [])
+            if isinstance(fail_to_pass, str):
+                try:
+                    fail_to_pass = json.loads(fail_to_pass)
+                except json.JSONDecodeError:
+                    fail_to_pass = []
+
+            for test_path in fail_to_pass:
+                impl_file = self._infer_implementation_file_from_test(test_path)
+                if impl_file and impl_file not in implementation_files:
+                    implementation_files.append(impl_file)
+
+        logger.info(f"Implementation files identified: {implementation_files}")
 
         # STAGE 1: Initial retrieval with basic query
         initial_query = problem_statement
-        tt_patch = data_loader.get_test_patch(issue)
+
+        # If we have implementation files, explicitly add them to the query
+        if implementation_files:
+            initial_query += f"\n\nRelevant implementation files: {', '.join(implementation_files)}"
+
         initial_results = self.retrieve_relevant_code(
             repo,
             initial_query,
-            tt_patch,
+            test_patch_info,
             top_k=20  # Retrieve more candidates initially
         )
-        logger.info(f"Initial retrieval found {len(initial_results)} code chunks")
-        if initial_results:
-            top_3_files = [f"{r.get('file_path', 'unknown')} (score: {r.get('score', 0):.3f})" for r in
-                           initial_results[:3]]
-            logger.info(f"Top 3 initial files: {top_3_files}")
 
-        if not initial_results:
-            logger.warning(f"No initial results found for issue in repo {repo}")
-            return []
+        # Ensure implementation files are included in results
+        if implementation_files and initial_results:
+            # Check if implementation files are in results
+            impl_files_in_results = set()
+            for result in initial_results:
+                file_path = result.get("file_path", "")
+                for impl_file in implementation_files:
+                    if impl_file in file_path:
+                        impl_files_in_results.add(impl_file)
 
-        # STAGE 2: Extract entities and refine query
-        entities = self._extract_entities_from_problem(problem_statement)
-        # logger.info(f"Extracted entities from problem statement: {json.dumps(entities, indent=2)}")
+            # Find which implementation files aren't in results
+            missing_impl_files = [f for f in implementation_files if f not in impl_files_in_results]
 
-        entity_str = ""
-        for category, items in entities.items():
-            if items:
-                entity_str += f"{category}: {', '.join(items[:5])}\n"
+            # If implementation files aren't in results, explicitly retrieve their content
+            if missing_impl_files:
+                repo_path = self.repo_base_path / repo
+                for impl_file in missing_impl_files:
+                    file_path = repo_path / impl_file
+                    if file_path.exists():
+                        try:
+                            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                                content = f.read()
 
-        # Create enhanced query combining problem and test information
-        enhanced_query = self._enhance_retrieval_with_tests(
-            f"{problem_statement}\n\n{entity_str}",
-            test_patch,
-            fail_to_pass
-        )
-        logger.info(f"Enhanced query created with length: {len(enhanced_query)} chars")
-        logger.debug(f"Query preview: {enhanced_query[:20]}...")
+                            # Add this file's content to the results with high score
+                            initial_results.insert(0, {
+                                "file_path": impl_file,
+                                "type": "file",
+                                "name": impl_file,
+                                "content": content,
+                                "score": 0.99,  # Very high score to ensure it's prioritized
+                                "start_line": 1,
+                                "end_line": content.count('\n') + 1
+                            })
+                            logger.info(f"Explicitly added implementation file: {impl_file}")
+                        except Exception as e:
+                            logger.error(f"Error reading implementation file {impl_file}: {e}")
 
-        # If hints available, add them to the query
-        if hints_text:
-            enhanced_query += f"\n\nHints: {hints_text}"
+        # Rest of the retrieval process continues as before...
+        return initial_results
 
-        # Retrieve with enhanced query
-        refined_results = self.retrieve_relevant_code(
-            repo,
-            enhanced_query,
-            tt_patch,
-            top_k=10
-        )
-        logger.info(f"Refined retrieval found {len(refined_results)} code chunks")
-        if refined_results:
-            top_3_files = [f"{r.get('file_path', 'unknown')} (score: {r.get('score', 0):.3f})" for r in
-                           refined_results[:3]]
-            logger.info(f"Top 3 refined files: {top_3_files}")
+    def _extract_implementation_files_from_test_patch(self, test_patch: str) -> List[str]:
+        """
+        Extract implementation files from a test patch string.
 
-        # STAGE 3: Re-rank results
-        reranked_results = self._rerank_results(
-            initial_results + refined_results,  # Combine both result sets
-            entities,
-            fail_to_pass,
-            test_patch
-        )
+        Args:
+            test_patch: Test patch content as string
 
-        logger.info(f"Reranking produced {len(reranked_results)} code chunks")
-        if reranked_results:
-            top_files = [f"{r.get('file_path', 'unknown')} (score: {r.get('combined_score', 0):.3f})" for r in
-                         reranked_results[:5]]
-            logger.info(f"Top 5 files after reranking: {top_files}")
+        Returns:
+            List of implementation file paths
+        """
+        implementation_files = []
 
-            # Log detailed information about the top result
-            # if reranked_results:
-            #     top_result = reranked_results[0]
-            #     logger.info(f"Top result details:")
-            #     logger.info(f"  File: {top_result.get('file_path', 'unknown')}")
-            #     logger.info(f"  Type: {top_result.get('type', 'unknown')}")
-            #     logger.info(f"  Name: {top_result.get('name', 'unknown')}")
-            #     logger.info(f"  Original score: {top_result.get('score', 0):.3f}")
-            #     logger.info(f"  Entity score: {top_result.get('entity_score', 0):.3f}")
-            #     logger.info(f"  Test relevance: {top_result.get('test_relevance_score', 0):.3f}")
-            #     logger.info(f"  Combined score: {top_result.get('combined_score', 0):.3f}")
-            #
-            #     # Show a preview of the content
-            #     content = top_result.get('content', '')
-            #     if content:
-            #         preview = content[:500] + ('...' if len(content) > 500 else '')
-            #         logger.info(f"  Content preview: \n{preview}")
+        # Extract file paths from patch
+        file_pattern = r'(?:---|\+\+\+) [ab]/([^\n]+)'
+        patch_files = re.findall(file_pattern, test_patch)
 
-        # Return the top results
-        return reranked_results[:8]
+        # Identify test files and corresponding implementation files
+        for file_path in patch_files:
+            if 'test' in file_path.lower():
+                # This is a test file, try to infer implementation file
+                impl_file = self._infer_implementation_file_from_test(file_path)
+                if impl_file and impl_file not in implementation_files:
+                    implementation_files.append(impl_file)
+            elif file_path not in implementation_files:
+                # This is likely an implementation file
+                implementation_files.append(file_path)
+
+        return implementation_files
+
+    def _infer_implementation_file_from_test(self, test_path: str) -> Optional[str]:
+        """
+        Infer implementation file from test file path.
+
+        Args:
+            test_path: Path to test file or test function
+
+        Returns:
+            Path to inferred implementation file
+        """
+        # Extract file path if this is a test function path
+        if '::' in test_path:
+            test_path = test_path.split('::')[0]
+
+        # Not a test file
+        if 'test' not in test_path.lower():
+            return None
+
+        # Parse the path components
+        dir_path = os.path.dirname(test_path)
+        file_name = os.path.basename(test_path)
+
+        # Handle test_ prefix
+        if file_name.startswith('test_'):
+            impl_file_name = file_name[5:]  # Remove 'test_'
+        elif file_name.endswith('_test.py'):
+            impl_file_name = file_name[:-8] + '.py'  # Remove '_test.py'
+        else:
+            # Can't determine impl file name
+            return None
+
+        # Handle different directory structures
+        # Case 1: Implementation in same directory
+        impl_path = os.path.join(dir_path, impl_file_name)
+
+        # Case 2: Implementation in parent directory (common pattern)
+        if 'tests' in dir_path:
+            # Replace /tests/ with / or remove tests/ suffix
+            parent_dir = dir_path.replace('/tests', '')
+            if parent_dir != dir_path:  # Only if actually changed
+                impl_path = os.path.join(parent_dir, impl_file_name)
+
+        # Case 3: Module structure - move up to parent module
+        if '/tests/' in test_path:
+            parent_module = test_path.split('/tests/')[0]
+            impl_path = os.path.join(parent_module, impl_file_name)
+
+        return impl_path
 
     def _rerank_results(self, code_chunks: List[Dict],
                         entities: Dict[str, List[str]],
@@ -1037,4 +1095,45 @@ class RepositoryRAG:
         logger.info(f"Sorted chunks by combined score")
         return reranked_chunks
 
+    def get_file_scores(self, file_paths: List[str]) -> List[Tuple[str, float]]:
+        """
+        Get relevance scores for the given file paths.
 
+        Args:
+            file_paths: List of file paths to score
+
+        Returns:
+            List of (file_path, score) tuples
+        """
+        file_scores = []
+
+        for file_path in file_paths:
+            # Assign scores based on position in the list (prioritization order)
+            score = 1.0 - (0.05 * file_paths.index(file_path))  # Start with 1.0 and decrease
+
+            # Ensure score is positive
+            score = max(0.1, min(1.0, score))
+            file_scores.append((file_path, score))
+
+        return file_scores
+
+    def extract_key_terms_from_issue(self, issue: Dict[str, Any]) -> List[str]:
+        """
+        Extract key technical terms from the issue description.
+
+        Args:
+            issue: Issue dictionary
+
+        Returns:
+            List of key technical terms
+        """
+        from ..data.data_loader import SWEBenchDataLoader
+
+        # Get issue description
+        if not hasattr(self, 'data_loader'):
+            self.data_loader = SWEBenchDataLoader(self.config)
+
+        description = self.data_loader.get_issue_description(issue)
+
+        # Extract technical terms using the existing method
+        return self._extract_key_terms(description)

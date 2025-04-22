@@ -1,6 +1,7 @@
 # src/utils/patch_formatting_system.py
 
 import logging
+import re
 from typing import Dict, Any, List
 from .enhanced_patch_formatter import EnhancedPatchFormatter
 from .multi_file_patch_helper import MultiFilePatchHelper
