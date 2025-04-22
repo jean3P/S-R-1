@@ -1,19 +1,35 @@
 # scripts/run_experiment.py
+
 import argparse
 import logging
-import re
 import os
 import torch
 import gc
+import traceback
 from pathlib import Path
-
-from ..utils.llm_guidance import LLMCodeLocationGuidance
 from ..config.config import Config
 from ..data.data_loader import SWEBenchDataLoader
-from ..solution.issue_solver import IssueSolver
+from ..solution.issue_solver import IssueSolver, run_with_memory_efficient_llm_guidance
 from ..evaluation.visualization import Visualizer
 from ..utils.logging_utils import setup_logging
+from ..utils.repository_explorer import RepositoryExplorer
 from ..utils.file_utils import FileUtils
+
+
+def clear_cuda_cache():
+    """Clear CUDA cache and run garbage collection."""
+    if torch.cuda.is_available():
+        for i in range(torch.cuda.device_count()):
+            torch.cuda.empty_cache()
+        gc.collect()
+
+        # Log memory usage
+        for i in range(torch.cuda.device_count()):
+            allocated = torch.cuda.memory_allocated(i) / (1024 ** 3)  # Convert to GB
+            reserved = torch.cuda.memory_reserved(i) / (1024 ** 3)  # Convert to GB
+            logging.info(f"GPU {i} memory after cleanup: allocated={allocated:.2f}GB, reserved={reserved:.2f}GB")
+    else:
+        gc.collect()
 
 
 def parse_args():
@@ -69,414 +85,6 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
-    """Main function for running experiments."""
-    args = parse_args()
-
-    # Load configuration
-    config_path = args.config
-    config = Config(config_path)
-
-    # Set up logging
-    if args.debug:
-        config["logging"]["log_level"] = "DEBUG"
-    setup_logging(config, args.log_file)
-
-    # Apply command line overrides to config
-    if args.cpu_only:
-        config["models"]["device"] = "cpu"
-        logging.info("Forcing CPU mode (CUDA disabled)")
-
-    # Check for HF_TOKEN
-    if "HF_TOKEN" not in os.environ and "HUGGINGFACE_TOKEN" not in os.environ:
-        logging.warning("HF_TOKEN or HUGGINGFACE_TOKEN environment variable not set.")
-        logging.warning("You may need it to access some models. Set it with:")
-        logging.warning("export HF_TOKEN=your_huggingface_token")
-
-    # Set output directory if provided
-    if args.output:
-        config["evaluation"]["results_dir"] = args.output
-
-    # Create results directory
-    results_dir = Path(config["evaluation"]["results_dir"])
-    FileUtils.ensure_directory(results_dir)
-
-    # Apply quantization and flash attention flags
-    if args.disable_quantization:
-        logging.info("Disabling model quantization")
-        # Disable quantization for all models
-        for model_name in ["deepseek-r1-distill", "qwen2-5-coder", "qwq-preview"]:
-            model_config = config.get_model_config(model_name)
-            if model_config and "quantization" in model_config:
-                del model_config["quantization"]
-
-    if args.disable_flash_attention:
-        logging.info("Disabling flash attention")
-        # Disable flash attention for all models
-        for model_name in ["deepseek-r1-distill", "qwen2-5-coder", "qwq-preview"]:
-            model_config = config.get_model_config(model_name)
-            if model_config and model_config.get("use_flash_attention", False):
-                model_config["use_flash_attention"] = False
-
-    # Apply memory optimization settings
-    if args.memory_efficient:
-        logging.info("Enabling memory-efficient RAG-like approach")
-        config["memory_efficient"] = True
-
-        # Enable expandable segments for PyTorch memory allocator
-        os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True,max_split_size_mb:512"
-        logging.info(
-            "Set PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,max_split_size_mb:512 for better memory management")
-
-    if args.offload_layers:
-        logging.info("Enabling layer offloading to CPU")
-        config["offload_layers"] = True
-
-    if args.max_context_length:
-        logging.info(f"Setting maximum context length to {args.max_context_length}")
-        config["data"]["max_context_length"] = args.max_context_length
-
-    if args.max_new_tokens:
-        logging.info(f"Setting maximum new tokens to {args.max_new_tokens}")
-        config["models"]["max_new_tokens"] = args.max_new_tokens
-
-    # Clear CUDA cache and collect garbage before starting
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-        gc.collect()
-
-        # Log GPU memory information
-        for i in range(torch.cuda.device_count()):
-            total_mem = torch.cuda.get_device_properties(i).total_memory / (1024 ** 3)
-            allocated = torch.cuda.memory_allocated(i) / (1024 ** 3)
-            free = total_mem - allocated
-            logging.info(f"GPU {i}: Total memory: {total_mem:.2f}GB, "
-                         f"Allocated: {allocated:.2f}GB, "
-                         f"Free: {free:.2f}GB")
-
-    # Load dataset
-    data_loader = SWEBenchDataLoader(config)
-
-    # Determine which issues to process
-    if args.issues:
-        issue_ids = args.issues.split(",")
-    else:
-        # Load all issues and take the first N
-        all_issues = data_loader.load_dataset()
-        # Use instance_id instead of id based on SWE-bench dataset structure
-        issue_ids = [issue.get("instance_id", issue.get("id", f"issue_{i}"))
-                     for i, issue in enumerate(all_issues[:args.limit])]
-
-    # Determine which model to use
-    model_name = None if args.model == "all" else args.model
-
-    # If all models selected, specify the model names
-    if model_name is None:
-        logging.info("Running experiment with all models: deepseek-r1-distill, qwen2-5-coder, qwq-preview")
-        model_name = ["deepseek-r1-distill", "qwen2-5-coder", "qwq-preview"]
-
-    # Process suspected files if provided
-    suspected_files = None
-    if args.suspected_files:
-        suspected_files = [f.strip() for f in args.suspected_files.split(",")]
-
-    # Run with LLM guidance if requested
-    if args.use_llm_guidance:
-        logging.info("Using LLM Code Location Guidance Framework")
-        if args.memory_efficient:
-            # Use memory-efficient version of LLM guidance
-            results = run_with_memory_efficient_llm_guidance(
-                config,
-                data_loader,
-                issue_ids,
-                model_name,
-                suspected_files,
-                args.guidance_iterations,
-                args.reasoning,
-                args.iterations
-            )
-        else:
-            # Use standard LLM guidance
-            results = run_with_llm_guidance(
-                config,
-                data_loader,
-                issue_ids,
-                model_name,
-                suspected_files,
-                args.guidance_iterations,
-                args.reasoning,
-                args.iterations
-            )
-    else:
-        # Create issue solver
-        solver = IssueSolver(config, model_name, args.reasoning, num_iterations=args.iterations)
-
-        # Use the progressive hybrid approach for patch creation if requested
-        if args.use_progressive_patch:
-            from ..solution.improved_patch_creator import ImprovedPatchCreator
-            solver.patch_creator = ImprovedPatchCreator(config)
-            logging.info("Using progressive hybrid approach for patch creation")
-
-        # Solve issues with or without patch reflection
-        if args.patch_reflection:
-            logging.info("Using self-reflection on patches")
-            results = solver.solve_issues_with_patch_reflection(issue_ids)
-        elif args.memory_efficient:
-            logging.info("Using memory-efficient RAG-like approach")
-            # No need for separate method call - IssueSolver should handle memory optimization internally
-            # when the config flag is set
-            results = solver.solve_multiple_issues(issue_ids)
-        else:
-            results = solver.solve_multiple_issues(issue_ids)
-
-    # Save results
-    output_file = results_dir / "results.json"
-    FileUtils.write_json(results, output_file)
-    logging.info(f"Results saved to {output_file}")
-
-    # Create visualizations
-    try:
-        visualizer = Visualizer(config)
-        model_comparison_path = visualizer.visualize_model_comparison(results)
-        logging.info(f"Model comparison visualization saved to {model_comparison_path}")
-        iteration_improvement_path = visualizer.visualize_iteration_improvement(results)
-        logging.info(f"Iteration improvement visualization saved to {iteration_improvement_path}")
-    except Exception as e:
-        logging.error(f"Error creating visualizations: {e}")
-
-    print(f"\nExperiment completed successfully!")
-    print(f"Results saved to {output_file}")
-    print(f"Visualizations saved to {results_dir}")
-
-    # Print summary of results based on the approach used
-    if args.use_llm_guidance:
-        print_llm_guidance_summary(results)
-    elif args.use_progressive_patch:
-        print_progressive_patch_summary(results)
-    elif args.patch_reflection:
-        print_patch_reflection_summary(results)
-    elif args.memory_efficient:
-        print_memory_efficient_summary(results)
-
-
-def run_with_memory_efficient_llm_guidance(config, data_loader, issue_ids, model_name,
-                                           suspected_files, max_iterations, reasoning_type,
-                                           reflection_iterations):
-    """
-    Run issues with memory-efficient LLM Code Location Guidance Framework.
-    This version incorporates memory optimizations to reduce CUDA memory usage.
-
-    Args:
-        config: Configuration object.
-        data_loader: SWEBenchDataLoader instance.
-        issue_ids: List of issue IDs to process.
-        model_name: Name of the model to use.
-        suspected_files: List of suspected files.
-        max_iterations: Maximum number of guidance iterations.
-        reasoning_type: Type of reasoning to use.
-        reflection_iterations: Number of self-reflection iterations.
-
-    Returns:
-        List of results.
-    """
-    from ..models import create_model
-    from ..solution.issue_solver import IssueSolver
-    from ..utils.patch_validator import PatchValidator
-
-    # Initialize the LLM guidance framework
-    guidance = LLMCodeLocationGuidance(config)
-
-    # Initialize patch validator
-    patch_validator = PatchValidator(config)
-
-    # Initialize results list
-    results = []
-
-    # Process each issue
-    for issue_id in issue_ids:
-        logging.info(f"Processing issue {issue_id} with memory-efficient LLM guidance")
-
-        # Clear memory before processing new issue
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-            gc.collect()
-
-        # Load the issue
-        issue = data_loader.load_issue(issue_id)
-        if not issue:
-            logging.error(f"Issue {issue_id} not found")
-            continue
-
-        # Create the initial guidance prompt - use simpler version if memory efficient
-        initial_prompt = guidance.create_guidance_prompt(
-            issue,
-            suspected_files=suspected_files
-        )
-
-        # Get model(s) to use
-        if isinstance(model_name, list):
-            models_to_use = model_name
-        else:
-            models_to_use = [model_name]
-
-        # Process with each model
-        issue_results = {
-            "issue_id": issue_id,
-            "issue_description": issue.get("issue_description", ""),
-            "solutions": {}
-        }
-
-        for model_id in models_to_use:
-            logging.info(f"Using model {model_id} for issue {issue_id}")
-
-            # Clear memory before loading model
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-                gc.collect()
-
-            # Initialize model
-            model = create_model(model_id, config)
-
-            # Track iterations
-            guided_iterations = []
-            current_prompt = initial_prompt
-
-            # Run guidance iterations
-            for iteration in range(max_iterations):
-                logging.info(f"Guidance iteration {iteration + 1}/{max_iterations}")
-
-                # Clear memory before generation
-                if torch.cuda.is_available():
-                    torch.cuda.empty_cache()
-                    gc.collect()
-
-                # Generate analysis with model
-                try:
-                    analysis_response = model.generate(current_prompt)
-                except RuntimeError as e:
-                    if "CUDA out of memory" in str(e):
-                        logging.warning("CUDA OOM during guidance. Trying with reduced context...")
-                        # Truncate prompt and try again
-                        truncated_prompt = _truncate_prompt(current_prompt)
-                        if torch.cuda.is_available():
-                            torch.cuda.empty_cache()
-                            gc.collect()
-                        analysis_response = model.generate(truncated_prompt)
-                    else:
-                        raise
-
-                # Extract patch from response
-                patch = extract_patch_from_response(analysis_response)
-
-                # Clear memory before validation
-                if torch.cuda.is_available():
-                    torch.cuda.empty_cache()
-                    gc.collect()
-
-                # Validate patch
-                validation_result = patch_validator.validate_patch(patch, issue_id)
-
-                # Record iteration
-                guided_iterations.append({
-                    "iteration": iteration + 1,
-                    "response": analysis_response,
-                    "patch": patch,
-                    "validation": validation_result
-                })
-
-                # If patch is valid or we've reached max iterations, proceed to solver
-                if validation_result.get("success", False) or iteration + 1 >= max_iterations:
-                    break
-
-                # Otherwise, refine prompt with feedback
-                feedback = f"The patch has issues: {validation_result.get('feedback', 'Unknown validation error')}"
-                current_prompt = guidance.apply_feedback(current_prompt, analysis_response, feedback)
-
-            # Apply self-reflection if any valid patch was found
-            final_solutions = []
-            for iteration in guided_iterations:
-                if iteration["patch"]:
-                    # Use the patch from this iteration
-                    patch = iteration["patch"]
-
-                    # Create a solution entry
-                    solution = {
-                        "iteration": iteration["iteration"],
-                        "guidance_response": iteration["response"],
-                        "patch": patch,
-                        "patch_validation": iteration["validation"],
-                        "guided_fix": True
-                    }
-
-                    # If we should apply self-reflection, do so
-                    if reflection_iterations > 0:
-                        from ..reasoning.self_reflection import SelfReflection
-
-                        # Clear memory before reflection
-                        if torch.cuda.is_available():
-                            torch.cuda.empty_cache()
-                            gc.collect()
-
-                        reflector = SelfReflection(config, model)
-
-                        # Create context for reflection
-                        reflection_context = (
-                            f"Initial patch based on guided analysis:\n{patch}\n\n"
-                            f"Validation feedback: {iteration['validation'].get('feedback', '')}"
-                        )
-
-                        # Apply self-reflection to refine the solution
-                        refined_data = reflector.refine_solution(
-                            patch,
-                            issue.get("issue_description", ""),
-                            reflection_context
-                        )
-
-                        # Update the solution with reflection results
-                        solution["reflections"] = refined_data.get("reflections", [])
-                        solution["final_solution"] = refined_data.get("final_solution", patch)
-
-                    final_solutions.append(solution)
-
-            # Add solutions to results
-            issue_results["solutions"][model_id] = final_solutions
-
-            # Clean up model to free memory
-            del model
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-                gc.collect()
-
-        # Add issue results
-        results.append(issue_results)
-
-    return results
-
-
-def _truncate_prompt(prompt: str, max_length: int = 8000) -> str:
-    """
-    Truncate a prompt to reduce memory usage.
-
-    Args:
-        prompt: The original prompt
-        max_length: Maximum length to keep
-
-    Returns:
-        Truncated prompt
-    """
-    if len(prompt) <= max_length:
-        return prompt
-
-    # Add a note about truncation
-    truncation_note = "\n[Note: The context was too long and has been truncated.]\n\n"
-
-    # Keep the beginning and end of the prompt
-    beginning_length = max_length // 2
-    ending_length = max_length - beginning_length - len(truncation_note)
-
-    return prompt[:beginning_length] + truncation_note + prompt[-ending_length:]
-
-
 def run_with_llm_guidance(config, data_loader, issue_ids, model_name,
                           suspected_files, max_iterations, reasoning_type,
                           reflection_iterations):
@@ -489,177 +97,19 @@ def run_with_llm_guidance(config, data_loader, issue_ids, model_name,
         issue_ids: List of issue IDs to process.
         model_name: Name of the model to use.
         suspected_files: List of suspected files.
-        max_iterations: Maximum number of guidance iterations.
-        reasoning_type: Type of reasoning to use.
-        reflection_iterations: Number of self-reflection iterations.
+        error_output: Optional error output or test info.
+        max_iterations: Maximum iterations for progressive refinement.
 
     Returns:
         List of results.
     """
-    from ..models import create_model
-    from ..solution.issue_solver import IssueSolver
-    from ..utils.patch_validator import PatchValidator
-
-    # Initialize the LLM guidance framework
-    guidance = LLMCodeLocationGuidance(config)
-
-    # Initialize patch validator
-    patch_validator = PatchValidator(config)
-
-    # Initialize results list
-    results = []
-
-    # Process each issue
-    for issue_id in issue_ids:
-        logging.info(f"Processing issue {issue_id} with LLM guidance")
-
-        # Load the issue
-        issue = data_loader.load_issue(issue_id)
-        if not issue:
-            logging.error(f"Issue {issue_id} not found")
-            continue
-
-        # Create the initial guidance prompt
-        initial_prompt = guidance.create_guidance_prompt(
-            issue,
-            suspected_files=suspected_files
-        )
-
-        # Get model(s) to use
-        if isinstance(model_name, list):
-            models_to_use = model_name
-        else:
-            models_to_use = [model_name]
-
-        # Process with each model
-        issue_results = {
-            "issue_id": issue_id,
-            "issue_description": issue.get("issue_description", ""),
-            "solutions": {}
-        }
-
-        for model_id in models_to_use:
-            logging.info(f"Using model {model_id} for issue {issue_id}")
-
-            # Initialize model
-            model = create_model(model_id, config)
-
-            # Track iterations
-            guided_iterations = []
-            current_prompt = initial_prompt
-
-            # Run guidance iterations
-            for iteration in range(max_iterations):
-                logging.info(f"Guidance iteration {iteration + 1}/{max_iterations}")
-
-                # Generate analysis with model
-                analysis_response = model.generate(current_prompt)
-
-                # Extract patch from response
-                patch = extract_patch_from_response(analysis_response)
-
-                # Validate patch
-                validation_result = patch_validator.validate_patch(patch, issue_id)
-
-                # Record iteration
-                guided_iterations.append({
-                    "iteration": iteration + 1,
-                    "prompt": current_prompt,
-                    "response": analysis_response,
-                    "patch": patch,
-                    "validation": validation_result
-                })
-
-                # If patch is valid or we've reached max iterations, proceed to solver
-                if validation_result.get("success", False) or iteration + 1 >= max_iterations:
-                    break
-
-                # Otherwise, refine prompt with feedback
-                feedback = f"The patch has issues: {validation_result.get('feedback', 'Unknown validation error')}"
-                current_prompt = guidance.apply_feedback(current_prompt, analysis_response, feedback)
-
-            # Create solver with this model
-            solver = IssueSolver(config, model_id, reasoning_type, num_iterations=reflection_iterations)
-
-            # Apply self-reflection if any valid patch was found
-            final_solutions = []
-            for iteration in guided_iterations:
-                if iteration["patch"]:
-                    # Use the patch from this iteration
-                    patch = iteration["patch"]
-
-                    # Create a solution entry
-                    solution = {
-                        "iteration": iteration["iteration"],
-                        "guidance_prompt": iteration["prompt"],
-                        "guidance_response": iteration["response"],
-                        "patch": patch,
-                        "patch_validation": iteration["validation"],
-                        "guided_fix": True
-                    }
-
-                    # If we should apply self-reflection, do so
-                    if reflection_iterations > 0:
-                        from ..reasoning.self_reflection import SelfReflection
-                        reflector = SelfReflection(config, model)
-
-                        # Create context for reflection
-                        reflection_context = (
-                            f"Initial patch based on guided analysis:\n{patch}\n\n"
-                            f"Validation feedback: {iteration['validation'].get('feedback', '')}"
-                        )
-
-                        # Apply self-reflection to refine the solution
-                        refined_data = reflector.refine_solution(
-                            patch,
-                            issue.get("issue_description", ""),
-                            reflection_context
-                        )
-
-                        # Update the solution with reflection results
-                        solution["reflections"] = refined_data.get("reflections", [])
-                        solution["final_solution"] = refined_data.get("final_solution", patch)
-
-                    final_solutions.append(solution)
-
-            # Add solutions to results
-            issue_results["solutions"][model_id] = final_solutions
-
-        # Add issue results
-        results.append(issue_results)
-
-    return results
-
-
-def extract_patch_from_response(response: str) -> str:
-    """
-    Extract a Git patch from model response.
-
-    Args:
-        response: Model response text.
-
-    Returns:
-        Extracted patch string.
-    """
-    # Look for diff sections with Git format
-    diff_pattern = r'(diff --git.*?)(?=^```|\Z)'
-    diff_match = re.search(diff_pattern, response, re.MULTILINE | re.DOTALL)
-
-    if diff_match:
-        return diff_match.group(1).strip()
-
-    # Look for code blocks that might contain patches
-    code_block_pattern = r'```(?:diff|patch)?\n(.*?)```'
-    code_match = re.search(code_block_pattern, response, re.MULTILINE | re.DOTALL)
-
-    if code_match:
-        patch_content = code_match.group(1).strip()
-        # If it looks like a Git patch, return it
-        if patch_content.startswith("diff --git"):
-            return patch_content
-
-    # No valid patch found
-    return ""
+    # This is a wrapper around the memory-efficient version
+    # Keep for backwards compatibility
+    return run_with_memory_efficient_llm_guidance(
+        config, data_loader, issue_ids, model_name,
+        suspected_files, max_iterations, reasoning_type,
+        reflection_iterations
+    )
 
 
 def print_llm_guidance_summary(results):
@@ -807,6 +257,241 @@ def print_memory_efficient_summary(results):
     print("  - Reduced memory usage through targeted code chunk retrieval")
     print("  - Smaller context windows for faster generation")
     print("  - Better focus on relevant code sections")
+
+
+def main():
+    """Main function for running experiments with improved error handling."""
+    args = parse_args()
+
+    # Load configuration
+    config_path = args.config
+    config = Config(config_path)
+
+    # Set up logging
+    if args.debug:
+        config["logging"]["log_level"] = "DEBUG"
+    setup_logging(config, args.log_file)
+
+    # Log the command line args for reproducibility
+    logging.info(f"Command line arguments: {args}")
+
+    # Set output directory if provided
+    if args.output:
+        config["evaluation"]["results_dir"] = args.output
+
+    # Create results directory
+    results_dir = Path(config["evaluation"]["results_dir"])
+    FileUtils.ensure_directory(results_dir)
+
+    # Apply command line overrides to config
+    if args.cpu_only:
+        config["models"]["device"] = "cpu"
+        logging.info("Forcing CPU mode (CUDA disabled)")
+
+    # Check for HF_TOKEN
+    if "HF_TOKEN" not in os.environ and "HUGGINGFACE_TOKEN" not in os.environ:
+        logging.warning("HF_TOKEN or HUGGINGFACE_TOKEN environment variable not set.")
+        os.environ["TRANSFORMERS_OFFLINE"] = "0"  # Ensure we can still download models
+        logging.info("Set TRANSFORMERS_OFFLINE=0 to allow downloads without token")
+
+    # Apply quantization and flash attention flags
+    if args.disable_quantization:
+        logging.info("Disabling model quantization")
+        for model_name in ["deepseek-r1-distill", "qwen2-5-coder", "qwq-preview"]:
+            model_config = config.get_model_config(model_name)
+            if model_config and "quantization" in model_config:
+                del model_config["quantization"]
+
+    if args.disable_flash_attention:
+        logging.info("Disabling flash attention")
+        for model_name in ["deepseek-r1-distill", "qwen2-5-coder", "qwq-preview"]:
+            model_config = config.get_model_config(model_name)
+            if model_config and model_config.get("use_flash_attention", False):
+                model_config["use_flash_attention"] = False
+
+    # Apply memory optimization settings
+    if args.memory_efficient:
+        logging.info("Enabling memory-efficient RAG-like approach")
+        config["memory_efficient"] = True
+        os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True,max_split_size_mb:512"
+        logging.info("Set PYTORCH_CUDA_ALLOC_CONF for better memory management")
+
+    if args.offload_layers:
+        logging.info("Enabling layer offloading to CPU")
+        config["offload_layers"] = True
+
+    if args.max_context_length:
+        logging.info(f"Setting maximum context length to {args.max_context_length}")
+        config["data"]["max_context_length"] = args.max_context_length
+
+    if args.max_new_tokens:
+        logging.info(f"Setting maximum new tokens to {args.max_new_tokens}")
+        config["models"]["max_new_tokens"] = args.max_new_tokens
+
+    # Clear CUDA cache before starting
+    clear_cuda_cache()
+
+    # Log CUDA device info
+    if torch.cuda.is_available():
+        for i in range(torch.cuda.device_count()):
+            props = torch.cuda.get_device_properties(i)
+            total_mem = props.total_memory / (1024 ** 3)
+            allocated = torch.cuda.memory_allocated(i) / (1024 ** 3)
+            free = total_mem - allocated
+            logging.info(
+                f"GPU {i}: {props.name}, Total memory: {total_mem:.2f}GB, Allocated: {allocated:.2f}GB, Free: {free:.2f}GB")
+    else:
+        logging.info("No CUDA devices available, using CPU")
+
+    try:
+        # Load dataset
+        data_loader = SWEBenchDataLoader(config)
+        data_loader.cleanup_environments(max_age_days=7)
+        all_issues = data_loader.load_dataset()
+        logging.info(f"Loaded {len(all_issues)} issues from dataset")
+
+        # Determine which issues to process
+        if args.issues:
+            issue_ids = args.issues.split(",")
+            logging.info(f"Processing specified issues: {issue_ids}")
+        else:
+            # Take first N issues
+            issue_limit = min(args.limit, len(all_issues))
+            issue_ids = [
+                issue.get("instance_id", issue.get("id", f"issue_{i}"))
+                for i, issue in enumerate(all_issues[:issue_limit])
+            ]
+            logging.info(f"Processing first {issue_limit} issues: {issue_ids}")
+
+        # Ensure repositories exist for the selected issues
+        repo_explorer = RepositoryExplorer(config)
+
+        valid_issue_ids = []
+        for issue_id in issue_ids:
+            try:
+                issue = data_loader.load_issue(issue_id)
+                logging.info(f"Issue: {issue}")
+                if not issue:
+                    logging.warning(f"Skipping issue {issue_id}: could not load issue data.")
+                    continue
+
+                # Check issue description
+                description = data_loader.get_issue_description(issue)
+                if not description or len(description.strip()) < 10:
+                    logging.warning(f"Issue {issue_id} has very short or empty description: '{description}'")
+                    # Use fallback description
+                    issue[
+                        "problem_statement"] = f"Fix issue {issue_id}. Check the repository structure and make minimal changes to fix any bugs."
+
+                # Ensure repo exists
+                if not repo_explorer.ensure_repository_exists(issue):
+                    logging.warning(f"Skipping issue {issue_id}: repository could not be downloaded.")
+                    continue
+                valid_issue_ids.append(issue_id)
+            except Exception as e:
+                logging.error(f"Error processing issue {issue_id}: {e}")
+                logging.debug(traceback.format_exc())
+
+        if not valid_issue_ids:
+            logging.error("No valid issues to process after checking repositories.")
+            return 1  # Error exit code
+
+        issue_ids = valid_issue_ids
+
+        # Determine which model to use
+        model_name = None if args.model == "all" else args.model
+        if model_name is None:
+            logging.info("Running experiment with all models: deepseek-r1-distill, qwen2-5-coder, qwq-preview")
+            model_name = ["deepseek-r1-distill", "qwen2-5-coder", "qwq-preview"]
+
+        # Process suspected files if provided
+        suspected_files = None
+        if args.suspected_files:
+            suspected_files = [f.strip() for f in args.suspected_files.split(",")]
+
+        # Run experiment
+        if args.use_llm_guidance:
+            logging.info("Using LLM Code Location Guidance Framework")
+            if args.memory_efficient:
+                results = run_with_memory_efficient_llm_guidance(
+                    config, data_loader, issue_ids, model_name,
+                    suspected_files, args.guidance_iterations, args.reasoning, args.iterations
+                )
+            else:
+                results = run_with_llm_guidance(
+                    config, data_loader, issue_ids, model_name,
+                    suspected_files, args.guidance_iterations, args.reasoning, args.iterations
+                )
+        else:
+            solver = IssueSolver(config, model_name, args.reasoning, num_iterations=args.iterations)
+            if args.use_progressive_patch:
+                from ..solution.improved_patch_creator import ImprovedPatchCreator
+                solver.patch_creator = ImprovedPatchCreator(config)
+                logging.info("Using progressive hybrid approach for patch creation")
+
+            if args.patch_reflection:
+                logging.info("Using self-reflection on patches")
+                results = solver.solve_issues_with_patch_reflection(issue_ids)
+            elif args.memory_efficient:
+                logging.info("Using memory-efficient RAG-like approach")
+                results = solver.solve_multiple_issues(issue_ids)
+            else:
+                results = solver.solve_multiple_issues(issue_ids)
+
+        # Save results
+        output_file = results_dir / "results.json"
+        FileUtils.write_json(results, output_file)
+        logging.info(f"Results saved to {output_file}")
+
+        # Log a summary of the results
+        logging.info(f"Generated results for {len(results)} issues")
+        for result in results:
+            issue_id = result.get("issue_id", "unknown")
+            solutions = result.get("solutions", {})
+            solution_count = sum(len(model_solutions) for model_solutions in solutions.values())
+            logging.info(f"Issue {issue_id}: {solution_count} total solutions generated")
+
+        # Visualizations
+        try:
+            visualizer = Visualizer(config)
+            path1 = visualizer.visualize_model_comparison(results)
+            logging.info(f"Model comparison saved to {path1}")
+            path2 = visualizer.visualize_iteration_improvement(results)
+            logging.info(f"Iteration improvement saved to {path2}")
+        except Exception as e:
+            logging.error(f"Error generating visualizations: {e}")
+            logging.debug(traceback.format_exc())
+
+        print(f"\nExperiment completed successfully!")
+        print(f"Results saved to {output_file}")
+        print(f"Visualizations saved to {results_dir}")
+
+        if args.use_llm_guidance:
+            print_llm_guidance_summary(results)
+        elif args.use_progressive_patch:
+            print_progressive_patch_summary(results)
+        elif args.patch_reflection:
+            print_patch_reflection_summary(results)
+        elif args.memory_efficient:
+            print_memory_efficient_summary(results)
+
+        return 0  # Success exit code
+
+    except Exception as e:
+        logging.error(f"Unhandled exception in main: {e}")
+        logging.debug(traceback.format_exc())
+
+        # Try to save partial results if available
+        try:
+            if 'results' in locals():
+                partial_file = results_dir / "partial_results.json"
+                FileUtils.write_json(results, partial_file)
+                logging.info(f"Partial results saved to {partial_file}")
+                print(f"Partial results saved to {partial_file}")
+        except Exception as save_err:
+            logging.error(f"Error saving partial results: {save_err}")
+
+        return 1  # Error exit code
 
 
 if __name__ == "__main__":

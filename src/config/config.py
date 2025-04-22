@@ -9,38 +9,31 @@ class Config:
         self.base_dir = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
         # Default configuration
-        self.defaults = {
-            "data": {
-                "repositories": str(self.base_dir.parent / "data" / "repositories"),
-                "swe_bench_path": str(self.base_dir / "data" / "swe-bench-verified"),
-                "cache_dir": str(self.base_dir / "data" / "cache"),
-                "max_context_length": 80192,
-            },
-            "models": {
-                "device": "cuda" if os.environ.get("CUDA_VISIBLE_DEVICES") else "cpu",
-                "precision": "fp16",
-                "max_new_tokens": 3048,
-                "temperature": 0.2,
-                "top_p": 0.95,
-                "repo_cache_dir": str(self.base_dir / "models" / "cache"),
-            },
-            "reasoning": {
-                "cot_steps": 5,
-                "tot_breadth": 3,
-                "tot_depth": 3,
-                "reflection_iterations": 3,
-            },
-            "logging": {
-                "log_dir": str(self.base_dir / "logs"),
-                "log_level": "INFO",
-            },
-            "evaluation": {
-                "metrics": ["success_rate", "code_quality", "execution_time", "patch_quality"],
-                "results_dir": str(self.base_dir / "results"),
-            }
-        }
+        self.defaults = {"data": {
+            "repositories": str(self.base_dir.parent / "data" / "repositories"),
+            "swe_bench_path": str(self.base_dir.parent / "data" / "swe-bench-verified"),
+            "cache_dir": str(self.base_dir.parent / "data" / "cache"),
+            "max_context_length": 100000,
+        }, "models": {
+            "device": "cuda" if os.environ.get("CUDA_VISIBLE_DEVICES") else "cpu",
+            "precision": "fp16",
+            "max_new_tokens": 3048,
+            "temperature": 0.2,
+            "top_p": 0.95,
+            "repo_cache_dir": str(self.base_dir / "models" / "cache"),
+        }, "reasoning": {
+            "cot_steps": 5,
+            "tot_breadth": 3,
+            "tot_depth": 3,
+            "reflection_iterations": 3,
+        }, "logging": {
+            "log_dir": str(self.base_dir / "logs"),
+            "log_level": "INFO",
+        }, "evaluation": {
+            "metrics": ["success_rate", "code_quality", "execution_time", "patch_quality"],
+            "results_dir": str(self.base_dir / "results"),
+        }, "base_dir": str(self.base_dir)}
 
-        self.defaults["base_dir"] = str(self.base_dir)
         # Load configuration from file if provided
         if config_path:
             with open(config_path, 'r') as f:

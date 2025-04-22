@@ -66,7 +66,7 @@ class LLMGuidedFix:
             patch = self._extract_patch(response)
 
             # Validate patch
-            validation = self.patch_validator.validate_patch(patch, issue.get("issue_id", "unknown"))
+            validation = self.patch_validator.validate_patch(patch, issue.get("instance_id", "unknown"))
 
             # Record iteration
             iterations.append({

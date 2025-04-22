@@ -2,8 +2,9 @@
 
 import re
 import logging
-from typing import Dict, Any, Tuple, List
 import time
+from typing import Dict, Any, Tuple, List, Optional
+import torch
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ class SelfReflection:
 
         # Try to find the prompt template from various sources
         self.prompt_template = None
+        self.current_issue = None
 
         # Check in model-specific configs
         model_configs = config.get_model_config(model.model_name)
@@ -85,9 +87,9 @@ class SelfReflection:
                 REFLECTION:
                 """
 
-        # Enhanced template with patch validation feedback
-        self.enhanced_prompt_template = """
-            You are an expert software engineer reviewing a solution to a GitHub issue. You need to analyze the solution, reflect on it, and provide an improved version.
+        # Template that incorporates validation feedback
+        self.validation_prompt_template = """
+            You are an expert software engineer reviewing a solution to a GitHub issue. You need to analyze the solution, fix the patch formatting issues, and provide an improved implementation.
 
             GITHUB ISSUE:
             {issue_description}
@@ -95,47 +97,29 @@ class SelfReflection:
             RELEVANT CODEBASE CONTEXT:
             {codebase_context}
 
-            INITIAL SOLUTION:
+            CURRENT SOLUTION:
             {solution}
 
-            TASK:
-            1. First, under "REFLECTION:", analyze the strengths and weaknesses of the solution, focusing on correctness, efficiency, and maintainability.
-            2. Pay special attention to creating a proper Git-formatted patch that modifies the correct files with accurate line numbers.
-            3. Then, under "REVISED SOLUTION:", provide an improved implementation that addresses any issues identified.
-
-            Make sure to wrap any code in ```python code blocks``` and ensure patches follow Git diff format.
-
-            Begin your analysis:
-
-            REFLECTION:
-        """
-        
-        # Template that incorporates test patches and hints
-        self.swe_bench_template = """
-            You are an expert software engineer reviewing a solution to a GitHub issue. You need to analyze the solution, reflect on it, and provide an improved version.
-
-            GITHUB ISSUE:
-            {issue_description}
-
-            RELEVANT CODEBASE CONTEXT:
-            {codebase_context}
-
-            INITIAL SOLUTION:
-            {solution}
-
-            {test_patch_section}
-
-            {hints_section}
-
-            {validation_feedback_section}
+            PATCH VALIDATION FEEDBACK:
+            {validation_feedback}
 
             TASK:
-            1. First, under "REFLECTION:", analyze the strengths and weaknesses of the solution, focusing on correctness, efficiency, and maintainability.
-            2. Pay special attention to creating a proper Git-formatted patch that modifies the correct files with accurate line numbers.
-            3. Ensure your solution passes the test cases if test patches are provided.
-            4. Then, under "REVISED SOLUTION:", provide an improved implementation that addresses any issues identified.
+            1. First, under "REFLECTION:", analyze why the patch is invalid based on the validation feedback.
+            2. Focus on fixing the Git patch formatting issues.
+            3. Make sure the file paths, line numbers, and context match the actual files.
+            4. Then, under "REVISED SOLUTION:", provide a correctly formatted patch that will apply cleanly.
 
-            Make sure to wrap any code in ```python code blocks``` and ensure patches follow Git diff format.
+            Ensure your patch follows the proper Git diff format:
+            ```
+            diff --git a/path/to/file b/path/to/file
+            --- a/path/to/file
+            +++ b/path/to/file
+            @@ -start,count +start,count @@
+             context line
+            -removed line
+            +added line
+             context line
+            ```
 
             Begin your analysis:
 
@@ -144,6 +128,23 @@ class SelfReflection:
 
         self.iterations = config["reasoning"].get("reflection_iterations", 3)
         logger.info(f"SelfReflection initialized with model {model.model_name}")
+
+        # Initialize patch formatter and validator if needed
+        self.patch_formatter = None
+        self.patch_validator = None
+        self.initialize_patch_tools()
+
+    def initialize_patch_tools(self):
+        """Initialize patch formatting and validation tools if available."""
+        try:
+            from ..utils.enhanced_patch_formatter import EnhancedPatchFormatter
+            from ..utils.patch_validator import PatchValidator
+
+            self.patch_formatter = EnhancedPatchFormatter(self.config)
+            self.patch_validator = PatchValidator(self.config)
+            logger.info("Patch formatting and validation tools initialized")
+        except ImportError as e:
+            logger.warning(f"Could not initialize patch tools: {e}")
 
     def refine_solution(self, solution: str, issue_description: str, codebase_context: str) -> Dict[str, Any]:
         """
@@ -167,38 +168,27 @@ class SelfReflection:
         reflections = []
         current_solution = solution
 
-        # Extract test patch and hints if present in the context
-        test_patch = ""
-        hints = ""
-        validation_feedback = ""
-        
-        # Check for test patch in context
-        test_patch_match = re.search(r'TEST PATCH:\n(.*?)(?=\n\n|\Z)', codebase_context, re.DOTALL)
-        if test_patch_match:
-            test_patch = test_patch_match.group(1)
-            
-        # Check for hints in issue description
-        hints_match = re.search(r'ADDITIONAL HINTS:\n(.*?)(?=\n\n|\Z)', issue_description, re.DOTALL)
-        if hints_match:
-            hints = hints_match.group(1)
-            
-        # Check for validation feedback
-        validation_match = re.search(r'PATCH VALIDATION FEEDBACK:\n(.*?)(?=\n\n|\Z)', codebase_context, re.DOTALL)
-        if validation_match:
-            validation_feedback = validation_match.group(1)
-        
-        # Determine which template to use
-        has_validation_feedback = bool(validation_feedback)
-        has_test_patch = bool(test_patch)
-        has_hints = bool(hints)
-        
-        if has_test_patch or has_hints or has_validation_feedback:
-            # Use the SWE-bench specific template
-            prompt_template = self.swe_bench_template
-        elif has_validation_feedback:
-            prompt_template = self.enhanced_prompt_template
+        # Extract repo name and issue ID for patch validation
+        repo_name = self._extract_repo_from_context(codebase_context)
+        if hasattr(self, 'current_issue') and self.current_issue:
+            issue_id = self.current_issue.get("instance_id") or self.current_issue.get("id")
         else:
-            prompt_template = self.prompt_template
+            # Fallback to extraction if issue object not available
+            issue_id = self._extract_issue_id_from_context(issue_description)
+
+        # Initial patch extraction and validation
+        has_validation_feedback = False
+        validation_feedback = ""
+
+        # Extract and validate initial patch if tools are available
+        if self.patch_formatter and self.patch_validator:
+            initial_patch = self._extract_patch(current_solution)
+            if initial_patch:
+                formatted_initial_patch = self.patch_formatter.format_patch(initial_patch, repo_name)
+                initial_validation = self.patch_validator.validate_patch(formatted_initial_patch, issue_id)
+                validation_feedback = initial_validation.get("feedback", "")
+                has_validation_feedback = True
+                logger.info(f"Initial patch validation: success={initial_validation.get('success', False)}")
 
         for i in range(self.iterations):
             logger.info(f"Self-reflection iteration {i + 1}/{self.iterations}")
@@ -206,23 +196,16 @@ class SelfReflection:
             # Start timing
             start_time = time.time()
 
-            # Prepare template sections
-            test_patch_section = f"TEST PATCH TO PASS:\n{test_patch}" if has_test_patch else ""
-            hints_section = f"ADDITIONAL HINTS:\n{hints}" if has_hints else ""
-            validation_feedback_section = f"VALIDATION FEEDBACK:\n{validation_feedback}" if has_validation_feedback else ""
-            
-            # Format the prompt
-            if prompt_template == self.swe_bench_template:
-                prompt = prompt_template.format(
+            # Select appropriate template based on validation feedback
+            if has_validation_feedback:
+                prompt = self.validation_prompt_template.format(
                     solution=current_solution,
                     issue_description=issue_description,
                     codebase_context=codebase_context,
-                    test_patch_section=test_patch_section,
-                    hints_section=hints_section,
-                    validation_feedback_section=validation_feedback_section
+                    validation_feedback=validation_feedback
                 )
             else:
-                prompt = prompt_template.format(
+                prompt = self.prompt_template.format(
                     solution=current_solution,
                     issue_description=issue_description,
                     codebase_context=codebase_context
@@ -230,6 +213,11 @@ class SelfReflection:
 
             # Generate reflection and revised solution
             logger.debug(f"Self-reflection prompt: {prompt[:500]}...")
+
+            # Clear memory before generation
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+
             response = self.model.generate(prompt)
             logger.debug(f"Model response: {response[:500]}...")
 
@@ -243,25 +231,89 @@ class SelfReflection:
                 f"Reflection parsed, length: {len(reflection)}, revised solution length: {len(revised_solution)}"
             )
 
-            reflections.append({
+            # Extract and validate patch from revised solution
+            patch_info = {}
+            if self.patch_formatter and self.patch_validator:
+                # Extract patch
+                patch = self._extract_patch(revised_solution)
+
+                if patch:
+                    # Format patch
+                    formatted_patch = self.patch_formatter.format_patch(patch, repo_name)
+
+                    if self.current_issue:
+                        issue_id = self.current_issue.get("instance_id") or self.current_issue.get("id")
+                        logger.debug(f"Using issue ID from issue object: {issue_id}")
+                    else:
+                        issue_id = self._extract_issue_id_from_context(issue_description)
+                        logger.debug(f"Using extracted issue ID: {issue_id}")
+
+                    # Validate patch
+                    validation_result = self.patch_validator.validate_patch(formatted_patch, issue_id)
+
+                    validation_feedback = validation_result.get("feedback", "")
+                    has_validation_feedback = True
+
+                    # Store patch info
+                    patch_info = {
+                        "raw_patch": patch,
+                        "formatted_patch": formatted_patch,
+                        "validation": validation_result,
+                        "success": validation_result.get("success", False)
+                    }
+
+                    logger.info(
+                        f"Patch validation (iteration {i + 1}): success={validation_result.get('success', False)}")
+                else:
+                    validation_feedback = "No valid patch found in the solution. Please provide a properly formatted Git patch."
+                    has_validation_feedback = True
+                    patch_info = {
+                        "error": "No valid patch extracted"
+                    }
+
+            # Store reflection data
+            reflection_data = {
                 "iteration": i + 1,
                 "reflection": reflection,
                 "solution": revised_solution,
-                "reflection_time": reflection_time,
-                "used_test_patch": has_test_patch,
-                "used_hints": has_hints,
-                "used_validation_feedback": has_validation_feedback
-            })
+                "reflection_time": reflection_time
+            }
+
+            # Add patch info if available
+            if patch_info:
+                reflection_data.update(patch_info)
+
+            reflections.append(reflection_data)
 
             # Update the current solution for the next iteration
             current_solution = revised_solution
 
+            # Check if we've found a valid patch and can stop early
+            if patch_info.get("success", False):
+                logger.info(f"Valid patch found in iteration {i + 1}. Stopping reflections early.")
+                break
+
+            # Clear memory after iteration
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+
+        # Find the best iteration (one with successful validation or last one)
+        best_iteration = None
+        for r in reflections:
+            if r.get("success", False):
+                best_iteration = r
+                break
+
+        if not best_iteration and reflections:
+            best_iteration = reflections[-1]
+
+        final_solution = best_iteration["solution"] if best_iteration else current_solution
+
         return {
             "reflections": reflections,
-            "final_solution": current_solution,
-            "used_test_patch": has_test_patch,
-            "used_hints": has_hints,
-            "used_validation_feedback": has_validation_feedback
+            "final_solution": final_solution,
+            "success": best_iteration.get("success", False) if best_iteration else False,
+            "formatted_patch": best_iteration.get("formatted_patch", "") if best_iteration else ""
         }
 
     def _parse_response(self, response: str) -> tuple:
@@ -341,3 +393,72 @@ class SelfReflection:
                 revised_solution = "No explicit solution provided"
 
         return reflection, revised_solution
+
+    def _extract_patch(self, solution: str) -> str:
+        """Extract a Git patch from the solution text."""
+        # Look for a git diff format
+        diff_pattern = r'(diff --git.*?)(?:\Z|(?=^```|\n\n\n))'
+        diff_match = re.search(diff_pattern, solution, re.MULTILINE | re.DOTALL)
+
+        if diff_match:
+            return diff_match.group(1).strip()
+
+        # Look for content inside code blocks that might contain patches
+        code_block_pattern = r'```(?:diff|patch|git)?\n(.*?)```'
+        code_match = re.search(code_block_pattern, solution, re.MULTILINE | re.DOTALL)
+
+        if code_match:
+            content = code_match.group(1).strip()
+            if content.startswith('diff --git') or ('---' in content and '+++' in content):
+                return content
+
+        # No valid patch found
+        return ""
+
+    def _extract_repo_from_context(self, context: str) -> str:
+        """Extract repository name from context."""
+        repo_match = re.search(r'Repository:\s*([a-zA-Z0-9_\-/.]+)', context, re.IGNORECASE)
+        if repo_match:
+            return repo_match.group(1)
+
+        # Try to find a repo-like path
+        path_match = re.search(r'([a-zA-Z0-9_\-]+)/([a-zA-Z0-9_\-]+)\.git', context)
+        if path_match:
+            return f"{path_match.group(1)}/{path_match.group(2)}"
+
+        # Try to extract from file paths
+        file_paths = re.findall(r'[a-zA-Z0-9_\-]+/[a-zA-Z0-9_\-/]+\.[a-zA-Z0-9]+', context)
+        if file_paths:
+            # Get the first component of the first file path
+            parts = file_paths[0].split('/')
+            if len(parts) > 1:
+                return parts[0]
+
+        return "unknown_repo"
+
+    def _extract_issue_id_from_context(self, description: str) -> str:
+        """Extract issue ID from description."""
+        # If we have current_issue, use its ID
+        if hasattr(self, 'current_issue') and self.current_issue:
+            issue_id = self.current_issue.get("instance_id") or self.current_issue.get("id")
+            if issue_id:
+                return issue_id
+
+        # More specific pattern for SWE-bench format: repo__issue
+        swebench_match = re.search(r'([a-zA-Z0-9_\-]+)/([a-zA-Z0-9_\-]+)__(\d+)', description)
+        if swebench_match:
+            return f"{swebench_match.group(1)}/{swebench_match.group(2)}__{swebench_match.group(3)}"
+
+        # Look for common issue ID patterns
+        issue_match = re.search(r'(?:issue|#)[\s:]*([a-zA-Z0-9_\-/.]+__\d+)', description, re.IGNORECASE)
+        if issue_match:
+            return issue_match.group(1)
+
+        # Try to extract GitHub issue format
+        github_issue = re.search(r'([a-zA-Z0-9_\-]+/[a-zA-Z0-9_\-]+)#(\d+)', description)
+        if github_issue:
+            return f"{github_issue.group(1)}__{github_issue.group(2)}"
+
+        # If no match, log a warning and return None - don't generate a placeholder
+        logger.warning(f"Could not extract valid issue ID from description")
+        return None

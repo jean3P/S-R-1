@@ -1,11 +1,12 @@
 # src/utils/repository_explorer.py
-
+import json
 import logging
 import re
 import torch
 from pathlib import Path
 from typing import Dict, List, Any, Tuple
 
+from ..data.data_loader import SWEBenchDataLoader
 # Add the import for the new RAG system
 from .repository_rag import RepositoryRAG
 
@@ -84,6 +85,11 @@ class RepositoryExplorer:
         Now with option to use RAG for memory efficiency.
         """
         logger.info("Exploring repository structure for relevant files")
+        # Get repository name and prepare it with the correct commit
+        data_loader = SWEBenchDataLoader(self.config)
+
+        # Ensure we use the base_commit for exploration
+        data_loader.prepare_repository_for_analysis(issue)
 
         # If RAG system is available and enabled, use it for memory-efficient analysis
         if self.use_rag and self.rag_system:
@@ -105,25 +111,29 @@ class RepositoryExplorer:
             Dictionary with repository exploration results.
         """
         # Analyze the issue using RAG
-        rag_results = self.rag_system.analyze_issue(issue, top_k=10)
+        rag_results = self.rag_system.retrieve_code_for_issue(issue)
 
-        # If RAG analysis failed, fall back to standard exploration
-        if "error" in rag_results:
-            logger.warning(f"RAG analysis failed: {rag_results['error']}. Falling back to standard exploration.")
+        # If RAG analysis failed or returned empty results, fall back to standard exploration
+        if not rag_results:
+            logger.warning(f"RAG analysis failed or returned no results. Falling back to standard exploration.")
             return self._explore_standard(issue)
 
         # Process RAG results to match the expected format
         repo = issue.get("repo", "")
         repo_path = Path(self.config["data"]["repositories"]) / repo
+        logger.info(f"Repo path: {repo_path}")
 
-        # Extract scores from RAG results for file filtering
+        # Extract relevant files from code chunks
+        relevant_files = list(set(chunk.get("file_path", "") for chunk in rag_results))
+
+        # Extract scores for file filtering
         file_scores = []
-        for file_path in rag_results.get("relevant_files", []):
+        for file_path in relevant_files:
             # Find max score among chunks for this file
             max_score = 0
-            for chunk in rag_results.get("relevant_chunks", []):
+            for chunk in rag_results:
                 if chunk.get("file_path") == file_path:
-                    max_score = max(max_score, chunk.get("score", 0))
+                    max_score = max(max_score, chunk.get("combined_score", 0))
             file_scores.append((file_path, max_score))
 
         # Sort by score
@@ -131,49 +141,48 @@ class RepositoryExplorer:
 
         # Format file contents in the expected structure
         file_contents = {}
-        for file_path, file_info in rag_results.get("file_contents", {}).items():
-            chunks = file_info.get("chunks", [])
-            functions = file_info.get("functions", {})
-            classes = file_info.get("classes", [])
+        for chunk in rag_results:
+            file_path = chunk.get("file_path", "")
 
-            # Determine if we have a full file or just chunks
-            has_full_content = False
-            full_content = ""
+            if not file_path:
+                continue
 
-            # Try to find a full file chunk
-            for chunk in chunks:
-                if chunk.get("type") == "file":
-                    has_full_content = True
-                    full_content = chunk.get("content", "")
-                    break
+            if file_path not in file_contents:
+                file_contents[file_path] = {
+                    "chunks": [],
+                    "functions": {},
+                    "classes": [],
+                    "content": chunk.get("content", "") if chunk.get("type") == "file" else "",
+                    "relevance_score": chunk.get("combined_score", 0)
+                }
 
-            # If no full content, extract content from chunks if needed
-            if not has_full_content:
-                # For now, just use the function/class code
-                combined_chunks = ""
-                for chunk in chunks:
-                    if "content" in chunk:
-                        combined_chunks += chunk["content"] + "\n\n"
-                full_content = combined_chunks
+            # Add chunk to file_contents
+            file_contents[file_path]["chunks"].append(chunk)
 
-            # Create file info structure
-            file_contents[file_path] = {
-                "content": full_content,
-                "lines_count": full_content.count('\n') + 1,
-                "functions": functions,
-                "classes": classes,
-                "relevance_score": next((score for path, score in file_scores if path == file_path), 0)
-            }
+            # Organize functions and classes
+            if chunk.get("type") == "function":
+                name = chunk.get("name", "")
+                if name:
+                    file_contents[file_path]["functions"][name] = {
+                        "start_line": chunk.get("start_line", 0),
+                        "end_line": chunk.get("end_line", 0),
+                        "code": chunk.get("content", "")
+                    }
+            elif chunk.get("type") == "class":
+                file_contents[file_path]["classes"].append({
+                    "name": chunk.get("name", ""),
+                    "start_line": chunk.get("start_line", 0),
+                    "end_line": chunk.get("end_line", 0),
+                    "code": chunk.get("content", "")
+                })
 
         # Create result dictionary
         result = {
             "repo_path": str(repo_path),
-            "python_files_count": len(rag_results.get("relevant_files", [])),
-            "imports": [],  # Not available directly from RAG
-            "functions": rag_results.get("functions", []),
-            "key_terms": rag_results.get("key_terms", []),
-            "mentioned_files": [],  # Not available directly from RAG
-            "relevant_files": rag_results.get("relevant_files", []),
+            "python_files_count": len(file_contents),
+            "functions": [],  # These would need to be extracted from chunks if needed
+            "key_terms": [],  # These would need to be extracted from chunks if needed
+            "relevant_files": relevant_files,
             "file_contents": file_contents,
             "file_scores": file_scores,
             "using_rag": True

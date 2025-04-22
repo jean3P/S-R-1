@@ -1,11 +1,16 @@
-# solution/issue_solver.py
-
+# src/solution/issue_solver.py
+import gc
 import json
 import logging
 import time
 from typing import Dict, List, Any, Optional
 import re
 
+import torch
+import gc
+
+from ..utils.patch_formatting_system import PatchFormattingSystem
+from ..utils.llm_guidance import LLMCodeLocationGuidance
 from ..models import create_model
 from ..reasoning.chain_of_thought import ChainOfThought
 from ..reasoning.tree_of_thought import TreeOfThought
@@ -109,10 +114,11 @@ class IssueSolver:
 
     def solve_issue(self, issue_id: str, specific_model: Optional[str] = None) -> Dict[str, Any]:
         """
-        Solve a specific issue using memory-efficient approach.
+        Solve a specific issue using memory-efficient approach with improved SWE-bench attribute usage.
         """
         # Load the issue
         issue = self.data_loader.load_issue(issue_id)
+        logger.info(f"Issue id: {issue}")
         if not issue:
             raise ValueError(f"Issue {issue_id} not found")
 
@@ -123,53 +129,57 @@ class IssueSolver:
         if not self.repo_explorer.ensure_repository_exists(issue):
             return {"error": f"Failed to download repository for issue {issue_id}"}
 
-        # Repository exploration phase - now using memory-efficient summaries
+        # Prepare repository with base commit for analysis
+        if not self.data_loader.prepare_repository_for_analysis(issue):
+            return {"error": f"Failed to prepare repository for analysis with base commit"}
+
+        # Repository exploration phase using RAG
         logger.info(f"Starting repository exploration for issue {issue_id}")
         repo_exploration = self.repo_explorer.explore_repository(issue)
-
-        # Filter relevant files to only include those with score >= 50% of max score
-        if "relevant_files" in repo_exploration and len(repo_exploration["relevant_files"]) > 0:
-            # Get the original list of relevant files with their scores
-            all_relevant_files = repo_exploration.get("relevant_files", [])
-
-            # If we have file scores available, filter based on threshold
-            if "file_scores" in repo_exploration and repo_exploration["file_scores"]:
-                max_score = max(score for _, score in repo_exploration["file_scores"])
-                threshold = max_score * 0.5  # 50% of max score
-
-                # Filter files with scores >= threshold
-                filtered_files = [file for file, score in repo_exploration["file_scores"] if score >= threshold]
-
-                # Update relevant_files with the filtered list
-                repo_exploration["relevant_files"] = filtered_files
-
-                logger.info(
-                    f"Filtered relevant files from {len(all_relevant_files)} to {len(filtered_files)} (score threshold: {threshold:.2f})")
-                logger.info(f"The filtered files are: {filtered_files}")
-            else:
-                logger.info(f"No file scores available, using all {len(all_relevant_files)} relevant files")
-
-        # Store repo_explorer in repository_data to enable code retrieval
-        repo_exploration["repo_explorer"] = self.repo_explorer
-
-        logger.info(
-            f"Repository exploration completed with {len(repo_exploration.get('relevant_files', []))} relevant files")
 
         # Add repository exploration to issue
         issue["repository_exploration"] = repo_exploration
 
-        # Get issue description and codebase context
+        # Get issue description and test information
         issue_description = self.data_loader.get_issue_description(issue)
 
         # Get hints if available
         hints = self.data_loader.get_hints(issue)
 
-        # Append hints to the issue description if available
+        # Get test patch if available
+        test_patch = self.data_loader.get_test_patch(issue)
+
+        # Get FAIL_TO_PASS and PASS_TO_PASS tests
+        fail_to_pass = self.data_loader.get_fail_to_pass_tests(issue)
+        pass_to_pass = self.data_loader.get_pass_to_pass_tests(issue)
+
+        # Create a more comprehensive context using all available information
+        context = ""
+
+        # Add issue description
+        context += f"# ISSUE DESCRIPTION\n{issue_description}\n\n"
+
+        # Add hints if available
         if hints:
             issue_description_with_hints = f"{issue_description}\n\nADDITIONAL HINTS:\n{hints}"
             logger.info(f"Using hints for issue {issue_id}")
         else:
             issue_description_with_hints = issue_description
+
+        # Add test patch if available
+        if test_patch:
+            context += f"# TEST PATCH\n```python\n{test_patch}\n```\n\n"
+            logger.info(f"Using test patch for issue {issue_id}")
+
+        # Add test information
+        if fail_to_pass:
+            context += f"# TESTS THAT SHOULD BE FIXED\n"
+            for test in fail_to_pass:
+                context += f"* {test}\n"
+            context += "\n"
+
+        # Add repository exploration information using RAG
+        context += self._format_repository_info_with_rag(repo_exploration)
 
         # Get ground truth solution for evaluation
         ground_truth = self.data_loader.get_solution_patch(issue)
@@ -190,6 +200,8 @@ class IssueSolver:
 
                 # Create self-reflection component
                 reflector = SelfReflection(self.config, model)
+
+                reflector.current_issue = issue  # This passes the full issue object to the reflector
 
                 # Create the bug locator
                 bug_locator = BugLocator(model)
@@ -216,13 +228,25 @@ class IssueSolver:
 
                     # Generate patch using bug fixer with memory optimization
                     logger.info(f"Generating fix for iteration {iteration + 1}")
-                    patch = bug_fixer.generate_fix(bug_location, issue_description_with_hints, repo_exploration)
+                    raw_patch = bug_fixer.generate_fix(bug_location, issue_description_with_hints, repo_exploration)
+
+                    # Process with enhanced patch formatting
+                    repo_name = issue.get("repo", "")
+                    patch_result = process_llm_output_with_enhanced_formatting(
+                        raw_patch,
+                        repo_name,
+                        issue_id,
+                        self.config
+                    )
+
+                    # Get the formatted patch for validation
+                    formatted_patch = patch_result["formatted_patch"]
 
                     # Free memory after generating patch
                     self._run_memory_cleanup()
 
                     # Validate the patch
-                    validation_result = self.patch_validator.validate_patch(patch, issue_id)
+                    validation_result = self.patch_validator.validate_patch(formatted_patch, issue_id)
                     logger.info(f"Patch validation result: {validation_result.get('success', False)}")
 
                     # Calculate execution time
@@ -231,7 +255,7 @@ class IssueSolver:
                     # Evaluate the solution
                     evaluation = self.evaluator.evaluate_solution(
                         issue=issue,
-                        solution_patch=patch,
+                        solution_patch=formatted_patch,
                         ground_truth=ground_truth
                     )
 
@@ -245,14 +269,17 @@ class IssueSolver:
 
                         # Apply self-reflection to refine the patch
                         refined_data = reflector.refine_solution(
-                            patch,
+                            formatted_patch,
                             issue_description_with_hints,
                             reflection_context
                         )
 
                         # Update patch with refined version
-                        patch = refined_data.get("final_solution", patch)
+                        patch = refined_data.get("final_solution", formatted_patch)
                         reflections = refined_data.get("reflections", [])
+
+                        if not self.data_loader.prepare_repository_for_testing(issue):
+                            logger.warning(f"Failed to prepare environment for testing, using base commit state")
 
                         # Re-validate the refined patch
                         validation_result = self.patch_validator.validate_patch(patch, issue_id)
@@ -267,7 +294,7 @@ class IssueSolver:
                     model_solutions.append({
                         "iteration": iteration + 1,
                         "bug_location": bug_location,
-                        "patch": patch,
+                        "patch": formatted_patch,
                         "reflections": reflections,
                         "patch_validation": validation_result,
                         "execution_time": execution_time,
@@ -311,6 +338,9 @@ class IssueSolver:
             },
             "ground_truth_patch": ground_truth,
             "hints_available": hints is not None,
+            "test_patch_available": test_patch is not None,
+            "fail_to_pass_tests": fail_to_pass,
+            "pass_to_pass_tests": pass_to_pass,
             "solutions": solutions
         }
 
@@ -464,13 +494,13 @@ class IssueSolver:
                 })
 
         return results
-        
+
     def solve_issues_with_patch_reflection(self, issue_ids: List[str]) -> List[Dict[str, Any]]:
         """
         Solve multiple issues with enhanced patch reflection.
-        
+
         This method uses the dataset's hints_text and test_patch fields to improve
-        the quality of solutions through targeted self-reflection.
+        the quality of solutions through targeted self-reflection with patch validation.
 
         Args:
             issue_ids: List of issue IDs to solve.
@@ -483,9 +513,10 @@ class IssueSolver:
             try:
                 # Load the issue
                 issue = self.data_loader.load_issue(issue_id)
+                logger.info(f"Issue id: {issue}")
                 if not issue:
                     raise ValueError(f"Issue {issue_id} not found")
-                
+
                 # Ensure repository exists
                 if not self.repo_explorer.ensure_repository_exists(issue):
                     results.append({
@@ -493,40 +524,41 @@ class IssueSolver:
                         "error": f"Failed to download repository for issue {issue_id}"
                     })
                     continue
-                
+
                 # Repository exploration phase
                 logger.info(f"Starting repository exploration for issue {issue_id}")
                 repo_exploration = self.repo_explorer.explore_repository(issue)
-                logger.info(f"Repository exploration completed with {len(repo_exploration.get('relevant_files', []))} relevant files")
-                
+                logger.info(
+                    f"Repository exploration completed with {len(repo_exploration.get('relevant_files', []))} relevant files")
+
                 # Add repository exploration to issue
                 issue["repository_exploration"] = repo_exploration
-                
+
                 # Get issue description and codebase context
                 issue_description = self.data_loader.get_issue_description(issue)
                 codebase_context = self.data_loader.get_codebase_context(issue)
-                
+
                 # Get hints if available
                 hints = issue.get("hints_text", None)
                 test_patch = issue.get("test_patch", None)
-                
+
                 # Create enhanced context with repository information and test patch
                 repo_info_str = self._format_repository_info(repo_exploration)
                 enhanced_context = f"{codebase_context}\n\n{repo_info_str}"
-                
+
                 if test_patch:
                     enhanced_context += f"\n\nTEST PATCH:\n{test_patch}"
-                
+
                 # Append hints to the issue description if available
                 if hints:
                     issue_description_with_hints = f"{issue_description}\n\nADDITIONAL HINTS:\n{hints}"
                     logger.info(f"Using hints for issue {issue_id}")
                 else:
                     issue_description_with_hints = issue_description
-                
+
                 # Get ground truth solution for evaluation
                 ground_truth = self.data_loader.get_solution_patch(issue)
-                
+
                 # Solve the issue with each model
                 solutions = {}
                 for model_name in self.model_names:
@@ -534,122 +566,86 @@ class IssueSolver:
                         # Get the model
                         model = self._get_model(model_name)
                         logger.info(f"Solving issue {issue_id} with {model_name}")
-                        
+
                         # Create reasoning components
                         if self.reasoning_type == "chain_of_thought":
                             reasoner = ChainOfThought(self.config, model)
                         else:
                             reasoner = TreeOfThought(self.config, model)
-                        
-                        # Create self-reflection component
+
+                        # Create self-reflection component with patch validation
                         reflector = SelfReflection(self.config, model)
-                        
+
                         # Create the bug locator and bug fixer
                         bug_locator = BugLocator(model)
-                        bug_fixer = BugFixer(model)
-                        
+                        bug_fixer = BugFixer(model, self.config)  # Pass config for patch formatting
+
                         model_solutions = []
-                        
+
                         # Step 1: First locate the bug
                         logger.info(f"Locating bug for issue {issue_id} with {model_name}")
                         bug_location = bug_locator.locate_bug(issue_description_with_hints, repo_exploration)
                         logger.info(f"Bug located: {bug_location}")
-                        
+
                         # Initial solution generation
                         context_with_bug_location = f"{enhanced_context}\n\nBUG LOCATION:\n{json.dumps(bug_location, indent=2)}"
                         solution_data = reasoner.solve(issue_description_with_hints, context_with_bug_location)
-                        
+
                         # Extract the initial solution based on reasoning type
                         if self.reasoning_type == "chain_of_thought":
                             initial_solution = solution_data["solution"]
                         else:  # tree_of_thought
                             initial_solution = solution_data["implementation"]
-                        
+
                         # Generate initial patch
-                        initial_patch = bug_fixer.generate_fix(bug_location, issue_description_with_hints, repo_exploration)
-                        
+                        initial_patch = bug_fixer.generate_fix(bug_location, issue_description_with_hints,
+                                                               repo_exploration)
+
+                        if not self.data_loader.prepare_repository_for_testing(issue):
+                            logger.warning(f"Failed to prepare environment for testing, using base commit state")
+
                         # Validate the initial patch
                         initial_validation = self.patch_validator.validate_patch(initial_patch, issue_id)
-                        
+                        logger.info(f"Patch validation result: {initial_validation.get('success', False)}")
+
                         # Evaluate the initial solution
                         initial_evaluation = self.evaluator.evaluate_solution(
                             issue=issue,
                             solution_patch=initial_patch,
                             ground_truth=ground_truth
                         )
-                        
+
                         # Record initial patch quality
                         initial_patch_quality = initial_evaluation.get("patch_quality", 0)
-                        
-                        # Progressive patch reflection
-                        current_solution = initial_solution
-                        current_patch = initial_patch
-                        current_validation = initial_validation
-                        
-                        # Store all reflection iterations
-                        reflection_iterations = []
-                        
-                        # Perform multiple iterations of reflection
-                        for iteration in range(self.num_iterations):
-                            logger.info(f"Starting reflection iteration {iteration + 1}/{self.num_iterations} for {model_name}")
-                            
-                            # Time the reflection process
-                            start_time = time.time()
-                            
-                            # Add validation feedback to context for reflection
-                            validation_feedback = ""
-                            if not current_validation.get("success", False):
-                                validation_feedback = f"\n\nPATCH VALIDATION FEEDBACK:\n{current_validation.get('feedback', '')}"
-                            
-                            reflection_context = f"{context_with_bug_location}{validation_feedback}"
-                            
-                            # Apply self-reflection to refine the solution
-                            refined_data = reflector.refine_solution(
-                                current_solution,
-                                issue_description_with_hints,
-                                reflection_context
-                            )
-                            
-                            # Extract the refined solution
-                            refined_solution = refined_data["final_solution"]
-                            reflections = refined_data.get("reflections", [])
-                            
-                            # Generate new patch from the refined solution
-                            refined_patch = bug_fixer.generate_fix(bug_location, issue_description_with_hints, repo_exploration)
-                            
-                            # Validate the refined patch
-                            refined_validation = self.patch_validator.validate_patch(refined_patch, issue_id)
-                            
-                            # Calculate execution time
-                            execution_time = time.time() - start_time
-                            
-                            # Evaluate the refined solution
-                            refined_evaluation = self.evaluator.evaluate_solution(
-                                issue=issue,
-                                solution_patch=refined_patch,
-                                ground_truth=ground_truth
-                            )
-                            
-                            # Store this iteration
-                            reflection_iterations.append({
-                                "iteration": iteration + 1,
-                                "reflections": reflections,
-                                "solution": refined_solution,
-                                "patch": refined_patch,
-                                "validation": refined_validation,
-                                "evaluation": refined_evaluation,
-                                "execution_time": execution_time
-                            })
-                            
-                            # Update current solution for next iteration
-                            current_solution = refined_solution
-                            current_patch = refined_patch
-                            current_validation = refined_validation
-                        
-                        # Find the best solution from all iterations
-                        best_iteration = max(reflection_iterations, 
-                                            key=lambda x: x["evaluation"].get("overall_score", 0))
-                        
+
+                        # Apply self-reflection with patch validation for refinement
+                        logger.info(f"Starting reflection with patch validation for {model_name}")
+                        reflection_result = reflector.refine_solution(
+                            initial_solution,
+                            issue_description_with_hints,
+                            context_with_bug_location
+                        )
+
+                        # Extract the final solution and patch
+                        final_solution = reflection_result["final_solution"]
+                        final_patch = reflection_result.get("formatted_patch", "")
+                        if not final_patch:
+                            # Extract patch from the solution if not provided
+                            from ..utils.enhanced_patch_formatter import EnhancedPatchFormatter
+                            patch_formatter = EnhancedPatchFormatter(self.config)
+                            extracted_patch = self._extract_patch(final_solution)
+                            final_patch = patch_formatter.format_patch(extracted_patch, issue.get("repo", ""))
+
+                        # Validate the final patch
+                        final_validation = self.patch_validator.validate_patch(final_patch, issue_id)
+
+                        # Evaluate the final solution
+                        final_evaluation = self.evaluator.evaluate_solution(
+                            issue=issue,
+                            solution_patch=final_patch,
+                            ground_truth=ground_truth
+                        )
+
                         # Save the solution data with all reflection iterations
                         model_solutions.append({
                             "initial_solution": initial_solution,
@@ -657,23 +653,23 @@ class IssueSolver:
                             "initial_validation": initial_validation,
                             "initial_evaluation": initial_evaluation,
                             "initial_patch_quality": initial_patch_quality,
-                            "reflection_iterations": reflection_iterations,
-                            "best_iteration": best_iteration.get("iteration", 0),
-                            "final_solution": best_iteration.get("solution", ""),
-                            "patch": best_iteration.get("patch", ""),
-                            "validation": best_iteration.get("validation", {}),
-                            "evaluation": best_iteration.get("evaluation", {}),
+                            "reflection_result": reflection_result,
+                            "final_solution": final_solution,
+                            "final_patch": final_patch,
+                            "final_validation": final_validation,
+                            "final_evaluation": final_evaluation,
                             "bug_location": bug_location,
                             "used_hints": hints is not None,
-                            "used_test_patch": test_patch is not None
+                            "used_test_patch": test_patch is not None,
+                            "success": final_validation.get("success", False)
                         })
-                        
+
                         solutions[model_name] = model_solutions
-                        
+
                     except Exception as e:
                         logger.error(f"Error solving issue {issue_id} with model {model_name}: {str(e)}")
                         solutions[model_name] = [{"error": str(e)}]
-                
+
                 results.append({
                     "issue_id": issue_id,
                     "issue_description": issue_description,
@@ -683,13 +679,447 @@ class IssueSolver:
                     "test_patch_available": test_patch is not None,
                     "solutions": solutions
                 })
-                
+
             except Exception as e:
                 logger.error(f"Error solving issue {issue_id}: {str(e)}")
                 results.append({
                     "issue_id": issue_id,
                     "error": str(e)
                 })
-        
+
         return results
 
+    def _extract_patch(self, solution: str) -> str:
+        """Extract a Git patch from the solution text."""
+        # Look for a git diff format
+        diff_pattern = r'(diff --git.*?)(?:\Z|(?=^```|\n\n\n))'
+        diff_match = re.search(diff_pattern, solution, re.MULTILINE | re.DOTALL)
+
+        if diff_match:
+            return diff_match.group(1).strip()
+
+        # Look for content inside code blocks that might contain patches
+        code_block_pattern = r'```(?:diff|patch|git)?\n(.*?)```'
+        code_match = re.search(code_block_pattern, solution, re.MULTILINE | re.DOTALL)
+
+        if code_match:
+            content = code_match.group(1).strip()
+            if content.startswith('diff --git') or ('---' in content and '+++' in content):
+                return content
+
+        # No valid patch found
+        return ""
+
+    def _format_repository_info_with_rag(self, repo_exploration: Dict[str, Any]) -> str:
+        """
+        Format repository exploration results as a string for context using RAG data.
+
+        Args:
+            repo_exploration: Repository exploration results from RAG.
+
+        Returns:
+            Formatted string for model context.
+        """
+        if not repo_exploration or "error" in repo_exploration:
+            return "# Repository exploration failed"
+
+        repo_info = "# REPOSITORY STRUCTURE INFORMATION\n\n"
+
+        # Add relevant files
+        if "relevant_files" in repo_exploration:
+            relevant_files = repo_exploration.get("relevant_files", [])
+            repo_info += f"## Relevant Files ({len(relevant_files)})\n"
+
+            # Include scores if available
+            file_scores = repo_exploration.get("file_scores", [])
+            if file_scores:
+                # Format as table
+                repo_info += "| File | Relevance |\n| ---- | -------- |\n"
+                for file_path, score in file_scores[:10]:  # Limit to top 10
+                    repo_info += f"| {file_path} | {score:.2f} |\n"
+            else:
+                # Simple list
+                for file_path in relevant_files[:10]:
+                    repo_info += f"* {file_path}\n"
+            repo_info += "\n"
+
+        # Add test information
+        if "fail_to_pass_tests" in repo_exploration and repo_exploration["fail_to_pass_tests"]:
+            repo_info += "## Tests Needing Fixes\n"
+            for test in repo_exploration["fail_to_pass_tests"]:
+                repo_info += f"* {test}\n"
+            repo_info += "\n"
+
+        # Add key terms
+        if "key_terms" in repo_exploration and repo_exploration["key_terms"]:
+            repo_info += "## Key Terms\n* " + "\n* ".join(repo_exploration["key_terms"]) + "\n\n"
+
+        # Add identified functions
+        if "functions" in repo_exploration and repo_exploration["functions"]:
+            repo_info += "## Relevant Functions\n* " + "\n* ".join(repo_exploration["functions"]) + "\n\n"
+
+        # Add file contents summary with most relevant parts first
+        if "file_contents" in repo_exploration:
+            file_contents = repo_exploration.get("file_contents", {})
+            repo_info += "## Most Relevant Code Sections\n\n"
+
+            # Sort file_contents by relevance_score
+            sorted_files = sorted(
+                file_contents.items(),
+                key=lambda x: x[1].get("relevance_score", 0),
+                reverse=True
+            )
+
+            for file_path, content_info in sorted_files[:5]:  # Limit to top 5 files
+                if "error" in content_info:
+                    continue
+
+                repo_info += f"### {file_path}\n"
+
+                # Show functions in this file that are most relevant
+                functions = content_info.get("functions", {})
+                if functions:
+                    # Sort functions by likely relevance
+                    func_items = sorted(functions.items())
+                    for name, func_info in func_items[:3]:  # Top 3 functions
+                        start_line = func_info.get('start_line', '?')
+                        end_line = func_info.get('end_line', '?')
+                        repo_info += f"#### Function: {name} (Lines {start_line}-{end_line})\n"
+
+                        code = func_info.get('code', '')
+                        if code:
+                            repo_info += "```python\n" + code + "\n```\n\n"
+
+                # Show classes
+                classes = content_info.get("classes", [])
+                if classes:
+                    for cls in classes[:2]:  # Top 2 classes
+                        name = cls.get('name', 'Unknown')
+                        repo_info += f"#### Class: {name}\n"
+
+                        code = cls.get('code', '')
+                        if code:
+                            repo_info += "```python\n" + code + "\n```\n\n"
+
+        return repo_info
+
+
+def run_with_memory_efficient_llm_guidance(config, data_loader, issue_ids, model_name,
+                                           suspected_files, max_iterations, reasoning_type,
+                                           reflection_iterations):
+    """
+    Run issues with memory-efficient LLM Code Location Guidance Framework.
+    This version incorporates memory optimizations to reduce CUDA memory usage.
+
+    Args:
+        config: Configuration object.
+        data_loader: SWEBenchDataLoader instance.
+        issue_ids: List of issue IDs to process.
+        model_name: Name of the model to use.
+        suspected_files: List of suspected files.
+        max_iterations: Maximum number of guidance iterations.
+        reasoning_type: Type of reasoning to use.
+        reflection_iterations: Number of self-reflection iterations.
+
+    Returns:
+        List of results.
+    """
+
+    # Initialize the LLM guidance framework
+    guidance = LLMCodeLocationGuidance(config)
+
+    # Initialize repository explorer if needed
+    from ..utils.repository_explorer import RepositoryExplorer
+    repo_explorer = RepositoryExplorer(config)
+
+    # Initialize patch validator
+    patch_validator = PatchValidator(config)
+
+    # Initialize results list
+    results = []
+
+    # Process each issue
+    for issue_id in issue_ids:
+        logging.info(f"Processing issue {issue_id} with memory-efficient LLM guidance")
+
+        # Clear memory before processing new issue
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            gc.collect()
+
+        # Load the issue
+        issue = data_loader.load_issue(issue_id)
+        logger.info(f"Issue id: {issue}")
+        if not issue:
+            logging.error(f"Issue {issue_id} not found")
+            results.append({
+                "issue_id": issue_id,
+                "error": "Issue not found in dataset",
+                "solutions": {}
+            })
+            continue
+
+        # Get issue description
+        issue_description = data_loader.get_issue_description(issue)
+        logging.info(f"Loaded issue description with {len(issue_description)} characters")
+
+        # Get repository exploration data
+        try:
+            repo_exploration = repo_explorer.explore_repository(issue)
+        except Exception as e:
+            logging.warning(f"Error exploring repository: {e}")
+            repo_exploration = {
+                "relevant_files": [],
+                "file_scores": []
+            }
+
+        # Get additional metadata
+        hints = data_loader.get_hints(issue)
+        test_patch = data_loader.get_test_patch(issue)
+        fail_to_pass = data_loader.get_fail_to_pass_tests(issue)
+        pass_to_pass = data_loader.get_pass_to_pass_tests(issue)
+        ground_truth = data_loader.get_solution_patch(issue)
+
+        # Create the initial guidance prompt
+        initial_prompt = guidance.create_guidance_prompt(
+            issue,
+            suspected_files=suspected_files
+        )
+
+        # Get model(s) to use
+        if isinstance(model_name, list):
+            models_to_use = model_name
+        else:
+            models_to_use = [model_name]
+
+        # Process with each model
+        issue_results = {
+            "issue_id": issue_id,
+            "issue_description": issue_description,
+            "repository_exploration": repo_exploration,
+            "ground_truth_patch": ground_truth,
+            "hints_available": hints is not None,
+            "test_patch_available": test_patch is not None,
+            "fail_to_pass_tests": fail_to_pass,
+            "pass_to_pass_tests": pass_to_pass,
+            "solutions": {}
+        }
+
+        for model_id in models_to_use:
+            logging.info(f"Using model {model_id} for issue {issue_id}")
+
+            # Clear memory before loading model
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+                gc.collect()
+
+            # Initialize model
+            try:
+                model = create_model(model_id, config)
+            except Exception as e:
+                logging.error(f"Error initializing model {model_id}: {e}")
+                issue_results["solutions"][model_id] = [{
+                    "error": f"Model initialization failed: {str(e)}",
+                    "iteration": 1
+                }]
+                continue
+
+            # Track iterations
+            guided_iterations = []
+            current_prompt = initial_prompt
+
+            # Run guidance iterations
+            for iteration in range(max_iterations):
+                logging.info(f"Guidance iteration {iteration + 1}/{max_iterations}")
+
+                # Clear memory before generation
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                    gc.collect()
+
+                # Generate analysis with model
+                try:
+                    analysis_response = model.generate(current_prompt)
+                    logging.info(f"Generated response with {len(analysis_response)} characters")
+                except RuntimeError as e:
+                    if "CUDA out of memory" in str(e):
+                        logging.warning("CUDA OOM during guidance. Trying with reduced context...")
+                        # Truncate prompt and try again
+                        truncated_prompt = _truncate_prompt(current_prompt)
+                        if torch.cuda.is_available():
+                            torch.cuda.empty_cache()
+                            gc.collect()
+                        analysis_response = model.generate(truncated_prompt)
+                    else:
+                        logging.error(f"Error generating response: {e}")
+                        analysis_response = f"Error occurred: {str(e)}"
+
+                # Extract patch from response
+                patch = guidance.extract_patch_from_response(analysis_response)
+
+                # If no patch found, try to create a minimal one based on the model's explanation
+                if not patch or len(patch.strip()) < 10:
+                    logging.warning("No valid patch extracted, trying to create a minimal one")
+                    patch = guidance.create_minimal_patch_from_response(analysis_response, issue)
+
+                logging.info(f"Extracted/created patch with {len(patch)} characters")
+
+                # Clear memory before validation
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                    gc.collect()
+
+                # Validate patch
+                validation_result = patch_validator.validate_patch(patch, issue_id)
+                success = validation_result.get("success", False)
+                logging.info(f"Patch validation result: {success}")
+
+                # Record iteration
+                guided_iterations.append({
+                    "iteration": iteration + 1,
+                    "response": analysis_response,
+                    "patch": patch,
+                    "validation": validation_result
+                })
+
+                # If patch is valid or we've reached max iterations, proceed to solver
+                if success or iteration + 1 >= max_iterations:
+                    break
+
+                # Otherwise, refine prompt with feedback
+                feedback = f"The patch has issues: {validation_result.get('feedback', 'Unknown validation error')}"
+                current_prompt = guidance.apply_feedback(current_prompt, analysis_response, feedback)
+
+            # Apply self-reflection if any valid patch was found
+            final_solutions = []
+
+            # Always process all iterations, even if none have valid patches
+            # This ensures we at least have something in our results
+            for iteration in guided_iterations:
+                # Create a solution entry regardless of patch quality
+                solution = {
+                    "iteration": iteration["iteration"],
+                    "guidance_response": iteration["response"],
+                    "patch": iteration["patch"],
+                    "patch_validation": iteration["validation"],
+                    "guided_fix": True
+                }
+
+                # If we should apply self-reflection, do so
+                if reflection_iterations > 0 and len(iteration["patch"]) > 0:
+                    from ..reasoning.self_reflection import SelfReflection
+
+                    # Clear memory before reflection
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                        gc.collect()
+
+                    try:
+                        reflector = SelfReflection(config, model)
+
+                        # Set the current issue for proper issue ID extraction
+                        reflector.current_issue = issue
+
+                        # Ensure issue_description is a string
+                        issue_desc_str = issue_description if isinstance(issue_description, str) else str(
+                            issue_description)
+
+                        # Create context for reflection
+                        reflection_context = (
+                            f"Initial patch based on guided analysis:\n{iteration['patch']}\n\n"
+                            f"Validation feedback: {iteration['validation'].get('feedback', '')}"
+                        )
+
+                        # Apply self-reflection to refine the solution
+                        refined_data = reflector.refine_solution(
+                            iteration["patch"],
+                            issue_desc_str,
+                            reflection_context
+                        )
+
+                        # Update the solution with reflection results
+                        solution["reflections"] = refined_data.get("reflections", [])
+                        solution["final_solution"] = refined_data.get("final_solution", iteration["patch"])
+                    except Exception as e:
+                        logging.error(f"Error during reflection: {e}")
+                        solution["reflection_error"] = str(e)
+
+                final_solutions.append(solution)
+
+            # Always add solutions to results, even if empty
+            issue_results["solutions"][model_id] = final_solutions
+            logging.info(f"Added {len(final_solutions)} solutions for model {model_id}")
+
+            # Clean up model to free memory
+            del model
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+                gc.collect()
+
+        # Add issue results to overall results
+        results.append(issue_results)
+        logging.info(f"Added results for issue {issue_id}")
+
+    return results
+
+
+def _truncate_prompt(prompt: str, max_length: int = 8000) -> str:
+    """
+    Truncate a prompt to reduce memory usage.
+
+    Args:
+        prompt: The original prompt
+        max_length: Maximum length to keep
+
+    Returns:
+        Truncated prompt
+    """
+    if len(prompt) <= max_length:
+        return prompt
+
+    # Add a note about truncation
+    truncation_note = "\n[Note: The context was too long and has been truncated.]\n\n"
+
+    # Keep the beginning and end of the prompt
+    beginning_length = max_length // 2
+    ending_length = max_length - beginning_length - len(truncation_note)
+
+    return prompt[:beginning_length] + truncation_note + prompt[-ending_length:]
+
+
+def process_llm_output_with_enhanced_formatting(
+        patch: str,
+        repo_name: str,
+        issue_id: str,
+        config: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Process LLM-generated patch output with enhanced formatting.
+
+    Args:
+        patch: The raw patch string from the LLM
+        repo_name: Repository name
+        issue_id: Issue ID for validation
+        config: Configuration object
+
+    Returns:
+        Dictionary with processing results
+    """
+    # Initialize the patch formatting system
+    patch_system = PatchFormattingSystem(config)
+
+    # Format and validate the patch
+    result = patch_system.format_and_validate(patch, repo_name, issue_id)
+
+    if result["success"]:
+        logger.info(f"Successfully formatted and validated patch for issue {issue_id}")
+    else:
+        logger.warning(f"Patch validation failed for issue {issue_id}")
+        if "validation" in result and "feedback" in result["validation"]:
+            logger.warning(f"Validation feedback: {result['validation']['feedback']}")
+
+    # Create a summary of the patch for logging/reporting
+    summary = patch_system.summarize_patch(result["formatted_patch"])
+    logger.info(f"Patch summary:\n{summary}")
+
+    return result
