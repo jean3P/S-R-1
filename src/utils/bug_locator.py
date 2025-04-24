@@ -168,7 +168,7 @@ class BugLocator:
     def _retrieve_detailed_code(self, repository_data: Dict[str, Any], suspicious_components: List[Dict[str, str]]) -> \
     List[Dict[str, Any]]:
         """
-        Retrieve detailed code for suspicious components.
+        Retrieve minimal but sufficient code for suspicious components.
 
         Args:
             repository_data: Repository exploration results.
@@ -193,23 +193,57 @@ class BugLocator:
             file_path = component.get("file", "")
             component_name = component.get("component", "")
 
-            # Skip if file path or component name is missing
-            if not file_path or not component_name:
+            # Skip if file path is missing
+            if not file_path:
                 continue
 
-            # Retrieve full code for the component
-            code_info = repo_explorer.retrieve_full_code(
-                os.path.join(repo_path, file_path) if repo_path else file_path,
-                component_name
-            )
+            try:
+                # If we have a component name, retrieve just that component
+                if component_name:
+                    code_info = repo_explorer.retrieve_full_code(
+                        os.path.join(repo_path, file_path) if repo_path else file_path,
+                        component_name
+                    )
 
-            if "error" not in code_info:
-                detailed_code.append(code_info)
+                    if "error" not in code_info:
+                        detailed_code.append(code_info)
+                else:
+                    # For files without specific component, retrieve just the header/summary
+                    # This could be the first N lines or a file summary
+                    file_info = {
+                        "file_path": file_path,
+                        "type": "file_summary",
+                        "content": self._get_file_summary(repo_path, file_path)
+                    }
+                    detailed_code.append(file_info)
+
+            except Exception as e:
+                print(f"Error retrieving code for {file_path}: {e}")
 
             # Clear memory after each component
-            torch.cuda.empty_cache()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
         return detailed_code
+
+    def _get_file_summary(self, repo_path, file_path):
+        """Get a summary of a file instead of the full content."""
+        full_path = os.path.join(repo_path, file_path) if repo_path else file_path
+
+        try:
+            with open(full_path, 'r', encoding='utf-8', errors='ignore') as f:
+                # Read just the first 50 lines as a summary
+                lines = []
+                for i, line in enumerate(f):
+                    if i >= 50:
+                        break
+                    lines.append(line)
+
+                if len(lines) == 50:
+                    return ''.join(lines) + "\n... (file truncated) ..."
+                return ''.join(lines)
+        except Exception:
+            return "Unable to read file summary"
 
     def _analyze_focused_code(self, issue_description: str, detailed_code: List[Dict[str, Any]]) -> Dict[str, Any]:
         """

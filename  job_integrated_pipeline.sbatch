@@ -1,8 +1,8 @@
 #!/bin/bash
 ###############################################################################
-#  UBELIX – SWE‑Bench Chain‑of‑Thought Benchmark on 2 × NVIDIA H100
+#  UBELIX – SWE‑Bench Integrated Pipeline with Validation on 2 × NVIDIA H100
 ###############################################################################
-#SBATCH --job-name=swebench-cot-h100
+#SBATCH --job-name=swebench-integrated-h100
 #SBATCH --partition=gpu-invest          # investor pool (pre‑emptable)
 #SBATCH --qos=job_gpu_preemptable
 #SBATCH --gres=gpu:h100:2               # 2 GPUs → 32CPU, 180GB max
@@ -84,7 +84,7 @@ PY
 
 #–– Benchmark configs ––------------------------------------------------------
 MODELS=(deepseek-r1-distill)
-MAX=1                                  # Maximum number of issues to process
+MAX=5                                  # Maximum number of issues to process
 MEMORY_EFFICIENT=true                  # Use memory-efficient processing
 
 # Set additional arguments based on config
@@ -103,7 +103,6 @@ for MODEL in "${MODELS[@]}"; do
         --limit $MAX \
         --output "$OUTDIR" \
         --log-level "DEBUG" \
-        --max-iterations 3\
         --disable-quantization \
         --disable-flash-attention \
         "${ARGS[@]}"

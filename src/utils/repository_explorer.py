@@ -423,3 +423,167 @@ class RepositoryExplorer:
                 cleaned_parents.append(base_match.group(1))
 
         return cleaned_parents
+
+    def retrieve_full_code(self, file_path: str, component_name: str = None) -> Dict[str, Any]:
+        """
+        Retrieve code for a specific file or component within a file.
+        Optimized version that avoids loading the entire file when possible.
+
+        Args:
+            file_path: Path to the file.
+            component_name: Optional name of component (function/class) to retrieve.
+
+        Returns:
+            Dictionary with component information and code.
+        """
+        try:
+            # Convert Path to string if needed
+            if isinstance(file_path, Path):
+                file_path = str(file_path)
+
+            # Check if file exists
+            file_path_obj = Path(file_path)
+            if not file_path_obj.exists():
+                return {"error": f"File not found: {file_path}"}
+
+            # If component name is specified, try to extract only that component
+            if component_name:
+                # Use grep-like approach to find the component definition line
+                import subprocess
+                import io
+
+                try:
+                    # Find the start line of the component definition
+                    grep_cmd = ["grep", "-n", f"(def|class)\\s+{component_name}\\s*(\\(|:)", file_path]
+                    grep_result = subprocess.run(grep_cmd, capture_output=True, text=True)
+
+                    if grep_result.returncode == 0 and grep_result.stdout:
+                        # Extract line number from grep result
+                        line_match = re.match(r'(\d+):', grep_result.stdout.split('\n')[0])
+                        if line_match:
+                            start_line = int(line_match.group(1))
+
+                            # Read a chunk of the file starting from the found line
+                            # We'll read 100 lines as a reasonable default for the component
+                            with open(file_path_obj, 'r', encoding='utf-8', errors='ignore') as f:
+                                # Skip to the start line
+                                for _ in range(start_line - 1):
+                                    next(f, None)
+
+                                # Read the component content (up to 100 lines)
+                                component_lines = []
+                                line_count = 0
+                                base_indent = None
+
+                                for line in f:
+                                    line_count += 1
+                                    if line_count > 15:  # Safety limit
+                                        break
+
+                                    # Detect indentation of first line
+                                    if line_count == 1:
+                                        component_lines.append(line)
+                                        match = re.match(r'^(\s*)', line)
+                                        if match:
+                                            base_indent = match.group(1)
+                                        else:
+                                            base_indent = ''
+                                    else:
+                                        # Check if we've reached the end of the component
+                                        # This happens when indentation returns to base level or less
+                                        if base_indent is not None and len(line.strip()) > 0:
+                                            match = re.match(r'^(\s*)', line)
+                                            current_indent = match.group(1) if match else ''
+
+                                            if len(current_indent) <= len(base_indent) and line_count > 1:
+                                                break
+
+                                        component_lines.append(line)
+
+                                component_code = ''.join(component_lines)
+
+                                # Determine component type
+                                comp_type = "function" if "def " in component_lines[0] else "class"
+
+                                return {
+                                    "type": comp_type,
+                                    "name": component_name,
+                                    "file_path": str(file_path_obj),
+                                    "code": component_code,
+                                    "start_line": start_line,
+                                    "end_line": start_line + len(component_lines) - 1
+                                }
+                except subprocess.SubprocessError:
+                    # Fall back to reading the whole file if grep fails
+                    pass
+
+            # If component-specific extraction failed or wasn't requested,
+            # read the file but limit content size for token efficiency
+            with open(file_path_obj, 'r', encoding='utf-8', errors='ignore') as f:
+                # For large files, only read up to 10KB to save tokens
+                file_stat = os.stat(file_path_obj)
+                if file_stat.st_size > 10240 and not component_name:  # 10KB limit if no specific component
+                    content = f.read(10240)
+                    content += "\n... [file truncated due to size] ..."
+                else:
+                    content = f.read()
+
+            # If no component name specified or if we failed to extract it specifically
+            if not component_name:
+                return {
+                    "type": "file",
+                    "name": file_path_obj.name,
+                    "file_path": str(file_path_obj),
+                    "code": content,
+                    "start_line": 1,
+                    "end_line": content.count('\n') + 1,
+                    "truncated": file_stat.st_size > 10240
+                }
+
+            # If we get here, it means we have a component name but couldn't extract it efficiently
+            # Try regex-based extraction on the loaded content
+            func_pattern = r'(def\s+' + re.escape(component_name) + r'\s*\([^)]*\)(?:\s*->.*?)?:(?:\n(?:\s+.*\n)+))'
+            func_match = re.search(func_pattern, content)
+            if func_match:
+                func_code = func_match.group(1)
+                start_line = content[:func_match.start()].count('\n') + 1
+                end_line = start_line + func_code.count('\n')
+                return {
+                    "type": "function",
+                    "name": component_name,
+                    "file_path": str(file_path_obj),
+                    "code": func_code,
+                    "start_line": start_line,
+                    "end_line": end_line
+                }
+
+            # For class
+            class_pattern = r'(class\s+' + re.escape(component_name) + r'\s*(?:\([^)]*\))?:(?:\n(?:\s+.*\n)+))'
+            class_match = re.search(class_pattern, content)
+            if class_match:
+                class_code = class_match.group(1)
+                start_line = content[:class_match.start()].count('\n') + 1
+                end_line = start_line + class_code.count('\n')
+                return {
+                    "type": "class",
+                    "name": component_name,
+                    "file_path": str(file_path_obj),
+                    "code": class_code,
+                    "start_line": start_line,
+                    "end_line": end_line
+                }
+
+            # Component not found
+            return {
+                "error": f"Component {component_name} not found in {file_path}",
+                "type": "file",
+                "name": file_path_obj.name,
+                "file_path": str(file_path_obj),
+                "code_snippet": content[:5] + "...",  # Just return a snippet instead of full content
+                "start_line": 1,
+                "end_line": content.count('\n') + 1
+            }
+
+        except Exception as e:
+            logger.error(f"Error retrieving code from {file_path}: {e}")
+            return {"error": str(e)}
