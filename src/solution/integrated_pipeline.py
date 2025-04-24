@@ -1585,56 +1585,48 @@ class IntegratedBugFixingPipeline:
             "repo": issue.get("repo"),
             "issue_number": issue.get("issue_number") or issue.get("number"),
 
-            # Issue information
-            "issue_description": issue_description,
-            "ground_truth_patch": ground_truth,
-            "hints_available": hints is not None,
-            "test_patch_available": isinstance(test_patch, dict) or (
-                        isinstance(test_patch, str) and len(test_patch) > 0),
-            "fail_to_pass_tests": fail_to_pass,
-            "pass_to_pass_tests": pass_to_pass,
-
-            # Repository information
-            "repository_info": {
-                "relevant_files": repo_data.get("relevant_files", []),
-                "repo_path": repo_data.get("repo_path", ""),
-                "file_scores": repo_data.get("file_scores", [])
+            # Summary information
+            "summary": {
+                "total_iterations": result.get("total_iterations", 1),
+                "success": result.get("success", False),
+                "early_stopped": result.get("early_stopped", False),
+                "best_solution_iteration": result.get("best_solution", {}).get("iteration", 0) if result.get(
+                    "best_solution") else 0,
+                "processing_time": processing_time,
+                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
             },
 
-            # RAG results
-            "rag_results": {
-                "key_terms": repo_data.get("key_terms", []),
-                "implementation_files": test_patch.get("implementation_files", []) if isinstance(test_patch,
-                                                                                                 dict) else [],
-                "test_functions": test_patch.get("test_functions", []) if isinstance(test_patch, dict) else [],
-                "retrieval_time": repo_data.get("retrieval_time", 0)
-            },
-
-            # Pipeline phases
-            "phases": result.get("phases", []),
-
-            # Solution information
-            "solution": result.get("solution"),
-            "success": result.get("success", False),
+            # Depth scores in one place
             "depth_scores": result.get("depth_scores", {}),
 
-            # Error handling
-            "error": result.get("error"),
-            "early_stopped_at": result.get("early_stopped_at"),
+            # Issue information
+            "issue_info": {
+                "description": issue_description[:500] + "..." if len(issue_description) > 500 else issue_description,
+                "ground_truth_patch_available": bool(ground_truth),
+                "hints_available": hints is not None,
+                "test_patch_available": isinstance(test_patch, dict) or (
+                            isinstance(test_patch, str) and len(test_patch) > 0),
+                "fail_to_pass_tests": fail_to_pass,
+                "pass_to_pass_tests": pass_to_pass,
+            },
 
-            # Performance metrics
-            "processing_time": processing_time,
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+            # Repository information (simplified)
+            "repository_info": {
+                "relevant_files": repo_data.get("relevant_files", []),
+                "implementation_files": test_patch.get("implementation_files", []) if isinstance(test_patch,
+                                                                                                 dict) else [],
+            },
+
+            # Well-structured iterations
+            "iterations": self._organize_iterations(result.get("all_iterations", [])),
+
+            # Final solution
+            "final_solution": self._extract_final_solution(result)
         }
 
-        # If focused code is available, include it
-        if hasattr(self, 'focused_code_data'):
-            complete_result["focused_code_data"] = self.focused_code_data
-
-        # Add any additional fields from the original result
-        for key, value in result.items():
-            if key not in complete_result:
-                complete_result[key] = value
+        # Add error if present
+        if result.get("error"):
+            complete_result["error"] = result.get("error")
 
         return complete_result
 
@@ -2056,3 +2048,106 @@ class IntegratedBugFixingPipeline:
         except Exception as e:
             logger.error(f"Error generating refined patch: {e}")
             return None
+
+    def _organize_iterations(self, iterations):
+        """
+        Organize iterations into a cleaner structure.
+
+        Args:
+            iterations: List of iteration results
+
+        Returns:
+            Reorganized iterations list
+        """
+        organized = []
+
+        for iteration in iterations:
+            # Create a clean iteration structure
+            iter_data = {
+                "iteration": iteration.get("iteration", 0),
+                "phases": {},
+                "solution": {
+                    "success": iteration.get("success", False),
+                    "depth": iteration.get("depth_scores", {}).get("combined",
+                                                                   0.0) if "depth_scores" in iteration else 0.0
+                }
+            }
+
+            # Organize phases
+            phases = iteration.get("phases", [])
+            for phase in phases:
+                phase_name = phase.get("name")
+                if phase_name:
+                    iter_data["phases"][phase_name] = {
+                        "depth": phase.get("depth", 0.0),
+                        "early_stopped": phase.get("early_stopped", False)
+                    }
+
+                    # Add phase-specific data
+                    if phase_name == "bug_detection":
+                        iter_data["phases"][phase_name]["bug_location"] = phase.get("bug_location", {})
+
+                    elif phase_name == "tot_exploration":
+                        # Simplify branches to only include key information
+                        iter_data["phases"][phase_name]["branches"] = [
+                            {
+                                "number": i + 1,
+                                "confidence": b.get("confidence", 0.0),
+                                "content_summary": b.get("content", "")[:200] + "..." if b.get("content") and len(
+                                    b.get("content")) > 200 else b.get("content", "")
+                            } for i, b in enumerate(phase.get("branches", []))
+                        ]
+
+                    elif phase_name == "cot_solution":
+                        # Extract the last solution iteration
+                        solution_iters = phase.get("iterations", [])
+                        if solution_iters:
+                            last_sol = solution_iters[-1]
+                            iter_data["phases"][phase_name]["validation_success"] = last_sol.get("validation", {}).get(
+                                "success", False)
+                            if last_sol.get("patch"):
+                                iter_data["phases"][phase_name]["patch_size"] = len(last_sol.get("patch", ""))
+
+            # Add solution information
+            if "solution" in iteration:
+                sol = iteration.get("solution", {})
+                if isinstance(sol, dict):
+                    iter_data["solution"]["patch"] = sol.get("patch", "")
+                    iter_data["solution"]["validation"] = sol.get("validation", {})
+                    iter_data["solution"]["success"] = sol.get("validation", {}).get("success", False)
+
+            organized.append(iter_data)
+
+        return organized
+
+    def _extract_final_solution(self, result):
+        """
+        Extract the final solution details.
+
+        Args:
+            result: Full result dictionary
+
+        Returns:
+            Final solution information
+        """
+        if not result.get("solution"):
+            return {
+                "patch": "",
+                "success": False
+            }
+
+        solution = result.get("solution", {})
+        if isinstance(solution, dict):
+            return {
+                "patch": solution.get("patch", ""),
+                "validation": solution.get("validation", {}),
+                "success": solution.get("validation", {}).get("success", False),
+                "root_cause": solution.get("root_cause", "")[:500] + "..." if solution.get("root_cause") and len(
+                    solution.get("root_cause")) > 500 else solution.get("root_cause", ""),
+                "bug_location": solution.get("bug_location", {})
+            }
+
+        return {
+            "patch": "",
+            "success": False
+        }

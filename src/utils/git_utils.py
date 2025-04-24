@@ -1,9 +1,8 @@
 # utils/git_utils.py
-import os
+
 import subprocess
 import logging
-from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List
 
 logger = logging.getLogger(__name__)
 

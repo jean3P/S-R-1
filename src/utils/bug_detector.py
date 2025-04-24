@@ -1,9 +1,9 @@
-
 import re
 import os
 from pathlib import Path
 from ..data.data_loader import SWEBenchDataLoader
 from ..utils.repository_explorer import RepositoryExplorer
+
 
 class BugDetector:
     """

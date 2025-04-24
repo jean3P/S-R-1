@@ -241,9 +241,9 @@ def run_pipeline(args):
                     logging.info(f"Updated best solution with depth {current_depth}")
 
                 # Save interim result for this iteration
-                interim_result_file = results_dir / f"interim_{issue_id}_iter{current_iteration + 1}.json"
-                FileUtils.write_json(current_result, interim_result_file)
-                logging.info(f"Saved interim result for iteration {current_iteration + 1} to {interim_result_file}")
+                # interim_result_file = results_dir / f"interim_{issue_id}_iter{current_iteration + 1}.json"
+                # FileUtils.write_json(current_result, interim_result_file)
+                # logging.info(f"Saved interim result for iteration {current_iteration + 1} to {interim_result_file}")
 
                 # Increment counter
                 current_iteration += 1
@@ -277,10 +277,24 @@ def run_pipeline(args):
                 "processing_time": time.time() - start_time
             })
 
-    # Save combined results
-    results_file = results_dir / "results.json"
-    FileUtils.write_json(results, results_file)
-    logging.info(f"Saved combined results to {results_file}")
+    restructured_results = []
+    for result in results:
+        # Skip results with errors
+        if "error" in result and not any(k for k in result.keys() if k != "error" and k != "issue_id"):
+            restructured_results.append(result)
+            continue
+
+        # Otherwise use the new structure if it exists
+        if "summary" in result:
+            restructured_results.append(result)
+        else:
+            # Legacy results - keep as is
+            restructured_results.append(result)
+
+    # Save restructured combined results
+    restructured_file = results_dir / "results_structured.json"
+    FileUtils.write_json(restructured_results, restructured_file)
+    logging.info(f"Saved restructured combined results to {restructured_file}")
 
     # Generate summary
     generate_summary(results, results_dir)
@@ -289,14 +303,14 @@ def run_pipeline(args):
 
 
 def generate_summary(results, results_dir):
-    """Generate a summary of the results."""
+    """Generate a summary of the results with fixed success detection."""
     summary = {
         "total_issues": len(results),
         "successful_issues": 0,
         "average_depth": 0.0,
         "average_time": 0.0,
         "phase_statistics": {
-            "rag_bug_localization": {
+            "bug_detection": {
                 "count": 0,
                 "average_depth": 0.0,
                 "valid_solutions": 0
@@ -319,9 +333,18 @@ def generate_summary(results, results_dir):
     total_time = 0.0
 
     for result in results:
-        # Check for success
+        # Check for success - FIXED: Check final_solution or all_iterations for any success
         if result.get("success", False):
             summary["successful_issues"] += 1
+        elif result.get("final_solution", {}).get("success", False):
+            summary["successful_issues"] += 1
+        else:
+            # Check if any iteration had success
+            iterations = result.get("all_iterations", [])
+            for iteration in iterations:
+                if iteration.get("final_solution", {}).get("success", False):
+                    summary["successful_issues"] += 1
+                    break
 
         # Add depth
         depth = result.get("depth_scores", {}).get("combined", 0.0)
@@ -333,7 +356,7 @@ def generate_summary(results, results_dir):
         if proc_time > 0:
             total_time += proc_time
 
-        # Process phase statistics
+        # Process phase statistics - FIXED: Check result structure
         phases = result.get("phases", [])
         for phase in phases:
             phase_name = phase.get("name")
@@ -344,6 +367,20 @@ def generate_summary(results, results_dir):
 
                 if phase.get("early_stopped", False):
                     stats["valid_solutions"] += 1
+
+        # Also check iterations for phase data if top-level phases is empty
+        if not phases and "all_iterations" in result:
+            for iteration in result.get("all_iterations", []):
+                iter_phases = iteration.get("phases", [])
+                for phase in iter_phases:
+                    phase_name = phase.get("name")
+                    if phase_name in summary["phase_statistics"]:
+                        stats = summary["phase_statistics"][phase_name]
+                        stats["count"] += 1
+                        stats["average_depth"] += phase.get("depth", 0.0)
+
+                        if phase.get("early_stopped", False):
+                            stats["valid_solutions"] += 1
 
     # Calculate averages
     if summary["total_issues"] > 0:

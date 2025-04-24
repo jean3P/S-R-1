@@ -5,7 +5,7 @@ import os
 import logging
 import difflib
 from pathlib import Path
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Optional, List, Tuple
 
 logger = logging.getLogger(__name__)
 
