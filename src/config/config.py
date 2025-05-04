@@ -1,4 +1,3 @@
-# src/config/config.py
 import os
 import yaml
 from pathlib import Path
@@ -9,30 +8,45 @@ class Config:
         self.base_dir = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
         # Default configuration
-        self.defaults = {"data": {
-            "repositories": str(self.base_dir.parent / "data" / "repositories"),
-            "swe_bench_path": str(self.base_dir.parent / "data" / "swe-bench-verified"),
-            "cache_dir": str(self.base_dir.parent / "data" / "cache"),
-            "max_context_length": 100000,
-        }, "models": {
-            "device": "cuda" if os.environ.get("CUDA_VISIBLE_DEVICES") else "cpu",
-            "precision": "fp16",
-            "max_new_tokens": 3048,
-            "temperature": 0.2,
-            "top_p": 0.95,
-            "repo_cache_dir": str(self.base_dir / "models" / "cache"),
-        }, "reasoning": {
-            "cot_steps": 5,
-            "tot_breadth": 3,
-            "tot_depth": 3,
-            "reflection_iterations": 3,
-        }, "logging": {
-            "log_dir": str(self.base_dir / "logs"),
-            "log_level": "INFO",
-        }, "evaluation": {
-            "metrics": ["success_rate", "code_quality", "execution_time", "patch_quality"],
-            "results_dir": str(self.base_dir / "results"),
-        }, "base_dir": str(self.base_dir)}
+        self.defaults = {
+            "data": {
+                "repositories": str(self.base_dir.parent / "data" / "repositories"),
+                "astropy_dataset_path": str(self.base_dir.parent / "data"),
+                "cache_dir": str(self.base_dir.parent / "data" / "cache"),
+                "max_context_length": 100000,
+                "file_path": str(self.base_dir.parent / "astropy_implementation_bugs_dataset.csv")
+            },
+            "models": {
+                "device": "cuda" if os.environ.get("CUDA_VISIBLE_DEVICES") else "cpu",
+                "precision": "fp16",
+                "max_new_tokens": 3048,
+                "temperature": 0.2,
+                "top_p": 0.95,
+                "repo_cache_dir": str(self.base_dir / "models" / "cache"),
+            },
+            "reasoning": {
+                "cot_steps": 5,
+                "tot_breadth": 3,
+                "tot_depth": 3,
+                "reflection_iterations": 3,
+            },
+            "logging": {
+                "log_dir": str(self.base_dir / "logs"),
+                "log_level": "INFO",
+            },
+            "evaluation": {
+                "metrics": ["success_rate", "code_quality", "execution_time", "patch_quality"],
+                "results_dir": str(self.base_dir / "results"),
+            },
+            "bug_detector": {
+                "output_dir": str(self.base_dir / "results" / "enhanced_bug_detector"),
+                "bug_locations_file": "bug_locations.json",
+                "max_test_runs": 3,
+                "test_timeout": 300
+            },
+            "memory_efficient": True,
+            "base_dir": str(self.base_dir)
+        }
 
         # Load configuration from file if provided
         if config_path:
@@ -59,12 +73,12 @@ class Config:
             self.base_dir / "configs" / "models" / "model_configs.yaml",
             Path("configs/models/model_configs.yaml")
         ]
-        
+
         for path in possible_paths:
             if path.exists():
                 with open(path, 'r') as f:
                     return yaml.safe_load(f)
-                
+
         # If no config file found, log a warning and return empty dict
         print("Warning: No model configuration file found. Using default configurations.")
         return {}
@@ -80,14 +94,14 @@ class Config:
 
     def __setitem__(self, key, value):
         self.defaults[key] = value
-        
+
     def get(self, key, default=None):
         """Get a value from the configuration with a default fallback.
-        
+
         Args:
             key: The configuration key to look up.
             default: The default value to return if the key is not found.
-            
+
         Returns:
             The configuration value or the default.
         """

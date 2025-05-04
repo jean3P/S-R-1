@@ -14,7 +14,6 @@
 
 #–– Software stack ––----------------------------------------------------------
 module purge
-module unload Python || true           # avoid default Python module
 
 source .venv/bin/activate              # Python3.9 venv with +cu12 wheels
 
@@ -64,13 +63,13 @@ mkdir -p "$RESULTS"
 exec > >(tee -a "$LOGFILE") 2>&1
 
 #–– Dataset ––----------------------------------------------------------------
-DATASET=data/datasets/swe_bench_verified.json
-if [[ ! -f $DATASET ]]; then
-    echo "[+] Downloading SWE‑bench (lite)…"
-    pip install -q requests tqdm pyyaml
-    python -m src.scripts.download_swe_bench --output "$DATASET" --lite
-fi
-ln -sf "$(realpath $DATASET)" src/data/swe-bench-verified/swe_bench_verified.json
+#DATASET=data/datasets/swe_bench_verified.json
+#if [[ ! -f $DATASET ]]; then
+#    echo "[+] Downloading SWE‑bench (lite)…"
+#    pip install -q requests tqdm pyyaml
+#    python -m src.scripts.download_swe_bench --output "$DATASET" --lite
+#fi
+#ln -sf "$(realpath $DATASET)" src/data/swe-bench-verified/swe_bench_verified.json
 
 #–– Extra deps for bug detector ––-------------------------------------------
 pip install -q sentence-transformers scikit-learn seaborn matplotlib pandas numpy networkx
@@ -84,9 +83,9 @@ PY
 
 #–– Test configuration ––-----------------------------------------------------
 # Define issues to test
-ISSUES="astropy__astropy-12907"
+#ISSUES="pallets__flask-5014"
 # Max issues to process if not using specific issues
-MAX=5
+#MAX=5
 # Use memory-efficient processing
 MEMORY_EFFICIENT=true
 # Log level
@@ -105,22 +104,22 @@ $VISUALIZE && ARGS+=(--visualize)
 echo -e "\n=== Testing Bug Detector Arguments Parsing ==="
 
 # Test with default arguments
-echo "Testing with default arguments:"
-python -m src.scripts.run_context_bug_detector --limit 1
+#echo "Testing with default arguments:"
+#python -m src.scripts.run_context_bug_detector --limit 1
 
 # Test with specific issues
 echo -e "\nTesting with specific issues:"
-python -m src.scripts.run_context_bug_detector --issues "$ISSUES" --limit 1
+python -m src.scripts.run_context_bug_detector --limit 5 --include-pdg --include-dfg --use-attention
 
 # Test with all arguments
-echo -e "\nTesting with all arguments:"
-python -m src.scripts.run_context_bug_detector \
-    --config configs/experiments/bug_detector.yaml \
-    --issues "$ISSUES" \
-    --limit $MAX \
-    --output "$RESULTS" \
-    --log-level "$LOG_LEVEL" \
-    "${ARGS[@]}"
+#echo -e "\nTesting with all arguments:"
+#python -m src.scripts.run_context_bug_detector \
+#    --config configs/experiments/bug_detector.yaml \
+#    --issues "$ISSUES" \
+#    --limit $MAX \
+#    --output "$RESULTS" \
+#    --log-level "$LOG_LEVEL" \
+#    "${ARGS[@]}"
 
 #–– Run full bug detector ––-------------------------------------------------
 #echo -e "\n=== Running Full Bug Detector Test ==="

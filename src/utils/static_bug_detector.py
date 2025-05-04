@@ -18,6 +18,9 @@ from ..data.data_loader import SWEBenchDataLoader
 logger = logging.getLogger(__name__)
 
 
+TOP_N = 10
+
+
 class StaticAnalysisBugDetector:
     """
     Detects bugs in code using static analysis.
@@ -335,8 +338,8 @@ class StaticAnalysisBugDetector:
                 end_line += 1
 
             # Limit function size to 30 lines
-            if end_line - start_line > 30:
-                end_line = start_line + 30
+            if end_line - start_line > 100:
+                end_line = start_line + 100
 
             # Score function relevance
             score = 0
@@ -573,7 +576,7 @@ class StaticAnalysisBugDetector:
             logger.info(f"Found {len(functions)} potential functions in {file_path}")
 
             if functions:
-                for function in functions[:2]:  # Top 2 functions only
+                for function in functions[:TOP_N]:  # Top 2 functions only
                     confidence = 0.6  # Higher confidence for implementation files
                     confidence += min(0.2, function.get("score", 0) * 0.1)
 

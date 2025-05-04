@@ -1,5 +1,7 @@
 # src/utils/patch_validator.py
 
+# src/utils/patch_validator.py
+
 import os
 import re
 import logging
@@ -8,7 +10,7 @@ import subprocess
 from pathlib import Path
 from typing import Dict, Any, Optional
 
-from ..data.data_loader import SWEBenchDataLoader
+from ..data.astropy_synthetic_dataloader import AstropySyntheticDataLoader
 from ..utils.enhanced_patch_formatter import EnhancedPatchFormatter
 
 logger = logging.getLogger(__name__)
@@ -41,7 +43,7 @@ class PatchValidator:
             Dictionary with validation results.
         """
         logger.info(f"Validating patch for issue {issue_id}")
-        data_loader = SWEBenchDataLoader(self.config)
+        data_loader = AstropySyntheticDataLoader(self.config)
         issue = data_loader.load_issue(issue_id)
         logger.info(f"Issue: {issue}")
 
@@ -51,10 +53,11 @@ class PatchValidator:
                 "feedback": f"Could not load issue data for {issue_id}"
             }
 
-        if not data_loader.prepare_repository_for_testing(issue):
+        # For Astropy synthetic dataset, check out the branch
+        if not data_loader.checkout_issue_branch(issue):
             return {
                 "success": False,
-                "feedback": "Failed to prepare repository environment for testing"
+                "feedback": "Failed to checkout branch for testing"
             }
 
         if not patch or patch.strip() == "":
@@ -112,6 +115,16 @@ class PatchValidator:
 
     def _extract_repo_from_issue_id(self, issue_id: str) -> Optional[str]:
         """Extract repository name from issue ID."""
+        # For Astropy synthetic dataset, the issue_id is the branch name
+        # We need to load the issue to get the repo path
+        data_loader = AstropySyntheticDataLoader(self.config)
+        issue = data_loader.load_issue(issue_id)
+
+        if issue and "Path_repo" in issue:
+            # Return the repository path
+            return issue["Path_repo"]
+
+        # Fallback to the original approach if issue not found
         # Assuming issue_id format: repo__issue_number
         # e.g. "astropy__astropy-12907" -> "astropy"
         match = re.match(r'^([^_]+)__', issue_id)
@@ -129,7 +142,7 @@ class PatchValidator:
             # Might be owner/repo format
             return issue_id.split('/')[0]
 
-        return None
+        return "astropy"  # Default to astropy for the synthetic dataset
 
     def _save_patch_to_temp_file(self, patch: str) -> Optional[str]:
         """Save patch content to a temporary file."""
@@ -144,10 +157,16 @@ class PatchValidator:
     def _check_patch_application(self, patch_file: str, repo_path: Path) -> Dict[str, Any]:
         """Check if a patch can be applied to the repository."""
         try:
+            # For Astropy synthetic dataset, make sure repo_path is a string
+            if isinstance(repo_path, Path):
+                repo_path_str = str(repo_path)
+            else:
+                repo_path_str = repo_path
+
             # Run git apply with --check to see if the patch would apply cleanly
             process = subprocess.run(
                 ["git", "apply", "--check", "--verbose", patch_file],
-                cwd=repo_path,
+                cwd=repo_path_str,
                 capture_output=True,
                 text=True
             )
@@ -183,10 +202,16 @@ class PatchValidator:
     def _try_relaxed_application(self, patch_file: str, repo_path: Path) -> Dict[str, Any]:
         """Try applying the patch with more relaxed options."""
         try:
+            # For Astropy synthetic dataset, make sure repo_path is a string
+            if isinstance(repo_path, Path):
+                repo_path_str = str(repo_path)
+            else:
+                repo_path_str = repo_path
+
             # Run git apply with --ignore-whitespace and --reject options
             process = subprocess.run(
                 ["git", "apply", "--check", "--ignore-whitespace", "--ignore-space-change", patch_file],
-                cwd=repo_path,
+                cwd=repo_path_str,
                 capture_output=True,
                 text=True
             )
@@ -203,7 +228,7 @@ class PatchValidator:
             # But we can report if it might work with fuzzy
             fuzzy_process = subprocess.run(
                 ["git", "apply", "--check", "--reject", "--ignore-whitespace", "--fuzz=3", patch_file],
-                cwd=repo_path,
+                cwd=repo_path_str,
                 capture_output=True,
                 text=True
             )

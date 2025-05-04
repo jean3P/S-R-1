@@ -100,21 +100,8 @@ class SWEBenchDataLoader:
         issues = self.load_dataset()
         for issue in issues:
             # Check both instance_id and id fields to be compatible with different dataset formats
-            if issue.get("instance_id") == issue_id or issue.get("id") == issue_id:
+            if issue.get("instance_id") == issue_id:
                 return issue
-
-        # If not found, try more advanced techniques
-        issue_id_parts = issue_id.split("__")
-        if len(issue_id_parts) > 1:
-            # Try to match partial issue ids
-            repo_name = issue_id_parts[0]
-            issue_number = issue_id_parts[1]
-
-            for issue in issues:
-                if (issue.get("repo", "") == repo_name and
-                        (str(issue.get("issue_number", "")) == issue_number or
-                         str(issue.get("number", "")) == issue_number)):
-                    return issue
 
         logger.warning(f"Issue {issue_id} not found in dataset")
         return None
@@ -133,32 +120,6 @@ class SWEBenchDataLoader:
         if "problem_statement" in issue and issue["problem_statement"]:
             logger.debug(f"Using problem_statement field ({len(issue['problem_statement'])} chars)")
             return issue["problem_statement"]
-
-        # Check for issue_description field that might be present in some formats
-        if "issue_description" in issue and issue["issue_description"]:
-            logger.debug(f"Using issue_description field ({len(issue['issue_description'])} chars)")
-            return issue["issue_description"]
-
-        # Fall back to traditional fields if problem_statement not found
-        description = issue.get("description", "")
-        title = issue.get("title", "")
-
-        if title or description:
-            combined = f"Title: {title}\n\nDescription:\n{description}"
-            logger.debug(f"Using title and description fields ({len(combined)} chars)")
-            return combined
-
-        # Try to extract from raw issue
-        raw_issue = issue.get("raw_issue", "")
-        if raw_issue:
-            logger.debug(f"Using raw_issue field ({len(raw_issue)} chars)")
-            return f"Raw Issue:\n{raw_issue}"
-
-        # Last resort: Look for any text fields
-        for key in ["body", "prompt", "details", "test_description"]:
-            if key in issue and issue[key]:
-                logger.debug(f"Using {key} field ({len(issue[key])} chars)")
-                return f"{key}:\n{issue[key]}"
 
         # Absolute fallback: use ID information to create a minimal description
         repo = issue.get("repo", "unknown")
@@ -182,51 +143,6 @@ class SWEBenchDataLoader:
 
         return fallback
 
-    def get_codebase_context(self, issue: Dict[str, Any]) -> str:
-        """
-        Get context from the codebase related to an issue.
-
-        Args:
-            issue: Issue dictionary.
-
-        Returns:
-            String containing the codebase context.
-        """
-        # Extract repo and file paths
-        repo = issue.get("repo", "")
-        repo_path = self.data_path / "repos" / repo
-
-        # Get file paths from the issue
-        file_paths = []
-        if "files_modified" in issue:
-            file_paths.extend(issue["files_modified"])
-        if "files_created" in issue:
-            file_paths.extend(issue["files_created"])
-        if "files_deleted" in issue:
-            file_paths.extend(issue["files_deleted"])
-
-        # Read file contents
-        context = ""
-        for file_path in file_paths:
-            try:
-                full_path = repo_path / file_path
-                if full_path.exists():
-                    with open(full_path, 'r', encoding='utf-8', errors='ignore') as f:
-                        content = f.read()
-                    context += f"File: {file_path}\n\n{content}\n\n"
-                else:
-                    logger.warning(f"File not found: {full_path}")
-                    context += f"File: {file_path} (not found)\n\n"
-            except Exception as e:
-                logger.error(f"Error reading file {file_path}: {e}")
-                context += f"File: {file_path} (error: {e})\n\n"
-
-        # Truncate if too long
-        if len(context) > self.max_context_length:
-            context = context[:self.max_context_length] + "...[TRUNCATED]"
-
-        return context
-
     def get_solution_patch(self, issue: Dict[str, Any]) -> str:
         """
         Get the solution patch for an issue.
@@ -240,14 +156,6 @@ class SWEBenchDataLoader:
         # First try to get the patch from the standard field
         if "patch" in issue and issue["patch"]:
             return issue["patch"]
-
-        # Try alternative fields if patch is not present
-        if "solution" in issue and issue["solution"]:
-            return issue["solution"]
-
-        # For some dataset formats, it might be in gold_patch
-        if "gold_patch" in issue and issue["gold_patch"]:
-            return issue["gold_patch"]
 
         logger.warning(f"No solution patch found for issue {issue.get('issue_id', 'unknown')}")
         return ""
@@ -265,12 +173,6 @@ class SWEBenchDataLoader:
         # Handle SWE-bench dataset format which might include hints_text
         if "hints_text" in issue:
             return issue.get("hints_text", "")
-
-        # Handle hints that might be in comments field
-        if "comments" in issue:
-            return "Comments from the issue:\n" + issue.get("comments", "")
-
-        return None
 
     def get_test_patch(self, issue: Dict[str, Any]) -> Dict[str, Any]:
         """

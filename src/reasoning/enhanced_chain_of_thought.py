@@ -285,6 +285,12 @@ class EnhancedChainOfThought:
             {root_cause}
             """
 
+        # Format line information for better patch generation
+        line_start = bug_location.get("line_start")
+        line_end = bug_location.get("line_end")
+        specific_bug_lines = bug_location.get("bug_lines", [])
+        specific_bug_lines_str = ", ".join(map(str, specific_bug_lines)) if specific_bug_lines else "Unknown"
+
         prompt = f"""
         You are an expert software engineer tasked with fixing a precisely located bug.
 
@@ -294,7 +300,8 @@ class EnhancedChainOfThought:
         BUG LOCATION:
         File: {bug_location.get('file', 'Unknown')}
         Function: {bug_location.get('function', 'Unknown')}
-        Line Numbers: {bug_location.get('line_numbers', 'Unknown')}
+        Line Range: {line_start} to {line_end}
+        Specific Bug Lines: {specific_bug_lines_str}
         Issue: {bug_location.get('issue', 'Unknown')}
 
         {root_cause_section}
@@ -305,7 +312,7 @@ class EnhancedChainOfThought:
         Your task is to develop a precise solution for this bug:
         1. First, analyze the bug and explain your understanding of it
         2. Then, create a specific patch that fixes the issue
-        3. Make sure the patch is minimal and focused on the specific bug
+        3. Make sure the patch is minimal and focused on the specific bug lines mentioned
 
         Your solution MUST include:
         1. A brief technical explanation of the bug and your fix approach
@@ -317,6 +324,7 @@ class EnhancedChainOfThought:
         - Have proper hunk headers (@@ -start,count +start,count @@)
         - Contain adequate context lines (unchanged code)
         - Use - for removed lines and + for added lines
+        - Focus changes on the specific bug lines: {specific_bug_lines_str}
 
         Generate the COMPLETE solution in one go.
         """
