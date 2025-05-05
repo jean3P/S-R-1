@@ -1,4 +1,3 @@
-# src/models/base_model.py
 import os
 import torch
 import gc
@@ -12,18 +11,48 @@ logger = logging.getLogger(__name__)
 class BaseModel:
     """Abstract base class for all language models."""
 
-    def __init__(self, model_name: str, config: Dict[str, Any]):
+    def __init__(self, model_name: str, config):
+        """
+        Initialize the model with configuration.
+
+        Args:
+            model_name: Name of the model to use.
+            config: Configuration object.
+        """
         self.model_name = model_name
         self.config = config
         self.model = None
         self.tokenizer = None
-        self.device = config["models"]["device"]
-        self.max_new_tokens = config["models"].get("max_new_tokens", 2048)
-        self.temperature = config["models"].get("temperature", 0.2)
-        self.top_p = config["models"].get("top_p", 0.95)
+
+        # Fix: Get model settings from config safely with fallbacks
+        try:
+            # First try to access models as a dictionary
+            models_config = config.get("models", {})
+            if isinstance(models_config, dict):
+                self.device = models_config.get("device", "cuda" if torch.cuda.is_available() else "cpu")
+                self.max_new_tokens = models_config.get("max_new_tokens", 2048)
+                self.temperature = models_config.get("temperature", 0.2)
+                self.top_p = models_config.get("top_p", 0.95)
+            else:
+                # Fallback to using the first config setting if models is a list
+                logger.warning("models config is not a dictionary, using defaults")
+                self.device = "cuda" if torch.cuda.is_available() else "cpu"
+                self.max_new_tokens = 2048
+                self.temperature = 0.2
+                self.top_p = 0.95
+        except Exception as e:
+            logger.warning(f"Error accessing model config: {e}. Using defaults.")
+            self.device = "cuda" if torch.cuda.is_available() else "cpu"
+            self.max_new_tokens = 2048
+            self.temperature = 0.2
+            self.top_p = 0.95
 
         # Get model-specific configuration
-        self.model_config = config.get_model_config(model_name)
+        try:
+            self.model_config = config.get_model_config(model_name)
+        except Exception as e:
+            logger.warning(f"Error loading model-specific config: {e}. Using empty config.")
+            self.model_config = {}
 
         # Memory optimization settings
         self.memory_efficient = True
@@ -47,7 +76,18 @@ class BaseModel:
         repo_id = self.model_config.get("repo_id", self.model_name)
         revision = self.model_config.get("revision", "main")
         trust_remote_code = self.model_config.get("trust_remote_code", False)
-        cache_dir = self.config["models"].get("repo_cache_dir", "data/model_cache")
+
+        # Get cache_dir with fallback
+        try:
+            models_config = self.config.get("models", {})
+            if isinstance(models_config, dict):
+                cache_dir = models_config.get("repo_cache_dir", "data/model_cache")
+            else:
+                logger.warning("models config is not a dictionary, using default cache_dir")
+                cache_dir = "data/model_cache"
+        except Exception:
+            cache_dir = "data/model_cache"
+
         hf_token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_TOKEN")
 
         if not hf_token and 'qwen' in repo_id.lower():
@@ -111,6 +151,16 @@ class BaseModel:
                 max_memory = available_gpu_mem
                 logger.info(f"Using memory offloading: {max_memory}")
 
+            # Get precision with fallback
+            try:
+                models_config = self.config.get("models", {})
+                if isinstance(models_config, dict):
+                    precision = models_config.get("precision", "fp16")
+                else:
+                    precision = "fp16"
+            except Exception:
+                precision = "fp16"
+
             supports_gradient_checkpointing = not "qwen" in repo_id.lower()
 
             model_args = {
@@ -120,7 +170,7 @@ class BaseModel:
                 "device_map": device_map,
                 "max_memory": max_memory,
                 "quantization_config": quantization_config,
-                "torch_dtype": torch.float16 if self.config["models"]["precision"] == "fp16" else torch.float32,
+                "torch_dtype": torch.float16 if precision == "fp16" else torch.float32,
                 "token": hf_token,
                 "use_flash_attention_2": flash_attention_available,
                 "low_cpu_mem_usage": True,
@@ -198,41 +248,3 @@ class BaseModel:
             outputs = self.model(**inputs)
         self._clear_memory()
         return outputs.logits
-
-class TextStreamer:
-    """Helper class for text streaming during generation."""
-
-    def __init__(self, tokenizer, skip_prompt=True, callback=None):
-        self.tokenizer = tokenizer
-        self.skip_prompt = skip_prompt
-        self.callback = callback
-        self.tokens_buffer = []
-        self.prompt_processed = False
-
-    def put(self, token_id):
-        """Process a token."""
-        self.tokens_buffer.append(token_id)
-
-        # Skip tokens until we're past the prompt
-        if self.skip_prompt and not self.prompt_processed:
-            # Detect when we've moved past the prompt based on special tokens
-            if token_id in [self.tokenizer.eos_token_id, self.tokenizer.bos_token_id]:
-                self.prompt_processed = True
-            return
-
-        # Decode the buffer
-        text = self.tokenizer.decode(self.tokens_buffer)
-
-        # Call the callback with the decoded text
-        if self.callback:
-            self.callback(text)
-
-        # Clear the buffer
-        self.tokens_buffer = []
-
-    def end(self):
-        """Process any remaining tokens."""
-        if self.tokens_buffer and self.callback:
-            text = self.tokenizer.decode(self.tokens_buffer)
-            self.callback(text)
-            self.tokens_buffer = []

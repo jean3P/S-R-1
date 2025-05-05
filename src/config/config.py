@@ -1,6 +1,7 @@
 import os
 import yaml
 from pathlib import Path
+from typing import Dict, Any, Optional, Union
 
 
 class Config:
@@ -90,9 +91,29 @@ class Config:
         return {}
 
     def __getitem__(self, key):
-        return self.defaults[key]
+        """
+        Get an item from the configuration.
+
+        Args:
+            key: The key to look up (can be string or numeric index)
+
+        Returns:
+            The corresponding value
+        """
+        # Handle the case when key is a numeric index (fix for KeyError: 0)
+        if isinstance(key, int):
+            # If numeric index is used, provide a helpful error message
+            raise KeyError(f"Numeric index {key} is not supported. Config only supports string keys.")
+
+        # Handle string keys normally
+        if key in self.defaults:
+            return self.defaults[key]
+
+        # If key not found, raise KeyError
+        raise KeyError(key)
 
     def __setitem__(self, key, value):
+        """Set a value in the configuration."""
         self.defaults[key] = value
 
     def get(self, key, default=None):

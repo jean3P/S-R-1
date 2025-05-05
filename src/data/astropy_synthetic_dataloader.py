@@ -72,7 +72,7 @@ class AstropySyntheticDataLoader:
             reader = csv.DictReader(f)
             for row in reader:
                 # Add an instance_id field for compatibility with SWE-bench loader
-                row["instance_id"] = f"astropy-{row.get('branch_name', 'unknown')}"
+                row["instance_id"] = f"{row.get('branch_name', 'unknown')}"
                 row["repo"] = os.path.dirname(row["Path_repo"])
                 issues.append(row)
 

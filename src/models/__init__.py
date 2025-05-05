@@ -1,97 +1,69 @@
-# src/models/__init__.py
+"""
+Module for model loading and initialization.
+"""
 
-from typing import Dict, Any
+import logging
+from typing import Dict, Any, Optional
+
+logger = logging.getLogger(__name__)
 
 
-def create_model(model_name: str, config: Dict[str, Any]):
+# Import model classes lazily to avoid unnecessary imports
+def create_model(model_name: str, config) -> Any:
     """
-    Create an instance of a model based on the model name.
+    Create and return a model instance.
 
     Args:
-        model_name: Name of the model to create.
-        config: Configuration dictionary.
+        model_name: Name of the model to use
+        config: Configuration object
 
     Returns:
-        An instance of the requested model.
+        Model instance
     """
-    # First check for required dependencies
-    missing_deps = check_dependencies(model_name, config)
-    if missing_deps:
-        print(f"Warning: Missing dependencies for {model_name}: {', '.join(missing_deps)}")
-        print(f"Install them with: pip install {' '.join(missing_deps)}")
+    logger.info(f"Creating model: {model_name}")
 
-    # Map specific model names to the correct class
-    model_map = {
-        # DeepSeek models
-        "deepseek-r1-distill": "DeepseekR1Model",
-        "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B": "DeepseekR1Model",
-
-        # Qwen Coder models
-        "qwen2-5-coder": "Qwen25CoderModel",
-        "Qwen/Qwen2.5-Coder-32B-Instruct": "Qwen25CoderModel",
-
-        # QwQ models
-        "qwq-preview": "QwqPreviewModel",
-        "Qwen/QwQ-32B-Preview": "QwqPreviewModel"
+    # Define supported models
+    supported_models = {
+        "deepseek-r1-distill",
+        "qwen2-5-coder",
+        "qwq-preview"
     }
 
-    # Try to match the model name to a known model
-    model_class_name = None
+    # Validate model name
+    if model_name not in supported_models:
+        raise ValueError(f"Unsupported model: {model_name}. Supported models are: {supported_models}")
 
-    # Check if we have an exact match
-    if model_name in model_map:
-        model_class_name = model_map[model_name]
-    else:
-        # Check for partial matches in the model name
-        lowercase_name = model_name.lower()
-        if "deepseek" in lowercase_name or "r1-distill" in lowercase_name:
-            model_class_name = "DeepseekR1Model"
-        elif "qwen2.5" in lowercase_name or "coder" in lowercase_name:
-            model_class_name = "Qwen25CoderModel"
-        elif "qwq" in lowercase_name or "preview" in lowercase_name:
-            model_class_name = "QwqPreviewModel"
-
-    # Import and instantiate the model class
-    if model_class_name:
+    # Lazy import the appropriate model class
+    if model_name == "deepseek-r1-distill":
         try:
-            # Import the corresponding module
-            if model_class_name == "DeepseekR1Model":
-                from .deepseek_r1_model import DeepseekR1Model
-                return DeepseekR1Model(config)
-            elif model_class_name == "Qwen25CoderModel":
-                from .qwen25_coder_model import Qwen25CoderModel
-                return Qwen25CoderModel(config)
-            elif model_class_name == "QwqPreviewModel":
-                from .qwq_preview_model import QwqPreviewModel
-                return QwqPreviewModel(config)
+            from .deepseek_r1_model import DeepseekR1Model
+            return DeepseekR1Model(config)
         except ImportError as e:
-            print(f"Warning: Could not import {model_class_name}. Using BaseModel instead. Error: {e}")
+            logger.error(f"Failed to import DeepseekR1Model: {e}")
+            raise
 
-    # Fallback to base model with the given name
-    print(f"Using BaseModel for {model_name}")
+    elif model_name == "qwen2-5-coder":
+        try:
+            from .qwen25_coder_model import Qwen25CoderModel
+            return Qwen25CoderModel(config)
+        except ImportError as e:
+            logger.error(f"Failed to import Qwen25CoderModel: {e}")
+            raise
+
+    elif model_name == "qwq-preview":
+        try:
+            from .qwq_preview_model import QwqPreviewModel
+            return QwqPreviewModel(config)
+        except ImportError as e:
+            logger.error(f"Failed to import QwqPreviewModel: {e}")
+            raise
+
+    # Fallback to BaseModel if something goes wrong with the specific model
     from .base_model import BaseModel
+    logger.warning(f"Using BaseModel as fallback for {model_name}")
     return BaseModel(model_name, config)
 
 
-def check_dependencies(model_name: str, config: Dict[str, Any]):
-    """Check if required dependencies for the model are installed."""
-    missing = []
-
-    # Check for bitsandbytes if quantization is enabled
-    model_config = config.get_model_config(model_name)
-    if "quantization" in model_config:
-        try:
-            import bitsandbytes
-        except ImportError:
-            missing.append("bitsandbytes==0.41.0")
-
-    # Check for flash attention if enabled
-    if model_config.get("use_flash_attention", False):
-        try:
-            import flash_attn
-        except ImportError:
-            missing.append("flash-attn")
-
-    # Add other dependency checks as needed
-
-    return missing
+# Convenience function to list available models
+def list_available_models():
+    return ["deepseek-r1-distill", "qwen2-5-coder", "qwq-preview"]
