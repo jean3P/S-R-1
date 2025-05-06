@@ -1,0 +1,598 @@
+2025-05-06 13:02:39,937 [INFO] root (main.py:70): Logging initialized at results/robust_bug_fixing_pipeline_20250506_130236/deepseek-r1-distill/logs/pipeline_20250506_130239.log
+2025-05-06 13:02:39,937 [INFO] root (main.py:102): Set PYTORCH_CUDA_ALLOC_CONF for better memory management
+2025-05-06 13:02:39,937 [INFO] root (main.py:106): Set maximum iterations to 5
+2025-05-06 13:02:40,260 [INFO] root (main.py:114): CUDA available: True
+2025-05-06 13:02:40,260 [INFO] root (main.py:115): CUDA version: 12.4
+2025-05-06 13:02:40,285 [INFO] root (main.py:118): GPU 0: NVIDIA H100 NVL
+2025-05-06 13:02:40,285 [INFO] root (main.py:119):   Memory: 93.00 GB
+2025-05-06 13:02:40,285 [INFO] root (main.py:120):   CUDA Capability: 9.0
+2025-05-06 13:02:40,285 [INFO] root (main.py:118): GPU 1: NVIDIA H100 NVL
+2025-05-06 13:02:40,285 [INFO] root (main.py:119):   Memory: 93.00 GB
+2025-05-06 13:02:40,285 [INFO] root (main.py:120):   CUDA Capability: 9.0
+2025-05-06 13:02:40,285 [INFO] src.data.astropy_synthetic_dataloader (astropy_synthetic_dataloader.py:60): Loading dataset from: /storage/homefs/jp22b083/SSI/S-R-1/src/data/astropy_implementation_bugs_dataset.csv
+2025-05-06 13:02:40,285 [INFO] src.data.astropy_synthetic_dataloader (astropy_synthetic_dataloader.py:79): Loaded 1 issues from CSV dataset
+2025-05-06 13:02:40,285 [INFO] root (main.py:160): Loaded 1 issues from dataset
+2025-05-06 13:02:40,285 [INFO] root (main.py:169): Processing 1 issues: ['bug-values_to_high_level_objects-20250504210705-aca4210f']
+2025-05-06 13:02:40,285 [INFO] src.data.astropy_synthetic_dataloader (astropy_synthetic_dataloader.py:60): Loading dataset from: /storage/homefs/jp22b083/SSI/S-R-1/src/data/astropy_implementation_bugs_dataset.csv
+2025-05-06 13:02:40,286 [INFO] src.data.astropy_synthetic_dataloader (astropy_synthetic_dataloader.py:79): Loaded 1 issues from CSV dataset
+2025-05-06 13:02:40,286 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:59): Initialized RobustBugFixingPipeline with model deepseek-r1-distill
+2025-05-06 13:02:40,286 [INFO] root (main.py:208): Processing issue bug-values_to_high_level_objects-20250504210705-aca4210f with model deepseek-r1-distill
+2025-05-06 13:02:40,314 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:93): Starting robust bug fixing pipeline for bug bug-values_to_high_level_objects-20250504210705-aca4210f
+2025-05-06 13:02:40,314 [INFO] src.data.astropy_synthetic_dataloader (astropy_synthetic_dataloader.py:60): Loading dataset from: /storage/homefs/jp22b083/SSI/S-R-1/src/data/astropy_implementation_bugs_dataset.csv
+2025-05-06 13:02:40,315 [INFO] src.data.astropy_synthetic_dataloader (astropy_synthetic_dataloader.py:79): Loaded 1 issues from CSV dataset
+2025-05-06 13:02:40,316 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:565): Found bug location for issue bug-values_to_high_level_objects-20250504210705-aca4210f
+2025-05-06 13:02:40,342 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:360): Git checkout branch: bug-values_to_high_level_objects-20250504210705-aca4210f successful
+2025-05-06 13:02:40,343 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:441): Extracted function 'values_to_high_level_objects' from line 271:
+2025-05-06 13:02:40,343 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:442): 
+def values_to_high_level_objects(*world_values, low_level_wcs):
+    """
+    Convert low level values into high level objects.
+
+    This function uses the information in ``wcs.world_axis_object_classes`` and
+    ``wcs.world_axis_object_components`` to convert low level "values"
+    `~.Quantity` objects, to high level objects (such as `~.SkyCoord`).
+
+    This is used in `.HighLevelWCSMixin.pixel_to_world`, but provided as a
+    separate function for use in other places where needed.
+
+    Parameters
+    ----------
+    *world_values: object
+        Low level, "values" representations of the world coordinates.
+
+    low_level_wcs: `.BaseLowLevelWCS`
+        The WCS object to use to interpret the coordinates.
+    """
+    # Check the type of the input values - should be scalars or plain Numpy
+    # arrays, not e.g. Quantity. Note that we deliberately use type(w) because
+    # we don't want to match Numpy subclasses.
+    for w in world_values:
+        if not isinstance(w, numbers.Number) or not type(w) == np.ndarray:
+            raise TypeError(
+                f"Expected world coordinates as scalars or plain Numpy "
+                f"arrays (got {type(w)})"
+            )
+
+    # Cache the classes and components since this may be expensive
+    components = low_level_wcs.world_axis_object_components
+    classes = low_level_wcs.world_axis_object_classes
+
+    # Deserialize classes
+    if low_level_wcs.serialized_classes:
+        classes_new = {}
+        for key, value in classes.items():
+            classes_new[key] = deserialize_class(value, construct=False)
+        classes = classes_new
+
+    args = defaultdict(list)
+    kwargs = defaultdict(dict)
+
+    for i, (key, attr, _) in enumerate(components):
+        if isinstance(attr, str):
+            kwargs[key][attr] = world_values[i]
+        else:
+            while attr > len(args[key]) - 1:
+                args[key].append(None)
+            args[key][attr] = world_values[i]
+
+    result = []
+
+    for key in default_order(components):
+        klass, ar, kw, *rest = classes[key]
+        if len(rest) == 0:
+            klass_gen = klass
+        elif len(rest) == 1:
+            klass_gen = rest[0]
+        else:
+            raise ValueError(
+                "Tuples in world_axis_object_classes should have length 3 or 4"
+            )
+        result.append(klass_gen(*args[key], *ar, **kwargs[key], **kw))
+
+    return result
+
+2025-05-06 13:02:40,344 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:521): Bug context (lines 262-346):
+2025-05-06 13:02:40,344 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:522): 
+            raise TypeError(
+                f"WCS world_axis_object_components results in "
+                f"values which are not scalars or plain Numpy "
+                f"arrays (got {type(w)})"
+            )
+
+    return world
+
+
+def values_to_high_level_objects(*world_values, low_level_wcs):
+    """
+    Convert low level values into high level objects.
+
+    This function uses the information in ``wcs.world_axis_object_classes`` and
+    ``wcs.world_axis_object_components`` to convert low level "values"
+    `~.Quantity` objects, to high level objects (such as `~.SkyCoord`).
+
+    This is used in `.HighLevelWCSMixin.pixel_to_world`, but provided as a
+    separate function for use in other places where needed.
+
+    Parameters
+    ----------
+    *world_values: object
+        Low level, "values" representations of the world coordinates.
+
+    low_level_wcs: `.BaseLowLevelWCS`
+        The WCS object to use to interpret the coordinates.
+    """
+    # Check the type of the input values - should be scalars or plain Numpy
+    # arrays, not e.g. Quantity. Note that we deliberately use type(w) because
+    # we don't want to match Numpy subclasses.
+    for w in world_values:
+        if not isinstance(w, numbers.Number) or not type(w) == np.ndarray:
+            raise TypeError(
+                f"Expected world coordinates as scalars or plain Numpy "
+                f"arrays (got {type(w)})"
+            )
+
+    # Cache the classes and components since this may be expensive
+    components = low_level_wcs.world_axis_object_components
+    classes = low_level_wcs.world_axis_object_classes
+
+    # Deserialize classes
+    if low_level_wcs.serialized_classes:
+        classes_new = {}
+        for key, value in classes.items():
+            classes_new[key] = deserialize_class(value, construct=False)
+        classes = classes_new
+
+    args = defaultdict(list)
+    kwargs = defaultdict(dict)
+
+    for i, (key, attr, _) in enumerate(components):
+        if isinstance(attr, str):
+            kwargs[key][attr] = world_values[i]
+        else:
+            while attr > len(args[key]) - 1:
+                args[key].append(None)
+            args[key][attr] = world_values[i]
+
+    result = []
+
+    for key in default_order(components):
+        klass, ar, kw, *rest = classes[key]
+        if len(rest) == 0:
+            klass_gen = klass
+        elif len(rest) == 1:
+            klass_gen = rest[0]
+        else:
+            raise ValueError(
+                "Tuples in world_axis_object_classes should have length 3 or 4"
+            )
+        result.append(klass_gen(*args[key], *ar, **kwargs[key], **kw))
+
+    return result
+
+class HighLevelWCSMixin(BaseHighLevelWCS):
+    """
+    Mix-in class that automatically provides the high-level WCS API for the
+    low-level WCS object given by the `~HighLevelWCSMixin.low_level_wcs`
+    property.
+    """
+
+    @property
+    def low_level_wcs(self):
+2025-05-06 13:02:40,344 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:533): Bug context with highlights:
+2025-05-06 13:02:40,344 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:534): 
+   262 |             raise TypeError(
+   263 |                 f"WCS world_axis_object_components results in "
+   264 |                 f"values which are not scalars or plain Numpy "
+   265 |                 f"arrays (got {type(w)})"
+   266 |             )
+   267 | 
+   268 |     return world
+   269 | 
+   270 | 
+>  271 | def values_to_high_level_objects(*world_values, low_level_wcs):
+>  272 |     """
+   273 |     Convert low level values into high level objects.
+   274 | 
+   275 |     This function uses the information in ``wcs.world_axis_object_classes`` and
+   276 |     ``wcs.world_axis_object_components`` to convert low level "values"
+   277 |     `~.Quantity` objects, to high level objects (such as `~.SkyCoord`).
+   278 | 
+   279 |     This is used in `.HighLevelWCSMixin.pixel_to_world`, but provided as a
+   280 |     separate function for use in other places where needed.
+   281 | 
+   282 |     Parameters
+   283 |     ----------
+   284 |     *world_values: object
+   285 |         Low level, "values" representations of the world coordinates.
+   286 | 
+   287 |     low_level_wcs: `.BaseLowLevelWCS`
+   288 |         The WCS object to use to interpret the coordinates.
+   289 |     """
+   290 |     # Check the type of the input values - should be scalars or plain Numpy
+   291 |     # arrays, not e.g. Quantity. Note that we deliberately use type(w) because
+   292 |     # we don't want to match Numpy subclasses.
+>  293 |     for w in world_values:
+>  294 |         if not isinstance(w, numbers.Number) or not type(w) == np.ndarray:
+   295 |             raise TypeError(
+>  296 |                 f"Expected world coordinates as scalars or plain Numpy "
+>  297 |                 f"arrays (got {type(w)})"
+   298 |             )
+   299 | 
+   300 |     # Cache the classes and components since this may be expensive
+>  301 |     components = low_level_wcs.world_axis_object_components
+>  302 |     classes = low_level_wcs.world_axis_object_classes
+   303 | 
+   304 |     # Deserialize classes
+>  305 |     if low_level_wcs.serialized_classes:
+>  306 |         classes_new = {}
+>  307 |         for key, value in classes.items():
+>  308 |             classes_new[key] = deserialize_class(value, construct=False)
+>  309 |         classes = classes_new
+   310 | 
+>  311 |     args = defaultdict(list)
+>  312 |     kwargs = defaultdict(dict)
+   313 | 
+>  314 |     for i, (key, attr, _) in enumerate(components):
+>  315 |         if isinstance(attr, str):
+>  316 |             kwargs[key][attr] = world_values[i]
+   317 |         else:
+>  318 |             while attr > len(args[key]) - 1:
+>  319 |                 args[key].append(None)
+>  320 |             args[key][attr] = world_values[i]
+   321 | 
+>  322 |     result = []
+   323 | 
+>  324 |     for key in default_order(components):
+>  325 |         klass, ar, kw, *rest = classes[key]
+>  326 |         if len(rest) == 0:
+>  327 |             klass_gen = klass
+>  328 |         elif len(rest) == 1:
+>  329 |             klass_gen = rest[0]
+   330 |         else:
+>  331 |             raise ValueError(
+>  332 |                 "Tuples in world_axis_object_classes should have length 3 or 4"
+   333 |             )
+>  334 |         result.append(klass_gen(*args[key], *ar, **kwargs[key], **kw))
+   335 | 
+>  336 |     return result
+   337 | 
+   338 | class HighLevelWCSMixin(BaseHighLevelWCS):
+   339 |     """
+   340 |     Mix-in class that automatically provides the high-level WCS API for the
+   341 |     low-level WCS object given by the `~HighLevelWCSMixin.low_level_wcs`
+   342 |     property.
+   343 |     """
+   344 | 
+   345 |     @property
+   346 |     def low_level_wcs(self):
+2025-05-06 13:02:40,344 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:136): Starting iteration 1/5
+2025-05-06 13:02:40,375 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:80): GPU 0 memory: allocated=0.00GB (max: 0.00GB), reserved=0.00GB
+2025-05-06 13:02:40,375 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:80): GPU 1 memory: allocated=0.00GB (max: 0.00GB), reserved=0.00GB
+2025-05-06 13:02:40,375 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:636): Generating patch using Chain of Thought reasoning
+2025-05-06 13:02:40,375 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:64): Initializing model: deepseek-r1-distill
+2025-05-06 13:02:40,394 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:80): GPU 0 memory: allocated=0.00GB (max: 0.00GB), reserved=0.00GB
+2025-05-06 13:02:40,394 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:80): GPU 1 memory: allocated=0.00GB (max: 0.00GB), reserved=0.00GB
+2025-05-06 13:02:40,394 [INFO] src.models (__init__.py:23): Creating model: deepseek-r1-distill
+2025-05-06 13:02:42,227 [WARNING] src.models.base_model (base_model.py:38): models config is not a dictionary, using defaults
+2025-05-06 13:02:42,322 [INFO] src.models.base_model (base_model.py:73): GPU 0 memory: reserved=0.00GB, allocated=0.00GB
+2025-05-06 13:02:42,323 [INFO] src.models.base_model (base_model.py:73): GPU 1 memory: reserved=0.00GB, allocated=0.00GB
+2025-05-06 13:02:42,323 [WARNING] src.models.base_model (base_model.py:86): models config is not a dictionary, using default cache_dir
+2025-05-06 13:02:42,325 [DEBUG] urllib3.connectionpool (connectionpool.py:1049): Starting new HTTPS connection (1): huggingface.co:443
+2025-05-06 13:02:42,503 [DEBUG] urllib3.connectionpool (connectionpool.py:544): https://huggingface.co:443 "HEAD /deepseek-ai/DeepSeek-R1-Distill-Qwen-32B/resolve/main/tokenizer_config.json HTTP/1.1" 200 0
+2025-05-06 13:02:42,752 [INFO] src.models.base_model (base_model.py:152): Using memory offloading: {0: '91GiB', 1: '91GiB', 'cpu': '32GiB'}
+2025-05-06 13:02:42,861 [DEBUG] urllib3.connectionpool (connectionpool.py:544): https://huggingface.co:443 "HEAD /deepseek-ai/DeepSeek-R1-Distill-Qwen-32B/resolve/main/config.json HTTP/1.1" 200 0
+2025-05-06 13:03:35,057 [DEBUG] urllib3.connectionpool (connectionpool.py:544): https://huggingface.co:443 "HEAD /deepseek-ai/DeepSeek-R1-Distill-Qwen-32B/resolve/main/generation_config.json HTTP/1.1" 200 0
+2025-05-06 13:03:35,196 [INFO] src.models.base_model (base_model.py:73): GPU 0 memory: reserved=29.61GB, allocated=29.61GB
+2025-05-06 13:03:35,196 [INFO] src.models.base_model (base_model.py:73): GPU 1 memory: reserved=31.43GB, allocated=31.42GB
+2025-05-06 13:03:35,196 [INFO] src.models.deepseek_r1_model (deepseek_r1_model.py:16): Initialized DeepSeek R1 model with repo_id: deepseek-ai/DeepSeek-R1-Distill-Qwen-32B
+2025-05-06 13:03:35,279 [INFO] src.models.base_model (base_model.py:73): GPU 0 memory: reserved=29.61GB, allocated=29.61GB
+2025-05-06 13:03:35,279 [INFO] src.models.base_model (base_model.py:73): GPU 1 memory: reserved=31.43GB, allocated=31.42GB
+2025-05-06 13:04:04,651 [INFO] src.models.base_model (base_model.py:73): GPU 0 memory: reserved=29.65GB, allocated=29.64GB
+2025-05-06 13:04:04,651 [INFO] src.models.base_model (base_model.py:73): GPU 1 memory: reserved=31.49GB, allocated=31.45GB
+2025-05-06 13:04:04,651 [DEBUG] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:1100): Original patch before format fixing:
+diff --git a/astropy/wcs/wcsapi/high_level_api.py b/astropy/wcs/wcsapi/high_level_api.py
+--- a/astropy/wcs/wcsapi/high_level_api.py
++++ b/astropy/wcs/wcsapi/high_level_api.py
+@@ -291,7 +291,7 @@ def values_to_high_level_objects(*world_values, low_level_wcs):
+     # arrays, not e.g. Quantity. Note that we deliberately use type(w) because
+     # we don't want to match Numpy subclasses.
+     for w in world_values:
+-        if not isinstance(w, numbers.Number) or not type(w) == np.ndarray:
++        if not isinstance(w, numbers.Number) and not isinstance(w, np.ndarray):
+             raise TypeError(
+                 f"Expected world coordinates as scalars or plain Numpy "
+                 f"arrays (got {type(w)})"
+2025-05-06 13:04:04,652 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:1108): Fixed patch format to prevent 'corrupt patch' errors
+2025-05-06 13:04:04,652 [DEBUG] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:1109): Fixed patch:
+diff --git a/astropy/wcs/wcsapi/high_level_api.py b/astropy/wcs/wcsapi/high_level_api.py
+--- a/astropy/wcs/wcsapi/high_level_api.py
++++ b/astropy/wcs/wcsapi/high_level_api.py
+@@ -291,7 +291,7 @@
+     # arrays, not e.g. Quantity. Note that we deliberately use type(w) because
+     # we don't want to match Numpy subclasses.
+     for w in world_values:
+-        if not isinstance(w, numbers.Number) or not type(w) == np.ndarray:
++        if not isinstance(w, numbers.Number) and not isinstance(w, np.ndarray):
+             raise TypeError(
+                 f"Expected world coordinates as scalars or plain Numpy "
+                 f"arrays (got {type(w)})"
+2025-05-06 13:04:04,652 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:648): Generated patch with CoT (654 chars, explanation: 1463 chars)
+2025-05-06 13:04:04,653 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:712): Generated 0 instrumentation points
+2025-05-06 13:04:04,653 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:1357): Issues found in patch: Patch doesn't end with a newline character
+2025-05-06 13:04:04,654 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:1400): Temporal patch file: /scratch/local/20937458/tmpt90lf_so.patch
+2025-05-06 13:04:04,796 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:1475): Successfully applied patch to wcs/wcsapi/high_level_api.py
+2025-05-06 13:04:04,796 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:198): Found first syntactically valid patch in 84.48s
+2025-05-06 13:04:04,796 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:1622): Running test: /storage/homefs/jp22b083/.conda/envs/astropy-dev/bin/python -m pytest /storage/homefs/jp22b083/SSI/S-R-1/data/repositories/astropy/astropy/astropy/wcs/wcsapi/tests/test_high_level_api.py::test_objects_to_values -v
+2025-05-06 13:04:14,828 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:1647): Test result: pass
+2025-05-06 13:04:14,828 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:241): Found solution in 94.51s
+2025-05-06 13:04:14,830 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:321): 
+            ================================================
+            BUG FIX SUMMARY FOR bug-values_to_high_level_objects-20250504210705-aca4210f
+            ================================================
+            Status: SUCCESS_TEST_PASSED
+            Total Iterations: 1
+              - Syntax Failures: 0
+              - Test Failures: 0
+              - Successful Patches: 1
+            Time to First Valid Patch: 84.48s
+            Time to Solution: 94.51s
+            Total Processing Time: 94.52s
+            ================================================
+            
+2025-05-06 13:04:14,831 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:1717): Saved results to results/robust_bug_fixing_pipeline_20250506_130236/deepseek-r1-distill/bugs/bug-values_to_high_level_objects-20250504210705-aca4210f.json
+2025-05-06 13:04:14,831 [INFO] src.solution.robust_bug_fixing_pipeline (robust_bug_fixing_pipeline.py:326): Completed bug fixing for bug-values_to_high_level_objects-20250504210705-aca4210f with status success_test_passed in 94.52s
+2025-05-06 13:04:14,831 [INFO] root (main.py:225): Processed issue bug-values_to_high_level_objects-20250504210705-aca4210f in 94.52 seconds
+2025-05-06 13:04:14,832 [INFO] root (main.py:242): Saved combined results to results/robust_bug_fixing_pipeline_20250506_130236/deepseek-r1-distill/combined_results.json
+2025-05-06 13:04:14,834 [INFO] root (main.py:314): Saved summary to results/robust_bug_fixing_pipeline_20250506_130236/deepseek-r1-distill/summary.json
+2025-05-06 13:04:14,910 [DEBUG] matplotlib (__init__.py:341): matplotlib data path: /storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data
+2025-05-06 13:04:14,914 [DEBUG] matplotlib (__init__.py:341): CONFIGDIR=/storage/homefs/jp22b083/.config/matplotlib
+2025-05-06 13:04:14,914 [DEBUG] matplotlib (__init__.py:1512): interactive is False
+2025-05-06 13:04:14,914 [DEBUG] matplotlib (__init__.py:1513): platform is linux
+2025-05-06 13:04:14,946 [DEBUG] matplotlib (__init__.py:341): CACHEDIR=/storage/homefs/jp22b083/.cache/matplotlib
+2025-05-06 13:04:14,947 [DEBUG] matplotlib.font_manager (font_manager.py:1580): Using fontManager instance from /storage/homefs/jp22b083/.cache/matplotlib/fontlist-v390.json
+2025-05-06 13:04:15,076 [DEBUG] matplotlib.pyplot (pyplot.py:487): Loaded backend agg version v2.2.
+2025-05-06 13:04:15,079 [DEBUG] matplotlib.font_manager (font_manager.py:1416): findfont: Matching sans\-serif:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0.
+2025-05-06 13:04:15,079 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizOneSymBol.ttf', name='STIXSizeOneSym', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,079 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizFourSymReg.ttf', name='STIXSizeFourSym', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,079 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXGeneralBolIta.ttf', name='STIXGeneral', style='italic', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,079 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXNonUni.ttf', name='STIXNonUnicode', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,079 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizTwoSymBol.ttf', name='STIXSizeTwoSym', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,079 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSansMono-BoldOblique.ttf', name='DejaVu Sans Mono', style='oblique', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,079 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizTwoSymReg.ttf', name='STIXSizeTwoSym', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,079 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/cmss10.ttf', name='cmss10', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,079 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizFourSymBol.ttf', name='STIXSizeFourSym', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,079 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSerif-Italic.ttf', name='DejaVu Serif', style='italic', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,079 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXNonUniBol.ttf', name='STIXNonUnicode', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,079 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/cmmi10.ttf', name='cmmi10', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSansDisplay.ttf', name='DejaVu Sans Display', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSerif.ttf', name='DejaVu Serif', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizThreeSymReg.ttf', name='STIXSizeThreeSym', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans-BoldOblique.ttf', name='DejaVu Sans', style='oblique', variant='normal', weight=700, stretch='normal', size='scalable')) = 1.335
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXGeneralBol.ttf', name='STIXGeneral', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXNonUniIta.ttf', name='STIXNonUnicode', style='italic', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSansMono-Oblique.ttf', name='DejaVu Sans Mono', style='oblique', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXGeneral.ttf', name='STIXGeneral', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSansMono.ttf', name='DejaVu Sans Mono', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/cmsy10.ttf', name='cmsy10', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans.ttf', name='DejaVu Sans', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 0.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/cmtt10.ttf', name='cmtt10', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans-Bold.ttf', name='DejaVu Sans', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 0.33499999999999996
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXNonUniBolIta.ttf', name='STIXNonUnicode', style='italic', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSerif-Bold.ttf', name='DejaVu Serif', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSerifDisplay.ttf', name='DejaVu Serif Display', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizThreeSymBol.ttf', name='STIXSizeThreeSym', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSansMono-Bold.ttf', name='DejaVu Sans Mono', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXGeneralItalic.ttf', name='STIXGeneral', style='italic', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizOneSymReg.ttf', name='STIXSizeOneSym', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans-Oblique.ttf', name='DejaVu Sans', style='oblique', variant='normal', weight=400, stretch='normal', size='scalable')) = 1.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSerif-BoldItalic.ttf', name='DejaVu Serif', style='italic', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizFiveSymReg.ttf', name='STIXSizeFiveSym', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/cmr10.ttf', name='cmr10', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/cmex10.ttf', name='cmex10', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/cmb10.ttf', name='cmb10', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusSansNarrow-Regular.otf', name='Nimbus Sans Narrow', style='normal', variant='normal', weight=400, stretch='condensed', size='scalable')) = 10.25
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-fonts/DejaVuSans.ttf', name='DejaVu Sans', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 0.05
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansEthiopic-Bold.ttf', name='Droid Sans Ethiopic', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSans-Bold.ttf', name='Droid Sans', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,080 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansHebrew-Bold.ttf', name='Droid Sans Hebrew', style='normal', variant='normal', weight=600, stretch='normal', size='scalable')) = 10.24
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-fonts/DejaVuSansCondensed-Bold.ttf', name='DejaVu Sans', style='normal', variant='normal', weight=700, stretch='condensed', size='scalable')) = 0.5349999999999999
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidKufi-Bold.ttf', name='Droid Arabic Kufi', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-MediumIt.otf', name='Source Code Pro', style='italic', variant='normal', weight=500, stretch='normal', size='scalable')) = 11.145
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-ExtraLight.otf', name='Source Code Pro', style='normal', variant='normal', weight=200, stretch='normal', size='scalable')) = 10.24
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusRoman-BoldItalic.otf', name='Nimbus Roman', style='italic', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-Semibold.otf', name='Source Code Pro', style='normal', variant='normal', weight=600, stretch='normal', size='scalable')) = 10.24
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-BoldIt.otf', name='Source Code Pro', style='italic', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-mono-fonts/DejaVuSansMono-Bold.ttf', name='DejaVu Sans Mono', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansTamil-Regular.ttf', name='Droid Sans Tamil', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-fonts/DejaVuSansCondensed-Oblique.ttf', name='DejaVu Sans', style='oblique', variant='normal', weight=400, stretch='condensed', size='scalable')) = 1.25
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-LightIt.otf', name='Source Code Pro', style='italic', variant='normal', weight=300, stretch='normal', size='scalable')) = 11.145
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-ExtraLightIt.otf', name='Source Code Pro', style='italic', variant='normal', weight=200, stretch='normal', size='scalable')) = 11.24
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/URWGothic-BookOblique.otf', name='URW Gothic', style='oblique', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-fonts/DejaVuSans-Oblique.ttf', name='DejaVu Sans', style='oblique', variant='normal', weight=400, stretch='normal', size='scalable')) = 1.05
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusMonoPS-Regular.otf', name='Nimbus Mono PS', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusMonoPS-BoldItalic.otf', name='Nimbus Mono PS', style='italic', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusSans-Regular.otf', name='Nimbus Sans', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-mono-fonts/DejaVuSansMono.ttf', name='DejaVu Sans Mono', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansEthiopic-Regular.ttf', name='Droid Sans Ethiopic', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/URWGothic-Demi.otf', name='URW Gothic', style='normal', variant='normal', weight=600, stretch='normal', size='scalable')) = 10.24
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-fonts/DejaVuSansCondensed-BoldOblique.ttf', name='DejaVu Sans', style='oblique', variant='normal', weight=700, stretch='condensed', size='scalable')) = 1.535
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/C059-BdIta.otf', name='C059', style='italic', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusSansNarrow-Bold.otf', name='Nimbus Sans Narrow', style='normal', variant='normal', weight=700, stretch='condensed', size='scalable')) = 10.535
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/URWGothic-DemiOblique.otf', name='URW Gothic', style='oblique', variant='normal', weight=600, stretch='normal', size='scalable')) = 11.24
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/C059-Roman.otf', name='C059', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusRoman-Regular.otf', name='Nimbus Roman', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansArmenian.ttf', name='Droid Sans Armenian', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/URWGothic-Book.otf', name='URW Gothic', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/cantarell/Cantarell-Thin.otf', name='Cantarell', style='normal', variant='normal', weight=100, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/P052-Roman.otf', name='P052', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-fonts/DejaVuSans-ExtraLight.ttf', name='DejaVu Sans', style='normal', variant='normal', weight=200, stretch='normal', size='scalable')) = 0.24
+2025-05-06 13:04:15,081 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-fonts/DejaVuSans-BoldOblique.ttf', name='DejaVu Sans', style='oblique', variant='normal', weight=700, stretch='normal', size='scalable')) = 1.335
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-Light.otf', name='Source Code Pro', style='normal', variant='normal', weight=300, stretch='normal', size='scalable')) = 10.145
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusSans-Italic.otf', name='Nimbus Sans', style='italic', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-Medium.otf', name='Source Code Pro', style='normal', variant='normal', weight=500, stretch='normal', size='scalable')) = 10.145
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusRoman-Bold.otf', name='Nimbus Roman', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/URWBookman-DemiItalic.otf', name='URW Bookman', style='italic', variant='normal', weight=600, stretch='normal', size='scalable')) = 11.24
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-fonts/DejaVuSans-Bold.ttf', name='DejaVu Sans', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 0.33499999999999996
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusMonoPS-Italic.otf', name='Nimbus Mono PS', style='italic', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansDevanagari-Regular.ttf', name='Droid Sans Devanagari', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/cantarell/Cantarell-Regular.otf', name='Cantarell', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-mono-fonts/DejaVuSansMono-BoldOblique.ttf', name='DejaVu Sans Mono', style='oblique', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/Z003-MediumItalic.otf', name='Z003', style='italic', variant='normal', weight=500, stretch='normal', size='scalable')) = 11.145
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/cantarell/Cantarell-Light.otf', name='Cantarell', style='normal', variant='normal', weight=300, stretch='normal', size='scalable')) = 10.145
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusSans-Bold.otf', name='Nimbus Sans', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansThai.ttf', name='Droid Sans Thai', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/cantarell/Cantarell-ExtraBold.otf', name='Cantarell', style='normal', variant='normal', weight=800, stretch='normal', size='scalable')) = 10.43
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusSansNarrow-Oblique.otf', name='Nimbus Sans Narrow', style='oblique', variant='normal', weight=400, stretch='condensed', size='scalable')) = 11.25
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-Bold.otf', name='Source Code Pro', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusMonoPS-Bold.otf', name='Nimbus Mono PS', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-It.otf', name='Source Code Pro', style='italic', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/cantarell/Cantarell-Bold.otf', name='Cantarell', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-Black.otf', name='Source Code Pro', style='normal', variant='normal', weight=900, stretch='normal', size='scalable')) = 10.525
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/P052-Bold.otf', name='P052', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/D050000L.otf', name='D050000L', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansTamil-Bold.ttf', name='Droid Sans Tamil', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-mono-fonts/DejaVuSansMono-Oblique.ttf', name='DejaVu Sans Mono', style='oblique', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansFallbackFull.ttf', name='Droid Sans Fallback', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/P052-BoldItalic.otf', name='P052', style='italic', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/URWBookman-Demi.otf', name='URW Bookman', style='normal', variant='normal', weight=600, stretch='normal', size='scalable')) = 10.24
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansHebrew-Regular.ttf', name='Droid Sans Hebrew', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/C059-Italic.otf', name='C059', style='italic', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSans.ttf', name='Droid Sans', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,082 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/P052-Italic.otf', name='P052', style='italic', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,083 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-Regular.otf', name='Source Code Pro', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,083 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/URWBookman-Light.otf', name='URW Bookman', style='normal', variant='normal', weight=300, stretch='normal', size='scalable')) = 10.145
+2025-05-06 13:04:15,083 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidKufi-Regular.ttf', name='Droid Arabic Kufi', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,083 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansJapanese.ttf', name='Droid Sans Japanese', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,083 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusSansNarrow-BoldOblique.otf', name='Nimbus Sans Narrow', style='oblique', variant='normal', weight=700, stretch='condensed', size='scalable')) = 11.535
+2025-05-06 13:04:15,083 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansGeorgian.ttf', name='Droid Sans Georgian', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,083 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusRoman-Italic.otf', name='Nimbus Roman', style='italic', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,083 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/C059-Bold.otf', name='C059', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,083 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/URWBookman-LightItalic.otf', name='URW Bookman', style='italic', variant='normal', weight=300, stretch='normal', size='scalable')) = 11.145
+2025-05-06 13:04:15,083 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-SemiboldIt.otf', name='Source Code Pro', style='italic', variant='normal', weight=600, stretch='normal', size='scalable')) = 11.24
+2025-05-06 13:04:15,083 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-BlackIt.otf', name='Source Code Pro', style='italic', variant='normal', weight=900, stretch='normal', size='scalable')) = 11.525
+2025-05-06 13:04:15,083 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusSans-BoldItalic.otf', name='Nimbus Sans', style='italic', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,083 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-fonts/DejaVuSansCondensed.ttf', name='DejaVu Sans', style='normal', variant='normal', weight=400, stretch='condensed', size='scalable')) = 0.25
+2025-05-06 13:04:15,083 [DEBUG] matplotlib.font_manager (font_manager.py:1460): findfont: Matching sans\-serif:style=normal:variant=normal:weight=normal:stretch=normal:size=10.0 to DejaVu Sans ('/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans.ttf') with score of 0.050000.
+2025-05-06 13:04:15,106 [DEBUG] matplotlib.font_manager (font_manager.py:1416): findfont: Matching sans\-serif:style=normal:variant=normal:weight=normal:stretch=normal:size=12.0.
+2025-05-06 13:04:15,106 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizOneSymBol.ttf', name='STIXSizeOneSym', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,106 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizFourSymReg.ttf', name='STIXSizeFourSym', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,106 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXGeneralBolIta.ttf', name='STIXGeneral', style='italic', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,106 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXNonUni.ttf', name='STIXNonUnicode', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,106 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizTwoSymBol.ttf', name='STIXSizeTwoSym', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,106 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSansMono-BoldOblique.ttf', name='DejaVu Sans Mono', style='oblique', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizTwoSymReg.ttf', name='STIXSizeTwoSym', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/cmss10.ttf', name='cmss10', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizFourSymBol.ttf', name='STIXSizeFourSym', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSerif-Italic.ttf', name='DejaVu Serif', style='italic', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXNonUniBol.ttf', name='STIXNonUnicode', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/cmmi10.ttf', name='cmmi10', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSansDisplay.ttf', name='DejaVu Sans Display', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSerif.ttf', name='DejaVu Serif', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizThreeSymReg.ttf', name='STIXSizeThreeSym', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans-BoldOblique.ttf', name='DejaVu Sans', style='oblique', variant='normal', weight=700, stretch='normal', size='scalable')) = 1.335
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXGeneralBol.ttf', name='STIXGeneral', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXNonUniIta.ttf', name='STIXNonUnicode', style='italic', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSansMono-Oblique.ttf', name='DejaVu Sans Mono', style='oblique', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXGeneral.ttf', name='STIXGeneral', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSansMono.ttf', name='DejaVu Sans Mono', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/cmsy10.ttf', name='cmsy10', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans.ttf', name='DejaVu Sans', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 0.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/cmtt10.ttf', name='cmtt10', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans-Bold.ttf', name='DejaVu Sans', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 0.33499999999999996
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXNonUniBolIta.ttf', name='STIXNonUnicode', style='italic', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSerif-Bold.ttf', name='DejaVu Serif', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSerifDisplay.ttf', name='DejaVu Serif Display', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizThreeSymBol.ttf', name='STIXSizeThreeSym', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSansMono-Bold.ttf', name='DejaVu Sans Mono', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXGeneralItalic.ttf', name='STIXGeneral', style='italic', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizOneSymReg.ttf', name='STIXSizeOneSym', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans-Oblique.ttf', name='DejaVu Sans', style='oblique', variant='normal', weight=400, stretch='normal', size='scalable')) = 1.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSerif-BoldItalic.ttf', name='DejaVu Serif', style='italic', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/STIXSizFiveSymReg.ttf', name='STIXSizeFiveSym', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/cmr10.ttf', name='cmr10', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,107 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/cmex10.ttf', name='cmex10', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/cmb10.ttf', name='cmb10', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusSansNarrow-Regular.otf', name='Nimbus Sans Narrow', style='normal', variant='normal', weight=400, stretch='condensed', size='scalable')) = 10.25
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-fonts/DejaVuSans.ttf', name='DejaVu Sans', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 0.05
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansEthiopic-Bold.ttf', name='Droid Sans Ethiopic', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSans-Bold.ttf', name='Droid Sans', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansHebrew-Bold.ttf', name='Droid Sans Hebrew', style='normal', variant='normal', weight=600, stretch='normal', size='scalable')) = 10.24
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-fonts/DejaVuSansCondensed-Bold.ttf', name='DejaVu Sans', style='normal', variant='normal', weight=700, stretch='condensed', size='scalable')) = 0.5349999999999999
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidKufi-Bold.ttf', name='Droid Arabic Kufi', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-MediumIt.otf', name='Source Code Pro', style='italic', variant='normal', weight=500, stretch='normal', size='scalable')) = 11.145
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-ExtraLight.otf', name='Source Code Pro', style='normal', variant='normal', weight=200, stretch='normal', size='scalable')) = 10.24
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusRoman-BoldItalic.otf', name='Nimbus Roman', style='italic', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-Semibold.otf', name='Source Code Pro', style='normal', variant='normal', weight=600, stretch='normal', size='scalable')) = 10.24
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-BoldIt.otf', name='Source Code Pro', style='italic', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-mono-fonts/DejaVuSansMono-Bold.ttf', name='DejaVu Sans Mono', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansTamil-Regular.ttf', name='Droid Sans Tamil', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-fonts/DejaVuSansCondensed-Oblique.ttf', name='DejaVu Sans', style='oblique', variant='normal', weight=400, stretch='condensed', size='scalable')) = 1.25
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-LightIt.otf', name='Source Code Pro', style='italic', variant='normal', weight=300, stretch='normal', size='scalable')) = 11.145
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-ExtraLightIt.otf', name='Source Code Pro', style='italic', variant='normal', weight=200, stretch='normal', size='scalable')) = 11.24
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/URWGothic-BookOblique.otf', name='URW Gothic', style='oblique', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-fonts/DejaVuSans-Oblique.ttf', name='DejaVu Sans', style='oblique', variant='normal', weight=400, stretch='normal', size='scalable')) = 1.05
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusMonoPS-Regular.otf', name='Nimbus Mono PS', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusMonoPS-BoldItalic.otf', name='Nimbus Mono PS', style='italic', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusSans-Regular.otf', name='Nimbus Sans', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-mono-fonts/DejaVuSansMono.ttf', name='DejaVu Sans Mono', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansEthiopic-Regular.ttf', name='Droid Sans Ethiopic', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/URWGothic-Demi.otf', name='URW Gothic', style='normal', variant='normal', weight=600, stretch='normal', size='scalable')) = 10.24
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-fonts/DejaVuSansCondensed-BoldOblique.ttf', name='DejaVu Sans', style='oblique', variant='normal', weight=700, stretch='condensed', size='scalable')) = 1.535
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/C059-BdIta.otf', name='C059', style='italic', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusSansNarrow-Bold.otf', name='Nimbus Sans Narrow', style='normal', variant='normal', weight=700, stretch='condensed', size='scalable')) = 10.535
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/URWGothic-DemiOblique.otf', name='URW Gothic', style='oblique', variant='normal', weight=600, stretch='normal', size='scalable')) = 11.24
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/C059-Roman.otf', name='C059', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,108 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusRoman-Regular.otf', name='Nimbus Roman', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansArmenian.ttf', name='Droid Sans Armenian', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/URWGothic-Book.otf', name='URW Gothic', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/cantarell/Cantarell-Thin.otf', name='Cantarell', style='normal', variant='normal', weight=100, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/P052-Roman.otf', name='P052', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-fonts/DejaVuSans-ExtraLight.ttf', name='DejaVu Sans', style='normal', variant='normal', weight=200, stretch='normal', size='scalable')) = 0.24
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-fonts/DejaVuSans-BoldOblique.ttf', name='DejaVu Sans', style='oblique', variant='normal', weight=700, stretch='normal', size='scalable')) = 1.335
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-Light.otf', name='Source Code Pro', style='normal', variant='normal', weight=300, stretch='normal', size='scalable')) = 10.145
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusSans-Italic.otf', name='Nimbus Sans', style='italic', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-Medium.otf', name='Source Code Pro', style='normal', variant='normal', weight=500, stretch='normal', size='scalable')) = 10.145
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusRoman-Bold.otf', name='Nimbus Roman', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/URWBookman-DemiItalic.otf', name='URW Bookman', style='italic', variant='normal', weight=600, stretch='normal', size='scalable')) = 11.24
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-fonts/DejaVuSans-Bold.ttf', name='DejaVu Sans', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 0.33499999999999996
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusMonoPS-Italic.otf', name='Nimbus Mono PS', style='italic', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansDevanagari-Regular.ttf', name='Droid Sans Devanagari', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/cantarell/Cantarell-Regular.otf', name='Cantarell', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-mono-fonts/DejaVuSansMono-BoldOblique.ttf', name='DejaVu Sans Mono', style='oblique', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/Z003-MediumItalic.otf', name='Z003', style='italic', variant='normal', weight=500, stretch='normal', size='scalable')) = 11.145
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/cantarell/Cantarell-Light.otf', name='Cantarell', style='normal', variant='normal', weight=300, stretch='normal', size='scalable')) = 10.145
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusSans-Bold.otf', name='Nimbus Sans', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansThai.ttf', name='Droid Sans Thai', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/cantarell/Cantarell-ExtraBold.otf', name='Cantarell', style='normal', variant='normal', weight=800, stretch='normal', size='scalable')) = 10.43
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusSansNarrow-Oblique.otf', name='Nimbus Sans Narrow', style='oblique', variant='normal', weight=400, stretch='condensed', size='scalable')) = 11.25
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-Bold.otf', name='Source Code Pro', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusMonoPS-Bold.otf', name='Nimbus Mono PS', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-It.otf', name='Source Code Pro', style='italic', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/cantarell/Cantarell-Bold.otf', name='Cantarell', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-Black.otf', name='Source Code Pro', style='normal', variant='normal', weight=900, stretch='normal', size='scalable')) = 10.525
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/P052-Bold.otf', name='P052', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/D050000L.otf', name='D050000L', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansTamil-Bold.ttf', name='Droid Sans Tamil', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-mono-fonts/DejaVuSansMono-Oblique.ttf', name='DejaVu Sans Mono', style='oblique', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,109 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansFallbackFull.ttf', name='Droid Sans Fallback', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/P052-BoldItalic.otf', name='P052', style='italic', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/URWBookman-Demi.otf', name='URW Bookman', style='normal', variant='normal', weight=600, stretch='normal', size='scalable')) = 10.24
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansHebrew-Regular.ttf', name='Droid Sans Hebrew', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/C059-Italic.otf', name='C059', style='italic', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSans.ttf', name='Droid Sans', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/P052-Italic.otf', name='P052', style='italic', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-Regular.otf', name='Source Code Pro', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/URWBookman-Light.otf', name='URW Bookman', style='normal', variant='normal', weight=300, stretch='normal', size='scalable')) = 10.145
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidKufi-Regular.ttf', name='Droid Arabic Kufi', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansJapanese.ttf', name='Droid Sans Japanese', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusSansNarrow-BoldOblique.otf', name='Nimbus Sans Narrow', style='oblique', variant='normal', weight=700, stretch='condensed', size='scalable')) = 11.535
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/google-droid-sans-fonts/DroidSansGeorgian.ttf', name='Droid Sans Georgian', style='normal', variant='normal', weight=400, stretch='normal', size='scalable')) = 10.05
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusRoman-Italic.otf', name='Nimbus Roman', style='italic', variant='normal', weight=400, stretch='normal', size='scalable')) = 11.05
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/C059-Bold.otf', name='C059', style='normal', variant='normal', weight=700, stretch='normal', size='scalable')) = 10.335
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/URWBookman-LightItalic.otf', name='URW Bookman', style='italic', variant='normal', weight=300, stretch='normal', size='scalable')) = 11.145
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-SemiboldIt.otf', name='Source Code Pro', style='italic', variant='normal', weight=600, stretch='normal', size='scalable')) = 11.24
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/adobe-source-code-pro/SourceCodePro-BlackIt.otf', name='Source Code Pro', style='italic', variant='normal', weight=900, stretch='normal', size='scalable')) = 11.525
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/urw-base35/NimbusSans-BoldItalic.otf', name='Nimbus Sans', style='italic', variant='normal', weight=700, stretch='normal', size='scalable')) = 11.335
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1428): findfont: score(FontEntry(fname='/usr/share/fonts/dejavu-sans-fonts/DejaVuSansCondensed.ttf', name='DejaVu Sans', style='normal', variant='normal', weight=400, stretch='condensed', size='scalable')) = 0.25
+2025-05-06 13:04:15,110 [DEBUG] matplotlib.font_manager (font_manager.py:1460): findfont: Matching sans\-serif:style=normal:variant=normal:weight=normal:stretch=normal:size=12.0 to DejaVu Sans ('/storage/homefs/jp22b083/SSI/S-R-1/.venv/lib64/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/DejaVuSans.ttf') with score of 0.050000.
+2025-05-06 13:04:15,252 [INFO] root (main.py:400): Generated visualizations in results/robust_bug_fixing_pipeline_20250506_130236/deepseek-r1-distill/visualizations
