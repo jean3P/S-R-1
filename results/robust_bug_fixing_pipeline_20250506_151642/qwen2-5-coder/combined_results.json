@@ -1,0 +1,37 @@
+[
+  {
+    "bug_id": "bug-values_to_high_level_objects-20250504210705-aca4210f",
+    "status": "success_test_passed",
+    "old_status": "passed",
+    "found_valid_patch": true,
+    "passed_tests": true,
+    "final_patch": "diff --git a/astropy/wcs/wcsapi/high_level_api.py b/astropy/wcs/wcsapi/high_level_api.py\nindex 1234567..abcdef8 100644\n--- a/astropy/wcs/wcsapi/high_level_api.py\n+++ b/astropy/wcs/wcsapi/high_level_api.py\n@@ -290,8 +290,8 @@\n     # Check the type of the input values - should be scalars or plain Numpy\n     # arrays, not e.g. Quantity. Note that we deliberately use type(w) because\n     # we don't want to match Numpy subclasses.\n-    for w in world_values:\n-        if not isinstance(w, numbers.Number) or not type(w) == np.ndarray:\n+    for w in world_values:\n+        if not isinstance(w, (numbers.Number, np.ndarray)):\n             raise TypeError(\n                 f\"Expected world coordinates as scalars or plain Numpy \"\n                 f\"arrays (got {type(w)})\"",
+    "iterations": 1,
+    "history": [
+      {
+        "iteration": 1,
+        "phase": "CoT",
+        "patch_hash": "bfcfc0d2cea1e24c1f3751445cc1e3a318741a581bb78b8af685235a89efe660",
+        "patch_text": "diff --git a/astropy/wcs/wcsapi/high_level_api.py b/astropy/wcs/wcsapi/high_level_api.py\nindex 1234567..abcdef8 100644\n--- a/astropy/wcs/wcsapi/high_level_api.py\n+++ b/astropy/wcs/wcsapi/high_level_api.py\n@@ -290,8 +290,8 @@\n     # Check the type of the input values - should be scalars or plain Numpy\n     # arrays, not e.g. Quantity. Note that we deliberately use type(w) because\n     # we don't want to match Numpy subclasses.\n-    for w in world_values:\n-        if not isinstance(w, numbers.Number) or not type(w) == np.ndarray:\n+    for w in world_values:\n+        if not isinstance(w, (numbers.Number, np.ndarray)):\n             raise TypeError(\n                 f\"Expected world coordinates as scalars or plain Numpy \"\n                 f\"arrays (got {type(w)})\"",
+        "explanation": "The bug in the `values_to_high_level_objects` function lies in the conditional statement at lines 293 and 294. The condition checks if each element in `world_values` is either a scalar number or a plain NumPy array. However, the logic is flawed because it uses `or` instead of `and`. This means that the condition will only pass if `w` is both a number and a NumPy array simultaneously, which is impossible. As a result, the function incorrectly raises a `TypeError` for valid inputs that are either numbers or NumPy arrays.\n\nAdditionally, the check for `type(w) == np.ndarray` is problematic because it does not account for cases where `w` could be a subclass of `np.ndarray`. Since the comment explicitly states that we do not want to match NumPy subclasses, this part of the check is correct, but the overall logic needs adjustment.\n\nThe test `test_objects_to_values` is failing because it provides valid inputs (scalars or NumPy arrays) that are being incorrectly flagged by the faulty conditional statement.\n\nTo fix the bug, we need to adjust the conditional statement to correctly check if each element in `world_values` is either a scalar number or a plain NumPy array. We can achieve this by using `isinstance(w, (numbers.Number, np.ndarray))`, which will pass if `w` is either a number or a NumPy array. This change ensures that the function correctly handles valid inputs without raising unnecessary exceptions.",
+        "instrumentation": [],
+        "test_result": {
+          "status": "pass",
+          "error_message": "",
+          "output": "Internet access disabled\n\u001b[1m============================= test session starts ==============================\u001b[0m\nplatform linux -- Python 3.11.11, pytest-8.3.5, pluggy-1.5.0 -- /storage/homefs/jp22b083/.conda/envs/astropy-dev/bin/python\ncachedir: .pytest_cache\nhypothesis profile 'ci' -> database=None, deadline=None, print_blob=True, derandomize=True, suppress_health_check=(HealthCheck.differing_executors,)\n\nRunning tests with Astropy version 0.0.0.\nRunning tests in /storage/homefs/jp22b083/SSI/S-R-1/data/repositories/astropy/astropy/astropy/wcs/wcsapi/tests/test_high_level_api.py::test_objects_to_values.\n\nDate: 2025-05-06T15:21:15\n\nPlatform: Linux-5.14.0-503.21.1.el9_5.x86_64-x86_64-with-glibc2.34\n\nExecutable: /storage/homefs/jp22b083/.conda/envs/astropy-dev/bin/python\n\nFull Python Version: \n3.11.11 (main, Dec 11 2024, 16:28:39) [GCC 11.2.0]\n\nencodings: sys: utf-8, locale: UTF-8, filesystem: utf-8\nbyteorder: little\nfloat info: dig: 15, mant_dig: 15\n\nPackage versions: \nNumpy: 1.26.4\nScipy: 1.15.2\nMatplotlib: 3.10.1\nh5py: 3.13.0\nPandas: 2.2.3\nPyERFA: 2.0.1.5\nCython: 3.0.12\nScikit-image: not available\nasdf-astropy: 0.7.1\npyarrow: 19.0.1\n\nUsing Astropy options: remote_data: none.\n\nCI: undefined\nARCH_ON_CI: undefined\nIS_CRON: undefined\n\nrootdir: /storage/homefs/jp22b083/SSI/S-R-1/data/repositories/astropy/astropy\nconfigfile: pyproject.toml\nplugins: remotedata-0.4.1, asdf-4.1.0, astropy-0.11.0, arraydiff-0.6.1, hypothesis-6.131.9, cov-6.1.1, astropy-header-0.2.2, mock-3.14.0, filter-subpackage-0.2.0, xdist-3.6.1, doctestplus-1.4.0\n\u001b[1mcollecting ... \u001b[0mcollected 1 item\n\nastropy/wcs/wcsapi/tests/test_high_level_api.py::test_objects_to_values \u001b[32mPASSED\u001b[0m\u001b[32m [100%]\u001b[0m\n\n\u001b[32m============================== \u001b[32m\u001b[1m1 passed\u001b[0m\u001b[32m in 0.90s\u001b[0m\u001b[32m ===============================\u001b[0m\n\n/storage/homefs/jp22b083/SSI/S-R-1/data/repositories/astropy/astropy/astropy/version.py:12: UserWarning: could not determine astropy package version; this indicates a broken installation\n  warnings.warn(\n",
+          "returncode": 0
+        },
+        "patch_valid": true,
+        "test_passed": true
+      }
+    ],
+    "processing_time": 105.23285293579102,
+    "stats": {
+      "total_iterations": 1,
+      "syntax_failures": 0,
+      "test_failures": 0,
+      "time_to_valid_patch": 102.88218140602112,
+      "time_to_solution": 105.23098635673523
+    }
+  }
+]

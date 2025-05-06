@@ -673,13 +673,17 @@ class RobustBugFixingPipeline:
         # Create self-reflection prompt with test feedback and previous attempts
         prompt = self._create_reflection_prompt(bug_data, previous_patch, error_message, iteration_logs)
 
+        logger.debug(f"Prompt for {self.model_name}:\n{prompt}")
+
         # Generate the improved solution
         response = model.generate(prompt)
+
+        logger.debug(f"Raw response from {self.model_name}:\n{response}")
 
         # Extract patch and explanation
         improved_patch, explanation = self._extract_patch_and_explanation(response)
 
-        logger.info(f"Generated patch with self-reflection ({len(improved_patch)} chars)")
+        logger.info(f"Generated patch with CoT ({len(improved_patch)} chars, explanation: {len(explanation)} chars)")
         return improved_patch, explanation
 
     def _generate_instrumentation(self, bug_data: Dict[str, Any], patch: str) -> List[str]:
@@ -802,7 +806,7 @@ class RobustBugFixingPipeline:
         bug_lines_str = ", ".join(map(str, bug_lines)) if bug_lines else "Unknown"
         problem_statement = bug_data.get("problem_statement", "")
         hint_text = bug_data.get("hint_text", "")
-        code_content = bug_data.get("code_content", "")
+        code_content = bug_data.get("code_content", "") or bug_data.get("complete_function", "")
         test_file = bug_data.get("test_file_path", "")
         test_function = bug_data.get("test_function_name", "")
 
@@ -902,6 +906,14 @@ class RobustBugFixingPipeline:
         Be precise. Think step-by-step.
         """
 
+        if self.model_name == "qwq-preview":
+            # Add extra explicit instructions
+            prompt += """
+            VERY IMPORTANT: You must create a patch that uses the ACTUAL code from the file, 
+            not abstract placeholders. Look at the provided bug context and make changes to
+            the EXACT lines of code shown, preserving all indentation and formatting.
+            """
+
         return prompt
 
     def _create_reflection_prompt(
@@ -930,7 +942,7 @@ class RobustBugFixingPipeline:
         bug_lines_str = ", ".join(map(str, bug_lines)) if bug_lines else "Unknown"
         problem_statement = bug_data.get("problem_statement", "")
         hint_text = bug_data.get("hint_text", "")
-        code_content = bug_data.get("code_content", "")
+        code_content = bug_data.get("code_content", "") or bug_data.get("complete_function", "")
         test_function = bug_data.get("test_function_name", "")
 
         # Extract test results from previous iterations
@@ -1747,6 +1759,8 @@ class RobustBugFixingPipeline:
         open_parens_indents = []
 
         for i, line in enumerate(lines):
+            if "index [current_sha]..[new_sha] [options]" in line:
+                continue
             # Process header lines (diff, ---, +++)
             if line.startswith('diff --git') or line.startswith('---') or line.startswith('+++'):
                 # Add header line directly
@@ -2058,6 +2072,8 @@ class RobustBugFixingPipeline:
         if not hunk_lines:
             return hunk_lines
 
+        indent = ''
+
         # Calculate current line counts
         current_minus_lines = sum(1 for line in hunk_lines if line.startswith('-') or line.startswith(' '))
         current_plus_lines = sum(1 for line in hunk_lines if line.startswith('+') or line.startswith(' '))
@@ -2158,11 +2174,16 @@ class RobustBugFixingPipeline:
             # Check if the last line is already a closing parenthesis
             last_line = fixed_lines[-1] if fixed_lines else ""
             if not (last_line.strip().endswith(')') or ')' in last_line):
-                # Add a closing parenthesis line with proper indentation
-                if indent:
-                    # Reduce indentation for closing parenthesis
-                    closing_indent = indent[:-4] if len(indent) >= 4 else ''
-                    fixed_lines.append(f' {closing_indent})')
+                # Only add closing parenthesis if there's an actual imbalance
+                # Count open and close parentheses in the entire hunk
+                open_count = sum(line.count('(') for line in hunk_lines)
+                close_count = sum(line.count(')') for line in hunk_lines)
+                if open_count > close_count:
+                    # Add a closing parenthesis line with proper indentation
+                    if indent:
+                        # Reduce indentation for closing parenthesis
+                        closing_indent = indent[:-4] if len(indent) >= 4 else ''
+                        fixed_lines.append(f' {closing_indent})')
 
         # Add additional context lines for error messages with f-strings
         if has_error_message and ("f\"" in ''.join(hunk_lines) or "f'" in ''.join(hunk_lines)):
@@ -2196,6 +2217,9 @@ class RobustBugFixingPipeline:
 
         while i < len(lines):
             line = lines[i]
+
+            if "index [current_sha]..[new_sha] [options]" in line:
+                continue
 
             # Process non-hunk lines directly
             if line.startswith('diff ') or line.startswith('---') or line.startswith('+++'):
