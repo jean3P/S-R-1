@@ -1,11 +1,9 @@
 # utils/file_utils.py
-import os
-import shutil
-import tempfile
+
 import json
 import logging
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Union
+from typing import Any, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +32,7 @@ class FileUtils:
     @staticmethod
     def write_json(data: Any, file_path: Union[str, Path]) -> bool:
         """
-        Write data to a JSON file.
+        Write data to a JSON file with improved formatting.
 
         Args:
             data: Data to write.
@@ -48,7 +46,7 @@ class FileUtils:
             FileUtils.ensure_directory(file_path.parent)
 
             with open(file_path, 'w', encoding='utf-8') as f:
-                json.dump(data, f, indent=2)
+                json.dump(data, f, indent=2, sort_keys=False)
             return True
         except Exception as e:
             logger.error(f"Error writing JSON file: {str(e)}")

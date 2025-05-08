@@ -1,0 +1,62 @@
+# configs/experiments/robust_pipeline.yaml
+
+# General configuration
+defaults:
+  data:
+    repositories: "/storage/homefs/jp22b083/SSI/S-R-1/data/repositories"
+    dataset_path: "/storage/homefs/jp22b083/SSI/S-R-1/src/data"
+    astropy_dataset_path: "/storage/homefs/jp22b083/SSI/S-R-1/src/data"
+    cache_dir: "/storage/homefs/jp22b083/SSI/S-R-1/cache"
+  models:
+    device: "cuda"  # Use "cpu" when no GPU available
+    precision: "float16"
+    enable_cache: true
+    temperature: 0.0
+    top_p: 1.0
+    max_tokens: 4096
+  evaluation:
+    results_dir: "results/robust_pipeline"
+    log_level: "INFO"
+
+# Pipeline parameters
+max_iterations: 5  # Maximum iterations per issue
+test_timeout: 300  # Test execution timeout in seconds
+memory_efficient: true  # Use memory optimization techniques
+use_instrumentation: true  # Enable code instrumentation
+
+# Model-specific settings
+models:
+  - name: "deepseek-r1-distill"
+    hf_path: "deepseek-ai/deepseek-coder-1.3b-base"
+    use_flash_attention: true
+    quantization:
+      bits: 4
+      group_size: 128
+    max_context_length: 8192
+
+  - name: "qwen2-5-coder"
+    hf_path: "Qwen/Qwen2-5.0B-Coder"
+    use_flash_attention: true
+    quantization:
+      bits: 4
+      group_size: 128
+    max_context_length: 8192
+
+  - name: "qwq-preview"
+    hf_path: "/storage/homefs/jp22b083/models/qwq-preview"
+    use_flash_attention: true
+    quantization:
+      bits: 4
+      group_size: 128
+    max_context_length: 16384
+
+default_model: "deepseek-r1-distill"
+
+# Prompt templates
+chain_of_thought:
+  max_loops: 3
+  prompt_template_file: "configs/prompts/chain_of_thought.yaml"
+
+self_reflection:
+  max_iterations: 3
+  prompt_template_file: "configs/prompts/self_reflection.yaml"

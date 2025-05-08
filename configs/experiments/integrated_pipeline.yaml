@@ -1,0 +1,92 @@
+# Integrated Pipeline Configuration
+# Configuration for the optimized bug fixing pipeline with integrated validation
+
+# Data configuration
+data:
+  repositories: "data/repositories"
+  astropy_synthetic_path: "src/data"
+  cache_dir: "data/cache"
+  max_context_length: 100000
+
+# Model configuration
+models:
+  device: "cuda"  # Set to "cpu" to disable GPU usage
+  precision: "fp16"
+  max_new_tokens: 3048
+  temperature: 0.2
+  top_p: 0.95
+  repo_cache_dir: "models/cache"
+
+# Reasoning configuration
+reasoning:
+  # Chain of Thought parameters
+  cot_steps: 5
+
+  # Tree of Thought parameters
+  tot_breadth: 3  # Maximum branches to explore
+  tot_depth: 3    # Depth of analysis in each branch
+
+  # Self-reflection parameters
+  reflection_iterations: 2  # Number of iterations for reflection
+
+# Logging configuration
+logging:
+  log_dir: "logs"
+  log_level: "INFO"
+
+# Evaluation configuration
+evaluation:
+  metrics: ["success_rate", "code_quality", "execution_time", "patch_quality"]
+  results_dir: "results/integrated_pipeline"
+
+# Model-specific configurations
+deepseek-r1-distill:
+  repo_id: "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
+  revision: "main"
+  trust_remote_code: true
+  quantization:
+    bits: 4
+    double_quant: true
+    quant_type: "nf4"
+  use_flash_attention: true
+  prompt_template: "<｜begin▁of▁sentence｜>\nHuman: {instruction}\n\nAssistant:"
+
+qwen2-5-coder:
+  repo_id: "Qwen/Qwen2.5-Coder-32B-Instruct"
+  revision: "main"
+  trust_remote_code: true
+  quantization:
+    bits: 4
+    double_quant: true
+    quant_type: "nf4"
+  use_flash_attention: true
+  prompt_template: "<|im_start|>system\nYou are a helpful AI assistant.\n<|im_end|>\n<|im_start|>user\n{instruction}\n<|im_end|>\n<|im_start|>assistant\n"
+
+qwq-preview:
+  repo_id: "Qwen/QwQ-32B-Preview"
+  revision: "main"
+  trust_remote_code: true
+  quantization:
+    bits: 4
+    double_quant: true
+    quant_type: "nf4"
+  use_flash_attention: true
+  prompt_template: "<|im_start|>system\nYou are a helpful AI assistant.\n<|im_end|>\n<|im_start|>user\n{instruction}\n<|im_end|>\n<|im_start|>assistant\n"
+
+# Pipeline Configuration
+pipeline:
+  # Maximum iterations
+  max_total_iterations: 8
+  max_rag_iterations: 2
+  max_tot_branches: 3
+  max_cot_iterations: 2
+
+  # Early stopping thresholds
+  rag_success_threshold: 0.9
+  tot_success_threshold: 0.95
+
+  # Depth score thresholds
+  location_specificity_threshold: 0.8
+  root_cause_confidence_threshold: 0.8
+  solution_completeness_threshold: 0.9
+  

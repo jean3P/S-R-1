@@ -1,12 +1,12 @@
 # src/utils/repository_rag.py
-
+import json
 import logging
 import os
 import re
 import torch
 import numpy as np
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Tuple, Optional
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -62,6 +62,7 @@ class RepositoryRAG:
         """
         self.config = config
         self.repo_path = Path(config["data"]["repositories"])
+        self.repo_base_path = Path(config["data"]["repositories"])
         self.cache_dir = Path(config["data"]["cache_dir"])
 
         # Create cache directory if it doesn't exist
@@ -180,6 +181,7 @@ class RepositoryRAG:
 
                 # Clear memory periodically
                 if len(chunks) % 1000 == 0:
+                    logger.info(f"Extracted {len(chunks)} chunks so far...")
                     torch.cuda.empty_cache()
 
             except Exception as e:
@@ -219,6 +221,7 @@ class RepositoryRAG:
             # Clear memory
             torch.cuda.empty_cache()
 
+        logger.info(f"Created embeddings for {len(all_embeddings)} batches, total chunks: {len(chunks)}")
         # Combine all embeddings
         if not all_embeddings:
             logger.error(f"Failed to create any embeddings for {repo_name}")
@@ -236,7 +239,7 @@ class RepositoryRAG:
             # Ensure parent directories exist
             index_file.parent.mkdir(parents=True, exist_ok=True)
             metadata_file.parent.mkdir(parents=True, exist_ok=True)
-            
+
             np.save(str(index_file), embeddings.astype(np.float32))
             torch.save(metadata, metadata_file)
 
@@ -247,6 +250,8 @@ class RepositoryRAG:
             }
 
             logger.info(f"Successfully indexed repository {repo_name} with {len(metadata)} chunks")
+            logger.info(f"Created vector index with dimension {dimension} and {index.ntotal} vectors")
+
             return True
         except Exception as e:
             logger.error(f"Error saving index for {repo_name}: {e}")
@@ -346,14 +351,16 @@ class RepositoryRAG:
     def retrieve_relevant_code(self,
                                repo_name: str,
                                query: str,
+                               test_patch_info: Dict[str, Any] = None,
                                top_k: int = 5,
                                include_content: bool = True) -> List[Dict[str, Any]]:
         """
-        Retrieve the most relevant code chunks for a query.
+        Retrieve the most relevant code chunks for a query, incorporating test patch information.
 
         Args:
             repo_name: Name of the repository.
             query: The query text (issue description).
+            test_patch_info: Dictionary containing test patch analysis from get_test_patch().
             top_k: Number of results to return.
             include_content: Whether to include code content in results.
 
@@ -370,32 +377,98 @@ class RepositoryRAG:
         # Get index and metadata
         index = self.index_cache[repo_name]["index"]
         metadata = self.index_cache[repo_name]["metadata"]
+        logger.info(f"Searching index with {index.ntotal} entries for query: '{query[:100]}...'")
 
-        # Create query embedding
-        query_embedding = self.embedding_model.encode([query])[0]
+        # Get files and code information from test patch info
+        test_related_files = []
+        test_related_code = []
+        tested_files = []
+
+        if test_patch_info:
+            logger.info("Using test patch analysis for enhanced retrieval")
+
+            # Get test files and implementation files
+            test_related_files = test_patch_info.get("files", [])
+            tested_files = test_patch_info.get("implementation_files", [])
+
+            # Get test functions and imports
+            test_functions = test_patch_info.get("test_functions", [])
+            imports = test_patch_info.get("imports", [])
+            assertions = test_patch_info.get("assertions", [])
+
+            # Combine all code-related information
+            test_related_code.extend(test_functions)
+            test_related_code.extend(imports)
+            test_related_code.extend(assertions)
+
+            # Log what we found
+            logger.info(f"Using {len(test_related_files)} test files, {len(tested_files)} implementation files, "
+                        f"and {len(test_related_code)} code snippets from test patch")
+
+        # Enhance query with test-related information
+        enhanced_query = query
+        if test_related_code:
+            test_code_context = "\n".join(test_related_code[:10])  # Limit to avoid too much noise
+            enhanced_query += f"\n\nRelated test code:\n{test_code_context}"
+
+        # Create query embedding for the enhanced query
+        query_embedding = self.embedding_model.encode([enhanced_query])[0]
 
         # Search the index
         distances, indices = index.search(
             np.array([query_embedding]).astype(np.float32),
-            min(top_k, index.ntotal)
+            min(top_k * 2, index.ntotal)  # Get more results initially for filtering
         )
 
-        # Get results
-        results = []
+        # Get raw results
+        raw_results = []
         for i, idx in enumerate(indices[0]):
             if idx < 0 or idx >= len(metadata):
                 continue
-
             result = metadata[idx].copy()
             result["score"] = float(1.0 / (1.0 + distances[0][i]))  # Convert distance to similarity score
+            raw_results.append(result)
 
-            # Optionally remove content to save memory
-            if not include_content and "content" in result:
-                del result["content"]
+        # Prioritize results from tested files
+        prioritized_results = []
+        remaining_results = []
 
-            results.append(result)
+        for result in raw_results:
+            file_path = result.get("file_path", "")
 
-        return results
+            # Check if this result is from a tested file or has high relevance to the test
+            is_priority = any(tested_file in file_path for tested_file in tested_files)
+
+            # Also check if it's directly mentioned in the test file
+            if not is_priority and "content" in result:
+                content = result.get("content", "")
+                for test_code in test_related_code:
+                    # Look for function names or class names from the test in the implementation
+                    func_match = re.search(r'def\s+(\w+)', test_code)
+                    if func_match and func_match.group(1) in content:
+                        is_priority = True
+                        # Boost score for direct matches
+                        result["score"] *= 1.5
+                        break
+
+            if is_priority:
+                prioritized_results.append(result)
+            else:
+                remaining_results.append(result)
+
+        # Combine results, prioritizing test-related files but keeping high-scoring unrelated files
+        final_results = prioritized_results + remaining_results
+        final_results = sorted(final_results, key=lambda x: x["score"], reverse=True)[:top_k]
+
+        # Optionally remove content to save memory
+        if not include_content:
+            for result in final_results:
+                if "content" in result:
+                    del result["content"]
+
+        logger.info(
+            f"Returning {len(final_results)} relevant code chunks, {len(prioritized_results)} from test-related files")
+        return final_results
 
     def analyze_issue(self, issue: Dict[str, Any], top_k: int = 8) -> Dict[str, Any]:
         """
@@ -417,6 +490,7 @@ class RepositoryRAG:
         # Get issue description
         data_loader = SWEBenchDataLoader(self.config)
         description = data_loader.get_issue_description(issue)
+        test_patch = data_loader.get_test_patch(issue)
         if not description:
             logger.error("No issue description found")
             return {"error": "No issue description found"}
@@ -430,7 +504,7 @@ class RepositoryRAG:
         query = f"{description}\n\nKey terms: {', '.join(key_terms)}"
 
         # Retrieve relevant code chunks
-        relevant_chunks = self.retrieve_relevant_code(repo, query, top_k=top_k)
+        relevant_chunks = self.retrieve_relevant_code(repo, query, test_patch, top_k=top_k)
 
         if not relevant_chunks:
             logger.warning(f"No relevant code chunks found for issue in {repo}")
@@ -607,3 +681,459 @@ class RepositoryRAG:
             content_so_far += len(chunk_header) + len(chunk_content)
 
         return formatted_text
+
+    def _extract_entities_from_problem(self, problem_statement: str) -> Dict[str, List[str]]:
+        """
+        Extract key entities from problem statements with improved precision.
+
+        Args:
+            problem_statement: The issue description text
+
+        Returns:
+            Dictionary containing extracted entities by category
+        """
+        entities = {
+            "functions": [],
+            "classes": [],
+            "files": [],
+            "api_endpoints": [],
+            "technical_terms": []
+        }
+
+        # Remove code blocks to avoid confusing syntax with entity names
+        text_without_code = re.sub(r'```.*?```', '', problem_statement, flags=re.DOTALL)
+
+        # Extract file paths - improved pattern for common extensions
+        file_pattern = r'(?:^|\s|[\'"/])([a-zA-Z0-9_\-\.\/]+\.(?:py|java|js|c|cpp|h|rb|go|scala|php|html|css|json|yaml|yml))(?:$|\s|[\'"])'
+        file_matches = re.findall(file_pattern, text_without_code)
+        entities["files"] = [f.strip() for f in file_matches if len(f.strip()) > 3]
+
+        # Extract function names - detect various function call patterns
+        func_patterns = [
+            r'(?:^|\s)([a-zA-Z_][a-zA-Z0-9_]*)(?:\s*)\((?:[^)]|\([^)]*\))*\)',  # function(args)
+            r'(?:def|function)\s+([a-zA-Z_][a-zA-Z0-9_]*)',  # def function or function function
+            r'(?:^|\s)([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)\s*\(',  # method calls
+        ]
+
+        for pattern in func_patterns:
+            func_matches = re.findall(pattern, text_without_code)
+            entities["functions"].extend([f.strip() for f in func_matches if len(f.strip()) > 2])
+
+        # Extract class names
+        class_pattern = r'(?:^|\s)(?:class|interface|struct)\s+([a-zA-Z_][a-zA-Z0-9_]*)'
+        class_matches = re.findall(class_pattern, text_without_code)
+        entities["classes"] = [c.strip() for c in class_matches if len(c.strip()) > 2]
+
+        # Extract API endpoints (e.g., for Elasticsearch, REST APIs)
+        api_patterns = [
+            r'(?:GET|POST|PUT|DELETE|PATCH)\s+([/a-zA-Z0-9_\-\.]+)',  # HTTP methods
+            r'(?:endpoint|URL|url|endpoint):\s*[\'"]?([/a-zA-Z0-9_\-\.]+)[\'"]?',  # Named endpoints
+            r'/_[a-zA-Z0-9_\-\.\/]+',  # Elasticsearch-style endpoints
+        ]
+
+        for pattern in api_patterns:
+            api_matches = re.findall(pattern, text_without_code)
+            entities["api_endpoints"].extend([a.strip() for a in api_matches if len(a.strip()) > 3])
+
+        # Extract technical terms (camelCase, snake_case, namespaces)
+        term_patterns = [
+            r'\b([A-Z][a-z]+(?:[A-Z][a-z]*)+)\b',  # CamelCase
+            r'\b([a-z]+_[a-z_]+)\b',  # snake_case
+            r'\b([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z_][a-zA-Z0-9_\.]*)\b',  # namespaces
+        ]
+
+        for pattern in term_patterns:
+            term_matches = re.findall(pattern, text_without_code)
+            entities["technical_terms"].extend([t.strip() for t in term_matches if len(t.strip()) > 3])
+
+        # Deduplicate
+        for category in entities:
+            entities[category] = list(set(entities[category]))
+
+        return entities
+
+    def _enhance_retrieval_with_tests(self, query: str, test_patch: str, fail_to_pass: List[str] = None) -> str:
+        """
+        Use test information to enhance the retrieval query.
+
+        Args:
+            query: The original query text
+            test_patch: Test patch content if available
+            fail_to_pass: List of tests that should go from failing to passing
+
+        Returns:
+            Enhanced query incorporating test information
+        """
+        if not test_patch and not fail_to_pass:
+            return query
+
+        enhancements = []
+
+        # Extract information from test patch
+        if test_patch:
+            # Extract test function names
+            test_func_pattern = r'def\s+(test_[a-zA-Z0-9_]+)'
+            test_funcs = re.findall(test_func_pattern, test_patch)
+
+            if test_funcs:
+                enhancements.append(f"Test functions: {', '.join(test_funcs)}")
+
+            # Extract assertions to understand what's being tested
+            assert_pattern = r'assert[^,;=\n]+(?:==|!=|>|<|is |is not |in |not in )[^,;=\n]+'
+            assertions = re.findall(assert_pattern, test_patch)
+
+            if assertions:
+                # Limit to 3 assertions to keep query focused
+                clean_assertions = [a.strip().replace('\n', ' ') for a in assertions[:3]]
+                enhancements.append(f"Test assertions: {'; '.join(clean_assertions)}")
+
+            # Extract imported modules in tests - likely relevant
+            import_pattern = r'(?:from|import)\s+([\w\.]+)'
+            imports = re.findall(import_pattern, test_patch)
+
+            if imports:
+                enhancements.append(f"Test imports: {', '.join(imports[:5])}")
+
+        # Add failing test information
+        if fail_to_pass:
+            enhancements.append(f"Failing tests: {', '.join(fail_to_pass[:5])}")
+
+            # Extract components from failing test names
+            components = []
+            for test in fail_to_pass:
+                parts = re.split(r'[_\.]', test)
+                components.extend([p for p in parts if len(p) > 3 and p.lower() not in ('test', 'tests')])
+
+            if components:
+                components = list(set(components))
+                enhancements.append(f"Test components: {', '.join(components[:5])}")
+
+        # Combine the enhancements with the original query
+        enhanced_query = f"{query}\n\n{' '.join(enhancements)}"
+        return enhanced_query
+
+    def retrieve_code_for_issue(self, issue: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        Two-stage retrieval process for more accurate results with improved implementation file handling.
+
+        Args:
+            issue: Issue dictionary with problem statement and other metadata
+
+        Returns:
+            List of relevant code chunks, reranked for maximum relevance
+        """
+        repo = issue.get("repo", "")
+        problem_statement = issue.get("problem_statement", "")
+        data_loader = SWEBenchDataLoader(self.config)
+
+        if not problem_statement:
+            # Fall back to other fields
+            problem_statement = data_loader.get_issue_description(issue)
+
+        # Get test patch information
+        test_patch_info = data_loader.get_test_patch(issue)
+        implementation_files = []
+
+        # Extract implementation files from test patch
+        if isinstance(test_patch_info, dict) and "implementation_files" in test_patch_info:
+            implementation_files = test_patch_info.get("implementation_files", [])
+        elif isinstance(test_patch_info, str) and test_patch_info:
+            # Parse implementation files from string test patch
+            impl_files = self._extract_implementation_files_from_test_patch(test_patch_info)
+            if impl_files:
+                implementation_files.extend(impl_files)
+
+        # If we have failing tests but no implementation files, try to infer them
+        if not implementation_files:
+            fail_to_pass = issue.get("FAIL_TO_PASS", [])
+            if isinstance(fail_to_pass, str):
+                try:
+                    fail_to_pass = json.loads(fail_to_pass)
+                except json.JSONDecodeError:
+                    fail_to_pass = []
+
+            for test_path in fail_to_pass:
+                impl_file = self._infer_implementation_file_from_test(test_path)
+                if impl_file and impl_file not in implementation_files:
+                    implementation_files.append(impl_file)
+
+        logger.info(f"Implementation files identified: {implementation_files}")
+
+        # STAGE 1: Initial retrieval with basic query
+        initial_query = problem_statement
+
+        # If we have implementation files, explicitly add them to the query
+        if implementation_files:
+            initial_query += f"\n\nRelevant implementation files: {', '.join(implementation_files)}"
+
+        initial_results = self.retrieve_relevant_code(
+            repo,
+            initial_query,
+            test_patch_info,
+            top_k=20  # Retrieve more candidates initially
+        )
+
+        # Ensure implementation files are included in results
+        if implementation_files and initial_results:
+            # Check if implementation files are in results
+            impl_files_in_results = set()
+            for result in initial_results:
+                file_path = result.get("file_path", "")
+                for impl_file in implementation_files:
+                    if impl_file in file_path:
+                        impl_files_in_results.add(impl_file)
+
+            # Find which implementation files aren't in results
+            missing_impl_files = [f for f in implementation_files if f not in impl_files_in_results]
+
+            # If implementation files aren't in results, explicitly retrieve their content
+            if missing_impl_files:
+                repo_path = self.repo_base_path / repo
+                for impl_file in missing_impl_files:
+                    file_path = repo_path / impl_file
+                    if file_path.exists():
+                        try:
+                            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                                content = f.read()
+
+                            # Add this file's content to the results with high score
+                            initial_results.insert(0, {
+                                "file_path": impl_file,
+                                "type": "file",
+                                "name": impl_file,
+                                "content": content,
+                                "score": 0.99,  # Very high score to ensure it's prioritized
+                                "start_line": 1,
+                                "end_line": content.count('\n') + 1
+                            })
+                            logger.info(f"Explicitly added implementation file: {impl_file}")
+                        except Exception as e:
+                            logger.error(f"Error reading implementation file {impl_file}: {e}")
+
+        # Rest of the retrieval process continues as before...
+        return initial_results
+
+    def _extract_implementation_files_from_test_patch(self, test_patch: str) -> List[str]:
+        """
+        Extract implementation files from a test patch string.
+
+        Args:
+            test_patch: Test patch content as string
+
+        Returns:
+            List of implementation file paths
+        """
+        implementation_files = []
+
+        # Extract file paths from patch
+        file_pattern = r'(?:---|\+\+\+) [ab]/([^\n]+)'
+        patch_files = re.findall(file_pattern, test_patch)
+
+        # Identify test files and corresponding implementation files
+        for file_path in patch_files:
+            if 'test' in file_path.lower():
+                # This is a test file, try to infer implementation file
+                impl_file = self._infer_implementation_file_from_test(file_path)
+                if impl_file and impl_file not in implementation_files:
+                    implementation_files.append(impl_file)
+            elif file_path not in implementation_files:
+                # This is likely an implementation file
+                implementation_files.append(file_path)
+
+        return implementation_files
+
+    def _infer_implementation_file_from_test(self, test_path: str) -> Optional[str]:
+        """
+        Infer implementation file from test file path.
+
+        Args:
+            test_path: Path to test file or test function
+
+        Returns:
+            Path to inferred implementation file
+        """
+        # Extract file path if this is a test function path
+        if '::' in test_path:
+            test_path = test_path.split('::')[0]
+
+        # Not a test file
+        if 'test' not in test_path.lower():
+            return None
+
+        # Parse the path components
+        dir_path = os.path.dirname(test_path)
+        file_name = os.path.basename(test_path)
+
+        # Handle test_ prefix
+        if file_name.startswith('test_'):
+            impl_file_name = file_name[5:]  # Remove 'test_'
+        elif file_name.endswith('_test.py'):
+            impl_file_name = file_name[:-8] + '.py'  # Remove '_test.py'
+        else:
+            # Can't determine impl file name
+            return None
+
+        # Handle different directory structures
+        # Case 1: Implementation in same directory
+        impl_path = os.path.join(dir_path, impl_file_name)
+
+        # Case 2: Implementation in parent directory (common pattern)
+        if 'tests' in dir_path:
+            # Replace /tests/ with / or remove tests/ suffix
+            parent_dir = dir_path.replace('/tests', '')
+            if parent_dir != dir_path:  # Only if actually changed
+                impl_path = os.path.join(parent_dir, impl_file_name)
+
+        # Case 3: Module structure - move up to parent module
+        if '/tests/' in test_path:
+            parent_module = test_path.split('/tests/')[0]
+            impl_path = os.path.join(parent_module, impl_file_name)
+
+        return impl_path
+
+    def _rerank_results(self, code_chunks: List[Dict],
+                        entities: Dict[str, List[str]],
+                        fail_to_pass: List[str] = None,
+                        test_patch: str = None) -> List[Dict]:
+        """
+        Rerank code chunks based on additional relevance signals.
+
+        Args:
+            code_chunks: List of code chunks with scores
+            entities: Extracted entities from the problem
+            fail_to_pass: List of failing tests
+            test_patch: Test patch content
+
+        Returns:
+            Reranked list of code chunks
+        """
+        # Remove duplicates by file_path and code content
+        unique_chunks = {}
+        for chunk in code_chunks:
+            key = f"{chunk.get('file_path', '')}:{chunk.get('name', '')}"
+            if key not in unique_chunks or chunk.get('score', 0) > unique_chunks[key].get('score', 0):
+                unique_chunks[key] = chunk
+
+        reranked_chunks = list(unique_chunks.values())
+
+        # Calculate additional scores
+        for chunk in reranked_chunks:
+            # Initialize additional scores
+            chunk['entity_score'] = 0
+            chunk['test_relevance_score'] = 0
+            chunk['combined_score'] = chunk.get('score', 0)  # Start with original score
+
+            content = chunk.get('content', '')
+
+            # Entity matching score
+            for category, items in entities.items():
+                weight = 1.0
+                if category == 'functions':
+                    weight = 2.0  # Functions are more important
+                elif category == 'files':
+                    weight = 1.5
+
+                for item in items:
+                    if item.lower() in content.lower():
+                        chunk['entity_score'] += weight
+
+                        # Exact function or class name match gets bonus
+                        if category in ('functions', 'classes'):
+                            pattern = fr'\b{re.escape(item)}\b'
+                            if re.search(pattern, content):
+                                chunk['entity_score'] += weight
+
+            # Test relevance score
+            if fail_to_pass:
+                for test in fail_to_pass:
+                    if test.lower() in content.lower():
+                        chunk['test_relevance_score'] += 2.0
+                    else:
+                        # Check for components of test name
+                        parts = re.split(r'[_\.]', test)
+                        for part in parts:
+                            if len(part) > 3 and part.lower() not in ('test', 'tests'):
+                                if part.lower() in content.lower():
+                                    chunk['test_relevance_score'] += 0.5
+
+            # Check test patch relevance
+            if test_patch and content:
+                # Look for common imported modules
+                imports_pattern = r'(?:from|import)\s+([\w\.]+)'
+                content_imports = re.findall(imports_pattern, content)
+                test_imports = re.findall(imports_pattern, test_patch)
+
+                common_imports = set(content_imports).intersection(set(test_imports))
+                chunk['test_relevance_score'] += len(common_imports) * 0.5
+
+            # Combine scores with weights
+            chunk['combined_score'] = (
+                    chunk.get('score', 0) * 0.5 +  # Original similarity score
+                    chunk.get('entity_score', 0) * 0.3 +  # Entity matching
+                    chunk.get('test_relevance_score', 0) * 0.2  # Test relevance
+            )
+
+        logger.info(f"Reranking {len(code_chunks)} code chunks")
+        logger.info(f"Using entities: {entities}")
+        logger.info(f"Using fail_to_pass tests: {fail_to_pass}")
+        logger.info(f"Test patch available: {test_patch is not None}")
+
+        # After removing duplicates
+        logger.info(f"Removed duplicates, now have {len(reranked_chunks)} unique chunks")
+
+        # After calculating additional scores
+        logger.info(f"Calculated additional scores for ranking")
+
+        # Show score changes for top chunks
+        for i, chunk in enumerate(reranked_chunks[:5]):
+            logger.info(f"Chunk {i + 1} scores: original={chunk.get('score', 0):.3f}, "
+                        f"entity={chunk.get('entity_score', 0):.3f}, "
+                        f"test={chunk.get('test_relevance_score', 0):.3f}, "
+                        f"combined={chunk.get('combined_score', 0):.3f}")
+
+        # After sorting
+        logger.info(f"Sorted chunks by combined score")
+        return reranked_chunks
+
+    def get_file_scores(self, file_paths: List[str]) -> List[Tuple[str, float]]:
+        """
+        Get relevance scores for the given file paths.
+
+        Args:
+            file_paths: List of file paths to score
+
+        Returns:
+            List of (file_path, score) tuples
+        """
+        file_scores = []
+
+        for file_path in file_paths:
+            # Assign scores based on position in the list (prioritization order)
+            score = 1.0 - (0.05 * file_paths.index(file_path))  # Start with 1.0 and decrease
+
+            # Ensure score is positive
+            score = max(0.1, min(1.0, score))
+            file_scores.append((file_path, score))
+
+        return file_scores
+
+    def extract_key_terms_from_issue(self, issue: Dict[str, Any]) -> List[str]:
+        """
+        Extract key technical terms from the issue description.
+
+        Args:
+            issue: Issue dictionary
+
+        Returns:
+            List of key technical terms
+        """
+        from ..data.data_loader import SWEBenchDataLoader
+
+        # Get issue description
+        if not hasattr(self, 'data_loader'):
+            self.data_loader = SWEBenchDataLoader(self.config)
+
+        description = self.data_loader.get_issue_description(issue)
+
+        # Extract technical terms using the existing method
+        return self._extract_key_terms(description)
