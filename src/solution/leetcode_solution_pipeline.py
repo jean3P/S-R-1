@@ -231,20 +231,33 @@ class LeetCodeSolutionPipeline:
 
         # Perform additional evaluation with code_eval if enabled
         code_eval_results = None
+        code_eval_round_results = None  # Add this for round-by-round evaluation
+
         if self.code_evaluator is not None and solution_found:
             logger.info("Performing additional evaluation with code_eval")
 
-            # Collect all solutions that passed our internal tests
-            passing_solutions = [s["solution"] for s in final_solutions]
+            # Collect ALL solutions from ALL rounds (not just the passing ones)
+            all_solutions = []
 
-            # Add the reference solution if available
+            # Collect solutions from all rounds
+            for round_log in reflection_logs:
+                for candidate in round_log["candidates"]:
+                    all_solutions.append(candidate["solution"])
+
+            # Add the reference solution if available and not already included
             if problem_data.get("reference_solution"):
-                passing_solutions.append(problem_data["reference_solution"])
+                all_solutions.append(problem_data["reference_solution"])
 
-            # Run code_eval evaluation
+            # Run code_eval evaluation on all solutions
             code_eval_results = self.code_evaluator.evaluate_solutions(
                 problem_data,
-                passing_solutions
+                all_solutions
+            )
+
+            # OPTIONAL: Also evaluate round by round
+            code_eval_round_results = self.evaluate_by_round(
+                problem_data,
+                reflection_logs
             )
 
         # Prepare final result
@@ -257,16 +270,20 @@ class LeetCodeSolutionPipeline:
             "status": "solved" if solution_found else "unsolved",
             "best_solution": best_solution["solution"] if best_solution else None,
             "passed_solutions": [s["solution"] for s in final_solutions],
+            "all_solutions": [c["solution"] for c in candidates],  # ADD THIS LINE
             "total_candidates": stats["candidates_generated"],
             "rounds": stats["rounds_completed"],
             "reflection_logs": reflection_logs,
             "stats": stats,
             "processing_time": total_time
         }
-
         # Add code_eval results if available
         if code_eval_results:
             result["code_eval_results"] = code_eval_results
+
+        # Add round-by-round evaluation if available
+        if code_eval_round_results:
+            result["code_eval_round_results"] = code_eval_round_results
 
         # Save result to file
         self._save_results(problem_data["problem_id"], result)
@@ -749,3 +766,43 @@ class LeetCodeSolutionPipeline:
             logger.info(f"Saved results to {result_file}")
         except Exception as e:
             logger.error(f"Error saving results: {e}")
+
+    def evaluate_by_round(self, problem_data: Dict[str, Any], reflection_logs: List[Dict]) -> Dict[str, Any]:
+        """
+        Evaluate solutions round by round to see improvement over iterations.
+
+        Args:
+            problem_data: Problem data dictionary
+            reflection_logs: Logs from all reflection rounds
+
+        Returns:
+            Dictionary with round-by-round evaluation results
+        """
+        if self.code_evaluator is None:
+            return {"error": "code_eval not enabled"}
+
+        round_evaluations = []
+        cumulative_solutions = []
+
+        for round_log in reflection_logs:
+            # Add this round's solutions to cumulative list
+            round_solutions = [c["solution"] for c in round_log["candidates"]]
+            cumulative_solutions.extend(round_solutions)
+
+            # Evaluate solutions up to this round
+            round_eval = self.code_evaluator.evaluate_solutions(
+                problem_data,
+                cumulative_solutions.copy()
+            )
+
+            round_evaluations.append({
+                "round": round_log["round"],
+                "solutions_count": len(cumulative_solutions),
+                "pass_at_k": round_eval.get("pass_at_k", {}),
+                "error": round_eval.get("error", None)
+            })
+
+        return {
+            "round_evaluations": round_evaluations,
+            "final_pass_at_k": round_evaluations[-1]["pass_at_k"] if round_evaluations else {}
+        }
