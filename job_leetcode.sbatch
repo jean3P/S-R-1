@@ -8,7 +8,7 @@
 #SBATCH --gres=gpu:h100:2               # 2 GPUs → 32CPU, 180GB max
 #SBATCH --cpus-per-gpu=16
 #SBATCH --mem-per-gpu=90G
-#SBATCH --time=24:00:00
+#SBATCH --time=3-00:00:00
 #SBATCH --output=logs/%x_%j.out.log
 ###############################################################################
 # job_leetcode.sbatch
@@ -105,7 +105,7 @@ if [ -f "src/scripts/download_leetcode_dataset.py" ]; then
         --output-dir "data/leetcode" \
         --cache-dir "data/huggingface_cache" \
         --version "v0.3.1" \
-        --limit 50 \
+        --limit 60 \
         --log-level "INFO"
 else
     # Fallback to direct dataset loading in Python
@@ -561,10 +561,11 @@ PY
 
 #–– Benchmark configs ––------------------------------------------------------
 MODELS=("deepseek-r1-distill" "qwen2-5-coder" "qwq-preview")
-NUM_PROBLEMS=1                        # Number of problems to process
-NUM_CANDIDATES=3                       # Candidates per round
-NUM_ROUNDS=3                           # Self-reflection rounds
-DIFFICULTY="Medium"                    # Problem difficulty (Easy, Medium, Hard)
+NUM_PROBLEMS=25                       # Number of problems to process
+INITIAL_K=3                          # Initial solutions to generate
+BRANCH_FACTOR=3                      # Solutions to generate per failed solution
+MAX_DEPTH=3                          # Maximum tree depth
+DIFFICULTIES=("Easy" "Medium" "Hard")  # Problem difficulty (Easy, Medium, Hard)
 MEMORY_EFFICIENT=true                  # Use memory-efficient processing
 
 # Set additional arguments based on config
@@ -588,6 +589,10 @@ data:
 leetcode:
   version: "v0.3.1"
   preprocessed_file: "data/leetcode/leetcode_problems.json"
+  initial_solutions: $INITIAL_K
+  branch_factor: $BRANCH_FACTOR
+  max_depth: $MAX_DEPTH
+  early_stopping: false  # Explicitly set to false in config
 
 evaluation:
   use_code_eval: true
@@ -597,40 +602,49 @@ evaluation:
     timeout: 3.0
 EOF
 
-#–– Run LeetCode solver for each model ––-----------------------------------
+#–– Run LeetCode solver for each model and difficulty ––-------------------
 for MODEL in "${MODELS[@]}"; do
     echo -e "\n\n============================================================"
     echo -e "=== Running LeetCode Solution Generator with $MODEL ==="
     echo -e "============================================================\n"
 
-    # Clear GPU memory before running each model
-    python - <<'PY'
+    # Create output directory for this model
+    OUTDIR=$RESULTS/$MODEL
+    mkdir -p "$OUTDIR"
+
+    for DIFFICULTY in "${DIFFICULTIES[@]}"; do
+        echo -e "\n\n------------------------------------------------------------"
+        echo -e "--- Processing $NUM_PROBLEMS $DIFFICULTY problems ---"
+        echo -e "------------------------------------------------------------\n"
+
+        # Clear GPU memory before running each difficulty
+        python - <<'PY'
 import torch
 torch.cuda.empty_cache()
 print("[+] Cleared CUDA cache")
 PY
 
-    # Create output directory for this model
-    OUTDIR=$RESULTS/$MODEL
-    mkdir -p "$OUTDIR"
+        # Run the solution generator with current model and difficulty
+        python -m src.scripts.run_leetcode_solver \
+            --config configs/experiments/leetcode_solver_run_${TS}.yaml \
+            --model "$MODEL" \
+            --difficulty "$DIFFICULTY" \
+            --limit $NUM_PROBLEMS \
+            --initial-k $INITIAL_K \
+            --branch-factor $BRANCH_FACTOR \
+            --max-depth $MAX_DEPTH \
+            --output "$OUTDIR" \
+            --log-level "DEBUG" \
+            --disable-quantization \
+            --disable-flash-attention \
+            --use-code-eval \
+            "${ARGS[@]}"
 
-    # Run the solution generator with current model
-    python -m src.scripts.run_leetcode_solver \
-        --config configs/experiments/leetcode_solver_run_${TS}.yaml \
-        --model "$MODEL" \
-        --difficulty "$DIFFICULTY" \
-        --limit $NUM_PROBLEMS \
-        --candidates $NUM_CANDIDATES \
-        --rounds $NUM_ROUNDS \
-        --output "$OUTDIR" \
-        --log-level "DEBUG" \
-        --disable-quantization \
-        --disable-flash-attention \
-        --use-code-eval \
-        "${ARGS[@]}"
+        echo -e "\n=== Finished $DIFFICULTY problems for $MODEL: $(date) ==="
+        nvidia-smi
+    done
 
-    echo -e "\n=== Finished running $MODEL: $(date) ==="
-    nvidia-smi
+    echo -e "\n=== Finished running all difficulties for $MODEL: $(date) ==="
 done
 
 #–– Generate comparison report ––--------------------------------------------

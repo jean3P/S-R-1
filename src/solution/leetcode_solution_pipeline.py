@@ -28,6 +28,7 @@ class LeetCodeSolutionPipeline:
             config: Configuration object.
             model_name: Name of the model to use, or None to use default.
         """
+        self.num_candidates = None
         self.config = config
         self.model_name = model_name or config.get("default_model", "deepseek-r1-distill")
         self.model = None  # Lazy-load model on demand
@@ -35,10 +36,11 @@ class LeetCodeSolutionPipeline:
         # Initialize test runner
         self.test_runner = LeetCodeTestRunner(config)
 
-        # Configure parameters
-        self.num_candidates = config.get("leetcode", {}).get("num_candidates", 3)
-        self.num_reflection_rounds = config.get("leetcode", {}).get("reflection_rounds", 3)
-        self.max_test_retries = config.get("leetcode", {}).get("max_test_retries", 2)
+        # Configure tree-based parameters
+        self.initial_k = config.get("leetcode", {}).get("initial_solutions", 3)
+        self.branch_factor = config.get("leetcode", {}).get("branch_factor", 3)  # k parameter from professor
+        self.max_depth = config.get("leetcode", {}).get("max_depth", 3)
+        self.early_stopping = config.get("leetcode", {}).get("early_stopping", True)
 
         # Cache for tested solutions
         self.solution_cache = {}
@@ -59,6 +61,8 @@ class LeetCodeSolutionPipeline:
             self.code_evaluator = None
 
         logger.info(f"Initialized LeetCodeSolutionPipeline with model {self.model_name}")
+        logger.info(f"Tree parameters: initial_k={self.initial_k}, branch_factor={self.branch_factor}, max_depth={self.max_depth}")
+
 
     def _get_model(self):
         """Lazy-load model when needed."""
@@ -76,7 +80,7 @@ class LeetCodeSolutionPipeline:
 
     def solve_problem(self, problem_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Solve a LeetCode problem using multi-round self-reflection.
+        Solve a LeetCode problem using tree-based branching approach.
 
         Args:
             problem_data: Problem data dictionary.
@@ -84,141 +88,96 @@ class LeetCodeSolutionPipeline:
         Returns:
             Dictionary with solution results.
         """
-        logger.info(f"Starting solution generation for problem {problem_data['problem_id']}")
+        logger.info(f"Starting tree-based solution generation for problem {problem_data['problem_id']}")
         start_time = time.time()
 
         # Initialize tracking
-        reflection_logs = []
-        candidates = []
-        final_solutions = []
+        solution_tree = []
+        all_solutions = []
         best_solution = None
         solution_found = False
 
         # Track statistics
         stats = {
-            "rounds_completed": 0,
+            "nodes_explored": 0,
             "candidates_generated": 0,
             "tests_passed": 0,
             "tests_failed": 0,
             "test_errors": 0,
-            "execution_times": []
+            "execution_times": [],
+            "tree_depth": 0
         }
 
-        # Round 1: Initial solutions using Chain of Thought
         try:
-            round_start_time = time.time()
+            # Generate initial k solutions
             initial_candidates = self._generate_initial_candidates(problem_data)
 
-            round_log = {
-                "round": 1,
-                "phase": "Initial Generation",
-                "candidates": [],
-                "execution_time": time.time() - round_start_time
-            }
-
-            # Test each candidate
             for i, candidate in enumerate(initial_candidates):
+                stats["candidates_generated"] += 1
+                stats["nodes_explored"] += 1
+
+                # Evaluate immediately
                 candidate_hash = self._calculate_solution_hash(candidate)
                 test_result = self._test_solution(problem_data, candidate)
 
-                candidate_log = {
-                    "candidate_id": f"1_{i + 1}",
+                solution_node = {
+                    "node_id": f"0_{i}",
                     "solution": candidate,
                     "solution_hash": candidate_hash,
                     "test_result": test_result,
+                    "depth": 0,
+                    "parent_id": None,
+                    "children": [],
                     "passed": test_result.get("status") == "pass"
                 }
 
-                round_log["candidates"].append(candidate_log)
-                candidates.append(candidate_log)
+                all_solutions.append(solution_node)
 
                 # Update statistics
-                stats["candidates_generated"] += 1
                 if test_result.get("status") == "pass":
                     stats["tests_passed"] += 1
                     solution_found = True
+
                     if best_solution is None:
-                        best_solution = candidate_log
+                        best_solution = solution_node
+
+                    # Early stopping check
+                    if self.early_stopping:
+                        logger.info(
+                            f"Solution found in initial generation (node {solution_node['node_id']}), stopping early")
+                        solution_tree.append(solution_node)
+                        break
                 elif test_result.get("status") == "fail":
                     stats["tests_failed"] += 1
                 else:
                     stats["test_errors"] += 1
 
-            reflection_logs.append(round_log)
-            stats["rounds_completed"] += 1
-
-            # If we already found a solution, we might skip further rounds
-            if solution_found and self.config.get("leetcode", {}).get("early_stopping", False):
-                logger.info(f"Solution found in round 1, skipping further rounds due to early stopping")
-                final_solutions.append(best_solution)
-            else:
-                # Continue with reflection rounds
-                for round_num in range(2, self.num_reflection_rounds + 1):
-                    round_start_time = time.time()
-
-                    # Generate improved solutions based on previous rounds
-                    improved_candidates = self._generate_improved_candidates(
+                # Branch from failed solutions
+                if test_result.get("status") != "pass":
+                    self._branch_from_failure(
+                        solution_node,
                         problem_data,
-                        candidates,
-                        reflection_logs
+                        all_solutions,
+                        stats,
+                        depth=1
                     )
 
-                    round_log = {
-                        "round": round_num,
-                        "phase": f"Reflection Round {round_num - 1}",
-                        "candidates": [],
-                        "execution_time": time.time() - round_start_time
-                    }
+                solution_tree.append(solution_node)
 
-                    # Test each improved candidate
-                    for i, candidate in enumerate(improved_candidates):
-                        candidate_hash = self._calculate_solution_hash(candidate)
+                # Check if we found a solution during branching
+                if self.early_stopping and self._check_tree_for_solution(solution_node):
+                    logger.info("Solution found during branching, stopping early")
+                    break
 
-                        # Check if we've already tested this solution
-                        if candidate_hash in self.solution_cache:
-                            test_result = self.solution_cache[candidate_hash]
-                            logger.info(f"Using cached test result for solution hash {candidate_hash[:8]}")
-                        else:
-                            test_result = self._test_solution(problem_data, candidate)
-                            self.solution_cache[candidate_hash] = test_result
+            # Collect all solutions for final evaluation
+            final_solutions = [s for s in all_solutions if s["passed"]]
 
-                        candidate_log = {
-                            "candidate_id": f"{round_num}_{i + 1}",
-                            "solution": candidate,
-                            "solution_hash": candidate_hash,
-                            "test_result": test_result,
-                            "passed": test_result.get("status") == "pass"
-                        }
-
-                        round_log["candidates"].append(candidate_log)
-                        candidates.append(candidate_log)
-
-                        # Update statistics
-                        stats["candidates_generated"] += 1
-                        if test_result.get("status") == "pass":
-                            stats["tests_passed"] += 1
-                            final_solutions.append(candidate_log)
-                            solution_found = True
-
-                            # Update best solution if needed
-                            if best_solution is None or (
-                                    test_result.get("execution_time", float("inf"))
-                                    < best_solution["test_result"].get("execution_time", float("inf"))
-                            ):
-                                best_solution = candidate_log
-                        elif test_result.get("status") == "fail":
-                            stats["tests_failed"] += 1
-                        else:
-                            stats["test_errors"] += 1
-
-                    reflection_logs.append(round_log)
-                    stats["rounds_completed"] += 1
-
-                    # Check if we should stop early
-                    if solution_found and self.config.get("leetcode", {}).get("early_stopping", False):
-                        logger.info(
-                            f"Solution found in round {round_num}, skipping further rounds due to early stopping")
-                        break
+            # Update best solution from all explored nodes
+            for node in all_solutions:
+                if node["passed"] and (best_solution is None or
+                                       node["test_result"].get("execution_time", float("inf")) <
+                                       best_solution["test_result"].get("execution_time", float("inf"))):
+                    best_solution = node
 
         except Exception as e:
             logger.error(f"Error solving problem: {str(e)}", exc_info=True)
@@ -229,35 +188,19 @@ class LeetCodeSolutionPipeline:
                 "processing_time": time.time() - start_time
             }
 
-        # Perform additional evaluation with code_eval if enabled
+        # Perform batch evaluation with code_eval if enabled
         code_eval_results = None
-        code_eval_round_results = None  # Add this for round-by-round evaluation
+        if self.code_evaluator is not None and all_solutions:
+            logger.info("Performing batch evaluation with code_eval")
+            solution_codes = [node["solution"] for node in all_solutions]
 
-        if self.code_evaluator is not None and solution_found:
-            logger.info("Performing additional evaluation with code_eval")
-
-            # Collect ALL solutions from ALL rounds (not just the passing ones)
-            all_solutions = []
-
-            # Collect solutions from all rounds
-            for round_log in reflection_logs:
-                for candidate in round_log["candidates"]:
-                    all_solutions.append(candidate["solution"])
-
-            # Add the reference solution if available and not already included
+            # Add reference solution if available
             if problem_data.get("reference_solution"):
-                all_solutions.append(problem_data["reference_solution"])
+                solution_codes.append(problem_data["reference_solution"])
 
-            # Run code_eval evaluation on all solutions
             code_eval_results = self.code_evaluator.evaluate_solutions(
                 problem_data,
-                all_solutions
-            )
-
-            # OPTIONAL: Also evaluate round by round
-            code_eval_round_results = self.evaluate_by_round(
-                problem_data,
-                reflection_logs
+                solution_codes
             )
 
         # Prepare final result
@@ -270,66 +213,319 @@ class LeetCodeSolutionPipeline:
             "status": "solved" if solution_found else "unsolved",
             "best_solution": best_solution["solution"] if best_solution else None,
             "passed_solutions": [s["solution"] for s in final_solutions],
-            "all_solutions": [c["solution"] for c in candidates],  # ADD THIS LINE
+            "all_solutions": [s["solution"] for s in all_solutions],
             "total_candidates": stats["candidates_generated"],
-            "rounds": stats["rounds_completed"],
-            "reflection_logs": reflection_logs,
+            "nodes_explored": stats["nodes_explored"],
+            "tree_depth": self._calculate_tree_depth(solution_tree),
+            "solution_tree": solution_tree,
             "stats": stats,
             "processing_time": total_time
         }
+
         # Add code_eval results if available
         if code_eval_results:
             result["code_eval_results"] = code_eval_results
-
-        # Add round-by-round evaluation if available
-        if code_eval_round_results:
-            result["code_eval_round_results"] = code_eval_round_results
 
         # Save result to file
         self._save_results(problem_data["problem_id"], result)
 
         return result
 
-    def _generate_initial_candidates(self, problem_data: Dict[str, Any]) -> List[str]:
+    def _branch_from_failure(
+            self,
+            parent_node: Dict[str, Any],
+            problem_data: Dict[str, Any],
+            all_solutions: List[Dict[str, Any]],
+            stats: Dict[str, Any],
+            depth: int
+    ) -> bool:
         """
-        Generate initial solution candidates using Chain of Thought reasoning.
+        Generate new solutions from a failed solution using tree branching.
 
         Args:
-            problem_data: Problem data dictionary.
+            parent_node: The failed solution node to branch from
+            problem_data: Problem data dictionary
+            all_solutions: List to append all generated solutions
+            stats: Statistics dictionary to update
+            depth: Current depth in the tree
 
         Returns:
-            List of solution code candidates.
+            bool: True if a passing solution was found in this branch
         """
-        logger.info(f"Generating {self.num_candidates} initial solution candidates")
+        if depth >= self.max_depth:
+            logger.debug(f"Max depth {self.max_depth} reached, stopping branching")
+            return False
+
+        logger.info(f"Branching from failed solution {parent_node['node_id']} at depth {depth}")
+
+        # Generate k new solutions based on the failure
+        improved_candidates = self._generate_improved_candidates_for_node(
+            problem_data,
+            parent_node,
+            self.branch_factor
+        )
+
+        solution_found = False
+
+        for i, candidate in enumerate(improved_candidates):
+            stats["candidates_generated"] += 1
+            stats["nodes_explored"] += 1
+
+            # Evaluate immediately
+            candidate_hash = self._calculate_solution_hash(candidate)
+
+            # Check cache first
+            if candidate_hash in self.solution_cache:
+                test_result = self.solution_cache[candidate_hash]
+                logger.debug(f"Using cached result for solution hash {candidate_hash[:8]}")
+            else:
+                test_result = self._test_solution(problem_data, candidate)
+                self.solution_cache[candidate_hash] = test_result
+
+            child_node = {
+                "node_id": f"{depth}_{len(all_solutions)}",
+                "solution": candidate,
+                "solution_hash": candidate_hash,
+                "test_result": test_result,
+                "depth": depth,
+                "parent_id": parent_node["node_id"],
+                "children": [],
+                "passed": test_result.get("status") == "pass"
+            }
+
+            parent_node["children"].append(child_node)
+            all_solutions.append(child_node)
+
+            # Update statistics
+            if test_result.get("status") == "pass":
+                stats["tests_passed"] += 1
+                solution_found = True
+                logger.info(f"Solution found at node {child_node['node_id']} (depth {depth})")
+
+                # Early stopping - don't branch further from passing solutions
+                if self.early_stopping:
+                    continue
+            elif test_result.get("status") == "fail":
+                stats["tests_failed"] += 1
+            else:
+                stats["test_errors"] += 1
+
+            # Continue branching if failed and we haven't found a solution yet
+            if test_result.get("status") != "pass" and (not solution_found or not self.early_stopping):
+                child_found = self._branch_from_failure(
+                    child_node,
+                    problem_data,
+                    all_solutions,
+                    stats,
+                    depth + 1
+                )
+                solution_found = solution_found or child_found
+
+                # If early stopping and we found a solution deeper in the tree, stop
+                if self.early_stopping and child_found:
+                    break
+
+        return solution_found
+
+    def _generate_improved_candidates_for_node(
+            self,
+            problem_data: Dict[str, Any],
+            failed_node: Dict[str, Any],
+            num_candidates: int
+    ) -> List[str]:
+        """
+        Generate improved candidates based on a specific failed node.
+
+        Args:
+            problem_data: Problem data dictionary
+            failed_node: The specific failed node to improve from
+            num_candidates: Number of candidates to generate
+
+        Returns:
+            List of improved solution candidates
+        """
+        logger.info(f"Generating {num_candidates} improved candidates for node {failed_node['node_id']}")
         model = self._get_model()
         candidates = []
 
-        for i in range(self.num_candidates):
+        for i in range(num_candidates):
             self._run_memory_cleanup()
 
-            # Create a prompt with Chain of Thought reasoning
-            prompt = self._create_cot_prompt(problem_data, i + 1)
+            # Create a targeted improvement prompt
+            prompt = self._create_targeted_improvement_prompt(
+                problem_data,
+                failed_node,
+                i + 1
+            )
 
-            # Log the prompt for debugging (truncate if too long)
-            logger.debug(f"Initial candidate {i + 1} prompt: {prompt}")
-            # Generate solution
+            # Generate improved solution
             response = model.generate(prompt)
-
-            # Log the full response for debugging
-            logger.debug(f"Initial candidate {i + 1} full response: {response}")
 
             # Extract solution code
             solution_code = self._extract_solution_code(response)
 
             if solution_code:
                 candidates.append(solution_code)
-                logger.info(f"Generated initial candidate {i + 1}/{self.num_candidates} ({len(solution_code)} chars)")
+                logger.info(f"Generated improved candidate {i + 1}/{num_candidates} ({len(solution_code)} chars)")
             else:
-                # Log more details about the failure
-                logger.warning(f"Failed to extract solution code for candidate {i + 1}")
-                logger.warning(f"Response excerpt: {response[:500]}...{response[-500:] if len(response) > 500 else ''}")
+                logger.warning(f"Failed to extract solution code for improved candidate {i + 1}")
 
         return candidates
+
+    def _create_targeted_improvement_prompt(
+            self,
+            problem_data: Dict[str, Any],
+            failed_node: Dict[str, Any],
+            candidate_num: int
+    ) -> str:
+        """
+        Create a prompt specifically targeting the failures of a particular node.
+        """
+        test_result = failed_node["test_result"]
+        error_msg = test_result.get("error_message", "Unknown error")
+
+        # Build specific feedback
+        feedback_parts = [f"Previous solution failed: {error_msg}"]
+
+        if "failed_tests" in test_result:
+            for i, test in enumerate(test_result["failed_tests"][:3]):  # Show up to 3 failed tests
+                feedback_parts.append(
+                    f"Failed Test {i + 1}: Input={test.get('input')}, "
+                    f"Expected={test.get('expected')}, Got={test.get('actual')}"
+                )
+
+        problem_desc = problem_data['query']
+        prompt = f"""
+        You are an expert Python programmer solving a LeetCode problem. Follow my instructions precisely.
+
+        # Problem Statement
+        Problem ID: {problem_data['problem_id']}  
+        Title: {problem_data['problem_title']}
+        Difficulty: {problem_data['difficulty']}
+
+        # Problem Description
+        {problem_desc}
+
+        # Required Function Signature
+        Entry Point: {problem_data['entry_point']}
+
+        # Previous Failed Solution
+        ```python
+        {failed_node['solution']}
+        ```
+
+        # Test Feedback
+        {chr(10).join(feedback_parts)}
+
+        # Task
+        Generate improved candidate solution #{candidate_num} that fixes the specific issues above.
+
+        # REQUIRED RESPONSE FORMAT
+        You must follow this exact format:
+
+        1. Start with "## Issue Analysis"
+        2. Analyze what went wrong (2-3 sentences)
+        3. Then write "## Improved Solution"
+        4. Describe your fix (2-3 sentences)
+        5. Then write EXACTLY "## Code Solution"
+        6. Provide your Python solution in a code block
+
+        IMPORTANT: Make sure your solution handles the failed test cases correctly.
+        """
+
+        return prompt
+
+    def _check_tree_for_solution(self, node: Dict[str, Any]) -> bool:
+        """
+        Recursively check if any node in the tree has a passing solution.
+        """
+        if node["passed"]:
+            return True
+
+        for child in node.get("children", []):
+            if self._check_tree_for_solution(child):
+                return True
+
+        return False
+
+    def _calculate_tree_depth(self, solution_tree: List[Dict[str, Any]]) -> int:
+        """
+        Calculate the maximum depth of the solution tree.
+        """
+        max_depth = 0
+
+        def traverse(node, depth=0):
+            nonlocal max_depth
+            max_depth = max(max_depth, depth)
+            for child in node.get("children", []):
+                traverse(child, depth + 1)
+
+        for root_node in solution_tree:
+            traverse(root_node)
+
+        return max_depth
+
+    # Keep all other existing methods unchanged
+    def _generate_initial_candidates(self, problem_data: Dict[str, Any]) -> List[str]:
+        """Generate initial solution candidates."""
+        logger.info(f"Generating {self.initial_k} initial solution candidates")
+        model = self._get_model()
+        candidates = []
+
+        for i in range(self.initial_k):
+            self._run_memory_cleanup()
+            prompt = self._create_cot_prompt(problem_data, i + 1)
+            response = model.generate(prompt)
+            solution_code = self._extract_solution_code(response)
+
+            if solution_code:
+                candidates.append(solution_code)
+                logger.info(f"Generated initial candidate {i + 1}/{self.initial_k} ({len(solution_code)} chars)")
+            else:
+                logger.warning(f"Failed to extract solution code for candidate {i + 1}")
+
+        return candidates
+
+    # def _generate_initial_candidates(self, problem_data: Dict[str, Any]) -> List[str]:
+    #     """
+    #     Generate initial solution candidates using Chain of Thought reasoning.
+    #
+    #     Args:
+    #         problem_data: Problem data dictionary.
+    #
+    #     Returns:
+    #         List of solution code candidates.
+    #     """
+    #     logger.info(f"Generating {self.num_candidates} initial solution candidates")
+    #     model = self._get_model()
+    #     candidates = []
+    #
+    #     for i in range(self.num_candidates):
+    #         self._run_memory_cleanup()
+    #
+    #         # Create a prompt with Chain of Thought reasoning
+    #         prompt = self._create_cot_prompt(problem_data, i + 1)
+    #
+    #         # Log the prompt for debugging (truncate if too long)
+    #         logger.debug(f"Initial candidate {i + 1} prompt: {prompt}")
+    #         # Generate solution
+    #         response = model.generate(prompt)
+    #
+    #         # Log the full response for debugging
+    #         logger.debug(f"Initial candidate {i + 1} full response: {response}")
+    #
+    #         # Extract solution code
+    #         solution_code = self._extract_solution_code(response)
+    #
+    #         if solution_code:
+    #             candidates.append(solution_code)
+    #             logger.info(f"Generated initial candidate {i + 1}/{self.num_candidates} ({len(solution_code)} chars)")
+    #         else:
+    #             # Log more details about the failure
+    #             logger.warning(f"Failed to extract solution code for candidate {i + 1}")
+    #             logger.warning(f"Response excerpt: {response[:500]}...{response[-500:] if len(response) > 500 else ''}")
+    #
+    #     return candidates
 
     def _generate_improved_candidates(
             self,

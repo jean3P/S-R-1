@@ -106,11 +106,6 @@ def parse_args():
         help="Force using CPU even if CUDA is available"
     )
     parser.add_argument(
-        "--early-stopping",
-        action="store_true",
-        help="Stop once a correct solution is found"
-    )
-    parser.add_argument(
         "--indices",
         type=str,
         help="Comma-separated list of problem indices to process (e.g., '0,1,2')"
@@ -119,6 +114,31 @@ def parse_args():
         "--use-code-eval",
         action="store_true",
         help="Enable code_eval metrics from HuggingFace"
+    )
+
+    parser.add_argument(
+        "--initial-k",
+        type=int,
+        default=3,
+        help="Number of initial solution candidates to generate"
+    )
+    parser.add_argument(
+        "--branch-factor",
+        type=int,
+        default=3,
+        help="Number of solutions to generate per failed solution (k parameter)"
+    )
+    parser.add_argument(
+        "--max-depth",
+        type=int,
+        default=3,
+        help="Maximum depth of the solution tree"
+    )
+    parser.add_argument(
+        "--early-stopping",
+        action="store_true",
+        default=False,
+        help="Stop branching once a correct solution is found"
     )
 
     return parser.parse_args()
@@ -181,6 +201,10 @@ def update_config_from_args(config, args):
 
     config["leetcode"]["num_candidates"] = args.candidates
     config["leetcode"]["reflection_rounds"] = args.rounds
+    config["leetcode"]["early_stopping"] = args.early_stopping
+    config["leetcode"]["initial_solutions"] = args.initial_k
+    config["leetcode"]["branch_factor"] = args.branch_factor
+    config["leetcode"]["max_depth"] = args.max_depth
     config["leetcode"]["early_stopping"] = args.early_stopping
 
     # Update code_eval settings
