@@ -1,87 +1,79 @@
 #!/bin/bash
 ###############################################################################
-#  UBELIX – LeetCode Solution Generator with Self-Reflection
+#  UBELIX – LeetCode Easy Problems (10 per model)
 ###############################################################################
-#SBATCH --job-name=leetcode-solver-h100
-#SBATCH --partition=gpu-invest          # investor pool (pre‑emptable)
+#SBATCH --job-name=leetcode-medium-h100
+#SBATCH --partition=gpu-invest
 #SBATCH --qos=job_gpu_preemptable
-#SBATCH --gres=gpu:h100:4               # 2 GPUs → 32CPU, 180GB max
+#SBATCH --gres=gpu:h100:4
 #SBATCH --cpus-per-gpu=16
 #SBATCH --mem-per-gpu=90G
-#SBATCH --time=2-00:00:00
+#SBATCH --time=24:00:00
 #SBATCH --output=logs/%x_%j.out.log
 ###############################################################################
-# job_leetcode.sbatch
-#–– Software stack ––----------------------------------------------------------
+
+# Module and environment setup
 module purge
-module unload Python || true           # avoid default Python module
+module unload Python || true
+source .venv/bin/activate
 
-source .venv/bin/activate              # Python3.9 venv with +cu12 wheels
-
-#––Runtime env vars ––--------------------------------------------------------
-export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,max_split_size_mb:512
+# Runtime environment variables
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,max_split_size_mb=512
 export TRANSFORMERS_OFFLINE=0
 export PYTHONPATH=$PWD
 export TOKENIZERS_PARALLELISM=false
 if [ -f .env ]; then
     echo "Loading environment variables from .env file"
     while IFS= read -r line || [ -n "$line" ]; do
-        # Skip comments and empty lines
         [[ $line =~ ^#.*$ || -z $line ]] && continue
-        # Export the variable (this addresses SC2163)
         eval export "$line"
     done < .env
 else
     echo "Warning: .env file not found!"
-    export HF_TOKEN=""  # Empty fallback
+    export HF_TOKEN=""
 fi
 
-# Add a check to verify the token was loaded
 if [ -z "$HF_TOKEN" ]; then
     echo "Error: HF_TOKEN is not set. Please check your .env file."
     exit 1
 fi
-export FLASH_ATTENTION_FORCE_DISABLE=1                 # <== DISABLE flash-attn
+export FLASH_ATTENTION_FORCE_DISABLE=1
 
-#–– Diagnostics ––------------------------------------------------------------
-echo "=== UBELIX H100 job on $(hostname) ==="
+# Diagnostics
+echo "=== UBELIX H100 Easy Problems job on $(hostname) ==="
 date
 nvidia-smi
 echo "======================================"
 
-#–– Directories ––------------------------------------------------------------
+# Directories
 mkdir -p configs/{models,prompts,experiments,datasets}
 mkdir -p data/{repositories,cache,huggingface_cache}
 mkdir -p results offload_folder jobs_logs
 mkdir -p src/evaluation
 
-#–– Timestamp & logging ––----------------------------------------------------
+# Timestamp & logging
 TS=$(date +%Y%m%d_%H%M%S)
-EXP=leetcode_solver
+EXP=leetcode_solver_medium
 LOGFILE=jobs_logs/${EXP}_${TS}.log
 RESULTS=results/${EXP}_${TS}
 mkdir -p "$RESULTS"
 exec > >(tee -a "$LOGFILE") 2>&1
 
-#–– Install required packages ––---------------------------------------------
+# Install required packages
 echo "Installing required packages..."
 pip install -q datasets requests pandas matplotlib seaborn evaluate
 
-#–– LeetCode Dataset Path Setup ––-------------------------------------------
+# LeetCode Dataset Path Setup
 echo -e "\n\n============================================================"
 echo -e "=== Setting up LeetCode dataset paths ==="
 echo -e "============================================================\n"
 
-# Set the repository path for the LeetCodeDataset
 LEETCODE_REPO_PATH="/storage/homefs/jp22b083/SSI/S-R-1/data/repositories/LeetCodeDataset"
 LEETCODE_DATA_DIR="${LEETCODE_REPO_PATH}/data"
 
-# Verify dataset files exist
 if [ -d "$LEETCODE_DATA_DIR" ]; then
     echo "Found LeetCode dataset directory at: $LEETCODE_DATA_DIR"
     ls -la "$LEETCODE_DATA_DIR" | grep "LeetCodeDataset.*test.jsonl.gz"
-
-    # Count test dataset files
     TEST_FILES=$(ls -1 "$LEETCODE_DATA_DIR"/LeetCodeDataset-*-test.jsonl.gz 2>/dev/null | wc -l)
     if [ "$TEST_FILES" -gt 0 ]; then
         echo "✓ Found $TEST_FILES test dataset files in the repository"
@@ -93,22 +85,20 @@ else
     echo "Will try to use the LeetCodeDataLoader directly"
 fi
 
-#–– Download and preprocess LeetCode dataset ––-----------------------------
+# Download and preprocess LeetCode dataset
 echo -e "\n\n============================================================"
 echo -e "=== Downloading and preprocessing LeetCode dataset ==="
 echo -e "============================================================\n"
 
-# First try using our download script
 if [ -f "src/scripts/download_leetcode_dataset.py" ]; then
     echo "Using download_leetcode_dataset.py script to download the dataset"
     python src/scripts/download_leetcode_dataset.py \
         --output-dir "data/leetcode" \
         --cache-dir "data/huggingface_cache" \
         --version "v0.3.1" \
-        --limit 60 \
+        --limit 150 \
         --log-level "INFO"
 else
-    # Fallback to direct dataset loading in Python
     echo "Direct dataset download with Python..."
     python - <<'PY'
 import os
@@ -124,27 +114,20 @@ data_dir = os.path.join(repo_path, "data")
 test_file = "LeetCodeDataset-v0.3.1-test.jsonl.gz"
 file_path = os.path.join(data_dir, test_file)
 
-# Create directories if needed
 Path(cache_dir).mkdir(parents=True, exist_ok=True)
 Path(output_dir).mkdir(parents=True, exist_ok=True)
 
 try:
-    # Check if the file exists in the repository
     if os.path.exists(file_path):
         print(f"Found test dataset file at {file_path}")
-
-        # Load and normalize problems
         problems = []
         count = 0
-        limit = 50  # Limit to 50 problems
-
+        limit = 50
         with gzip.open(file_path, 'rt', encoding='utf-8') as f:
             for line in f:
                 if line.strip():
                     try:
                         problem = json.loads(line.strip())
-
-                        # Normalize problem data
                         normalized = {
                             "problem_id": problem.get("task_id", f"problem_{count}"),
                             "prompt": problem.get("prompt", ""),
@@ -154,8 +137,6 @@ try:
                             "input_output": problem.get("input_output", []),
                             "reference_solution": problem.get("completion", "")
                         }
-
-                        # Extract metadata
                         meta = {}
                         if "meta" in problem and problem["meta"]:
                             if isinstance(problem["meta"], str):
@@ -165,39 +146,26 @@ try:
                                     pass
                             elif isinstance(problem["meta"], dict):
                                 meta = problem["meta"]
-
-                        # Handle top-level meta fields
                         meta_fields = ["question_id", "difficulty", "tags", "estimated_date",
                                       "question_title", "starter_code", "problem_description", "lang_code"]
-
                         for field in meta_fields:
                             if field in problem and problem[field] is not None:
                                 meta[field] = problem[field]
-
-                        # Add processed metadata to normalized problem
                         normalized["difficulty"] = meta.get("difficulty", "")
                         normalized["tags"] = meta.get("tags", [])
                         normalized["title"] = meta.get("question_title", normalized["problem_id"])
-
                         problems.append(normalized)
-
                         count += 1
                         if count >= limit:
                             break
                     except json.JSONDecodeError as e:
                         print(f"Error parsing JSON: {e}")
                         continue
-
         print(f"Loaded {len(problems)} problems from the test dataset")
-
-        # Save problems to JSON file
         output_file = os.path.join(output_dir, "leetcode_problems.json")
         with open(output_file, 'w') as f:
             json.dump(problems, f, indent=2)
-
         print(f"Saved {len(problems)} problems to {output_file}")
-
-        # Save a problem list for reference
         problem_list = []
         for p in problems:
             problem_list.append({
@@ -206,30 +174,21 @@ try:
                 "difficulty": p.get("difficulty", ""),
                 "tags": p.get("tags", [])
             })
-
         list_file = os.path.join(output_dir, "problem_list.json")
         with open(list_file, 'w') as f:
             json.dump(problem_list, f, indent=2)
-
         print(f"Saved problem list to {list_file}")
     else:
         print(f"Test dataset file not found at {file_path}")
         print("Attempting to load from Hugging Face datasets...")
-
-        # Try using datasets library
         try:
             from datasets import load_dataset
-
             dataset = load_dataset("newfacade/LeetCodeDataset", split="test", cache_dir=cache_dir)
             print(f"Loaded {len(dataset)} problems from Hugging Face")
-
-            # Process the first 50 problems to save to JSON
             problems = []
             for i, example in enumerate(dataset):
-                if i >= 50:  # Limit to 50 problems
+                if i >= 50:
                     break
-
-                # Extract problem data
                 problem = {
                     "problem_id": example.get("task_id", f"problem_{i}"),
                     "prompt": example.get("prompt", ""),
@@ -239,24 +198,16 @@ try:
                     "input_output": example.get("input_output", []),
                     "reference_solution": example.get("completion", "")
                 }
-
-                # Extract metadata if available
                 if "meta" in example and example["meta"]:
                     meta = example["meta"]
                     problem["difficulty"] = meta.get("difficulty", "")
                     problem["tags"] = meta.get("tags", [])
                     problem["title"] = meta.get("question_title", problem["problem_id"])
-
                 problems.append(problem)
-
-            # Save problems to JSON file
             output_file = os.path.join(output_dir, "leetcode_problems.json")
             with open(output_file, 'w') as f:
                 json.dump(problems, f, indent=2)
-
             print(f"Saved {len(problems)} problems to {output_file}")
-
-            # Save a problem list for reference
             problem_list = []
             for p in problems:
                 problem_list.append({
@@ -265,17 +216,13 @@ try:
                     "difficulty": p.get("difficulty", ""),
                     "tags": p.get("tags", [])
                 })
-
             list_file = os.path.join(output_dir, "problem_list.json")
             with open(list_file, 'w') as f:
                 json.dump(problem_list, f, indent=2)
-
             print(f"Saved problem list to {list_file}")
-
         except Exception as e:
             print(f"Error loading dataset from Hugging Face: {e}")
             print("Warning: Dataset loading failed, the solver may not work properly")
-
 except Exception as e:
     print(f"Error loading dataset: {e}")
     print("Warning: Dataset loading failed, the solver may not work properly")
@@ -286,31 +233,22 @@ fi
 echo "Checking dataset availability..."
 if [ -f "data/leetcode/leetcode_problems.json" ]; then
     echo "✓ LeetCode dataset preprocessing successful"
-    # Count problems and get a sample of problem IDs
     python - <<'PY'
 import json
 import os
-
 try:
     with open("data/leetcode/leetcode_problems.json", 'r') as f:
         problems = json.load(f)
-
     print(f"Found {len(problems)} preprocessed LeetCode problems")
-
-    # Get a sample of problem IDs
     sample_ids = [p.get("problem_id", "") for p in problems[:5]]
     print(f"Sample problem IDs: {', '.join(sample_ids)}")
-
-    # Count problems by difficulty
     difficulties = {}
     for p in problems:
         diff = p.get("difficulty", "Unknown")
         difficulties[diff] = difficulties.get(diff, 0) + 1
-
     print("Problems by difficulty:")
     for diff, count in difficulties.items():
         print(f"  {diff}: {count}")
-
 except Exception as e:
     print(f"Error analyzing dataset: {e}")
 PY
@@ -324,7 +262,6 @@ if [ ! -f "src/evaluation/code_evaluator.py" ]; then
     echo -e "\n\n============================================================"
     echo -e "=== Creating Code Evaluator module ==="
     echo -e "============================================================\n"
-
     cat > src/evaluation/code_evaluator.py << 'EOF'
 """
 Code evaluation module using HuggingFace's code_eval metric.
@@ -544,35 +481,31 @@ assert result == True
 
         return "\n".join(assertions)
 EOF
-
     echo "Created src/evaluation/code_evaluator.py"
-
-    # Create an __init__.py file in the evaluation directory
     touch src/evaluation/__init__.py
     echo "Created src/evaluation/__init__.py"
 fi
 
-#–– Clear GPU memory ––-------------------------------------------------------
+# Clear GPU memory
 python - <<'PY'
 import torch
 torch.cuda.empty_cache()
 print("[+] Cleared CUDA cache")
 PY
 
-#–– Benchmark configs ––------------------------------------------------------
+# Benchmark configs - EASY ONLY
 MODELS=("deepseek-r1-distill" "qwen2-5-coder" "qwq-preview")
-NUM_PROBLEMS=10                       # Number of problems to process
-INITIAL_K=3                          # Initial solutions to generate
-BRANCH_FACTOR=3                      # Solutions to generate per failed solution
-MAX_DEPTH=3                          # Maximum tree depth
-DIFFICULTIES=("Easy" "Medium" "Hard")  # Problem difficulty (Easy, Medium, Hard)
-MEMORY_EFFICIENT=true                  # Use memory-efficient processing
+NUM_PROBLEMS=20
+INITIAL_K=3
+BRANCH_FACTOR=3
+MAX_DEPTH=3
+DIFFICULTIES=("Medium")  # ONLY EASY PROBLEMS
+MEMORY_EFFICIENT=true
 
-# Set additional arguments based on config
 ARGS=()
 $MEMORY_EFFICIENT && ARGS+=(--memory-efficient)
 
-#–– Copy config file to experiments directory ––-----------------------------
+# Copy config file to experiments directory
 cp configs/experiments/leetcode_solver.yaml configs/experiments/leetcode_solver_run_${TS}.yaml
 
 # Update the config file with dataset paths
@@ -592,7 +525,7 @@ leetcode:
   initial_solutions: $INITIAL_K
   branch_factor: $BRANCH_FACTOR
   max_depth: $MAX_DEPTH
-  early_stopping: false  # Explicitly set to false in config
+  early_stopping: false
 
 evaluation:
   use_code_eval: true
@@ -602,13 +535,12 @@ evaluation:
     timeout: 3.0
 EOF
 
-#–– Run LeetCode solver for each model and difficulty ––-------------------
+# Run LeetCode solver for each model and EASY difficulty only
 for MODEL in "${MODELS[@]}"; do
     echo -e "\n\n============================================================"
     echo -e "=== Running LeetCode Solution Generator with $MODEL ==="
     echo -e "============================================================\n"
 
-    # Create output directory for this model
     OUTDIR=$RESULTS/$MODEL
     mkdir -p "$OUTDIR"
 
@@ -617,14 +549,12 @@ for MODEL in "${MODELS[@]}"; do
         echo -e "--- Processing $NUM_PROBLEMS $DIFFICULTY problems ---"
         echo -e "------------------------------------------------------------\n"
 
-        # Clear GPU memory before running each difficulty
         python - <<'PY'
 import torch
 torch.cuda.empty_cache()
 print("[+] Cleared CUDA cache")
 PY
 
-        # Run the solution generator with current model and difficulty
         python -m src.scripts.run_leetcode_solver \
             --config configs/experiments/leetcode_solver_run_${TS}.yaml \
             --model "$MODEL" \
@@ -647,12 +577,11 @@ PY
     echo -e "\n=== Finished running all difficulties for $MODEL: $(date) ==="
 done
 
-#–– Generate comparison report ––--------------------------------------------
+# Generate comparison report for Easy problems
 echo -e "\n\n============================================================"
-echo -e "=== Generating model comparison report ==="
+echo -e "=== Generating model comparison report for Easy problems ==="
 echo -e "============================================================\n"
 
-# Create a comparison script
 cat > compare_models.py << 'EOF'
 import os
 import json
@@ -665,15 +594,11 @@ import sys
 results_dir = sys.argv[1]
 models = sys.argv[2].split(',')
 
-# Prepare data collection
 results = []
 code_eval_results = []
 
-# For each model
 for model in models:
     model_dir = Path(results_dir) / model
-
-    # Get combined results file
     combined_file = model_dir / "combined_results.json"
 
     if not combined_file.exists():
@@ -686,7 +611,6 @@ for model in models:
 
         for problem_result in model_results:
             problem_id = problem_result.get("problem_id", "unknown")
-
             result = {
                 "model": model,
                 "problem_id": problem_id,
@@ -697,37 +621,31 @@ for model in models:
                 "total_candidates": problem_result.get("total_candidates", 0),
                 "difficulty": problem_result.get("difficulty", "Unknown")
             }
-
             results.append(result)
 
-            # Extract code_eval results if available
             if "code_eval_results" in problem_result and "pass_at_k" in problem_result["code_eval_results"]:
                 for k, value in problem_result["code_eval_results"]["pass_at_k"].items():
                     code_eval_results.append({
                         "model": model,
                         "problem_id": problem_id,
                         "k": k,
-                        "pass_rate": value * 100  # Convert to percentage
+                        "pass_rate": value * 100
                     })
     except Exception as e:
         print(f"Error processing results for {model}: {e}")
 
-# Create dataframe
 if not results:
     print("No results found!")
     sys.exit(1)
 
 df = pd.DataFrame(results)
 
-# Save the raw data
 csv_path = Path(results_dir) / "model_comparison.csv"
 df.to_csv(csv_path, index=False)
 print(f"Saved raw data to {csv_path}")
 
-# Create comparison visualizations
 plt.figure(figsize=(12, 8))
 
-# Success rate by model
 success_rate = df.groupby('model')['status'].apply(
     lambda x: (x == 'solved').mean() * 100
 ).reset_index()
@@ -735,7 +653,7 @@ success_rate.columns = ['model', 'success_rate']
 
 plt.figure(figsize=(10, 6))
 ax = sns.barplot(x='model', y='success_rate', data=success_rate)
-plt.title('Success Rate by Model (%)')
+plt.title('Success Rate by Model - Easy Problems (%)')
 plt.ylabel('Success Rate (%)')
 plt.xlabel('Model')
 plt.ylim(0, 100)
@@ -747,59 +665,35 @@ for i, v in enumerate(success_rate['success_rate']):
 plt.tight_layout()
 plt.savefig(Path(results_dir) / "success_rate_comparison.png")
 
-# Success rate by model and difficulty
-if 'difficulty' in df.columns and not df['difficulty'].isna().all():
-    success_by_diff = df.groupby(['model', 'difficulty'])['status'].apply(
-        lambda x: (x == 'solved').mean() * 100
-    ).reset_index()
-    success_by_diff.columns = ['model', 'difficulty', 'success_rate']
-
-    plt.figure(figsize=(12, 6))
-    ax = sns.barplot(x='model', y='success_rate', hue='difficulty', data=success_by_diff)
-    plt.title('Success Rate by Model and Difficulty (%)')
-    plt.ylabel('Success Rate (%)')
-    plt.xlabel('Model')
-    plt.ylim(0, 100)
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.savefig(Path(results_dir) / "success_rate_by_difficulty.png")
-
-# Average time by model
 plt.figure(figsize=(10, 6))
 ax = sns.barplot(x='model', y='processing_time', data=df)
-plt.title('Average Processing Time by Model (seconds)')
+plt.title('Average Processing Time by Model - Easy Problems (seconds)')
 plt.ylabel('Time (seconds)')
 plt.xlabel('Model')
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.savefig(Path(results_dir) / "processing_time_comparison.png")
 
-# Number of candidates by model
 plt.figure(figsize=(10, 6))
 ax = sns.barplot(x='model', y='total_candidates', data=df)
-plt.title('Average Candidates Generated by Model')
+plt.title('Average Candidates Generated by Model - Easy Problems')
 plt.ylabel('Candidates')
 plt.xlabel('Model')
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.savefig(Path(results_dir) / "candidates_comparison.png")
 
-# Code Eval metrics if available
 if code_eval_results:
     code_eval_df = pd.DataFrame(code_eval_results)
-
-    # Create a pass@k comparison
     plt.figure(figsize=(12, 8))
     ax = sns.barplot(x='model', y='pass_rate', hue='k', data=code_eval_df)
-    plt.title('Pass@k Metrics by Model (%)')
+    plt.title('Pass@k Metrics by Model - Easy Problems (%)')
     plt.ylabel('Pass Rate (%)')
     plt.xlabel('Model')
     plt.ylim(0, 100)
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.savefig(Path(results_dir) / "pass_at_k_comparison.png")
-
-    # Save code_eval metrics to CSV
     code_eval_csv = Path(results_dir) / "code_eval_metrics.csv"
     code_eval_df.to_csv(code_eval_csv, index=False)
     print(f"Saved code_eval metrics to {code_eval_csv}")
@@ -807,8 +701,7 @@ if code_eval_results:
 print(f"Generated comparison visualizations in {results_dir}")
 EOF
 
-# Run the comparison script
 python compare_models.py "$RESULTS" "$(IFS=,; echo "${MODELS[*]}")"
 
-echo "=== Job finished: $(date) ==="
+echo "=== Easy problems job finished: $(date) ==="
 nvidia-smi
