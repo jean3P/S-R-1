@@ -1,0 +1,561 @@
+{
+  "problem_id": "count-the-number-of-good-nodes",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "solved",
+  "best_solution": "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                good_count += 1\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+  "passed_solutions": [
+    "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        visited = set()\n        good_nodes = 0\n        \n        def dfs(node, parent):\n            nonlocal good_nodes\n            visited.add(node)\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            if not children:\n                good_nodes += 1\n                return 1\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            if all(s == sizes[0] for s in sizes):\n                good_nodes += 1\n            return 1 + sum(sizes)\n        \n        dfs(0, -1)\n        return good_nodes",
+    "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_nodes = 0\n        \n        def dfs(node, parent):\n            nonlocal good_nodes\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            if not children:\n                good_nodes += 1\n                return 1\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            if all(s == sizes[0] for s in sizes):\n                good_nodes += 1\n            return 1 + sum(sizes)\n        \n        dfs(0, -1)\n        return good_nodes",
+    "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_nodes = 0\n        \n        def dfs(node, parent):\n            nonlocal good_nodes\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            if not children:\n                good_nodes += 1\n                return 1\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            if len(set(sizes)) == 1:\n                good_nodes += 1\n            return 1 + sum(sizes)\n        \n        dfs(0, -1)\n        return good_nodes",
+    "from typing import List\nfrom collections import defaultdict, deque\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build adjacency list\n        adj = defaultdict(list)\n        for a, b in edges:\n            adj[a].append(b)\n            adj[b].append(a)\n        \n        # Build the tree structure with parent pointers\n        root = 0\n        parent = {root: -1}\n        children = defaultdict(list)\n        queue = deque([root])\n        while queue:\n            u = queue.popleft()\n            for v in adj[u]:\n                if v != parent[u]:\n                    parent[v] = u\n                    children[u].append(v)\n                    queue.append(v)\n        \n        # Calculate subtree sizes using post-order traversal\n        subtree_size = defaultdict(int)\n        stack = [(root, False)]\n        while stack:\n            node, visited = stack.pop()\n            if visited:\n                size = 1\n                for child in children[node]:\n                    size += subtree_size[child]\n                subtree_size[node] = size\n            else:\n                stack.append((node, True))\n                for child in children[node]:\n                    stack.append((child, False))\n        \n        # Count good nodes\n        good_count = 0\n        for node in subtree_size:\n            # Get all children's subtree sizes\n            child_sizes = [subtree_size[child] for child in children[node]]\n            if not child_sizes:\n                # Leaf nodes are automatically good\n                good_count += 1\n            else:\n                # Check if all sizes are the same\n                first = child_sizes[0]\n                all_same = True\n                for s in child_sizes[1:]:\n                    if s != first:\n                        all_same = False\n                        break\n                if all_same:\n                    good_count += 1\n        \n        return good_count",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                good_count += 1\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                good_count += 1\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                good_count += 1\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count"
+  ],
+  "all_solutions": [
+    "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        # To avoid revisiting the parent node, we'll track visited nodes\n        visited = set()\n        good_nodes = 0\n        \n        # Post-order traversal to compute subtree sizes and check conditions\n        def dfs(node, parent):\n            nonlocal good_nodes\n            visited.add(node)\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            # Base case: leaf node\n            if not children:\n                return 1\n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            # Check if all sizes are equal\n            if all(s == sizes[0] for s in sizes):\n                good_nodes += 1\n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        return good_nodes",
+    "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        visited = set()\n        good_nodes = 0\n        \n        def dfs(node, parent):\n            nonlocal good_nodes\n            visited.add(node)\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            if not children:\n                good_nodes += 1\n                return 1\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            if all(s == sizes[0] for s in sizes):\n                good_nodes += 1\n            return 1 + sum(sizes)\n        \n        dfs(0, -1)\n        return good_nodes",
+    "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        # To avoid revisiting the parent node, we'll track visited nodes\n        visited = set()\n        good_nodes = 0\n        \n        # Post-order traversal to compute subtree sizes and check conditions\n        def dfs(node, parent):\n            nonlocal good_nodes\n            visited.add(node)\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            # Base case: leaf node\n            if not children:\n                return 1\n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            # Check if all sizes are equal\n            if len(sizes) > 1 and all(s == sizes[0] for s in sizes):\n                good_nodes += 1\n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        return good_nodes",
+    "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        # To avoid revisiting the parent node, we'll track visited nodes\n        visited = set()\n        good_nodes = 0\n        \n        # Post-order traversal to compute subtree sizes and check conditions\n        def dfs(node, parent):\n            nonlocal good_nodes\n            visited.add(node)\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            # Base case: leaf node\n            if not children:\n                return 1\n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            # Check if all sizes are equal\n            if all(s == sizes[0] for s in sizes):\n                good_nodes += 1\n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        return good_nodes",
+    "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        # To avoid revisiting the parent node, we'll track visited nodes\n        visited = set()\n        good_nodes = 0\n        \n        # Post-order traversal to compute subtree sizes and check conditions\n        def dfs(node, parent):\n            nonlocal good_nodes\n            visited.add(node)\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            # Base case: leaf node\n            if not children:\n                return 1\n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            # Check if all sizes are equal\n            if all(s == sizes[0] for s in sizes):\n                good_nodes += 1\n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        return good_nodes",
+    "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        # To avoid revisiting the parent node, we'll track visited nodes\n        visited = set()\n        good_nodes = 0\n        \n        # Post-order traversal to compute subtree sizes and check conditions\n        def dfs(node, parent):\n            nonlocal good_nodes\n            visited.add(node)\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            # Base case: leaf node\n            if not children:\n                return 1\n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            # Check if all sizes are equal\n            if len(sizes) == 0:\n                # Leaf node, automatically good\n                good_nodes += 1\n            else:\n                # If all children have the same size, it's a good node\n                if all(s == sizes[0] for s in sizes):\n                    good_nodes += 1\n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        return good_nodes",
+    "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        # Build the tree structure as an adjacency list\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_nodes = 0\n        \n        # Post-order DFS to compute subtree sizes and check conditions\n        def dfs(node, parent):\n            nonlocal good_nodes\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            # Base case: leaf node (no children)\n            if not children:\n                return 1\n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            # Check if all child subtree sizes are equal\n            if all(s == sizes[0] for s in sizes):\n                good_nodes += 1\n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        return good_nodes",
+    "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_nodes = 0\n        \n        def dfs(node, parent):\n            nonlocal good_nodes\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            if not children:\n                good_nodes += 1\n                return 1\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            if all(s == sizes[0] for s in sizes):\n                good_nodes += 1\n            return 1 + sum(sizes)\n        \n        dfs(0, -1)\n        return good_nodes",
+    "from collections import defaultdict, deque\nfrom typing import List\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        # Build the adjacency list\n        adj = defaultdict(list)\n        for a, b in edges:\n            adj[a].append(b)\n            adj[b].append(a)\n        \n        # Build the tree structure with correct parent-child relationships\n        n = len(edges) + 1  # Number of nodes\n        tree = defaultdict(list)\n        visited = [False] * n\n        queue = deque()\n        root = 0\n        queue.append(root)\n        visited[root] = True\n        parent = {root: -1}\n        \n        while queue:\n            u = queue.popleft()\n            for v in adj[u]:\n                if not visited[v]:\n                    visited[v] = True\n                    parent[v] = u\n                    tree[u].append(v)\n                    queue.append(v)\n        \n        good_nodes = 0\n        \n        # Post-order DFS to compute subtree sizes and check conditions\n        def dfs(node):\n            nonlocal good_nodes\n            children = tree[node]\n            # Base case: leaf node (no children)\n            if not children:\n                return 1\n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child)\n                sizes.append(size)\n            # Check if all child subtree sizes are equal\n            if len(sizes) == 0 or all(s == sizes[0] for s in sizes):\n                good_nodes += 1\n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(root)\n        return good_nodes",
+    "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_nodes = 0\n        \n        def dfs(node, parent):\n            nonlocal good_nodes\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            if not children:\n                good_nodes += 1\n                return 1\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            if len(set(sizes)) == 1:\n                good_nodes += 1\n            return 1 + sum(sizes)\n        \n        dfs(0, -1)\n        return good_nodes",
+    "from typing import List\nfrom collections import defaultdict, deque\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build adjacency list\n        adj = defaultdict(list)\n        for a, b in edges:\n            adj[a].append(b)\n            adj[b].append(a)\n        \n        # Build the tree structure with parent pointers\n        root = 0\n        parent = {root: -1}\n        children = defaultdict(list)\n        queue = deque([root])\n        while queue:\n            u = queue.popleft()\n            for v in adj[u]:\n                if v != parent[u]:\n                    parent[v] = u\n                    children[u].append(v)\n                    queue.append(v)\n        \n        # Calculate subtree sizes using post-order traversal\n        subtree_size = defaultdict(int)\n        stack = [(root, False)]\n        while stack:\n            node, visited = stack.pop()\n            if visited:\n                size = 1\n                for child in children[node]:\n                    size += subtree_size[child]\n                subtree_size[node] = size\n            else:\n                stack.append((node, True))\n                for child in children[node]:\n                    stack.append((child, False))\n        \n        # Count good nodes\n        good_count = 0\n        for node in subtree_size:\n            # Get all children's subtree sizes\n            child_sizes = [subtree_size[child] for child in children[node]]\n            if not child_sizes:\n                # Leaf nodes are automatically good\n                good_count += 1\n            else:\n                # Check if all sizes are the same\n                first = child_sizes[0]\n                all_same = True\n                for s in child_sizes[1:]:\n                    if s != first:\n                        all_same = False\n                        break\n                if all_same:\n                    good_count += 1\n        \n        return good_count",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        # To avoid revisiting the parent node, we'll track visited nodes\n        visited = set()\n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            visited.add(node)\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if len(sizes) == 0 or all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                good_count += 1\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                good_count += 1\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                good_count += 1\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count"
+  ],
+  "total_candidates": 20,
+  "nodes_explored": 20,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        # To avoid revisiting the parent node, we'll track visited nodes\n        visited = set()\n        good_nodes = 0\n        \n        # Post-order traversal to compute subtree sizes and check conditions\n        def dfs(node, parent):\n            nonlocal good_nodes\n            visited.add(node)\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            # Base case: leaf node\n            if not children:\n                return 1\n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            # Check if all sizes are equal\n            if all(s == sizes[0] for s in sizes):\n                good_nodes += 1\n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        return good_nodes",
+      "solution_hash": "32eb422d4da8b0c9c225ec012abe15576e9b41e8841e0319cf941979b02dc0ec",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp0xnhx7as.py\", line 173, in <module>\n    check(Solution().countGoodNodes)\n  File \"/scratch/local/21419949/tmp0xnhx7as.py\", line 123, in check\n    assert candidate(edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [1, 6], [2, 7], [3, 8]]) == 6\nAssertionError\n",
+        "execution_time": 0.07030010223388672
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        visited = set()\n        good_nodes = 0\n        \n        def dfs(node, parent):\n            nonlocal good_nodes\n            visited.add(node)\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            if not children:\n                good_nodes += 1\n                return 1\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            if all(s == sizes[0] for s in sizes):\n                good_nodes += 1\n            return 1 + sum(sizes)\n        \n        dfs(0, -1)\n        return good_nodes",
+          "solution_hash": "6ddefec06a0939d95e6df11aa4b7babff38d5c163cb6043faa2daa013a5bf505",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07135200500488281
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_2",
+          "solution": "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        # To avoid revisiting the parent node, we'll track visited nodes\n        visited = set()\n        good_nodes = 0\n        \n        # Post-order traversal to compute subtree sizes and check conditions\n        def dfs(node, parent):\n            nonlocal good_nodes\n            visited.add(node)\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            # Base case: leaf node\n            if not children:\n                return 1\n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            # Check if all sizes are equal\n            if len(sizes) > 1 and all(s == sizes[0] for s in sizes):\n                good_nodes += 1\n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        return good_nodes",
+          "solution_hash": "e11648fc5daaa93c371baaef6590917ec81918242737998177156a5d35652d36",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp8j_ia13g.py\", line 173, in <module>\n    check(Solution().countGoodNodes)\n  File \"/scratch/local/21419949/tmp8j_ia13g.py\", line 123, in check\n    assert candidate(edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [1, 6], [2, 7], [3, 8]]) == 6\nAssertionError\n",
+            "execution_time": 0.07512855529785156
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_3",
+              "solution": "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        # To avoid revisiting the parent node, we'll track visited nodes\n        visited = set()\n        good_nodes = 0\n        \n        # Post-order traversal to compute subtree sizes and check conditions\n        def dfs(node, parent):\n            nonlocal good_nodes\n            visited.add(node)\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            # Base case: leaf node\n            if not children:\n                return 1\n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            # Check if all sizes are equal\n            if all(s == sizes[0] for s in sizes):\n                good_nodes += 1\n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        return good_nodes",
+              "solution_hash": "32eb422d4da8b0c9c225ec012abe15576e9b41e8841e0319cf941979b02dc0ec",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpyt361kvg.py\", line 173, in <module>\n    check(Solution().countGoodNodes)\n  File \"/scratch/local/21419949/tmpyt361kvg.py\", line 123, in check\n    assert candidate(edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [1, 6], [2, 7], [3, 8]]) == 6\nAssertionError\n",
+                "execution_time": 0.07211089134216309
+              },
+              "depth": 2,
+              "parent_id": "1_2",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        # To avoid revisiting the parent node, we'll track visited nodes\n        visited = set()\n        good_nodes = 0\n        \n        # Post-order traversal to compute subtree sizes and check conditions\n        def dfs(node, parent):\n            nonlocal good_nodes\n            visited.add(node)\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            # Base case: leaf node\n            if not children:\n                return 1\n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            # Check if all sizes are equal\n            if all(s == sizes[0] for s in sizes):\n                good_nodes += 1\n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        return good_nodes",
+              "solution_hash": "32eb422d4da8b0c9c225ec012abe15576e9b41e8841e0319cf941979b02dc0ec",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpyt361kvg.py\", line 173, in <module>\n    check(Solution().countGoodNodes)\n  File \"/scratch/local/21419949/tmpyt361kvg.py\", line 123, in check\n    assert candidate(edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [1, 6], [2, 7], [3, 8]]) == 6\nAssertionError\n",
+                "execution_time": 0.07211089134216309
+              },
+              "depth": 2,
+              "parent_id": "1_2",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_5",
+              "solution": "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        # To avoid revisiting the parent node, we'll track visited nodes\n        visited = set()\n        good_nodes = 0\n        \n        # Post-order traversal to compute subtree sizes and check conditions\n        def dfs(node, parent):\n            nonlocal good_nodes\n            visited.add(node)\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            # Base case: leaf node\n            if not children:\n                return 1\n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            # Check if all sizes are equal\n            if len(sizes) == 0:\n                # Leaf node, automatically good\n                good_nodes += 1\n            else:\n                # If all children have the same size, it's a good node\n                if all(s == sizes[0] for s in sizes):\n                    good_nodes += 1\n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        return good_nodes",
+              "solution_hash": "853f2cf093b86bfd982d93e5932398f34ac423f47f05d361153d3b910a79f57d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpmo58bbwj.py\", line 178, in <module>\n    check(Solution().countGoodNodes)\n  File \"/scratch/local/21419949/tmpmo58bbwj.py\", line 128, in check\n    assert candidate(edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [1, 6], [2, 7], [3, 8]]) == 6\nAssertionError\n",
+                "execution_time": 0.07146120071411133
+              },
+              "depth": 2,
+              "parent_id": "1_2",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_6",
+          "solution": "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        # Build the tree structure as an adjacency list\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_nodes = 0\n        \n        # Post-order DFS to compute subtree sizes and check conditions\n        def dfs(node, parent):\n            nonlocal good_nodes\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            # Base case: leaf node (no children)\n            if not children:\n                return 1\n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            # Check if all child subtree sizes are equal\n            if all(s == sizes[0] for s in sizes):\n                good_nodes += 1\n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        return good_nodes",
+          "solution_hash": "c7cbf9dcfdc33fe89fa696355b8e51a396f78c46ffc66fa3ca63d4e4045484fb",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmptw3za1ox.py\", line 170, in <module>\n    check(Solution().countGoodNodes)\n  File \"/scratch/local/21419949/tmptw3za1ox.py\", line 120, in check\n    assert candidate(edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [1, 6], [2, 7], [3, 8]]) == 6\nAssertionError\n",
+            "execution_time": 0.0711822509765625
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_7",
+              "solution": "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_nodes = 0\n        \n        def dfs(node, parent):\n            nonlocal good_nodes\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            if not children:\n                good_nodes += 1\n                return 1\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            if all(s == sizes[0] for s in sizes):\n                good_nodes += 1\n            return 1 + sum(sizes)\n        \n        dfs(0, -1)\n        return good_nodes",
+              "solution_hash": "1bcead505576e9750c135f296e2b933cf6640b51af3e07e45d77d71fc4c758a7",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.07164955139160156
+              },
+              "depth": 2,
+              "parent_id": "1_6",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_8",
+              "solution": "from collections import defaultdict, deque\nfrom typing import List\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        # Build the adjacency list\n        adj = defaultdict(list)\n        for a, b in edges:\n            adj[a].append(b)\n            adj[b].append(a)\n        \n        # Build the tree structure with correct parent-child relationships\n        n = len(edges) + 1  # Number of nodes\n        tree = defaultdict(list)\n        visited = [False] * n\n        queue = deque()\n        root = 0\n        queue.append(root)\n        visited[root] = True\n        parent = {root: -1}\n        \n        while queue:\n            u = queue.popleft()\n            for v in adj[u]:\n                if not visited[v]:\n                    visited[v] = True\n                    parent[v] = u\n                    tree[u].append(v)\n                    queue.append(v)\n        \n        good_nodes = 0\n        \n        # Post-order DFS to compute subtree sizes and check conditions\n        def dfs(node):\n            nonlocal good_nodes\n            children = tree[node]\n            # Base case: leaf node (no children)\n            if not children:\n                return 1\n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child)\n                sizes.append(size)\n            # Check if all child subtree sizes are equal\n            if len(sizes) == 0 or all(s == sizes[0] for s in sizes):\n                good_nodes += 1\n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(root)\n        return good_nodes",
+              "solution_hash": "22d7e392de19035aca12fe125f5783ad90e460891f6ca5152853f258b9547dcc",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpdvwtwuow.py\", line 187, in <module>\n    check(Solution().countGoodNodes)\n  File \"/scratch/local/21419949/tmpdvwtwuow.py\", line 137, in check\n    assert candidate(edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [1, 6], [2, 7], [3, 8]]) == 6\nAssertionError\n",
+                "execution_time": 0.07616925239562988
+              },
+              "depth": 2,
+              "parent_id": "1_6",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_9",
+              "solution": "from collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_nodes = 0\n        \n        def dfs(node, parent):\n            nonlocal good_nodes\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            if not children:\n                good_nodes += 1\n                return 1\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            if len(set(sizes)) == 1:\n                good_nodes += 1\n            return 1 + sum(sizes)\n        \n        dfs(0, -1)\n        return good_nodes",
+              "solution_hash": "0cda4ad20beff1770a80deabe04d1347e0d5e91dc3e56cbe951beb833ec45ac4",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.07308340072631836
+              },
+              "depth": 2,
+              "parent_id": "1_6",
+              "children": [],
+              "passed": true
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "from typing import List\nfrom collections import defaultdict, deque\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build adjacency list\n        adj = defaultdict(list)\n        for a, b in edges:\n            adj[a].append(b)\n            adj[b].append(a)\n        \n        # Build the tree structure with parent pointers\n        root = 0\n        parent = {root: -1}\n        children = defaultdict(list)\n        queue = deque([root])\n        while queue:\n            u = queue.popleft()\n            for v in adj[u]:\n                if v != parent[u]:\n                    parent[v] = u\n                    children[u].append(v)\n                    queue.append(v)\n        \n        # Calculate subtree sizes using post-order traversal\n        subtree_size = defaultdict(int)\n        stack = [(root, False)]\n        while stack:\n            node, visited = stack.pop()\n            if visited:\n                size = 1\n                for child in children[node]:\n                    size += subtree_size[child]\n                subtree_size[node] = size\n            else:\n                stack.append((node, True))\n                for child in children[node]:\n                    stack.append((child, False))\n        \n        # Count good nodes\n        good_count = 0\n        for node in subtree_size:\n            # Get all children's subtree sizes\n            child_sizes = [subtree_size[child] for child in children[node]]\n            if not child_sizes:\n                # Leaf nodes are automatically good\n                good_count += 1\n            else:\n                # Check if all sizes are the same\n                first = child_sizes[0]\n                all_same = True\n                for s in child_sizes[1:]:\n                    if s != first:\n                        all_same = False\n                        break\n                if all_same:\n                    good_count += 1\n        \n        return good_count",
+      "solution_hash": "3245a679a5901bbfdf92931315e1081463f911f41a1af1dfcc9fdcc5dd0870ae",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.07825398445129395
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    },
+    {
+      "node_id": "0_2",
+      "solution": "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        # To avoid revisiting the parent node, we'll track visited nodes\n        visited = set()\n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            visited.add(node)\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+      "solution_hash": "7bc58a7e00fbc2da7ebd1392785511b9e0f4620a3eaeb12e7cabbe4421bafd0a",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpca8pjm2i.py\", line 182, in <module>\n    check(Solution().countGoodNodes)\n  File \"/scratch/local/21419949/tmpca8pjm2i.py\", line 132, in check\n    assert candidate(edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [1, 6], [2, 7], [3, 8]]) == 6\nAssertionError\n",
+        "execution_time": 0.07717537879943848
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_12",
+          "solution": "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+          "solution_hash": "e8990cbd6ccf7de120c30ab32763d43b492277b3c22e7ab5c06daa185fa25fa6",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpsr3k23yt.py\", line 179, in <module>\n    check(Solution().countGoodNodes)\n  File \"/scratch/local/21419949/tmpsr3k23yt.py\", line 129, in check\n    assert candidate(edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [1, 6], [2, 7], [3, 8]]) == 6\nAssertionError\n",
+            "execution_time": 0.06849217414855957
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_13",
+              "solution": "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if len(sizes) == 0 or all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+              "solution_hash": "7b03482668e644339ba0daba1d0a661888f6571625d82973e14d5a00f0915dbf",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpzv6visz1.py\", line 179, in <module>\n    check(Solution().countGoodNodes)\n  File \"/scratch/local/21419949/tmpzv6visz1.py\", line 129, in check\n    assert candidate(edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [1, 6], [2, 7], [3, 8]]) == 6\nAssertionError\n",
+                "execution_time": 0.06845760345458984
+              },
+              "depth": 2,
+              "parent_id": "1_12",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_14",
+              "solution": "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                good_count += 1\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+              "solution_hash": "74a6e81d0024d77d8b18f7e99f1a99b5554267a688bcf0f91d15419072d43c73",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.07043814659118652
+              },
+              "depth": 2,
+              "parent_id": "1_12",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_15",
+              "solution": "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                good_count += 1\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+              "solution_hash": "74a6e81d0024d77d8b18f7e99f1a99b5554267a688bcf0f91d15419072d43c73",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.07043814659118652
+              },
+              "depth": 2,
+              "parent_id": "1_12",
+              "children": [],
+              "passed": true
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_16",
+          "solution": "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                good_count += 1\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+          "solution_hash": "74a6e81d0024d77d8b18f7e99f1a99b5554267a688bcf0f91d15419072d43c73",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07043814659118652
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_17",
+          "solution": "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+          "solution_hash": "e8990cbd6ccf7de120c30ab32763d43b492277b3c22e7ab5c06daa185fa25fa6",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpsr3k23yt.py\", line 179, in <module>\n    check(Solution().countGoodNodes)\n  File \"/scratch/local/21419949/tmpsr3k23yt.py\", line 129, in check\n    assert candidate(edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [1, 6], [2, 7], [3, 8]]) == 6\nAssertionError\n",
+            "execution_time": 0.06849217414855957
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_18",
+              "solution": "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+              "solution_hash": "e8990cbd6ccf7de120c30ab32763d43b492277b3c22e7ab5c06daa185fa25fa6",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpsr3k23yt.py\", line 179, in <module>\n    check(Solution().countGoodNodes)\n  File \"/scratch/local/21419949/tmpsr3k23yt.py\", line 129, in check\n    assert candidate(edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [1, 6], [2, 7], [3, 8]]) == 6\nAssertionError\n",
+                "execution_time": 0.06849217414855957
+              },
+              "depth": 2,
+              "parent_id": "1_17",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_19",
+              "solution": "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countGoodNodes(self, edges: List[List[int]]) -> int:\n        if not edges:\n            return 0\n        \n        # Build the tree structure\n        tree = defaultdict(list)\n        for a, b in edges:\n            tree[a].append(b)\n            tree[b].append(a)\n        \n        good_count = 0\n        \n        # Post-order traversal to calculate subtree sizes\n        def dfs(node, parent):\n            nonlocal good_count\n            children = []\n            for neighbor in tree[node]:\n                if neighbor != parent:\n                    children.append(neighbor)\n            \n            # If no children, it's a leaf node, which is always good\n            if not children:\n                return 1\n            \n            # Get sizes of all children subtrees\n            sizes = []\n            for child in children:\n                size = dfs(child, node)\n                sizes.append(size)\n            \n            # Check if all sizes are the same\n            if all(s == sizes[0] for s in sizes):\n                good_count += 1\n            \n            # Return the total size of this subtree\n            return 1 + sum(sizes)\n        \n        # Start DFS from root (node 0)\n        dfs(0, -1)\n        \n        return good_count",
+              "solution_hash": "e8990cbd6ccf7de120c30ab32763d43b492277b3c22e7ab5c06daa185fa25fa6",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpsr3k23yt.py\", line 179, in <module>\n    check(Solution().countGoodNodes)\n  File \"/scratch/local/21419949/tmpsr3k23yt.py\", line 129, in check\n    assert candidate(edges = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [1, 6], [2, 7], [3, 8]]) == 6\nAssertionError\n",
+                "execution_time": 0.06849217414855957
+              },
+              "depth": 2,
+              "parent_id": "1_17",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 20,
+    "candidates_generated": 20,
+    "tests_passed": 7,
+    "tests_failed": 13,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 1368.1140859127045,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.38095238095238104,
+      "pass@3": 0.7849624060150376,
+      "pass@5": 0.9367536488279522,
+      "pass@10": 0.9991891493439481
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 20
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 21,
+    "test_cases": 1
+  }
+}

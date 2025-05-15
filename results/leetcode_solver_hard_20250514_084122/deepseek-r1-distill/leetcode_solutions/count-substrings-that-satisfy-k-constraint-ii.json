@@ -1,0 +1,271 @@
+{
+  "problem_id": "count-substrings-that-satisfy-k-constraint-ii",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "solved",
+  "best_solution": "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (1 if s[i] == '0' else 0)\n            prefix1[i+1] = prefix1[i] + (1 if s[i] == '1' else 0)\n        \n        def count(l, r):\n            res = 0\n            for end in range(l, r + 1):\n                low = l\n                high = end\n                best = end + 1\n                while low <= high:\n                    mid = (low + high) // 2\n                    zeros = prefix0[end + 1] - prefix0[mid]\n                    ones = prefix1[end + 1] - prefix1[mid]\n                    if zeros <= k or ones <= k:\n                        best = mid\n                        high = mid - 1\n                    else:\n                        low = mid + 1\n                if best <= end:\n                    res += (end - best + 1)\n            return res\n        \n        ans = []\n        for l, r in queries:\n            ans.append(count(l, r))\n        return ans",
+  "passed_solutions": [
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (s[i] == '0')\n            prefix1[i+1] = prefix1[i] + (s[i] == '1')\n        \n        res = []\n        for l, r in queries:\n            total = 0\n            for i in range(l, r + 1):\n                max_len = 0\n                # Find the maximum j where substring s[i..j] satisfies the condition\n                # We can use a sliding window approach here\n                # Since the string is processed from left to right, we can keep track of zeros and ones\n                # and expand j as far as possible while the condition holds\n                zeros = 0\n                ones = 0\n                for j in range(i, r + 1):\n                    if s[j] == '0':\n                        zeros += 1\n                    else:\n                        ones += 1\n                    if zeros <= k or ones <= k:\n                        max_len += 1\n                    else:\n                        break\n                total += max_len\n            res.append(total)\n        return res",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (s[i] == '0')\n            prefix1[i+1] = prefix1[i] + (s[i] == '1')\n        \n        res = []\n        for l, r in queries:\n            total = 0\n            for i in range(l, r + 1):\n                left = i\n                right = r\n                best = i - 1\n                while left <= right:\n                    mid = (left + right) // 2\n                    zeros = prefix0[mid + 1] - prefix0[i]\n                    ones = prefix1[mid + 1] - prefix1[i]\n                    if zeros <= k or ones <= k:\n                        best = mid\n                        left = mid + 1\n                    else:\n                        right = mid - 1\n                if best >= i:\n                    total += (best - i + 1)\n            res.append(total)\n        return res",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (s[i] == '0')\n            prefix1[i+1] = prefix1[i] + (s[i] == '1')\n        \n        def count(l, r):\n            total = 0\n            for i in range(l, r+1):\n                max_j = i\n                for j in range(i, r+1):\n                    zeros = prefix0[j+1] - prefix0[i]\n                    ones = prefix1[j+1] - prefix1[i]\n                    if zeros <= k or ones <= k:\n                        max_j = j\n                    else:\n                        break\n                total += (max_j - i + 1)\n            return total\n        \n        res = []\n        for l, r in queries:\n            res.append(count(l, r))\n        return res",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (1 if s[i] == '0' else 0)\n            prefix1[i+1] = prefix1[i] + (1 if s[i] == '1' else 0)\n        \n        def count(l, r):\n            res = 0\n            for end in range(l, r + 1):\n                low = l\n                high = end\n                best = end + 1\n                while low <= high:\n                    mid = (low + high) // 2\n                    zeros = prefix0[end + 1] - prefix0[mid]\n                    ones = prefix1[end + 1] - prefix1[mid]\n                    if zeros <= k or ones <= k:\n                        best = mid\n                        high = mid - 1\n                    else:\n                        low = mid + 1\n                if best <= end:\n                    res += (end - best + 1)\n            return res\n        \n        ans = []\n        for l, r in queries:\n            ans.append(count(l, r))\n        return ans",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (1 if s[i] == '0' else 0)\n            prefix1[i+1] = prefix1[i] + (1 if s[i] == '1' else 0)\n        \n        def count(l, r):\n            res = 0\n            left = l\n            for right in range(l, r + 1):\n                while True:\n                    zeros = prefix0[right + 1] - prefix0[left]\n                    ones = prefix1[right + 1] - prefix1[left]\n                    if zeros <= k or ones <= k:\n                        break\n                    left += 1\n                res += right - left + 1\n            return res\n        \n        ans = []\n        for l, r in queries:\n            ans.append(count(l, r))\n        return ans",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (1 if s[i] == '0' else 0)\n            prefix1[i+1] = prefix1[i] + (1 if s[i] == '1' else 0)\n        \n        def count(l, r):\n            res = 0\n            for i in range(l, r + 1):\n                low = i\n                high = r\n                best = i - 1\n                while low <= high:\n                    mid = (low + high) // 2\n                    zeros = prefix0[mid + 1] - prefix0[i]\n                    ones = prefix1[mid + 1] - prefix1[i]\n                    if zeros <= k or ones <= k:\n                        best = mid\n                        low = mid + 1\n                    else:\n                        high = mid - 1\n                if best >= i:\n                    res += best - i + 1\n            return res\n        \n        ans = []\n        for l, r in queries:\n            ans.append(count(l, r))\n        return ans",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (s[i] == '0')\n            prefix1[i+1] = prefix1[i] + (s[i] == '1')\n        \n        def count(l, r):\n            total = 0\n            left = l\n            for right in range(l, r+1):\n                cnt0 = prefix0[right+1] - prefix0[left]\n                cnt1 = prefix1[right+1] - prefix1[left]\n                while left <= right and (cnt0 > k and cnt1 > k):\n                    left += 1\n                    cnt0 = prefix0[right+1] - prefix0[left]\n                    cnt1 = prefix1[right+1] - prefix1[left]\n                total += right - left + 1\n            return total\n        \n        res = []\n        for l, r in queries:\n            res.append(count(l, r))\n        return res"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (s[i] == '0')\n            prefix1[i+1] = prefix1[i] + (s[i] == '1')\n        \n        def count(l, r):\n            total = 0\n            for i in range(l, r+1):\n                left = i\n                right = r\n                while left <= right:\n                    mid = (left + right) // 2\n                    zeros = prefix0[mid+1] - prefix0[i]\n                    ones = prefix1[mid+1] - prefix1[i]\n                    if zeros <= k or ones <= k:\n                        total += (mid - i + 1)\n                        left = mid + 1\n                    else:\n                        right = mid - 1\n            return total\n        \n        res = []\n        for l, r in queries:\n            res.append(count(l, r))\n        return res",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (s[i] == '0')\n            prefix1[i+1] = prefix1[i] + (s[i] == '1')\n        \n        res = []\n        for l, r in queries:\n            total = 0\n            for i in range(l, r + 1):\n                max_len = 0\n                # Find the maximum j where substring s[i..j] satisfies the condition\n                # We can use a sliding window approach here\n                # Since the string is processed from left to right, we can keep track of zeros and ones\n                # and expand j as far as possible while the condition holds\n                zeros = 0\n                ones = 0\n                for j in range(i, r + 1):\n                    if s[j] == '0':\n                        zeros += 1\n                    else:\n                        ones += 1\n                    if zeros <= k or ones <= k:\n                        max_len += 1\n                    else:\n                        break\n                total += max_len\n            res.append(total)\n        return res",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (s[i] == '0')\n            prefix1[i+1] = prefix1[i] + (s[i] == '1')\n        \n        res = []\n        for l, r in queries:\n            total = 0\n            for i in range(l, r + 1):\n                left = i\n                right = r\n                best = i - 1\n                while left <= right:\n                    mid = (left + right) // 2\n                    zeros = prefix0[mid + 1] - prefix0[i]\n                    ones = prefix1[mid + 1] - prefix1[i]\n                    if zeros <= k or ones <= k:\n                        best = mid\n                        left = mid + 1\n                    else:\n                        right = mid - 1\n                if best >= i:\n                    total += (best - i + 1)\n            res.append(total)\n        return res",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (s[i] == '0')\n            prefix1[i+1] = prefix1[i] + (s[i] == '1')\n        \n        def count(l, r):\n            total = 0\n            for i in range(l, r+1):\n                max_j = i\n                for j in range(i, r+1):\n                    zeros = prefix0[j+1] - prefix0[i]\n                    ones = prefix1[j+1] - prefix1[i]\n                    if zeros <= k or ones <= k:\n                        max_j = j\n                    else:\n                        break\n                total += (max_j - i + 1)\n            return total\n        \n        res = []\n        for l, r in queries:\n            res.append(count(l, r))\n        return res",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (1 if s[i] == '0' else 0)\n            prefix1[i+1] = prefix1[i] + (1 if s[i] == '1' else 0)\n        \n        def count(l, r):\n            res = 0\n            for i in range(l, r+1):\n                zeros = prefix0[r+1] - prefix0[i]\n                ones = prefix1[r+1] - prefix1[i]\n                if zeros <= k or ones <= k:\n                    res += 1\n            return res\n        \n        ans = []\n        for l, r in queries:\n            ans.append(count(l, r))\n        return ans",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (1 if s[i] == '0' else 0)\n            prefix1[i+1] = prefix1[i] + (1 if s[i] == '1' else 0)\n        \n        def count(l, r):\n            res = 0\n            for end in range(l, r + 1):\n                low = l\n                high = end\n                best = end + 1\n                while low <= high:\n                    mid = (low + high) // 2\n                    zeros = prefix0[end + 1] - prefix0[mid]\n                    ones = prefix1[end + 1] - prefix1[mid]\n                    if zeros <= k or ones <= k:\n                        best = mid\n                        high = mid - 1\n                    else:\n                        low = mid + 1\n                if best <= end:\n                    res += (end - best + 1)\n            return res\n        \n        ans = []\n        for l, r in queries:\n            ans.append(count(l, r))\n        return ans",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (1 if s[i] == '0' else 0)\n            prefix1[i+1] = prefix1[i] + (1 if s[i] == '1' else 0)\n        \n        def count(l, r):\n            res = 0\n            left = l\n            for right in range(l, r + 1):\n                while True:\n                    zeros = prefix0[right + 1] - prefix0[left]\n                    ones = prefix1[right + 1] - prefix1[left]\n                    if zeros <= k or ones <= k:\n                        break\n                    left += 1\n                res += right - left + 1\n            return res\n        \n        ans = []\n        for l, r in queries:\n            ans.append(count(l, r))\n        return ans",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (1 if s[i] == '0' else 0)\n            prefix1[i+1] = prefix1[i] + (1 if s[i] == '1' else 0)\n        \n        def count(l, r):\n            res = 0\n            for i in range(l, r + 1):\n                low = i\n                high = r\n                best = i - 1\n                while low <= high:\n                    mid = (low + high) // 2\n                    zeros = prefix0[mid + 1] - prefix0[i]\n                    ones = prefix1[mid + 1] - prefix1[i]\n                    if zeros <= k or ones <= k:\n                        best = mid\n                        low = mid + 1\n                    else:\n                        high = mid - 1\n                if best >= i:\n                    res += best - i + 1\n            return res\n        \n        ans = []\n        for l, r in queries:\n            ans.append(count(l, r))\n        return ans",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (s[i] == '0')\n            prefix1[i+1] = prefix1[i] + (s[i] == '1')\n        \n        def count(l, r):\n            total = 0\n            left = l\n            for right in range(l, r+1):\n                cnt0 = prefix0[right+1] - prefix0[left]\n                cnt1 = prefix1[right+1] - prefix1[left]\n                while left <= right and (cnt0 > k and cnt1 > k):\n                    left += 1\n                    cnt0 = prefix0[right+1] - prefix0[left]\n                    cnt1 = prefix1[right+1] - prefix1[left]\n                total += right - left + 1\n            return total\n        \n        res = []\n        for l, r in queries:\n            res.append(count(l, r))\n        return res"
+  ],
+  "total_candidates": 9,
+  "nodes_explored": 9,
+  "tree_depth": 1,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (s[i] == '0')\n            prefix1[i+1] = prefix1[i] + (s[i] == '1')\n        \n        def count(l, r):\n            total = 0\n            for i in range(l, r+1):\n                left = i\n                right = r\n                while left <= right:\n                    mid = (left + right) // 2\n                    zeros = prefix0[mid+1] - prefix0[i]\n                    ones = prefix1[mid+1] - prefix1[i]\n                    if zeros <= k or ones <= k:\n                        total += (mid - i + 1)\n                        left = mid + 1\n                    else:\n                        right = mid - 1\n            return total\n        \n        res = []\n        for l, r in queries:\n            res.append(count(l, r))\n        return res",
+      "solution_hash": "c80cbf1ed9e13b885936650769fae491acdbbacef49c6e2f2e430a22c530af06",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpgdgh6pxh.py\", line 190, in <module>\n    check(Solution().countKConstraintSubstrings)\n  File \"/scratch/local/21419950/tmpgdgh6pxh.py\", line 114, in check\n    assert candidate(s = \"010101\",k = 1,queries = [[0, 5], [1, 4], [2, 3]]) == [15, 9, 3]\nAssertionError\n",
+        "execution_time": 0.0630655288696289
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (s[i] == '0')\n            prefix1[i+1] = prefix1[i] + (s[i] == '1')\n        \n        res = []\n        for l, r in queries:\n            total = 0\n            for i in range(l, r + 1):\n                max_len = 0\n                # Find the maximum j where substring s[i..j] satisfies the condition\n                # We can use a sliding window approach here\n                # Since the string is processed from left to right, we can keep track of zeros and ones\n                # and expand j as far as possible while the condition holds\n                zeros = 0\n                ones = 0\n                for j in range(i, r + 1):\n                    if s[j] == '0':\n                        zeros += 1\n                    else:\n                        ones += 1\n                    if zeros <= k or ones <= k:\n                        max_len += 1\n                    else:\n                        break\n                total += max_len\n            res.append(total)\n        return res",
+          "solution_hash": "83afe7a1e5790761423a4a226c11c9861c8479296175e37058fcb664f85deb61",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.0683748722076416
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_2",
+          "solution": "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (s[i] == '0')\n            prefix1[i+1] = prefix1[i] + (s[i] == '1')\n        \n        res = []\n        for l, r in queries:\n            total = 0\n            for i in range(l, r + 1):\n                left = i\n                right = r\n                best = i - 1\n                while left <= right:\n                    mid = (left + right) // 2\n                    zeros = prefix0[mid + 1] - prefix0[i]\n                    ones = prefix1[mid + 1] - prefix1[i]\n                    if zeros <= k or ones <= k:\n                        best = mid\n                        left = mid + 1\n                    else:\n                        right = mid - 1\n                if best >= i:\n                    total += (best - i + 1)\n            res.append(total)\n        return res",
+          "solution_hash": "8f703196aac9afa3e53e39701113607cffd59fbd9752af7b09c19baf097c792d",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07274365425109863
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_3",
+          "solution": "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (s[i] == '0')\n            prefix1[i+1] = prefix1[i] + (s[i] == '1')\n        \n        def count(l, r):\n            total = 0\n            for i in range(l, r+1):\n                max_j = i\n                for j in range(i, r+1):\n                    zeros = prefix0[j+1] - prefix0[i]\n                    ones = prefix1[j+1] - prefix1[i]\n                    if zeros <= k or ones <= k:\n                        max_j = j\n                    else:\n                        break\n                total += (max_j - i + 1)\n            return total\n        \n        res = []\n        for l, r in queries:\n            res.append(count(l, r))\n        return res",
+          "solution_hash": "54e514154d4ba4293302b0e60535eb9b984f8bb73841209d98be58b6519c536e",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07383346557617188
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [],
+          "passed": true
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (1 if s[i] == '0' else 0)\n            prefix1[i+1] = prefix1[i] + (1 if s[i] == '1' else 0)\n        \n        def count(l, r):\n            res = 0\n            for i in range(l, r+1):\n                zeros = prefix0[r+1] - prefix0[i]\n                ones = prefix1[r+1] - prefix1[i]\n                if zeros <= k or ones <= k:\n                    res += 1\n            return res\n        \n        ans = []\n        for l, r in queries:\n            ans.append(count(l, r))\n        return ans",
+      "solution_hash": "bf8515ccd8459c566574a4324c447d559e3a773d5ae51613642108f06e32e548",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpk95_hcjv.py\", line 183, in <module>\n    check(Solution().countKConstraintSubstrings)\n  File \"/scratch/local/21419950/tmpk95_hcjv.py\", line 107, in check\n    assert candidate(s = \"010101\",k = 1,queries = [[0, 5], [1, 4], [2, 3]]) == [15, 9, 3]\nAssertionError\n",
+        "execution_time": 0.06653237342834473
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_5",
+          "solution": "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (1 if s[i] == '0' else 0)\n            prefix1[i+1] = prefix1[i] + (1 if s[i] == '1' else 0)\n        \n        def count(l, r):\n            res = 0\n            for end in range(l, r + 1):\n                low = l\n                high = end\n                best = end + 1\n                while low <= high:\n                    mid = (low + high) // 2\n                    zeros = prefix0[end + 1] - prefix0[mid]\n                    ones = prefix1[end + 1] - prefix1[mid]\n                    if zeros <= k or ones <= k:\n                        best = mid\n                        high = mid - 1\n                    else:\n                        low = mid + 1\n                if best <= end:\n                    res += (end - best + 1)\n            return res\n        \n        ans = []\n        for l, r in queries:\n            ans.append(count(l, r))\n        return ans",
+          "solution_hash": "def4852561685fc2f2b02972c0c01acfd82349de39cba31770208ed92e26bacd",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.06659173965454102
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_6",
+          "solution": "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (1 if s[i] == '0' else 0)\n            prefix1[i+1] = prefix1[i] + (1 if s[i] == '1' else 0)\n        \n        def count(l, r):\n            res = 0\n            left = l\n            for right in range(l, r + 1):\n                while True:\n                    zeros = prefix0[right + 1] - prefix0[left]\n                    ones = prefix1[right + 1] - prefix1[left]\n                    if zeros <= k or ones <= k:\n                        break\n                    left += 1\n                res += right - left + 1\n            return res\n        \n        ans = []\n        for l, r in queries:\n            ans.append(count(l, r))\n        return ans",
+          "solution_hash": "4a684906b847ca131de3f5194339cfdec28860f4078f5dc9f407ac3120ad2f9a",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.06904315948486328
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_7",
+          "solution": "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (1 if s[i] == '0' else 0)\n            prefix1[i+1] = prefix1[i] + (1 if s[i] == '1' else 0)\n        \n        def count(l, r):\n            res = 0\n            for i in range(l, r + 1):\n                low = i\n                high = r\n                best = i - 1\n                while low <= high:\n                    mid = (low + high) // 2\n                    zeros = prefix0[mid + 1] - prefix0[i]\n                    ones = prefix1[mid + 1] - prefix1[i]\n                    if zeros <= k or ones <= k:\n                        best = mid\n                        low = mid + 1\n                    else:\n                        high = mid - 1\n                if best >= i:\n                    res += best - i + 1\n            return res\n        \n        ans = []\n        for l, r in queries:\n            ans.append(count(l, r))\n        return ans",
+          "solution_hash": "7bc0545c368c5b0b31f071682091127f8ef413e5fbe3be69d0f191c5c317cf85",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.0716104507446289
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [],
+          "passed": true
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix0 = [0] * (n + 1)\n        prefix1 = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix0[i+1] = prefix0[i] + (s[i] == '0')\n            prefix1[i+1] = prefix1[i] + (s[i] == '1')\n        \n        def count(l, r):\n            total = 0\n            left = l\n            for right in range(l, r+1):\n                cnt0 = prefix0[right+1] - prefix0[left]\n                cnt1 = prefix1[right+1] - prefix1[left]\n                while left <= right and (cnt0 > k and cnt1 > k):\n                    left += 1\n                    cnt0 = prefix0[right+1] - prefix0[left]\n                    cnt1 = prefix1[right+1] - prefix1[left]\n                total += right - left + 1\n            return total\n        \n        res = []\n        for l, r in queries:\n            res.append(count(l, r))\n        return res",
+      "solution_hash": "a776e6c60412a67d0e426116a7396e51595d1e1b498898357840b46df78532f5",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.06770014762878418
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    }
+  ],
+  "stats": {
+    "nodes_explored": 9,
+    "candidates_generated": 9,
+    "tests_passed": 7,
+    "tests_failed": 2,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 595.3842916488647,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.7999999999999999,
+      "pass@3": 1.0,
+      "pass@5": 1.0,
+      "pass@10": 1.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 9
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 10,
+    "test_cases": 1
+  }
+}

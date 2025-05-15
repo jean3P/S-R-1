@@ -1,0 +1,990 @@
+{
+  "problem_id": "count-almost-equal-pairs-i",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "unsolved",
+  "best_solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def canBecomeEqual(x_str, y_str):\n            # Pad shorter string with leading zeros\n            len_x, len_y = len(x_str), len(y_str)\n            if len_x < len_y:\n                x_str = '0' * (len_y - len_x) + x_str\n            elif len_y < len_x:\n                y_str = '0' * (len_x - len_y) + y_str\n            \n            # Find positions where x and y differ\n            diff_positions = [i for i in range(len(x_str)) if x_str[i] != y_str[i]]\n            \n            # If no differences, they are already equal\n            if not diff_positions:\n                return True\n            # If exactly two differences, check if swapping makes them equal\n            if len(diff_positions) == 2:\n                i, j = diff_positions\n                # Swap digits in x_str and check if equal to y_str\n                x_swapped = x_str[:i] + x_str[j] + x_str[i+1:j] + x_str[i] + x_str[j+1:]\n                if x_swapped == y_str:\n                    return True\n                # Swap digits in y_str and check if equal to x_str\n                y_swapped = y_str[:i] + y_str[j] + y_str[i+1:j] + y_str[i] + y_str[j+1:]\n                if y_swapped == x_str:\n                    return True\n            # If more than two differences, cannot make equal with one swap\n            return False\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                x_str, y_str = str(nums[i]), str(nums[j])\n                if canBecomeEqual(x_str, y_str):\n                    count += 1\n        return count",
+  "passed_solutions": [
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_become_equal(x, y):\n            x_str, y_str = str(x), str(y)\n            # Pad the shorter string with leading zeros\n            max_len = max(len(x_str), len(y_str))\n            x_str = x_str.zfill(max_len)\n            y_str = y_str.zfill(max_len)\n            \n            # Find differing positions\n            diff_indices = [i for i in range(max_len) if x_str[i] != y_str[i]]\n            \n            # If there are no differences, they are already equal\n            if not diff_indices:\n                return True\n            # If there are more than two differences, cannot make equal with one swap\n            if len(diff_indices) > 2:\n                return False\n            # If there are exactly two differences, check if swapping makes them equal\n            if len(diff_indices) == 2:\n                i, j = diff_indices\n                # Swap the characters in x_str and check if it matches y_str\n                x_list = list(x_str)\n                x_list[i], x_list[j] = x_list[j], x_list[i]\n                if ''.join(x_list) == y_str:\n                    return True\n                # Optionally, swap in y_str and check if it matches x_str\n                # But since we are allowed to swap in either x or y, checking one is sufficient\n            # If there is only one difference, cannot make equal with one swap\n            return False\n\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_become_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def generate_swaps(num):\n            s = str(num)\n            n = len(s)\n            swaps = set()\n            for i in range(n):\n                for j in range(i + 1, n):\n                    # Swap digits at positions i and j\n                    swapped = list(s)\n                    swapped[i], swapped[j] = swapped[j], swapped[i]\n                    # Convert back to integer, allowing leading zeros\n                    swaps.add(int(''.join(swapped)))\n            return swaps\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                # Generate all possible swaps for both numbers\n                swaps_i = generate_swaps(nums[i])\n                swaps_j = generate_swaps(nums[j])\n                # Check if nums[j] is in swaps_i or nums[i] is in swaps_j\n                if nums[j] in swaps_i or nums[i] in swaps_j:\n                    count += 1\n                # Also check if nums[i] and nums[j] are equal without any swap\n                elif nums[i] == nums[j]:\n                    count += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def canBecomeEqual(x_str, y_str):\n            # Pad shorter string with leading zeros\n            len_x, len_y = len(x_str), len(y_str)\n            if len_x < len_y:\n                x_str = '0' * (len_y - len_x) + x_str\n            elif len_y < len_x:\n                y_str = '0' * (len_x - len_y) + y_str\n            \n            # Find positions where x and y differ\n            diff_positions = [i for i in range(len(x_str)) if x_str[i] != y_str[i]]\n            \n            # If no differences, they are already equal\n            if not diff_positions:\n                return True\n            # If exactly two differences, check if swapping makes them equal\n            if len(diff_positions) == 2:\n                i, j = diff_positions\n                # Swap digits in x_str and check if equal to y_str\n                x_swapped = x_str[:i] + x_str[j] + x_str[i+1:j] + x_str[i] + x_str[j+1:]\n                if x_swapped == y_str:\n                    return True\n                # Swap digits in y_str and check if equal to x_str\n                y_swapped = y_str[:i] + y_str[j] + y_str[i+1:j] + y_str[i] + y_str[j+1:]\n                if y_swapped == x_str:\n                    return True\n            # If more than two differences, cannot make equal with one swap\n            return False\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                x_str, y_str = str(nums[i]), str(nums[j])\n                if canBecomeEqual(x_str, y_str):\n                    count += 1\n        return count"
+  ],
+  "all_solutions": [
+    "class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def can_become_equal(x, y):\n                    x_str, y_str = str(x), str(y)\n                    if x == y:\n                        return True\n                    diff_indices = []\n                    for a, b in zip(x_str, y_str):\n                        if a != b:\n                            diff_indices.append((a, b))\n                    if len(diff_indices) != 2:\n                        return False\n                    # Check if swapping the differing digits in x makes it equal to y\n                    a1, b1 = diff_indices[0]\n                    a2, b2 = diff_indices[1]\n                    if a1 == b2 and a2 == b1:\n                        return True\n                    return False\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if can_become_equal(nums[i], nums[j]):\n                            count += 1\n                return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def can_become_equal(x, y):\n                    x_str, y_str = str(x), str(y)\n                    if len(x_str) != len(y_str):\n                        return False\n                    diff_indices = []\n                    for idx, (a, b) in enumerate(zip(x_str, y_str)):\n                        if a != b:\n                            diff_indices.append(idx)\n                    if len(diff_indices) != 2:\n                        return False\n                    i, j = diff_indices\n                    # Create a list from x_str to swap characters\n                    x_list = list(x_str)\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n                    # Check if swapped x equals y\n                    return ''.join(x_list) == y_str\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if can_become_equal(nums[i], nums[j]):\n                            count += 1\n                return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def almost_equal(x, y):\n            x_str, y_str = str(x), str(y)\n            # Pad the shorter string with leading zeros\n            max_len = max(len(x_str), len(y_str))\n            x_str = x_str.zfill(max_len)\n            y_str = y_str.zfill(max_len)\n            # Check if sorted characters are equal\n            return sorted(x_str) == sorted(y_str)\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if almost_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_become_equal(x, y):\n            x_str, y_str = str(x), str(y)\n            max_len = max(len(x_str), len(y_str))\n            # Zero-pad the shorter string\n            x_str_padded = x_str.zfill(max_len)\n            y_str_padded = y_str.zfill(max_len)\n            # Count the number of differing positions\n            diff_count = sum(1 for a, b in zip(x_str_padded, y_str_padded) if a != b)\n            # They are almost equal if there are at most two differences\n            return diff_count <= 2\n\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_become_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def can_become_equal(x, y):\n                    x_str, y_str = str(x), str(y)\n                    diff_indices = []\n                    for idx, (a, b) in enumerate(zip(x_str, y_str)):\n                        if a != b:\n                            diff_indices.append(idx)\n                    if len(diff_indices) != 2:\n                        return False\n                    i, j = diff_indices\n                    # Swap digits in x_str at positions i and j\n                    x_list = list(x_str)\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n                    swapped_x = ''.join(x_list)\n                    # Check if swapped x equals y\n                    return swapped_x == y_str\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if can_become_equal(nums[i], nums[j]):\n                            count += 1\n                return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def can_become_equal(x, y):\n                    x_str, y_str = str(x), str(y)\n                    if len(x_str) != len(y_str):\n                        return False\n                    diff_indices = []\n                    for a, b in zip(x_str, y_str):\n                        if a != b:\n                            diff_indices.append((a, b))\n                    if len(diff_indices) != 2:\n                        return False\n                    # Check if swapping the differing digits in x makes it equal to y\n                    a1, b1 = diff_indices[0]\n                    a2, b2 = diff_indices[1]\n                    if a1 == b2 and a2 == b1:\n                        return True\n                    return False\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if can_become_equal(str(nums[i]), str(nums[j])):\n                            count += 1\n                return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def can_become_equal(x, y):\n                    x_str, y_str = str(x), str(y)\n                    if len(x_str) != len(y_str):\n                        return False\n                    diff_indices = []\n                    for idx, (a, b) in enumerate(zip(x_str, y_str)):\n                        if a != b:\n                            diff_indices.append(idx)\n                    if len(diff_indices) != 2:\n                        return False\n                    i, j = diff_indices\n                    # Create a list from x_str to swap characters\n                    x_list = list(x_str)\n                    # Swap the characters at positions i and j\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n                    # Check if the swapped string equals y_str\n                    return ''.join(x_list) == y_str\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if can_become_equal(nums[i], nums[j]):\n                            count += 1\n                return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_become_equal(x, y):\n            x_str, y_str = str(x), str(y)\n            if len(x_str) != len(y_str):\n                return False\n            diff_indices = []\n            for a, b in zip(x_str, y_str):\n                if a != b:\n                    diff_indices.append((a, b))\n            if len(diff_indices) != 2:\n                return len(diff_indices) == 0\n            a1, b1 = diff_indices[0]\n            a2, b2 = diff_indices[1]\n            return a1 == b2 and a2 == b1\n\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_become_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_become_equal(x, y):\n            x_str, y_str = str(x), str(y)\n            max_len = max(len(x_str), len(y_str))\n            x_str = x_str.zfill(max_len)\n            y_str = y_str.zfill(max_len)\n            \n            diff_indices = []\n            for idx, (a, b) in enumerate(zip(x_str, y_str)):\n                if a != b:\n                    diff_indices.append(idx)\n            \n            if len(diff_indices) != 2:\n                return False\n            \n            i, j = diff_indices\n            x_list = list(x_str)\n            x_list[i], x_list[j] = x_list[j], x_list[i]\n            return ''.join(x_list) == y_str\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_become_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_become_equal(x, y):\n            x_str, y_str = str(x), str(y)\n            # Pad the shorter string with leading zeros\n            max_len = max(len(x_str), len(y_str))\n            x_str = x_str.zfill(max_len)\n            y_str = y_str.zfill(max_len)\n            \n            # Find differing positions\n            diff_indices = [i for i in range(max_len) if x_str[i] != y_str[i]]\n            \n            # If there are no differences, they are already equal\n            if not diff_indices:\n                return True\n            # If there are more than two differences, cannot make equal with one swap\n            if len(diff_indices) > 2:\n                return False\n            # If there are exactly two differences, check if swapping makes them equal\n            if len(diff_indices) == 2:\n                i, j = diff_indices\n                # Swap the characters in x_str and check if it matches y_str\n                x_list = list(x_str)\n                x_list[i], x_list[j] = x_list[j], x_list[i]\n                if ''.join(x_list) == y_str:\n                    return True\n                # Optionally, swap in y_str and check if it matches x_str\n                # But since we are allowed to swap in either x or y, checking one is sufficient\n            # If there is only one difference, cannot make equal with one swap\n            return False\n\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_become_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                s1 = str(nums[i])\n                s2 = str(nums[j])\n                if s1 == s2:\n                    count += 1\n                elif sorted(s1) == sorted(s2):\n                    count += 1\n        return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        s1 = str(nums[i])\n                        s2 = str(nums[j])\n                        if s1 == s2:\n                            count += 1\n                        else:\n                            # Make sure both strings have the same length by padding with leading zeros\n                            max_len = max(len(s1), len(s2))\n                            s1_padded = s1.zfill(max_len)\n                            s2_padded = s2.zfill(max_len)\n                            \n                            # Count the number of positions where s1 and s2 differ\n                            diff_count = sum(c1 != c2 for c1, c2 in zip(s1_padded, s2_padded))\n                            \n                            # If they differ in exactly two positions, they can be made equal by swapping those two digits\n                            if diff_count == 2:\n                                count += 1\n                return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def generate_swaps(num_str):\n                    n = len(num_str)\n                    swaps = set()\n                    for i in range(n):\n                        for j in range(i + 1, n):\n                            # Swap characters at positions i and j\n                            swapped = list(num_str)\n                            swapped[i], swapped[j] = swapped[j], swapped[i]\n                            swaps.add(''.join(swapped))\n                    return swaps\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        s1 = str(nums[i])\n                        s2 = str(nums[j])\n                        if s1 == s2:\n                            count += 1\n                            continue\n                        # Generate all possible swaps for s1 and s2\n                        s1_swaps = generate_swaps(s1)\n                        s2_swaps = generate_swaps(s2)\n                        # Check if s2 can be obtained by swapping digits in s1 or vice versa\n                        if s2 in s1_swaps or s1 in s2_swaps:\n                            count += 1\n                return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def generate_swaps(num_str):\n                    n = len(num_str)\n                    swaps = set()\n                    for i in range(n):\n                        for j in range(i + 1, n):\n                            swapped = list(num_str)\n                            swapped[i], swapped[j] = swapped[j], swapped[i]\n                            swaps.add(''.join(swapped))\n                    return swaps\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        s1 = str(nums[i])\n                        s2 = str(nums[j])\n                        if s1 == s2:\n                            count += 1\n                            continue\n                        # Generate all possible swaps for s1 and s2\n                        s1_swaps = generate_swaps(s1)\n                        s2_swaps = generate_swaps(s2)\n                        # Check if s2 can be obtained by swapping digits in s1 or vice versa\n                        if s2 in s1_swaps or s1 in s2_swaps:\n                            count += 1\n                return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_equal_by_swapping(x, y):\n            s1, s2 = str(x), str(y)\n            diff = []\n            for a, b in zip(s1, s2):\n                if a != b:\n                    diff.append((a, b))\n            if len(diff) == 0:\n                return True\n            if len(diff) == 2:\n                return diff[0][0] == diff[1][1] and diff[0][1] == diff[1][0]\n            return False\n\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_equal_by_swapping(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def canBecomeEqual(x, y):\n            s1, s2 = str(x), str(y)\n            if len(s1) != len(s2):\n                return False\n            diff_positions = [i for i in range(len(s1)) if s1[i] != s2[i]]\n            return len(diff_positions) == 0 or (len(diff_positions) == 2 and s1[diff_positions[0]] == s2[diff_positions[1]] and s1[diff_positions[1]] == s2[diff_positions[0]])\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if canBecomeEqual(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def canBecomeEqual(x, y):\n                    s1, s2 = str(x), str(y)\n                    # If lengths are different, they can't be equal even with swaps\n                    if len(s1) != len(s2):\n                        return False\n                    # Find positions where s1 and s2 differ\n                    diff_positions = [i for i in range(len(s1)) if s1[i] != s2[i]]\n                    # If there are no differences, they are already equal\n                    if not diff_positions:\n                        return True\n                    # If there are exactly two differences, check if swapping makes them equal\n                    if len(diff_positions) == 2:\n                        i, j = diff_positions\n                        # Check if swapping s1's digits at positions i and j makes s1 equal to s2\n                        if s1[i] == s2[j] and s1[j] == s2[i]:\n                            return True\n                    # If there is only one difference, check if swapping any two digits in s1 can make it equal to s2\n                    if len(diff_positions) == 1:\n                        # Try swapping the different digit with every other digit in s1\n                        for k in range(len(s1)):\n                            if k != diff_positions[0]:\n                                # Simulate swap\n                                s1_list = list(s1)\n                                s1_list[diff_positions[0]], s1_list[k] = s1_list[k], s1_list[diff_positions[0]]\n                                if ''.join(s1_list) == s2:\n                                    return True\n                    # If none of the above, they can't be made equal with at most one swap\n                    return False\n                \n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if canBecomeEqual(nums[i], nums[j]):\n                            count += 1\n                return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def generate_swaps(num):\n                    s = str(num)\n                    n = len(s)\n                    swaps = set()\n                    for i in range(n):\n                        for j in range(i + 1, n):\n                            # Swap digits at positions i and j\n                            swapped = list(s)\n                            swapped[i], swapped[j] = swapped[j], swapped[i]\n                            # Convert back to integer, allowing leading zeros\n                            swaps.add(int(''.join(swapped)))\n                    return swaps\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    swaps_i = generate_swaps(nums[i])\n                    for j in range(i + 1, n):\n                        if nums[j] in swaps_i or nums[i] in generate_swaps(nums[j]):\n                            count += 1\n                return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def generate_swaps(num):\n            s = str(num)\n            n = len(s)\n            swaps = set()\n            for i in range(n):\n                for j in range(i + 1, n):\n                    # Swap digits at positions i and j\n                    swapped = list(s)\n                    swapped[i], swapped[j] = swapped[j], swapped[i]\n                    # Convert back to integer, allowing leading zeros\n                    swaps.add(int(''.join(swapped)))\n            return swaps\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                # Generate all possible swaps for both numbers\n                swaps_i = generate_swaps(nums[i])\n                swaps_j = generate_swaps(nums[j])\n                # Check if nums[j] is in swaps_i or nums[i] is in swaps_j\n                if nums[j] in swaps_i or nums[i] in swaps_j:\n                    count += 1\n                # Also check if nums[i] and nums[j] are equal without any swap\n                elif nums[i] == nums[j]:\n                    count += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def canBecomeEqual(x, y):\n            s1, s2 = str(x), str(y)\n            if len(s1) != len(s2):\n                return False\n            diff_positions = [i for i in range(len(s1)) if s1[i] != s2[i]]\n            return len(diff_positions) == 0 or (len(diff_positions) == 2 and s1[diff_positions[0]] == s2[diff_positions[1]] and s1[diff_positions[1]] == s2[diff_positions[0]])\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if canBecomeEqual(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def canBecomeEqual(x, y):\n            s1, s2 = str(x), str(y)\n            diff_positions = [i for i in range(max(len(s1), len(s2))) if i >= len(s1) or i >= len(s2) or s1[i] != s2[i]]\n            if len(diff_positions) > 2:\n                return False\n            if len(diff_positions) == 0:\n                return True\n            if len(diff_positions) == 2:\n                i, j = diff_positions\n                # Check if swapping s1[i] and s1[j] makes s1 equal to s2\n                if i < len(s1) and j < len(s1) and s1[i] == s2[j] and s1[j] == s2[i]:\n                    return True\n                # Check if swapping s2[i] and s2[j] makes s2 equal to s1\n                if i < len(s2) and j < len(s2) and s2[i] == s1[j] and s2[j] == s1[i]:\n                    return True\n            return False\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if canBecomeEqual(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def canBecomeEqual(x, y):\n                    s1, s2 = str(x), str(y)\n                    # If lengths are different, they can't be almost equal\n                    if len(s1) != len(s2):\n                        return False\n                    # Find positions where s1 and s2 differ\n                    diff_positions = [i for i in range(len(s1)) if s1[i] != s2[i]]\n                    # If there are no differences, they are already equal\n                    if len(diff_positions) == 0:\n                        return True\n                    # If there are exactly two differences and swapping makes them equal\n                    if len(diff_positions) == 2:\n                        i, j = diff_positions\n                        return s1[i] == s2[j] and s1[j] == s2[i]\n                    # Otherwise, they can't be made equal by one swap\n                    return False\n                \n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if canBecomeEqual(nums[i], nums[j]):\n                            count += 1\n                return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def canBecomeEqual(x_str, y_str):\n            # Pad shorter string with leading zeros\n            len_x, len_y = len(x_str), len(y_str)\n            if len_x < len_y:\n                x_str = '0' * (len_y - len_x) + x_str\n            elif len_y < len_x:\n                y_str = '0' * (len_x - len_y) + y_str\n            \n            # Find positions where x and y differ\n            diff_positions = [i for i in range(len(x_str)) if x_str[i] != y_str[i]]\n            \n            # If no differences, they are already equal\n            if not diff_positions:\n                return True\n            # If exactly two differences, check if swapping makes them equal\n            if len(diff_positions) == 2:\n                i, j = diff_positions\n                # Swap digits in x_str and check if equal to y_str\n                x_swapped = x_str[:i] + x_str[j] + x_str[i+1:j] + x_str[i] + x_str[j+1:]\n                if x_swapped == y_str:\n                    return True\n                # Swap digits in y_str and check if equal to x_str\n                y_swapped = y_str[:i] + y_str[j] + y_str[i+1:j] + y_str[i] + y_str[j+1:]\n                if y_swapped == x_str:\n                    return True\n            # If more than two differences, cannot make equal with one swap\n            return False\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                x_str, y_str = str(nums[i]), str(nums[j])\n                if canBecomeEqual(x_str, y_str):\n                    count += 1\n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                s1 = str(nums[i])\n                s2 = str(nums[j])\n                if sorted(s1) == sorted(s2):\n                    count += 1\n        return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def canBecomeEqual(x, y):\n                    s1, s2 = str(x), str(y)\n                    if len(s1) != len(s2):\n                        return False\n                    diff = []\n                    for a, b in zip(s1, s2):\n                        if a != b:\n                            diff.append((a, b))\n                        if len(diff) > 2:\n                            return False\n                    if len(diff) == 0:\n                        return True\n                    if len(diff) == 2:\n                        return diff == [(diff[1][1], diff[1][0])]\n                    return False\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if canBecomeEqual(nums[i], nums[j]):\n                            count += 1\n                return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def canBecomeEqual(x, y):\n                    s1, s2 = str(x), str(y)\n                    if len(s1) != len(s2):\n                        return False\n                    sorted_s1 = sorted(s1)\n                    sorted_s2 = sorted(s2)\n                    if sorted_s1 != sorted_s2:\n                        return False\n                    # Count the number of positions where s1 and s2 differ\n                    diff_count = sum(1 for a, b in zip(s1, s2) if a != b)\n                    return diff_count <= 2\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if canBecomeEqual(nums[i], nums[j]):\n                            count += 1\n                return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def canBecomeEqual(x, y):\n                    s1, s2 = str(x), str(y)\n                    # If lengths are different, they can't be made equal by swapping digits\n                    if len(s1) != len(s2):\n                        return False\n                    # Find positions where s1 and s2 differ\n                    diff_indices = [i for i in range(len(s1)) if s1[i] != s2[i]]\n                    # If there are no differences, they are already equal\n                    if not diff_indices:\n                        return True\n                    # If there are more than two differences, a single swap cannot make them equal\n                    if len(diff_indices) > 2:\n                        return False\n                    # If there are exactly two differences, check if swapping makes them equal\n                    if len(diff_indices) == 2:\n                        i, j = diff_indices\n                        # Swap the characters in one of the strings and check for equality\n                        s1_list = list(s1)\n                        s1_list[i], s1_list[j] = s1_list[j], s1_list[i]\n                        return ''.join(s1_list) == s2\n                    # If there's only one difference, it's impossible to make them equal by swapping\n                    return False\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if canBecomeEqual(nums[i], nums[j]):\n                            count += 1\n                return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def canBecomeEqual(x, y):\n            s1, s2 = str(x), str(y)\n            # If lengths are different, they can't be made equal by swapping digits\n            if len(s1) != len(s2):\n                return False\n            # Find positions where s1 and s2 differ\n            diff_indices = [i for i in range(len(s1)) if s1[i] != s2[i]]\n            # If there are more than 2 differences, more than one swap is needed\n            if len(diff_indices) > 2:\n                return False\n            # If there are exactly 2 differences, check if swapping s1's digits makes them equal\n            if len(diff_indices) == 2:\n                i, j = diff_indices\n                # Swap the digits in s1 and check if it matches s2\n                s1_list = list(s1)\n                s1_list[i], s1_list[j] = s1_list[j], s1_list[i]\n                return ''.join(s1_list) == s2\n            # If there is only one difference, they can't be made equal by swapping\n            if len(diff_indices) == 1:\n                return False\n            # If there are no differences, they are already equal\n            return True\n\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if canBecomeEqual(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def canBecomeEqual(x, y):\n                    s1, s2 = str(x), str(y)\n                    if len(s1) != len(s2):\n                        return False\n                    diff = []\n                    for a, b in zip(s1, s2):\n                        if a != b:\n                            diff.append((a, b))\n                        if len(diff) > 2:\n                            return False\n                    if len(diff) == 0:\n                        return True\n                    if len(diff) == 2:\n                        return diff == [(diff[1][1], diff[1][0])]\n                    return False\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if canBecomeEqual(nums[i], nums[j]):\n                            count += 1\n                return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def canBecomeEqual(x, y):\n                    s1, s2 = str(x), str(y)\n                    if len(s1) != len(s2):\n                        return False\n                    diff = []\n                    for a, b in zip(s1, s2):\n                        if a != b:\n                            diff.append((a, b))\n                        if len(diff) > 2:\n                            return False\n                    if len(diff) == 0:\n                        return True\n                    if len(diff) == 2:\n                        return diff[0][0] == diff[1][1] and diff[0][1] == diff[1][0]\n                    return False\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if canBecomeEqual(nums[i], nums[j]):\n                            count += 1\n                return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def canBecomeEqual(x, y):\n                    s1, s2 = str(x), str(y)\n                    if len(s1) != len(s2):\n                        return False\n                    diff_indices = [i for i in range(len(s1)) if s1[i] != s2[i]]\n                    if len(diff_indices) == 0:\n                        return True\n                    if len(diff_indices) == 2:\n                        i, j = diff_indices\n                        return s1[i] == s2[j] and s1[j] == s2[i]\n                    return False\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if canBecomeEqual(nums[i], nums[j]):\n                            count += 1\n                return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def canBecomeEqual(x, y):\n                    s1, s2 = str(x), str(y)\n                    # If lengths are different, they can't be made equal by swapping digits\n                    if len(s1) != len(s2):\n                        return False\n                    # Find positions where s1 and s2 differ\n                    diff = []\n                    for a, b in zip(s1, s2):\n                        if a != b:\n                            diff.append((a, b))\n                        # More than two differences mean they can't be made equal with one swap\n                        if len(diff) > 2:\n                            return False\n                    # If there are no differences, they are already equal\n                    if len(diff) == 0:\n                        return True\n                    # If there are exactly two differences, check if swapping can make them equal\n                    if len(diff) == 2:\n                        # Check if swapping the differing digits in one number makes them equal\n                        return diff[0][0] == diff[1][1] and diff[0][1] == diff[1][0]\n                    # If there's only one difference, they can't be made equal with one swap\n                    return False\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if canBecomeEqual(nums[i], nums[j]):\n                            count += 1\n                return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_equal_with_one_swap(s1, s2):\n            if sorted(s1) != sorted(s2):\n                return False\n            diff_count = sum(c1 != c2 for c1, c2 in zip(s1, s2))\n            return diff_count <= 2\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                s1 = str(nums[i])\n                s2 = str(nums[j])\n                if can_be_equal_with_one_swap(s1, s2):\n                    count += 1\n        return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def can_be_equal_with_one_swap(s1, s2):\n                    # Check if sorted characters are equal\n                    if sorted(s1) != sorted(s2):\n                        return False\n                    # Count the number of positions where s1 and s2 differ\n                    diff_positions = [i for i in range(len(s1)) if s1[i] != s2[i]]\n                    # They can be made equal with at most one swap\n                    return len(diff_positions) <= 2\n                \n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        s1 = str(nums[i])\n                        s2 = str(nums[j])\n                        if can_be_equal_with_one_swap(s1, s2):\n                            count += 1\n                return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_become_equal(x, y):\n            s1, s2 = str(x), str(y)\n            if len(s1) != len(s2):\n                return False\n            diff_indices = [i for i in range(len(s1)) if s1[i] != s2[i]]\n            if len(diff_indices) == 0:\n                return True  # Already equal\n            if len(diff_indices) != 2:\n                return False  # More than one swap needed\n            i, j = diff_indices\n            return s1[i] == s2[j] and s1[j] == s2[i]\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_become_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def can_be_equal_with_one_swap(s1, s2):\n                    # If the lengths are different, they can't be equal even with swaps\n                    if len(s1) != len(s2):\n                        return False\n                    # If the strings are already equal, no swap is needed\n                    if s1 == s2:\n                        return True\n                    # Find positions where s1 and s2 differ\n                    diff_indices = [i for i in range(len(s1)) if s1[i] != s2[i]]\n                    # If there are exactly two differences, check if swapping makes them equal\n                    if len(diff_indices) == 2:\n                        i, j = diff_indices\n                        # Swap the characters at the differing positions in s1\n                        s1_swapped = s1[:i] + s1[j] + s1[i+1:j] + s1[i] + s1[j+1:]\n                        if s1_swapped == s2:\n                            return True\n                    return False\n                \n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        s1 = str(nums[i])\n                        s2 = str(nums[j])\n                        if can_be_equal_with_one_swap(s1, s2):\n                            count += 1\n                return count"
+  ],
+  "total_candidates": 36,
+  "nodes_explored": 36,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def can_become_equal(x, y):\n                    x_str, y_str = str(x), str(y)\n                    if x == y:\n                        return True\n                    diff_indices = []\n                    for a, b in zip(x_str, y_str):\n                        if a != b:\n                            diff_indices.append((a, b))\n                    if len(diff_indices) != 2:\n                        return False\n                    # Check if swapping the differing digits in x makes it equal to y\n                    a1, b1 = diff_indices[0]\n                    a2, b2 = diff_indices[1]\n                    if a1 == b2 and a2 == b1:\n                        return True\n                    return False\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if can_become_equal(nums[i], nums[j]):\n                            count += 1\n                return count",
+      "solution_hash": "2d19a7cf239bade8b3342e06d52c057854a4653783dc9d039aab9ded8dc94142",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp2dfcxk4k.py\", line 237, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmp2dfcxk4k.py\", line 111, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+        "execution_time": 0.06553220748901367
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def can_become_equal(x, y):\n                    x_str, y_str = str(x), str(y)\n                    if len(x_str) != len(y_str):\n                        return False\n                    diff_indices = []\n                    for idx, (a, b) in enumerate(zip(x_str, y_str)):\n                        if a != b:\n                            diff_indices.append(idx)\n                    if len(diff_indices) != 2:\n                        return False\n                    i, j = diff_indices\n                    # Create a list from x_str to swap characters\n                    x_list = list(x_str)\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n                    # Check if swapped x equals y\n                    return ''.join(x_list) == y_str\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if can_become_equal(nums[i], nums[j]):\n                            count += 1\n                return count",
+          "solution_hash": "1e0d6ce4c80809632ca9092022dfdf8f42e905e1c4777c64d683db98b5e23c98",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmpl2v_afqe.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+            "execution_time": 0.05401921272277832
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_2",
+              "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def almost_equal(x, y):\n            x_str, y_str = str(x), str(y)\n            # Pad the shorter string with leading zeros\n            max_len = max(len(x_str), len(y_str))\n            x_str = x_str.zfill(max_len)\n            y_str = y_str.zfill(max_len)\n            # Check if sorted characters are equal\n            return sorted(x_str) == sorted(y_str)\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if almost_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+              "solution_hash": "640bf9ce62396f4458165969606d04fa0acc6ce5d15509c1de410edf447f3f31",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp9dxaeqlp.py\", line 231, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmp9dxaeqlp.py\", line 105, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06691861152648926
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_3",
+              "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_become_equal(x, y):\n            x_str, y_str = str(x), str(y)\n            max_len = max(len(x_str), len(y_str))\n            # Zero-pad the shorter string\n            x_str_padded = x_str.zfill(max_len)\n            y_str_padded = y_str.zfill(max_len)\n            # Count the number of differing positions\n            diff_count = sum(1 for a, b in zip(x_str_padded, y_str_padded) if a != b)\n            # They are almost equal if there are at most two differences\n            return diff_count <= 2\n\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_become_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+              "solution_hash": "c50cfeb2bc2d56e4982b6e200bfce952c7a2c101218d0ca8e5c3058b1cd6c089",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp9zagxs5i.py\", line 233, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmp9zagxs5i.py\", line 107, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06601452827453613
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def can_become_equal(x, y):\n                    x_str, y_str = str(x), str(y)\n                    diff_indices = []\n                    for idx, (a, b) in enumerate(zip(x_str, y_str)):\n                        if a != b:\n                            diff_indices.append(idx)\n                    if len(diff_indices) != 2:\n                        return False\n                    i, j = diff_indices\n                    # Swap digits in x_str at positions i and j\n                    x_list = list(x_str)\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n                    swapped_x = ''.join(x_list)\n                    # Check if swapped x equals y\n                    return swapped_x == y_str\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if can_become_equal(nums[i], nums[j]):\n                            count += 1\n                return count",
+              "solution_hash": "c7f3ea95dbd4dc3a093687a58bcbf2779dc6091d2cc11aec370898fe90b00815",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpeaj80wgt.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05405855178833008
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_5",
+          "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def can_become_equal(x, y):\n                    x_str, y_str = str(x), str(y)\n                    if len(x_str) != len(y_str):\n                        return False\n                    diff_indices = []\n                    for a, b in zip(x_str, y_str):\n                        if a != b:\n                            diff_indices.append((a, b))\n                    if len(diff_indices) != 2:\n                        return False\n                    # Check if swapping the differing digits in x makes it equal to y\n                    a1, b1 = diff_indices[0]\n                    a2, b2 = diff_indices[1]\n                    if a1 == b2 and a2 == b1:\n                        return True\n                    return False\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if can_become_equal(str(nums[i]), str(nums[j])):\n                            count += 1\n                return count",
+          "solution_hash": "3e075dbfcf4f711f013ff7033e02582a89ae1ab09f05f644f56adaafb8ef7d4e",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmpq26nmr9k.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+            "execution_time": 0.05434465408325195
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_6",
+              "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def can_become_equal(x, y):\n                    x_str, y_str = str(x), str(y)\n                    if len(x_str) != len(y_str):\n                        return False\n                    diff_indices = []\n                    for idx, (a, b) in enumerate(zip(x_str, y_str)):\n                        if a != b:\n                            diff_indices.append(idx)\n                    if len(diff_indices) != 2:\n                        return False\n                    i, j = diff_indices\n                    # Create a list from x_str to swap characters\n                    x_list = list(x_str)\n                    # Swap the characters at positions i and j\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n                    # Check if the swapped string equals y_str\n                    return ''.join(x_list) == y_str\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if can_become_equal(nums[i], nums[j]):\n                            count += 1\n                return count",
+              "solution_hash": "1e0d6ce4c80809632ca9092022dfdf8f42e905e1c4777c64d683db98b5e23c98",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpl2v_afqe.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05401921272277832
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_7",
+              "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_become_equal(x, y):\n            x_str, y_str = str(x), str(y)\n            if len(x_str) != len(y_str):\n                return False\n            diff_indices = []\n            for a, b in zip(x_str, y_str):\n                if a != b:\n                    diff_indices.append((a, b))\n            if len(diff_indices) != 2:\n                return len(diff_indices) == 0\n            a1, b1 = diff_indices[0]\n            a2, b2 = diff_indices[1]\n            return a1 == b2 and a2 == b1\n\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_become_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+              "solution_hash": "5f32926541f530273672759f4c6e70ab823285cb091fa8d9c67e69e674cd05de",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp3_ki946f.py\", line 236, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmp3_ki946f.py\", line 110, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06768655776977539
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_become_equal(x, y):\n            x_str, y_str = str(x), str(y)\n            max_len = max(len(x_str), len(y_str))\n            x_str = x_str.zfill(max_len)\n            y_str = y_str.zfill(max_len)\n            \n            diff_indices = []\n            for idx, (a, b) in enumerate(zip(x_str, y_str)):\n                if a != b:\n                    diff_indices.append(idx)\n            \n            if len(diff_indices) != 2:\n                return False\n            \n            i, j = diff_indices\n            x_list = list(x_str)\n            x_list[i], x_list[j] = x_list[j], x_list[i]\n            return ''.join(x_list) == y_str\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_become_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+              "solution_hash": "d242a986aa752ccd12d850b2e67507f4083051964afb0671e55487e152e1a995",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpcmk9stx3.py\", line 241, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpcmk9stx3.py\", line 127, in check\n    assert candidate(nums = [123, 321, 231, 123, 132, 213]) == 10\nAssertionError\n",
+                "execution_time": 0.06762123107910156
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_9",
+          "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_become_equal(x, y):\n            x_str, y_str = str(x), str(y)\n            # Pad the shorter string with leading zeros\n            max_len = max(len(x_str), len(y_str))\n            x_str = x_str.zfill(max_len)\n            y_str = y_str.zfill(max_len)\n            \n            # Find differing positions\n            diff_indices = [i for i in range(max_len) if x_str[i] != y_str[i]]\n            \n            # If there are no differences, they are already equal\n            if not diff_indices:\n                return True\n            # If there are more than two differences, cannot make equal with one swap\n            if len(diff_indices) > 2:\n                return False\n            # If there are exactly two differences, check if swapping makes them equal\n            if len(diff_indices) == 2:\n                i, j = diff_indices\n                # Swap the characters in x_str and check if it matches y_str\n                x_list = list(x_str)\n                x_list[i], x_list[j] = x_list[j], x_list[i]\n                if ''.join(x_list) == y_str:\n                    return True\n                # Optionally, swap in y_str and check if it matches x_str\n                # But since we are allowed to swap in either x or y, checking one is sufficient\n            # If there is only one difference, cannot make equal with one swap\n            return False\n\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_become_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+          "solution_hash": "05d32f740a1a693f2c4c5d197d0be624244ab283751d51b955f71153a6b5cc3a",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07355523109436035
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [],
+          "passed": true
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                s1 = str(nums[i])\n                s2 = str(nums[j])\n                if s1 == s2:\n                    count += 1\n                elif sorted(s1) == sorted(s2):\n                    count += 1\n        return count",
+      "solution_hash": "86849ba8130b0974d01157a7349fbde15b49ebc2ac1d2bdb7351caec952904a5",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpbguz5v0v.py\", line 224, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpbguz5v0v.py\", line 98, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+        "execution_time": 0.07074594497680664
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_11",
+          "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        s1 = str(nums[i])\n                        s2 = str(nums[j])\n                        if s1 == s2:\n                            count += 1\n                        else:\n                            # Make sure both strings have the same length by padding with leading zeros\n                            max_len = max(len(s1), len(s2))\n                            s1_padded = s1.zfill(max_len)\n                            s2_padded = s2.zfill(max_len)\n                            \n                            # Count the number of positions where s1 and s2 differ\n                            diff_count = sum(c1 != c2 for c1, c2 in zip(s1_padded, s2_padded))\n                            \n                            # If they differ in exactly two positions, they can be made equal by swapping those two digits\n                            if diff_count == 2:\n                                count += 1\n                return count",
+          "solution_hash": "9ad57adf017b53396a9831f7eaba6006f37332395a4d21f095e2f5cec3463232",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmp25cmwxcw.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+            "execution_time": 0.05422043800354004
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_12",
+              "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def generate_swaps(num_str):\n                    n = len(num_str)\n                    swaps = set()\n                    for i in range(n):\n                        for j in range(i + 1, n):\n                            # Swap characters at positions i and j\n                            swapped = list(num_str)\n                            swapped[i], swapped[j] = swapped[j], swapped[i]\n                            swaps.add(''.join(swapped))\n                    return swaps\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        s1 = str(nums[i])\n                        s2 = str(nums[j])\n                        if s1 == s2:\n                            count += 1\n                            continue\n                        # Generate all possible swaps for s1 and s2\n                        s1_swaps = generate_swaps(s1)\n                        s2_swaps = generate_swaps(s2)\n                        # Check if s2 can be obtained by swapping digits in s1 or vice versa\n                        if s2 in s1_swaps or s1 in s2_swaps:\n                            count += 1\n                return count",
+              "solution_hash": "8a0046cb3d7e342dc70028b78f9ebfab201283a1f486e2bde559d1d635f1ecc1",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpr0hhx9vm.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05438828468322754
+              },
+              "depth": 2,
+              "parent_id": "1_11",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_13",
+              "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def generate_swaps(num_str):\n                    n = len(num_str)\n                    swaps = set()\n                    for i in range(n):\n                        for j in range(i + 1, n):\n                            swapped = list(num_str)\n                            swapped[i], swapped[j] = swapped[j], swapped[i]\n                            swaps.add(''.join(swapped))\n                    return swaps\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        s1 = str(nums[i])\n                        s2 = str(nums[j])\n                        if s1 == s2:\n                            count += 1\n                            continue\n                        # Generate all possible swaps for s1 and s2\n                        s1_swaps = generate_swaps(s1)\n                        s2_swaps = generate_swaps(s2)\n                        # Check if s2 can be obtained by swapping digits in s1 or vice versa\n                        if s2 in s1_swaps or s1 in s2_swaps:\n                            count += 1\n                return count",
+              "solution_hash": "8a0046cb3d7e342dc70028b78f9ebfab201283a1f486e2bde559d1d635f1ecc1",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpr0hhx9vm.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05438828468322754
+              },
+              "depth": 2,
+              "parent_id": "1_11",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_14",
+              "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_equal_by_swapping(x, y):\n            s1, s2 = str(x), str(y)\n            diff = []\n            for a, b in zip(s1, s2):\n                if a != b:\n                    diff.append((a, b))\n            if len(diff) == 0:\n                return True\n            if len(diff) == 2:\n                return diff[0][0] == diff[1][1] and diff[0][1] == diff[1][0]\n            return False\n\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_equal_by_swapping(nums[i], nums[j]):\n                    count += 1\n        return count",
+              "solution_hash": "13ad1965ba199f04cf1334cbb3108687128aea3b4d177bb73bf4b751df7ed4aa",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp4m_24rzi.py\", line 234, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmp4m_24rzi.py\", line 108, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06603860855102539
+              },
+              "depth": 2,
+              "parent_id": "1_11",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_15",
+          "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def canBecomeEqual(x, y):\n            s1, s2 = str(x), str(y)\n            if len(s1) != len(s2):\n                return False\n            diff_positions = [i for i in range(len(s1)) if s1[i] != s2[i]]\n            return len(diff_positions) == 0 or (len(diff_positions) == 2 and s1[diff_positions[0]] == s2[diff_positions[1]] and s1[diff_positions[1]] == s2[diff_positions[0]])\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if canBecomeEqual(nums[i], nums[j]):\n                    count += 1\n        return count",
+          "solution_hash": "d2ebe358d8f666b8cd4b7230e5fd2052a25015cbaac58f4e4c014ccc419c32b4",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp0t6jvgdr.py\", line 229, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmp0t6jvgdr.py\", line 103, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+            "execution_time": 0.06554365158081055
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_16",
+              "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def canBecomeEqual(x, y):\n                    s1, s2 = str(x), str(y)\n                    # If lengths are different, they can't be equal even with swaps\n                    if len(s1) != len(s2):\n                        return False\n                    # Find positions where s1 and s2 differ\n                    diff_positions = [i for i in range(len(s1)) if s1[i] != s2[i]]\n                    # If there are no differences, they are already equal\n                    if not diff_positions:\n                        return True\n                    # If there are exactly two differences, check if swapping makes them equal\n                    if len(diff_positions) == 2:\n                        i, j = diff_positions\n                        # Check if swapping s1's digits at positions i and j makes s1 equal to s2\n                        if s1[i] == s2[j] and s1[j] == s2[i]:\n                            return True\n                    # If there is only one difference, check if swapping any two digits in s1 can make it equal to s2\n                    if len(diff_positions) == 1:\n                        # Try swapping the different digit with every other digit in s1\n                        for k in range(len(s1)):\n                            if k != diff_positions[0]:\n                                # Simulate swap\n                                s1_list = list(s1)\n                                s1_list[diff_positions[0]], s1_list[k] = s1_list[k], s1_list[diff_positions[0]]\n                                if ''.join(s1_list) == s2:\n                                    return True\n                    # If none of the above, they can't be made equal with at most one swap\n                    return False\n                \n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if canBecomeEqual(nums[i], nums[j]):\n                            count += 1\n                return count",
+              "solution_hash": "a0bc952435a52551d108da1086fbc22c582e50017c53144a120c07137393844c",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpixzpweka.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05471467971801758
+              },
+              "depth": 2,
+              "parent_id": "1_15",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_17",
+              "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def generate_swaps(num):\n                    s = str(num)\n                    n = len(s)\n                    swaps = set()\n                    for i in range(n):\n                        for j in range(i + 1, n):\n                            # Swap digits at positions i and j\n                            swapped = list(s)\n                            swapped[i], swapped[j] = swapped[j], swapped[i]\n                            # Convert back to integer, allowing leading zeros\n                            swaps.add(int(''.join(swapped)))\n                    return swaps\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    swaps_i = generate_swaps(nums[i])\n                    for j in range(i + 1, n):\n                        if nums[j] in swaps_i or nums[i] in generate_swaps(nums[j]):\n                            count += 1\n                return count",
+              "solution_hash": "b9ff88563e63e9e1975010db44c2688aa53551240c0986527aebcd25b491295d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpb_2rmoj8.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05339455604553223
+              },
+              "depth": 2,
+              "parent_id": "1_15",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_18",
+              "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def generate_swaps(num):\n            s = str(num)\n            n = len(s)\n            swaps = set()\n            for i in range(n):\n                for j in range(i + 1, n):\n                    # Swap digits at positions i and j\n                    swapped = list(s)\n                    swapped[i], swapped[j] = swapped[j], swapped[i]\n                    # Convert back to integer, allowing leading zeros\n                    swaps.add(int(''.join(swapped)))\n            return swaps\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                # Generate all possible swaps for both numbers\n                swaps_i = generate_swaps(nums[i])\n                swaps_j = generate_swaps(nums[j])\n                # Check if nums[j] is in swaps_i or nums[i] is in swaps_j\n                if nums[j] in swaps_i or nums[i] in swaps_j:\n                    count += 1\n                # Also check if nums[i] and nums[j] are equal without any swap\n                elif nums[i] == nums[j]:\n                    count += 1\n        return count",
+              "solution_hash": "6c886a7f842e6741e5b5f51a86aad3e51a0c9b5fbd4610c404fb3be5ce241f67",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.08638620376586914
+              },
+              "depth": 2,
+              "parent_id": "1_15",
+              "children": [],
+              "passed": true
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_19",
+          "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def canBecomeEqual(x, y):\n            s1, s2 = str(x), str(y)\n            if len(s1) != len(s2):\n                return False\n            diff_positions = [i for i in range(len(s1)) if s1[i] != s2[i]]\n            return len(diff_positions) == 0 or (len(diff_positions) == 2 and s1[diff_positions[0]] == s2[diff_positions[1]] and s1[diff_positions[1]] == s2[diff_positions[0]])\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if canBecomeEqual(nums[i], nums[j]):\n                    count += 1\n        return count",
+          "solution_hash": "d2ebe358d8f666b8cd4b7230e5fd2052a25015cbaac58f4e4c014ccc419c32b4",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp0t6jvgdr.py\", line 229, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmp0t6jvgdr.py\", line 103, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+            "execution_time": 0.06554365158081055
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_20",
+              "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def canBecomeEqual(x, y):\n            s1, s2 = str(x), str(y)\n            diff_positions = [i for i in range(max(len(s1), len(s2))) if i >= len(s1) or i >= len(s2) or s1[i] != s2[i]]\n            if len(diff_positions) > 2:\n                return False\n            if len(diff_positions) == 0:\n                return True\n            if len(diff_positions) == 2:\n                i, j = diff_positions\n                # Check if swapping s1[i] and s1[j] makes s1 equal to s2\n                if i < len(s1) and j < len(s1) and s1[i] == s2[j] and s1[j] == s2[i]:\n                    return True\n                # Check if swapping s2[i] and s2[j] makes s2 equal to s1\n                if i < len(s2) and j < len(s2) and s2[i] == s1[j] and s2[j] == s1[i]:\n                    return True\n            return False\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if canBecomeEqual(nums[i], nums[j]):\n                    count += 1\n        return count",
+              "solution_hash": "82ef9e44fbb04256390d5b543afb9790ea197113237d35b52d57facfb5612daf",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpkhln6fbj.py\", line 239, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpkhln6fbj.py\", line 113, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\n  File \"/scratch/local/21419949/tmpkhln6fbj.py\", line 106, in countPairs\n    if canBecomeEqual(nums[i], nums[j]):\n  File \"/scratch/local/21419949/tmpkhln6fbj.py\", line 98, in canBecomeEqual\n    if i < len(s2) and j < len(s2) and s2[i] == s1[j] and s2[j] == s1[i]:\nIndexError: string index out of range\n",
+                "execution_time": 0.06686091423034668
+              },
+              "depth": 2,
+              "parent_id": "1_19",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_21",
+              "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def canBecomeEqual(x, y):\n                    s1, s2 = str(x), str(y)\n                    # If lengths are different, they can't be almost equal\n                    if len(s1) != len(s2):\n                        return False\n                    # Find positions where s1 and s2 differ\n                    diff_positions = [i for i in range(len(s1)) if s1[i] != s2[i]]\n                    # If there are no differences, they are already equal\n                    if len(diff_positions) == 0:\n                        return True\n                    # If there are exactly two differences and swapping makes them equal\n                    if len(diff_positions) == 2:\n                        i, j = diff_positions\n                        return s1[i] == s2[j] and s1[j] == s2[i]\n                    # Otherwise, they can't be made equal by one swap\n                    return False\n                \n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if canBecomeEqual(nums[i], nums[j]):\n                            count += 1\n                return count",
+              "solution_hash": "4a11fc851d5f5e4763a30a63217cb93492663679e8507a59983c497a33a2bfd8",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpkx3yc_ek.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05324554443359375
+              },
+              "depth": 2,
+              "parent_id": "1_19",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_22",
+              "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def canBecomeEqual(x_str, y_str):\n            # Pad shorter string with leading zeros\n            len_x, len_y = len(x_str), len(y_str)\n            if len_x < len_y:\n                x_str = '0' * (len_y - len_x) + x_str\n            elif len_y < len_x:\n                y_str = '0' * (len_x - len_y) + y_str\n            \n            # Find positions where x and y differ\n            diff_positions = [i for i in range(len(x_str)) if x_str[i] != y_str[i]]\n            \n            # If no differences, they are already equal\n            if not diff_positions:\n                return True\n            # If exactly two differences, check if swapping makes them equal\n            if len(diff_positions) == 2:\n                i, j = diff_positions\n                # Swap digits in x_str and check if equal to y_str\n                x_swapped = x_str[:i] + x_str[j] + x_str[i+1:j] + x_str[i] + x_str[j+1:]\n                if x_swapped == y_str:\n                    return True\n                # Swap digits in y_str and check if equal to x_str\n                y_swapped = y_str[:i] + y_str[j] + y_str[i+1:j] + y_str[i] + y_str[j+1:]\n                if y_swapped == x_str:\n                    return True\n            # If more than two differences, cannot make equal with one swap\n            return False\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                x_str, y_str = str(nums[i]), str(nums[j])\n                if canBecomeEqual(x_str, y_str):\n                    count += 1\n        return count",
+              "solution_hash": "2919c21f1c9b1a02804340ec32a2cadac704a9dfc02fc3538d53e3e259436f01",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.06715893745422363
+              },
+              "depth": 2,
+              "parent_id": "1_19",
+              "children": [],
+              "passed": true
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                s1 = str(nums[i])\n                s2 = str(nums[j])\n                if sorted(s1) == sorted(s2):\n                    count += 1\n        return count",
+      "solution_hash": "f544c7c7aec1d33e6d95801a413a5c8ab1f296a26a278a7d042e81e9e6d1f348",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmplp44ug_5.py\", line 222, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmplp44ug_5.py\", line 96, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+        "execution_time": 0.06997847557067871
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_24",
+          "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def canBecomeEqual(x, y):\n                    s1, s2 = str(x), str(y)\n                    if len(s1) != len(s2):\n                        return False\n                    diff = []\n                    for a, b in zip(s1, s2):\n                        if a != b:\n                            diff.append((a, b))\n                        if len(diff) > 2:\n                            return False\n                    if len(diff) == 0:\n                        return True\n                    if len(diff) == 2:\n                        return diff == [(diff[1][1], diff[1][0])]\n                    return False\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if canBecomeEqual(nums[i], nums[j]):\n                            count += 1\n                return count",
+          "solution_hash": "5ba7e7c45e10c44c2ee77d020972a124d71dd93f25fc5c09ae4d22245f6d8b72",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmpy8yrk7r6.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+            "execution_time": 0.0548405647277832
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_25",
+              "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def canBecomeEqual(x, y):\n                    s1, s2 = str(x), str(y)\n                    if len(s1) != len(s2):\n                        return False\n                    sorted_s1 = sorted(s1)\n                    sorted_s2 = sorted(s2)\n                    if sorted_s1 != sorted_s2:\n                        return False\n                    # Count the number of positions where s1 and s2 differ\n                    diff_count = sum(1 for a, b in zip(s1, s2) if a != b)\n                    return diff_count <= 2\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if canBecomeEqual(nums[i], nums[j]):\n                            count += 1\n                return count",
+              "solution_hash": "b04bf0bd69c18b0ef3985b0161ec29083915b124e43296ff68d44cfa4af72da6",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmp7uj8wsgp.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.054785966873168945
+              },
+              "depth": 2,
+              "parent_id": "1_24",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_26",
+              "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def canBecomeEqual(x, y):\n                    s1, s2 = str(x), str(y)\n                    # If lengths are different, they can't be made equal by swapping digits\n                    if len(s1) != len(s2):\n                        return False\n                    # Find positions where s1 and s2 differ\n                    diff_indices = [i for i in range(len(s1)) if s1[i] != s2[i]]\n                    # If there are no differences, they are already equal\n                    if not diff_indices:\n                        return True\n                    # If there are more than two differences, a single swap cannot make them equal\n                    if len(diff_indices) > 2:\n                        return False\n                    # If there are exactly two differences, check if swapping makes them equal\n                    if len(diff_indices) == 2:\n                        i, j = diff_indices\n                        # Swap the characters in one of the strings and check for equality\n                        s1_list = list(s1)\n                        s1_list[i], s1_list[j] = s1_list[j], s1_list[i]\n                        return ''.join(s1_list) == s2\n                    # If there's only one difference, it's impossible to make them equal by swapping\n                    return False\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if canBecomeEqual(nums[i], nums[j]):\n                            count += 1\n                return count",
+              "solution_hash": "063f27631823a82e8ac847016eacadafec2e13af81bbca8a6bc8d54bba496fd7",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpvsnxheun.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.055237531661987305
+              },
+              "depth": 2,
+              "parent_id": "1_24",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_27",
+              "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def canBecomeEqual(x, y):\n            s1, s2 = str(x), str(y)\n            # If lengths are different, they can't be made equal by swapping digits\n            if len(s1) != len(s2):\n                return False\n            # Find positions where s1 and s2 differ\n            diff_indices = [i for i in range(len(s1)) if s1[i] != s2[i]]\n            # If there are more than 2 differences, more than one swap is needed\n            if len(diff_indices) > 2:\n                return False\n            # If there are exactly 2 differences, check if swapping s1's digits makes them equal\n            if len(diff_indices) == 2:\n                i, j = diff_indices\n                # Swap the digits in s1 and check if it matches s2\n                s1_list = list(s1)\n                s1_list[i], s1_list[j] = s1_list[j], s1_list[i]\n                return ''.join(s1_list) == s2\n            # If there is only one difference, they can't be made equal by swapping\n            if len(diff_indices) == 1:\n                return False\n            # If there are no differences, they are already equal\n            return True\n\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if canBecomeEqual(nums[i], nums[j]):\n                    count += 1\n        return count",
+              "solution_hash": "6c153b40091c70dc69ab9cc7b2d6114e61211665504e93298e1fc9605ab35819",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpte9yhxk4.py\", line 245, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpte9yhxk4.py\", line 119, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06639337539672852
+              },
+              "depth": 2,
+              "parent_id": "1_24",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_28",
+          "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def canBecomeEqual(x, y):\n                    s1, s2 = str(x), str(y)\n                    if len(s1) != len(s2):\n                        return False\n                    diff = []\n                    for a, b in zip(s1, s2):\n                        if a != b:\n                            diff.append((a, b))\n                        if len(diff) > 2:\n                            return False\n                    if len(diff) == 0:\n                        return True\n                    if len(diff) == 2:\n                        return diff == [(diff[1][1], diff[1][0])]\n                    return False\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if canBecomeEqual(nums[i], nums[j]):\n                            count += 1\n                return count",
+          "solution_hash": "5ba7e7c45e10c44c2ee77d020972a124d71dd93f25fc5c09ae4d22245f6d8b72",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmpy8yrk7r6.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+            "execution_time": 0.0548405647277832
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_29",
+              "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def canBecomeEqual(x, y):\n                    s1, s2 = str(x), str(y)\n                    if len(s1) != len(s2):\n                        return False\n                    diff = []\n                    for a, b in zip(s1, s2):\n                        if a != b:\n                            diff.append((a, b))\n                        if len(diff) > 2:\n                            return False\n                    if len(diff) == 0:\n                        return True\n                    if len(diff) == 2:\n                        return diff[0][0] == diff[1][1] and diff[0][1] == diff[1][0]\n                    return False\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if canBecomeEqual(nums[i], nums[j]):\n                            count += 1\n                return count",
+              "solution_hash": "c62a9f0baf4c0855ed10028e88358c991aebd66fd0adef72ca9fbfb9842db30a",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmp0_0ggt5_.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05487847328186035
+              },
+              "depth": 2,
+              "parent_id": "1_28",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_30",
+              "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def canBecomeEqual(x, y):\n                    s1, s2 = str(x), str(y)\n                    if len(s1) != len(s2):\n                        return False\n                    diff_indices = [i for i in range(len(s1)) if s1[i] != s2[i]]\n                    if len(diff_indices) == 0:\n                        return True\n                    if len(diff_indices) == 2:\n                        i, j = diff_indices\n                        return s1[i] == s2[j] and s1[j] == s2[i]\n                    return False\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if canBecomeEqual(nums[i], nums[j]):\n                            count += 1\n                return count",
+              "solution_hash": "9b29fa0b315c7d31630feb40078646c317cf2b69e55a74b6d40a2230ba124060",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpi0kxbsn8.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.052889347076416016
+              },
+              "depth": 2,
+              "parent_id": "1_28",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_31",
+              "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def canBecomeEqual(x, y):\n                    s1, s2 = str(x), str(y)\n                    # If lengths are different, they can't be made equal by swapping digits\n                    if len(s1) != len(s2):\n                        return False\n                    # Find positions where s1 and s2 differ\n                    diff = []\n                    for a, b in zip(s1, s2):\n                        if a != b:\n                            diff.append((a, b))\n                        # More than two differences mean they can't be made equal with one swap\n                        if len(diff) > 2:\n                            return False\n                    # If there are no differences, they are already equal\n                    if len(diff) == 0:\n                        return True\n                    # If there are exactly two differences, check if swapping can make them equal\n                    if len(diff) == 2:\n                        # Check if swapping the differing digits in one number makes them equal\n                        return diff[0][0] == diff[1][1] and diff[0][1] == diff[1][0]\n                    # If there's only one difference, they can't be made equal with one swap\n                    return False\n\n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        if canBecomeEqual(nums[i], nums[j]):\n                            count += 1\n                return count",
+              "solution_hash": "c62a9f0baf4c0855ed10028e88358c991aebd66fd0adef72ca9fbfb9842db30a",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmp0_0ggt5_.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05487847328186035
+              },
+              "depth": 2,
+              "parent_id": "1_28",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_32",
+          "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_equal_with_one_swap(s1, s2):\n            if sorted(s1) != sorted(s2):\n                return False\n            diff_count = sum(c1 != c2 for c1, c2 in zip(s1, s2))\n            return diff_count <= 2\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                s1 = str(nums[i])\n                s2 = str(nums[j])\n                if can_be_equal_with_one_swap(s1, s2):\n                    count += 1\n        return count",
+          "solution_hash": "9f44a6fbba1cec08525dee875fd2bebbfcea07c1d6afe5d505733d32dabd7ace",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpl_dhcb1v.py\", line 230, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpl_dhcb1v.py\", line 104, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+            "execution_time": 0.0646820068359375
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_33",
+              "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def can_be_equal_with_one_swap(s1, s2):\n                    # Check if sorted characters are equal\n                    if sorted(s1) != sorted(s2):\n                        return False\n                    # Count the number of positions where s1 and s2 differ\n                    diff_positions = [i for i in range(len(s1)) if s1[i] != s2[i]]\n                    # They can be made equal with at most one swap\n                    return len(diff_positions) <= 2\n                \n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        s1 = str(nums[i])\n                        s2 = str(nums[j])\n                        if can_be_equal_with_one_swap(s1, s2):\n                            count += 1\n                return count",
+              "solution_hash": "e05d3030901995df8be4026e5a036a77ebcc3cd855d401f5f92022022d66233c",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmp4orrqq_e.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.054938316345214844
+              },
+              "depth": 2,
+              "parent_id": "1_32",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_34",
+              "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_become_equal(x, y):\n            s1, s2 = str(x), str(y)\n            if len(s1) != len(s2):\n                return False\n            diff_indices = [i for i in range(len(s1)) if s1[i] != s2[i]]\n            if len(diff_indices) == 0:\n                return True  # Already equal\n            if len(diff_indices) != 2:\n                return False  # More than one swap needed\n            i, j = diff_indices\n            return s1[i] == s2[j] and s1[j] == s2[i]\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_become_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+              "solution_hash": "e61a995afa3b286a280776851a27ecef26820241c6ed1423a77d35ed493cc526",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp8dh7f5k4.py\", line 234, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmp8dh7f5k4.py\", line 108, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.07211065292358398
+              },
+              "depth": 2,
+              "parent_id": "1_32",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_35",
+              "solution": "from typing import List\n\n        class Solution:\n            def countPairs(self, nums: List[int]) -> int:\n                def can_be_equal_with_one_swap(s1, s2):\n                    # If the lengths are different, they can't be equal even with swaps\n                    if len(s1) != len(s2):\n                        return False\n                    # If the strings are already equal, no swap is needed\n                    if s1 == s2:\n                        return True\n                    # Find positions where s1 and s2 differ\n                    diff_indices = [i for i in range(len(s1)) if s1[i] != s2[i]]\n                    # If there are exactly two differences, check if swapping makes them equal\n                    if len(diff_indices) == 2:\n                        i, j = diff_indices\n                        # Swap the characters at the differing positions in s1\n                        s1_swapped = s1[:i] + s1[j] + s1[i+1:j] + s1[i] + s1[j+1:]\n                        if s1_swapped == s2:\n                            return True\n                    return False\n                \n                count = 0\n                n = len(nums)\n                for i in range(n):\n                    for j in range(i + 1, n):\n                        s1 = str(nums[i])\n                        s2 = str(nums[j])\n                        if can_be_equal_with_one_swap(s1, s2):\n                            count += 1\n                return count",
+              "solution_hash": "5dc3f1f0c3253d4ae1c8dee6fa99318eb5d1900d9906314a3c1ab074634527ef",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpbrmr1mzf.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.0528261661529541
+              },
+              "depth": 2,
+              "parent_id": "1_32",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 36,
+    "candidates_generated": 36,
+    "tests_passed": 3,
+    "tests_failed": 33,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 818.4265670776367,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.10810810810810811,
+      "pass@3": 0.29781209781209794,
+      "pass@5": 0.45552274964039663,
+      "pass@10": 0.7342720872132638
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: string index out of range",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 26
+          }
+        ],
+        [
+          27,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 27
+          }
+        ],
+        [
+          28,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 28
+          }
+        ],
+        [
+          29,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 29
+          }
+        ],
+        [
+          30,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 30
+          }
+        ],
+        [
+          31,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 31
+          }
+        ],
+        [
+          32,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 32
+          }
+        ],
+        [
+          33,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 33
+          }
+        ],
+        [
+          34,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 34
+          }
+        ],
+        [
+          35,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 35
+          }
+        ],
+        [
+          36,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 36
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 37,
+    "test_cases": 1
+  }
+}

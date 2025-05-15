@@ -1,0 +1,1043 @@
+{
+  "problem_id": "count-almost-equal-pairs-i",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "unsolved",
+  "best_solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_transform(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            max_len = max(len(x_str), len(y_str))\n            x_str = x_str.zfill(max_len)\n            y_str = y_str.zfill(max_len)\n            if x_str == y_str:\n                return True\n            for i in range(max_len):\n                for j in range(i + 1, max_len):\n                    x_list = list(x_str)\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n                    if ''.join(x_list) == y_str:\n                        return True\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n            for i in range(max_len):\n                for j in range(i + 1, max_len):\n                    y_list = list(y_str)\n                    y_list[i], y_list[j] = y_list[j], y_list[i]\n                    if ''.join(y_list) == x_str:\n                        return True\n                    y_list[i], y_list[j] = y_list[j], y_list[i]\n            return False\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_transform(nums[i], nums[j]):\n                    count += 1\n        return count",
+  "passed_solutions": [
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_transform(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            max_len = max(len(x_str), len(y_str))\n            x_str = x_str.zfill(max_len)\n            y_str = y_str.zfill(max_len)\n            if x_str == y_str:\n                return True\n            for i in range(max_len):\n                for j in range(i + 1, max_len):\n                    x_list = list(x_str)\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n                    if ''.join(x_list) == y_str:\n                        return True\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n            for i in range(max_len):\n                for j in range(i + 1, max_len):\n                    y_list = list(y_str)\n                    y_list[i], y_list[j] = y_list[j], y_list[i]\n                    if ''.join(y_list) == x_str:\n                        return True\n                    y_list[i], y_list[j] = y_list[j], y_list[i]\n            return False\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_transform(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from itertools import combinations\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        total = 0\n        for a, b in combinations(nums, 2):\n            a_swaps = generate_swaps(a)\n            b_swaps = generate_swaps(b)\n            if a in b_swaps or b in a_swaps:\n                total += 1\n        return total",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from itertools import combinations\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        total = 0\n        for a, b in combinations(nums, 2):\n            a_swaps = generate_swaps(a)\n            b_swaps = generate_swaps(b)\n            if a in b_swaps or b in a_swaps:\n                total += 1\n        return total"
+  ],
+  "all_solutions": [
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def normalize(num: int) -> str:\n            s = str(num)\n            return ''.join(sorted(s))\n        \n        count_map = defaultdict(int)\n        for num in nums:\n            norm = normalize(num)\n            count_map[norm] += 1\n        \n        total = 0\n        for count in count_map.values():\n            if count >= 2:\n                total += count * (count - 1) // 2\n        return total",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_swap(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            if x_str == y_str:\n                return True\n            diff = []\n            for a, b in zip(x_str, y_str):\n                if a != b:\n                    diff.append((a, b))\n            if len(diff) != 2:\n                return False\n            return diff[0][0] == diff[1][1] and diff[0][1] == diff[1][0]\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_swap(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def generate_swaps(num: int) -> set:\n            s = list(str(num))\n            swaps = set()\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            swaps.add(str(num))  # include the original number\n            return swaps\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                x = nums[i]\n                y = nums[j]\n                x_swaps = generate_swaps(x)\n                if str(y) in x_swaps:\n                    count += 1\n                else:\n                    y_swaps = generate_swaps(y)\n                    if str(x) in y_swaps:\n                        count += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_swap(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            return sorted(x_str) == sorted(y_str)\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_swap(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_swap(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            return sorted(x_str) == sorted(y_str)\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_swap(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_swap_to_equal(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            diff = []\n            for a, b in zip(x_str, y_str):\n                if a != b:\n                    diff.append((a, b))\n            if len(diff) == 0:\n                return True\n            if len(diff) == 2:\n                a1, b1 = diff[0]\n                a2, b2 = diff[1]\n                return (a1 == b2 and a2 == b1)\n            return False\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_swap_to_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_swap_to_equal(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            return sorted(x_str) == sorted(y_str)\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_swap_to_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def generate_swaps(num: int) -> set:\n            s = list(str(num))\n            swaps = set()\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            swaps.add(str(num))  # include the original number\n            return swaps\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            x = nums[i]\n            x_swaps = generate_swaps(x)\n            for j in range(i + 1, n):\n                y = nums[j]\n                if str(y) in x_swaps:\n                    count += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_swap_to_equal(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            if x == y:\n                return True\n            if sorted(x_str) == sorted(y_str):\n                return True\n            diff = []\n            for a, b in zip(x_str, y_str):\n                if a != b:\n                    diff.append((a, b))\n            if len(diff) == 2:\n                a1, b1 = diff[0]\n                a2, b2 = diff[1]\n                return (a1 == b2 and a2 == b1)\n            return False\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_swap_to_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_transform(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            # Check if x can be transformed into y by swapping any two digits\n            for i in range(len(x_str)):\n                for j in range(i+1, len(x_str)):\n                    # Swap i and j in x_str\n                    x_list = list(x_str)\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n                    if ''.join(x_list) == y_str:\n                        return True\n                    # Swap back to try next pair\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n            # If not, check if y can be transformed into x by swapping any two digits\n            for i in range(len(y_str)):\n                for j in range(i+1, len(y_str)):\n                    y_list = list(y_str)\n                    y_list[i], y_list[j] = y_list[j], y_list[i]\n                    if ''.join(y_list) == x_str:\n                        return True\n                    y_list[i], y_list[j] = y_list[j], y_list[i]  # Swap back\n            return False\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i+1, n):\n                if can_transform(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_transform(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            # Check if x can be transformed into y by swapping any two digits\n            for i in range(len(x_str)):\n                for j in range(i+1, len(x_str)):\n                    # Swap i and j in x_str\n                    x_list = list(x_str)\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n                    if int(''.join(x_list)) == y:\n                        return True\n                    # Swap back to try next pair\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n            # If not, check if y can be transformed into x by swapping any two digits\n            for i in range(len(y_str)):\n                for j in range(i+1, len(y_str)):\n                    y_list = list(y_str)\n                    y_list[i], y_list[j] = y_list[j], y_list[i]\n                    if int(''.join(y_list)) == x:\n                        return True\n                    y_list[i], y_list[j] = y_list[j], y_list[i]  # Swap back\n            return False\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i+1, n):\n                if can_transform(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def normalize(num: int) -> str:\n            digits = sorted(str(num))\n            return ''.join(digits)\n        \n        normalized = [normalize(num) for num in nums]\n        count = 0\n        freq = defaultdict(int)\n        for num in normalized:\n            count += freq[num]\n            freq[num] += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_transform(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            max_len = max(len(x_str), len(y_str))\n            x_str = x_str.zfill(max_len)\n            y_str = y_str.zfill(max_len)\n            if x_str == y_str:\n                return True\n            for i in range(max_len):\n                for j in range(i + 1, max_len):\n                    x_list = list(x_str)\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n                    if ''.join(x_list) == y_str:\n                        return True\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n            for i in range(max_len):\n                for j in range(i + 1, max_len):\n                    y_list = list(y_str)\n                    y_list[i], y_list[j] = y_list[j], y_list[i]\n                    if ''.join(y_list) == x_str:\n                        return True\n                    y_list[i], y_list[j] = y_list[j], y_list[i]\n            return False\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_transform(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(''.join(s))\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        total = 0\n\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map.get(s, 0)\n            count_map[str(num)] += 1\n\n        return total",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(''.join(s))\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        total = 0\n\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map.get(s, 0)\n            count_map[str(num)] += 1\n\n        return total // 2",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        total = 0\n\n        for num in nums:\n            current = str(num)\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map.get(s, 0)\n            count_map[current] += 1\n\n        return total",
+    "from itertools import permutations\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def get_permutations(n):\n            s = str(n)\n            perms = set()\n            for p in permutations(s):\n                perms.add(''.join(p))\n            return perms\n        \n        count_map = defaultdict(int)\n        total = 0\n        \n        for num in nums:\n            perms = get_permutations(num)\n            for p in perms:\n                total += count_map.get(p, 0)\n            for p in perms:\n                count_map[p] += 1\n        \n        return total",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            if len(s) == 1:\n                return set()\n            swaps = set()\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        total = 0\n\n        for num in nums:\n            key = ''.join(sorted(str(num)))\n            swaps = generate_swaps(num)\n            swaps.add(key)\n            for s in swaps:\n                total += count_map.get(s, 0)\n            count_map[key] += 1\n\n        return total",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_swap(x, y):\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            diff = []\n            for a, b in zip(x_str, y_str):\n                if a != b:\n                    diff.append((a, b))\n            if len(diff) == 0:\n                return True\n            if len(diff) == 2:\n                return diff[0] == (diff[1][1], diff[1][0])\n            return False\n\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_swap(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_variants(n):\n            s = list(str(n))\n            variants = set()\n            if len(s) == 1:\n                variants.add(''.join(s))\n                return variants\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    variants.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            variants.add(''.join(s))  # include the original number\n            return variants\n\n        variant_counts = defaultdict(int)\n        total_pairs = 0\n\n        for num in nums:\n            variants = generate_variants(num)\n            for var in variants:\n                total_pairs += variant_counts.get(var, 0)\n            for var in variants:\n                variant_counts[var] += 1\n\n        return total_pairs",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from itertools import combinations\n\n        def get_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(''.join(s))  # include the original number\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count = 0\n        # Generate all possible pairs\n        for i, j in combinations(range(len(nums)), 2):\n            x = str(nums[i])\n            y = str(nums[j])\n            # Check if x can be transformed into y with at most one swap\n            if x == y:\n                count += 1\n                continue\n            # Generate all possible swaps for x and y\n            x_swaps = get_swaps(nums[i])\n            y_swaps = get_swaps(nums[j])\n            # If any swap of x equals y, or any swap of y equals x, they are almost equal\n            if y in x_swaps or x in y_swaps:\n                count += 1\n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(''.join(s))\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        total = 0\n\n        for num in nums:\n            current = str(num)\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map.get(s, 0)\n            count_map[current] += 1\n\n        return total",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(''.join(s))\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        total = 0\n\n        for num in nums:\n            current_swaps = generate_swaps(num)\n            for s in current_swaps:\n                total += count_map.get(s, 0)\n            count_map[str(num)] += 1\n\n        return total",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(''.join(s))\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        total = 0\n\n        for num in nums:\n            current = str(num)\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map.get(s, 0)\n            count_map[current] += 1\n\n        return total",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(''.join(s))\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        total = 0\n\n        for num in nums:\n            current = str(num)\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map.get(s, 0)\n            count_map[current] += 1\n\n        return total",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i+1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                count_map[s] += 1\n\n        total = 0\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map[s]\n            # Subtract 1 for the number itself and divide by 2 to avoid double counting\n        # But wait, this approach counts each pair twice, so we need to adjust\n        # Alternatively, we can compute the combinations correctly\n        # Let's recompute the total correctly\n        total = 0\n        seen = set()\n        for i in range(len(nums)):\n            for j in range(i+1, len(nums)):\n                a = nums[i]\n                b = nums[j]\n                a_swaps = generate_swaps(a)\n                if b in a_swaps:\n                    total +=1\n        return total",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                count_map[s] += 1\n\n        total = 0\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map[s]\n        # Each pair is counted twice, so divide by 2 and subtract the count of the number itself\n        total = (total - len(nums)) // 2\n        return total",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                count_map[s] += 1\n\n        total = 0\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map[s]\n        # Each pair is counted twice, so divide by 2 and subtract the count of the number itself\n        total = (total - len(nums)) // 2\n        return total",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                count_map[s] += 1\n\n        total = 0\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map[s]\n        # Each pair is counted twice, so divide by 2 and subtract the count of the number itself\n        total = (total - len(nums)) // 2\n        return total",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from itertools import permutations\n        from collections import defaultdict\n\n        def get_permutations(n):\n            s = str(n)\n            perms = set()\n            for p in permutations(s):\n                perm_num = int(''.join(p))\n                perms.add(perm_num)\n            return perms\n\n        count_map = defaultdict(int)\n        for num in nums:\n            perms = get_permutations(num)\n            for p in perms:\n                count_map[p] += 1\n\n        total = 0\n        for num in nums:\n            perms = get_permutations(num)\n            for p in perms:\n                total += count_map[p]\n        # Each pair is counted twice, so divide by 2 and subtract the count of the number itself\n        total = (total - len(nums)) // 2\n        return total",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        total = 0\n\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map[s]\n            for s in swaps:\n                count_map[s] += 1\n\n        return total",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_swap(x, y):\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            x_list = sorted(x_str)\n            y_list = sorted(y_str)\n            return x_list == y_list\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_swap(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                x = nums[i]\n                y = nums[j]\n                x_swaps = generate_swaps(x)\n                y_swaps = generate_swaps(y)\n                if x_swaps & y_swaps:\n                    count += 1\n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                x = nums[i]\n                y = nums[j]\n                swaps_x = generate_swaps(x)\n                swaps_y = generate_swaps(y)\n                if swaps_x & swaps_y:\n                    count += 1\n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from itertools import combinations\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        total = 0\n        for a, b in combinations(nums, 2):\n            a_swaps = generate_swaps(a)\n            if b in a_swaps:\n                total += 1\n        return total",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from itertools import combinations\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        total = 0\n        for a, b in combinations(nums, 2):\n            a_swaps = generate_swaps(a)\n            b_swaps = generate_swaps(b)\n            if a in b_swaps or b in a_swaps:\n                total += 1\n        return total",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from itertools import combinations\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        total = 0\n        for a, b in combinations(nums, 2):\n            a_swaps = generate_swaps(a)\n            b_swaps = generate_swaps(b)\n            if a_swaps & b_swaps:\n                total += 1\n        return total",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from itertools import combinations\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        total = 0\n        for a, b in combinations(nums, 2):\n            a_swaps = generate_swaps(a)\n            b_swaps = generate_swaps(b)\n            if a in b_swaps or b in a_swaps:\n                total += 1\n        return total"
+  ],
+  "total_candidates": 38,
+  "nodes_explored": 38,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def normalize(num: int) -> str:\n            s = str(num)\n            return ''.join(sorted(s))\n        \n        count_map = defaultdict(int)\n        for num in nums:\n            norm = normalize(num)\n            count_map[norm] += 1\n        \n        total = 0\n        for count in count_map.values():\n            if count >= 2:\n                total += count * (count - 1) // 2\n        return total",
+      "solution_hash": "c16dfac3845181611cafe24a3b7737a522adaac164217dc32a0dd3dc43566aaa",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp2z34meog.py\", line 230, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmp2z34meog.py\", line 104, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+        "execution_time": 0.06698918342590332
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_swap(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            if x_str == y_str:\n                return True\n            diff = []\n            for a, b in zip(x_str, y_str):\n                if a != b:\n                    diff.append((a, b))\n            if len(diff) != 2:\n                return False\n            return diff[0][0] == diff[1][1] and diff[0][1] == diff[1][0]\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_swap(nums[i], nums[j]):\n                    count += 1\n        return count",
+          "solution_hash": "2d6c19c15d62ae3a914cb5b0db63f48974121d4f3728972a255f179662bd27be",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpo291otcu.py\", line 237, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpo291otcu.py\", line 111, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+            "execution_time": 0.06691741943359375
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_2",
+              "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def generate_swaps(num: int) -> set:\n            s = list(str(num))\n            swaps = set()\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            swaps.add(str(num))  # include the original number\n            return swaps\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                x = nums[i]\n                y = nums[j]\n                x_swaps = generate_swaps(x)\n                if str(y) in x_swaps:\n                    count += 1\n                else:\n                    y_swaps = generate_swaps(y)\n                    if str(x) in y_swaps:\n                        count += 1\n        return count",
+              "solution_hash": "0ff89d955d0a0a1afbe2fe1a6bada5fe5744ccff8863461d30103ecf4aa7929c",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpbv_d7ox4.py\", line 240, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpbv_d7ox4.py\", line 114, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06773996353149414
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_3",
+              "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_swap(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            return sorted(x_str) == sorted(y_str)\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_swap(nums[i], nums[j]):\n                    count += 1\n        return count",
+              "solution_hash": "fe6af82c32cfa84e897cf6896547e9031b63c0fb6e17213ce92d0e570b9a3689",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmplbqqx5j0.py\", line 229, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmplbqqx5j0.py\", line 103, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06687426567077637
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_swap(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            return sorted(x_str) == sorted(y_str)\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_swap(nums[i], nums[j]):\n                    count += 1\n        return count",
+              "solution_hash": "fe6af82c32cfa84e897cf6896547e9031b63c0fb6e17213ce92d0e570b9a3689",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmplbqqx5j0.py\", line 229, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmplbqqx5j0.py\", line 103, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06687426567077637
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_5",
+          "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_swap_to_equal(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            diff = []\n            for a, b in zip(x_str, y_str):\n                if a != b:\n                    diff.append((a, b))\n            if len(diff) == 0:\n                return True\n            if len(diff) == 2:\n                a1, b1 = diff[0]\n                a2, b2 = diff[1]\n                return (a1 == b2 and a2 == b1)\n            return False\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_swap_to_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+          "solution_hash": "75e329b61db1187be5f280d5db0a9e94356544f4104d89d02e5d5fd45e9f2f62",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp4kq_66ww.py\", line 239, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmp4kq_66ww.py\", line 113, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+            "execution_time": 0.06534767150878906
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_6",
+              "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_swap_to_equal(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            return sorted(x_str) == sorted(y_str)\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_swap_to_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+              "solution_hash": "a496fbe03cf2bba6066ecd437b73a618241dc58b1131edda683f1fbca0f297db",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpmxsdxjwu.py\", line 227, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpmxsdxjwu.py\", line 101, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.0666964054107666
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_7",
+              "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def generate_swaps(num: int) -> set:\n            s = list(str(num))\n            swaps = set()\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            swaps.add(str(num))  # include the original number\n            return swaps\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            x = nums[i]\n            x_swaps = generate_swaps(x)\n            for j in range(i + 1, n):\n                y = nums[j]\n                if str(y) in x_swaps:\n                    count += 1\n        return count",
+              "solution_hash": "7c736ed4c2e9602bb06165e7e0a237300bff9da35d9fc86706a95ac29489d661",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpz2_036tc.py\", line 236, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpz2_036tc.py\", line 110, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06688785552978516
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_swap_to_equal(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            if x == y:\n                return True\n            if sorted(x_str) == sorted(y_str):\n                return True\n            diff = []\n            for a, b in zip(x_str, y_str):\n                if a != b:\n                    diff.append((a, b))\n            if len(diff) == 2:\n                a1, b1 = diff[0]\n                a2, b2 = diff[1]\n                return (a1 == b2 and a2 == b1)\n            return False\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_swap_to_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+              "solution_hash": "9a0e7f8f15860acf85b4f261b576ae6a9d33b914c6b5e22d6427d0e30e2ddc2d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpokh_nhte.py\", line 241, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpokh_nhte.py\", line 115, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06737661361694336
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_9",
+          "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_transform(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            # Check if x can be transformed into y by swapping any two digits\n            for i in range(len(x_str)):\n                for j in range(i+1, len(x_str)):\n                    # Swap i and j in x_str\n                    x_list = list(x_str)\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n                    if ''.join(x_list) == y_str:\n                        return True\n                    # Swap back to try next pair\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n            # If not, check if y can be transformed into x by swapping any two digits\n            for i in range(len(y_str)):\n                for j in range(i+1, len(y_str)):\n                    y_list = list(y_str)\n                    y_list[i], y_list[j] = y_list[j], y_list[i]\n                    if ''.join(y_list) == x_str:\n                        return True\n                    y_list[i], y_list[j] = y_list[j], y_list[i]  # Swap back\n            return False\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i+1, n):\n                if can_transform(nums[i], nums[j]):\n                    count += 1\n        return count",
+          "solution_hash": "f4ed647ae9ae30bdac9cb1b91c6bd75d5342c90abf5a6288742d521fb86d4df5",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpcwz7ij04.py\", line 247, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpcwz7ij04.py\", line 121, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+            "execution_time": 0.06647372245788574
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_10",
+              "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_transform(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            # Check if x can be transformed into y by swapping any two digits\n            for i in range(len(x_str)):\n                for j in range(i+1, len(x_str)):\n                    # Swap i and j in x_str\n                    x_list = list(x_str)\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n                    if int(''.join(x_list)) == y:\n                        return True\n                    # Swap back to try next pair\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n            # If not, check if y can be transformed into x by swapping any two digits\n            for i in range(len(y_str)):\n                for j in range(i+1, len(y_str)):\n                    y_list = list(y_str)\n                    y_list[i], y_list[j] = y_list[j], y_list[i]\n                    if int(''.join(y_list)) == x:\n                        return True\n                    y_list[i], y_list[j] = y_list[j], y_list[i]  # Swap back\n            return False\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i+1, n):\n                if can_transform(nums[i], nums[j]):\n                    count += 1\n        return count",
+              "solution_hash": "e4c12b98f8ecd79d44d0218f124ad7b35326f6accd488003344c2d7fd7ecc7b5",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpi5mgyt0r.py\", line 247, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpi5mgyt0r.py\", line 121, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06770062446594238
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_11",
+              "solution": "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def normalize(num: int) -> str:\n            digits = sorted(str(num))\n            return ''.join(digits)\n        \n        normalized = [normalize(num) for num in nums]\n        count = 0\n        freq = defaultdict(int)\n        for num in normalized:\n            count += freq[num]\n            freq[num] += 1\n        return count",
+              "solution_hash": "8eaef8886372c35360c567c37da89d8fbb11e99441d5a45ec9b9c83610e3b530",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpwjicco21.py\", line 227, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpwjicco21.py\", line 101, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06626081466674805
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_12",
+              "solution": "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_transform(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            max_len = max(len(x_str), len(y_str))\n            x_str = x_str.zfill(max_len)\n            y_str = y_str.zfill(max_len)\n            if x_str == y_str:\n                return True\n            for i in range(max_len):\n                for j in range(i + 1, max_len):\n                    x_list = list(x_str)\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n                    if ''.join(x_list) == y_str:\n                        return True\n                    x_list[i], x_list[j] = x_list[j], x_list[i]\n            for i in range(max_len):\n                for j in range(i + 1, max_len):\n                    y_list = list(y_str)\n                    y_list[i], y_list[j] = y_list[j], y_list[i]\n                    if ''.join(y_list) == x_str:\n                        return True\n                    y_list[i], y_list[j] = y_list[j], y_list[i]\n            return False\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_transform(nums[i], nums[j]):\n                    count += 1\n        return count",
+              "solution_hash": "b2de0ed78b6321aa6717e27013538b2b8b51321838d8295c5320a2d6e83725e4",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.08370089530944824
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": true
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(''.join(s))\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        total = 0\n\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map.get(s, 0)\n            count_map[str(num)] += 1\n\n        return total",
+      "solution_hash": "a7c43189a921cdde3dfe5a25959810614af3b9eec57179b2b884c0872c291ede",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpnl458n67.py\", line 236, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpnl458n67.py\", line 110, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+        "execution_time": 0.06688928604125977
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_14",
+          "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(''.join(s))\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        total = 0\n\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map.get(s, 0)\n            count_map[str(num)] += 1\n\n        return total // 2",
+          "solution_hash": "5b5d43298d153130799d25dd4ecb5487270330f9548933c2c1ee8f1ec2202880",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpsqhervfu.py\", line 236, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpsqhervfu.py\", line 110, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+            "execution_time": 0.06760716438293457
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_15",
+              "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        total = 0\n\n        for num in nums:\n            current = str(num)\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map.get(s, 0)\n            count_map[current] += 1\n\n        return total",
+              "solution_hash": "b0edff51de7fcf15469f3ba7e493323b1b1a5334d9ae7ae9b38bdaedc4fbf1a9",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpf1g8r81h.py\", line 236, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpf1g8r81h.py\", line 110, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06679463386535645
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_16",
+              "solution": "from itertools import permutations\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def get_permutations(n):\n            s = str(n)\n            perms = set()\n            for p in permutations(s):\n                perms.add(''.join(p))\n            return perms\n        \n        count_map = defaultdict(int)\n        total = 0\n        \n        for num in nums:\n            perms = get_permutations(num)\n            for p in perms:\n                total += count_map.get(p, 0)\n            for p in perms:\n                count_map[p] += 1\n        \n        return total",
+              "solution_hash": "fa790bfccd6d71d0a38b6f5e6919ed257488c7d4499fbac278b166e84d04ca6a",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmputac9vm8.py\", line 234, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmputac9vm8.py\", line 108, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06547760963439941
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_17",
+          "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            if len(s) == 1:\n                return set()\n            swaps = set()\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        total = 0\n\n        for num in nums:\n            key = ''.join(sorted(str(num)))\n            swaps = generate_swaps(num)\n            swaps.add(key)\n            for s in swaps:\n                total += count_map.get(s, 0)\n            count_map[key] += 1\n\n        return total",
+          "solution_hash": "9de06cff997f48651678db4313481dc9bbc22ba9701e0fde2af0150695234995",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpv68k12ly.py\", line 239, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpv68k12ly.py\", line 113, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+            "execution_time": 0.06503582000732422
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_18",
+              "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_swap(x, y):\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            diff = []\n            for a, b in zip(x_str, y_str):\n                if a != b:\n                    diff.append((a, b))\n            if len(diff) == 0:\n                return True\n            if len(diff) == 2:\n                return diff[0] == (diff[1][1], diff[1][0])\n            return False\n\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_swap(nums[i], nums[j]):\n                    count += 1\n        return count",
+              "solution_hash": "f54bde4d2848a2927f6d5ad98e742e917f65061ce1c237860637e0aa9858225b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmppccf_gw_.py\", line 235, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmppccf_gw_.py\", line 109, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06620502471923828
+              },
+              "depth": 2,
+              "parent_id": "1_17",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_19",
+              "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_variants(n):\n            s = list(str(n))\n            variants = set()\n            if len(s) == 1:\n                variants.add(''.join(s))\n                return variants\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    variants.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            variants.add(''.join(s))  # include the original number\n            return variants\n\n        variant_counts = defaultdict(int)\n        total_pairs = 0\n\n        for num in nums:\n            variants = generate_variants(num)\n            for var in variants:\n                total_pairs += variant_counts.get(var, 0)\n            for var in variants:\n                variant_counts[var] += 1\n\n        return total_pairs",
+              "solution_hash": "e001c74e8b80460e0fca0c1159eee1dbb8fd95cb7ccd861fa43a880c8eea6276",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmppulvuk13.py\", line 240, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmppulvuk13.py\", line 114, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06509137153625488
+              },
+              "depth": 2,
+              "parent_id": "1_17",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_20",
+              "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from itertools import combinations\n\n        def get_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(''.join(s))  # include the original number\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count = 0\n        # Generate all possible pairs\n        for i, j in combinations(range(len(nums)), 2):\n            x = str(nums[i])\n            y = str(nums[j])\n            # Check if x can be transformed into y with at most one swap\n            if x == y:\n                count += 1\n                continue\n            # Generate all possible swaps for x and y\n            x_swaps = get_swaps(nums[i])\n            y_swaps = get_swaps(nums[j])\n            # If any swap of x equals y, or any swap of y equals x, they are almost equal\n            if y in x_swaps or x in y_swaps:\n                count += 1\n        return count",
+              "solution_hash": "dcda7714aeec2af68b145e234e67161b4c0848dc2976b46e6489c6c1daac2b25",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpjfc3i7zn.py\", line 242, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpjfc3i7zn.py\", line 116, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06490039825439453
+              },
+              "depth": 2,
+              "parent_id": "1_17",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_21",
+          "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(''.join(s))\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        total = 0\n\n        for num in nums:\n            current = str(num)\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map.get(s, 0)\n            count_map[current] += 1\n\n        return total",
+          "solution_hash": "90d8448f41a06e53a34ae29a0808dda59a439d281ea146e5db630fcd7fd1cbd6",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmps35745rn.py\", line 237, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmps35745rn.py\", line 111, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+            "execution_time": 0.06528186798095703
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_22",
+              "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(''.join(s))\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        total = 0\n\n        for num in nums:\n            current_swaps = generate_swaps(num)\n            for s in current_swaps:\n                total += count_map.get(s, 0)\n            count_map[str(num)] += 1\n\n        return total",
+              "solution_hash": "cae4fe3a1abbd0c3dc7db34a24d71fa17da4425dfa29f3d3f63e95ed47a880cb",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp5kxg5sd6.py\", line 236, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmp5kxg5sd6.py\", line 110, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06609940528869629
+              },
+              "depth": 2,
+              "parent_id": "1_21",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_23",
+              "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(''.join(s))\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        total = 0\n\n        for num in nums:\n            current = str(num)\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map.get(s, 0)\n            count_map[current] += 1\n\n        return total",
+              "solution_hash": "90d8448f41a06e53a34ae29a0808dda59a439d281ea146e5db630fcd7fd1cbd6",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmps35745rn.py\", line 237, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmps35745rn.py\", line 111, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06528186798095703
+              },
+              "depth": 2,
+              "parent_id": "1_21",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_24",
+              "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(''.join(s))\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swaps.add(''.join(s))\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        total = 0\n\n        for num in nums:\n            current = str(num)\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map.get(s, 0)\n            count_map[current] += 1\n\n        return total",
+              "solution_hash": "90d8448f41a06e53a34ae29a0808dda59a439d281ea146e5db630fcd7fd1cbd6",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmps35745rn.py\", line 237, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmps35745rn.py\", line 111, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06528186798095703
+              },
+              "depth": 2,
+              "parent_id": "1_21",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i+1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                count_map[s] += 1\n\n        total = 0\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map[s]\n            # Subtract 1 for the number itself and divide by 2 to avoid double counting\n        # But wait, this approach counts each pair twice, so we need to adjust\n        # Alternatively, we can compute the combinations correctly\n        # Let's recompute the total correctly\n        total = 0\n        seen = set()\n        for i in range(len(nums)):\n            for j in range(i+1, len(nums)):\n                a = nums[i]\n                b = nums[j]\n                a_swaps = generate_swaps(a)\n                if b in a_swaps:\n                    total +=1\n        return total",
+      "solution_hash": "3c56dd4ff6b28f552a01e38400f4be03b9500a7c095b87649333fface34fcc33",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpyuia3j69.py\", line 252, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpyuia3j69.py\", line 126, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+        "execution_time": 0.06642699241638184
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_26",
+          "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                count_map[s] += 1\n\n        total = 0\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map[s]\n        # Each pair is counted twice, so divide by 2 and subtract the count of the number itself\n        total = (total - len(nums)) // 2\n        return total",
+          "solution_hash": "c25b38e9df4c2b64a719926e0bc812963d5c102cfa102e7bf3545e47b2780c78",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpbjovoqot.py\", line 241, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpbjovoqot.py\", line 115, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+            "execution_time": 0.06754589080810547
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_27",
+              "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                count_map[s] += 1\n\n        total = 0\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map[s]\n        # Each pair is counted twice, so divide by 2 and subtract the count of the number itself\n        total = (total - len(nums)) // 2\n        return total",
+              "solution_hash": "c25b38e9df4c2b64a719926e0bc812963d5c102cfa102e7bf3545e47b2780c78",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpbjovoqot.py\", line 241, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpbjovoqot.py\", line 115, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06754589080810547
+              },
+              "depth": 2,
+              "parent_id": "1_26",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_28",
+              "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                count_map[s] += 1\n\n        total = 0\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map[s]\n        # Each pair is counted twice, so divide by 2 and subtract the count of the number itself\n        total = (total - len(nums)) // 2\n        return total",
+              "solution_hash": "c25b38e9df4c2b64a719926e0bc812963d5c102cfa102e7bf3545e47b2780c78",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpbjovoqot.py\", line 241, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpbjovoqot.py\", line 115, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06754589080810547
+              },
+              "depth": 2,
+              "parent_id": "1_26",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_29",
+              "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from itertools import permutations\n        from collections import defaultdict\n\n        def get_permutations(n):\n            s = str(n)\n            perms = set()\n            for p in permutations(s):\n                perm_num = int(''.join(p))\n                perms.add(perm_num)\n            return perms\n\n        count_map = defaultdict(int)\n        for num in nums:\n            perms = get_permutations(num)\n            for p in perms:\n                count_map[p] += 1\n\n        total = 0\n        for num in nums:\n            perms = get_permutations(num)\n            for p in perms:\n                total += count_map[p]\n        # Each pair is counted twice, so divide by 2 and subtract the count of the number itself\n        total = (total - len(nums)) // 2\n        return total",
+              "solution_hash": "1cf33c9389ec3fcb81c3ac5cee0834b7fa5961357cc3f900c2913032146e6bf6",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpfrphrk_8.py\", line 238, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpfrphrk_8.py\", line 112, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06805276870727539
+              },
+              "depth": 2,
+              "parent_id": "1_26",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_30",
+          "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count_map = defaultdict(int)\n        total = 0\n\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                total += count_map[s]\n            for s in swaps:\n                count_map[s] += 1\n\n        return total",
+          "solution_hash": "dee2b3d741ecaaf71623a5ef649c3fb353913607d34b6e46f807f15be078e412",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpa6zmzg86.py\", line 238, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpa6zmzg86.py\", line 112, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+            "execution_time": 0.07238984107971191
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_31",
+              "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_swap(x, y):\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            x_list = sorted(x_str)\n            y_list = sorted(y_str)\n            return x_list == y_list\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_swap(nums[i], nums[j]):\n                    count += 1\n        return count",
+              "solution_hash": "eb9f8531644b834b4ce629b9216a95be573e9c790e774d35ff0609a6d6104127",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp2bhs2yey.py\", line 229, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmp2bhs2yey.py\", line 103, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06629395484924316
+              },
+              "depth": 2,
+              "parent_id": "1_30",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_32",
+              "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                x = nums[i]\n                y = nums[j]\n                x_swaps = generate_swaps(x)\n                y_swaps = generate_swaps(y)\n                if x_swaps & y_swaps:\n                    count += 1\n        return count",
+              "solution_hash": "f29c99a771717507fddf7be25f5268cb92675dd4e1e08e49a8d10f76f39b0dc9",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp0wxa23z1.py\", line 236, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmp0wxa23z1.py\", line 110, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06595349311828613
+              },
+              "depth": 2,
+              "parent_id": "1_30",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_33",
+              "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                x = nums[i]\n                y = nums[j]\n                swaps_x = generate_swaps(x)\n                swaps_y = generate_swaps(y)\n                if swaps_x & swaps_y:\n                    count += 1\n        return count",
+              "solution_hash": "126d449845aead070e04a10ef63c917f498b018c02fe76d3968018d119bfe40e",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpim9jsolo.py\", line 236, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpim9jsolo.py\", line 110, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06524848937988281
+              },
+              "depth": 2,
+              "parent_id": "1_30",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_34",
+          "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from itertools import combinations\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        total = 0\n        for a, b in combinations(nums, 2):\n            a_swaps = generate_swaps(a)\n            if b in a_swaps:\n                total += 1\n        return total",
+          "solution_hash": "886d578d280fd14d99c41f56460bbcac3a2c65665c80f0aa1eac15ae93747869",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpssapsst1.py\", line 233, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpssapsst1.py\", line 107, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+            "execution_time": 0.06484174728393555
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_35",
+              "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from itertools import combinations\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        total = 0\n        for a, b in combinations(nums, 2):\n            a_swaps = generate_swaps(a)\n            b_swaps = generate_swaps(b)\n            if a in b_swaps or b in a_swaps:\n                total += 1\n        return total",
+              "solution_hash": "1082460879b920c4394327896e1d9365b1c619d56ea22cd0346e46a84a726dbf",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.08485770225524902
+              },
+              "depth": 2,
+              "parent_id": "1_34",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_36",
+              "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from itertools import combinations\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        total = 0\n        for a, b in combinations(nums, 2):\n            a_swaps = generate_swaps(a)\n            b_swaps = generate_swaps(b)\n            if a_swaps & b_swaps:\n                total += 1\n        return total",
+              "solution_hash": "e702daf5fad5d76432c5f30f235bcf69dae5644e420964f6880b478813758680",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpsa479u_j.py\", line 234, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21419949/tmpsa479u_j.py\", line 108, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n",
+                "execution_time": 0.06883382797241211
+              },
+              "depth": 2,
+              "parent_id": "1_34",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_37",
+              "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from itertools import combinations\n\n        def generate_swaps(n):\n            s = list(str(n))\n            swaps = set()\n            swaps.add(n)\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped = int(''.join(s))\n                    swaps.add(swapped)\n                    s[i], s[j] = s[j], s[i]\n            return swaps\n\n        total = 0\n        for a, b in combinations(nums, 2):\n            a_swaps = generate_swaps(a)\n            b_swaps = generate_swaps(b)\n            if a in b_swaps or b in a_swaps:\n                total += 1\n        return total",
+              "solution_hash": "1082460879b920c4394327896e1d9365b1c619d56ea22cd0346e46a84a726dbf",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.08485770225524902
+              },
+              "depth": 2,
+              "parent_id": "1_34",
+              "children": [],
+              "passed": true
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 38,
+    "candidates_generated": 38,
+    "tests_passed": 3,
+    "tests_failed": 35,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 2105.6481018066406,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.10256410256410264,
+      "pass@3": 0.28383849436481023,
+      "pass@5": 0.43616490984912026,
+      "pass@10": 0.7112375533428165
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 26
+          }
+        ],
+        [
+          27,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 27
+          }
+        ],
+        [
+          28,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 28
+          }
+        ],
+        [
+          29,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 29
+          }
+        ],
+        [
+          30,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 30
+          }
+        ],
+        [
+          31,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 31
+          }
+        ],
+        [
+          32,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 32
+          }
+        ],
+        [
+          33,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 33
+          }
+        ],
+        [
+          34,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 34
+          }
+        ],
+        [
+          35,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 35
+          }
+        ],
+        [
+          36,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 36
+          }
+        ],
+        [
+          37,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 37
+          }
+        ],
+        [
+          38,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 38
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 39,
+    "test_cases": 1
+  }
+}

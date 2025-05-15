@@ -1,0 +1,390 @@
+{
+  "problem_id": "maximum-value-sum-by-placing-three-rooks-i",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        rows = set(range(m))\n        cols = set(range(n))\n        \n        total_sum = 0\n        \n        for _ in range(3):\n            max_val = -inf\n            max_r, max_c = -1, -1\n            for r in rows:\n                for c in cols:\n                    if board[r][c] > max_val:\n                        max_val = board[r][c]\n                        max_r, max_c = r, c\n            if max_r == -1 or max_c == -1:\n                break  # No more rooks can be placed\n            total_sum += max_val\n            rows.remove(max_r)\n            cols.remove(max_c)\n        \n        return total_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Collect all cells with their values, rows, and columns\n        cells = []\n        for r in range(m):\n            for c in range(n):\n                cells.append((board[r][c], r, c))\n        \n        # Sort cells in descending order of their values\n        cells.sort(reverse=True)\n        \n        max_sum = float('-inf')\n        used_rows = set()\n        used_cols = set()\n        \n        # Backtracking function\n        def backtrack(index, current_sum, rooks_placed):\n            nonlocal max_sum\n            if rooks_placed == 3:\n                max_sum = max(max_sum, current_sum)\n                return\n            if index == len(cells):\n                return\n            val, r, c = cells[index]\n            if r not in used_rows and c not in used_cols:\n                used_rows.add(r)\n                used_cols.add(c)\n                backtrack(index + 1, current_sum + val, rooks_placed + 1)\n                used_rows.remove(r)\n                used_cols.remove(c)\n            # Skip to the next cell\n            backtrack(index + 1, current_sum, rooks_placed)\n        \n        backtrack(0, 0, 0)\n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Collect all cells with their values, rows, and columns\n        cells = []\n        for r in range(m):\n            for c in range(n):\n                cells.append((board[r][c], r, c))\n        \n        # Sort cells in descending order of their values\n        cells.sort(reverse=True)\n        \n        max_sum = float('-inf')\n        \n        # Backtracking function\n        def backtrack(index, current_sum, rooks_placed, used_rows, used_cols):\n            nonlocal max_sum\n            if rooks_placed == 3:\n                max_sum = max(max_sum, current_sum)\n                return\n            if index == len(cells):\n                return\n            val, r, c = cells[index]\n            if r not in used_rows and c not in used_cols:\n                used_rows.add(r)\n                used_cols.add(c)\n                backtrack(index + 1, current_sum + val, rooks_placed + 1, used_rows, used_cols)\n                used_rows.remove(r)\n                used_cols.remove(c)\n            # Skip to the next cell\n            backtrack(index + 1, current_sum, rooks_placed, used_rows, used_cols)\n        \n        backtrack(0, 0, 0, set(), set())\n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute row and column maximum values and their indices\n        row_max = []\n        for r in range(m):\n            max_val = max(board[r])\n            max_idx = board[r].index(max_val)\n            row_max.append((max_val, r, max_idx))\n        \n        col_max = []\n        for c in range(n):\n            col_vals = [board[r][c] for r in range(m)]\n            max_val = max(col_vals)\n            max_idx = col_vals.index(max_val)\n            col_max.append((max_val, max_idx, c))\n        \n        # Sort row and column maximum values in descending order\n        row_max.sort(reverse=True)\n        col_max.sort(reverse=True)\n        \n        max_sum = float('-inf')\n        \n        # Try placing the first rook in the best row and column\n        for r1_val, r1, c1 in row_max:\n            for c2_val, r2, c2 in col_max:\n                if r1 != r2 and c1 != c2:\n                    # Find the third rook's position\n                    for r3 in range(m):\n                        if r3 != r1 and r3 != r2:\n                            for c3 in range(n):\n                                if c3 != c1 and c3 != c2:\n                                    sum_val = r1_val + c2_val + board[r3][c3]\n                                    if sum_val > max_sum:\n                                        max_sum = sum_val\n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Collect all cells with their values, rows, and columns\n        cells = []\n        for r in range(m):\n            for c in range(n):\n                cells.append((board[r][c], r, c))\n        \n        # Sort cells in descending order of their values\n        cells.sort(reverse=True)\n        \n        max_sum = float('-inf')\n        used_rows = set()\n        used_cols = set()\n        \n        # Backtracking function\n        def backtrack(index, current_sum, rooks_placed):\n            nonlocal max_sum\n            if rooks_placed == 3:\n                max_sum = max(max_sum, current_sum)\n                return\n            if index == len(cells):\n                return\n            val, r, c = cells[index]\n            if r not in used_rows and c not in used_cols:\n                used_rows.add(r)\n                used_cols.add(c)\n                backtrack(index + 1, current_sum + val, rooks_placed + 1)\n                used_rows.remove(r)\n                used_cols.remove(c)\n            # Skip to the next cell\n            backtrack(index + 1, current_sum, rooks_placed)\n        \n        backtrack(0, 0, 0)\n        return max_sum",
+    "from typing import List\n\n        class Solution:\n            def maximumValueSum(self, board: List[List[int]]) -> int:\n                m, n = len(board), len(board[0])\n                max_sum = float('-inf')\n                path = []\n                cols_used = [False] * n\n                \n                def backtrack(row):\n                    nonlocal max_sum, path, cols_used\n                    if row == 3:\n                        current_sum = sum(board[path[i][0]][path[i][1]] for i in range(3))\n                        if current_sum > max_sum:\n                            max_sum = current_sum\n                        return\n                    if row < m:\n                        for col in range(n):\n                            if not cols_used[col]:\n                                path.append((row, col))\n                                cols_used[col] = True\n                                backtrack(row + 1)\n                                path.pop()\n                                cols_used[col] = False\n                            \n                backtrack(0)\n                return max_sum",
+    "from typing import List\n\n        class Solution:\n            def maximumValueSum(self, board: List[List[int]]) -> int:\n                m, n = len(board), len(board[0])\n                max_sum = float('-inf')\n                \n                # Iterate over all combinations of three different rows\n                for i in range(m):\n                    for j in range(i+1, m):\n                        for k in range(j+1, m):\n                            # For each combination of rows, find the maximum sum of cells\n                            # such that no two cells are in the same column.\n                            # This is equivalent to finding the maximum sum of a permutation\n                            # of column indices.\n                            for col1 in range(n):\n                                for col2 in range(n):\n                                    if col1 == col2:\n                                        continue\n                                    for col3 in range(n):\n                                        if col3 == col1 or col3 == col2:\n                                            continue\n                                        current_sum = board[i][col1] + board[j][col2] + board[k][col3]\n                                        if current_sum > max_sum:\n                                            max_sum = current_sum\n                return max_sum",
+    "from typing import List\n\n        class Solution:\n            def maximumValueSum(self, board: List[List[int]]) -> int:\n                m, n = len(board), len(board[0])\n                max_sum = float('-inf')\n                path = []\n                cols_used = set()\n                \n                def backtrack(row):\n                    nonlocal max_sum, path, cols_used\n                    if len(path) == 3:\n                        current_sum = sum(board[r][c] for r, c in path)\n                        if current_sum > max_sum:\n                            max_sum = current_sum\n                        return\n                    if row < m:\n                        for col in range(n):\n                            if col not in cols_used:\n                                path.append((row, col))\n                                cols_used.add(col)\n                                backtrack(row + 1)\n                                path.pop()\n                                cols_used.remove(col)\n                        # Skip to the next row without placing a rook in this row\n                        backtrack(row + 1)\n                            \n                backtrack(0)\n                return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        path = []\n        cols_used = [False] * n\n        \n        def backtrack(row):\n            nonlocal max_sum, path, cols_used\n            if len(path) == 3:\n                current_sum = sum(board[r][c] for r, c in path)\n                if current_sum > max_sum:\n                    max_sum = current_sum\n                return\n            if row < m:\n                for col in range(n):\n                    if not cols_used[col]:\n                        path.append((row, col))\n                        cols_used[col] = True\n                        backtrack(row + 1)\n                        path.pop()\n                        cols_used[col] = False\n                backtrack(row + 1)  # Skip placing a rook in this row\n        \n        backtrack(0)\n        return max_sum",
+    "from typing import List\n        import heapq\n\n        class Solution:\n            def maximumValueSum(self, board: List[List[int]]) -> int:\n                m, n = len(board), len(board[0])\n                max_sum = float('-inf')\n                \n                # Iterate over all combinations of three rows\n                for i in range(m):\n                    for j in range(i+1, m):\n                        for k in range(j+1, m):\n                            # Get the rows\n                            row1, row2, row3 = board[i], board[j], board[k]\n                            \n                            # Find the top 3 columns for each row\n                            top1 = heapq.nlargest(3, range(n), key=row1.__getitem__)\n                            top2 = heapq.nlargest(3, range(n), key=row2.__getitem__)\n                            top3 = heapq.nlargest(3, range(n), key=row3.__getitem__)\n                            \n                            # Iterate over all combinations of columns from the top 3 of each row\n                            for c1 in top1:\n                                for c2 in top2:\n                                    if c2 == c1:\n                                        continue  # Skip if c2 is the same as c1\n                                    for c3 in top3:\n                                        if c3 == c1 or c3 == c2:\n                                            continue  # Skip if c3 is the same as c1 or c2\n                                        current_sum = row1[c1] + row2[c2] + row3[c3]\n                                        if current_sum > max_sum:\n                                            max_sum = current_sum\n                return max_sum",
+    "from typing import List\n\n        class Solution:\n            def maximumValueSum(self, board: List[List[int]]) -> int:\n                m, n = len(board), len(board[0])\n                max_sum = float('-inf')\n                \n                # Iterate over all combinations of three rows\n                for i in range(m):\n                    for j in range(i+1, m):\n                        for k in range(j+1, m):\n                            # Get the rows\n                            row1, row2, row3 = board[i], board[j], board[k]\n                            \n                            # Collect all cells from the three rows with their column indices\n                            cells = []\n                            for col in range(n):\n                                cells.append((row1[col], col))\n                                cells.append((row2[col], col))\n                                cells.append((row3[col], col))\n                            \n                            # Sort the cells in descending order of their values\n                            cells.sort(reverse=True, key=lambda x: x[0])\n                            \n                            # Select the top three cells with unique columns\n                            selected = []\n                            used_cols = set()\n                            for val, col in cells:\n                                if col not in used_cols:\n                                    selected.append(val)\n                                    used_cols.add(col)\n                                    if len(selected) == 3:\n                                        break\n                            \n                            # If we have selected three values, update the max_sum\n                            if len(selected) == 3:\n                                current_sum = sum(selected)\n                                if current_sum > max_sum:\n                                    max_sum = current_sum\n                return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        path = []\n        used_cols = [False] * n\n\n        def backtrack(row, current_sum):\n            nonlocal max_sum\n            if len(path) == 3:\n                max_sum = max(max_sum, current_sum)\n                return\n            if row == m:\n                return\n            # Skip this row\n            backtrack(row + 1, current_sum)\n            # Choose this row\n            for col in range(n):\n                if not used_cols[col]:\n                    used_cols[col] = True\n                    path.append((row, col))\n                    backtrack(row + 1, current_sum + board[row][col])\n                    path.pop()\n                    used_cols[col] = False\n\n        backtrack(0, 0)\n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Backtracking function to select rows and columns\n        def backtrack(row, used_cols, current_sum):\n            nonlocal max_sum\n            if row == 3:\n                if current_sum > max_sum:\n                    max_sum = current_sum\n                return\n            for i in range(m):\n                for j in range(n):\n                    if j not in used_cols:\n                        used_cols.add(j)\n                        backtrack(row + 1, used_cols, current_sum + board[i][j])\n                        used_cols.remove(j)\n        \n        # Start backtracking from the first row with an empty set of used columns\n        backtrack(0, set(), 0)\n        return max_sum"
+  ],
+  "total_candidates": 13,
+  "nodes_explored": 13,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        rows = set(range(m))\n        cols = set(range(n))\n        \n        total_sum = 0\n        \n        for _ in range(3):\n            max_val = -inf\n            max_r, max_c = -1, -1\n            for r in rows:\n                for c in cols:\n                    if board[r][c] > max_val:\n                        max_val = board[r][c]\n                        max_r, max_c = r, c\n            if max_r == -1 or max_c == -1:\n                break  # No more rooks can be placed\n            total_sum += max_val\n            rows.remove(max_r)\n            cols.remove(max_c)\n        \n        return total_sum",
+      "solution_hash": "1d86d448f0230c6915216a59bc2ed8edf63583c107c8bd9843f0d5a99714c7ec",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpu50egs7z.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+        "execution_time": 0.07133674621582031
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Collect all cells with their values, rows, and columns\n        cells = []\n        for r in range(m):\n            for c in range(n):\n                cells.append((board[r][c], r, c))\n        \n        # Sort cells in descending order of their values\n        cells.sort(reverse=True)\n        \n        max_sum = float('-inf')\n        used_rows = set()\n        used_cols = set()\n        \n        # Backtracking function\n        def backtrack(index, current_sum, rooks_placed):\n            nonlocal max_sum\n            if rooks_placed == 3:\n                max_sum = max(max_sum, current_sum)\n                return\n            if index == len(cells):\n                return\n            val, r, c = cells[index]\n            if r not in used_rows and c not in used_cols:\n                used_rows.add(r)\n                used_cols.add(c)\n                backtrack(index + 1, current_sum + val, rooks_placed + 1)\n                used_rows.remove(r)\n                used_cols.remove(c)\n            # Skip to the next cell\n            backtrack(index + 1, current_sum, rooks_placed)\n        \n        backtrack(0, 0, 0)\n        return max_sum",
+          "solution_hash": "35ed12a7626b39b4095579503d657a886fdbeb091dd638b5fdcfe8e60e297ca9",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpw74sog29.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+            "execution_time": 0.0720517635345459
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_2",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Collect all cells with their values, rows, and columns\n        cells = []\n        for r in range(m):\n            for c in range(n):\n                cells.append((board[r][c], r, c))\n        \n        # Sort cells in descending order of their values\n        cells.sort(reverse=True)\n        \n        max_sum = float('-inf')\n        \n        # Backtracking function\n        def backtrack(index, current_sum, rooks_placed, used_rows, used_cols):\n            nonlocal max_sum\n            if rooks_placed == 3:\n                max_sum = max(max_sum, current_sum)\n                return\n            if index == len(cells):\n                return\n            val, r, c = cells[index]\n            if r not in used_rows and c not in used_cols:\n                used_rows.add(r)\n                used_cols.add(c)\n                backtrack(index + 1, current_sum + val, rooks_placed + 1, used_rows, used_cols)\n                used_rows.remove(r)\n                used_cols.remove(c)\n            # Skip to the next cell\n            backtrack(index + 1, current_sum, rooks_placed, used_rows, used_cols)\n        \n        backtrack(0, 0, 0, set(), set())\n        return max_sum",
+              "solution_hash": "45e96e589f340add23bedb8eb1522d1201e341dfd3323426ce775939f8842b22",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp_ftvr_w2.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.07312822341918945
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_3",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute row and column maximum values and their indices\n        row_max = []\n        for r in range(m):\n            max_val = max(board[r])\n            max_idx = board[r].index(max_val)\n            row_max.append((max_val, r, max_idx))\n        \n        col_max = []\n        for c in range(n):\n            col_vals = [board[r][c] for r in range(m)]\n            max_val = max(col_vals)\n            max_idx = col_vals.index(max_val)\n            col_max.append((max_val, max_idx, c))\n        \n        # Sort row and column maximum values in descending order\n        row_max.sort(reverse=True)\n        col_max.sort(reverse=True)\n        \n        max_sum = float('-inf')\n        \n        # Try placing the first rook in the best row and column\n        for r1_val, r1, c1 in row_max:\n            for c2_val, r2, c2 in col_max:\n                if r1 != r2 and c1 != c2:\n                    # Find the third rook's position\n                    for r3 in range(m):\n                        if r3 != r1 and r3 != r2:\n                            for c3 in range(n):\n                                if c3 != c1 and c3 != c2:\n                                    sum_val = r1_val + c2_val + board[r3][c3]\n                                    if sum_val > max_sum:\n                                        max_sum = sum_val\n        return max_sum",
+              "solution_hash": "db04b3037094ae45d31c2b475de283664638554c8b6aa33e3bc52dd06387e8e8",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmprpseus42.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.07228636741638184
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Collect all cells with their values, rows, and columns\n        cells = []\n        for r in range(m):\n            for c in range(n):\n                cells.append((board[r][c], r, c))\n        \n        # Sort cells in descending order of their values\n        cells.sort(reverse=True)\n        \n        max_sum = float('-inf')\n        used_rows = set()\n        used_cols = set()\n        \n        # Backtracking function\n        def backtrack(index, current_sum, rooks_placed):\n            nonlocal max_sum\n            if rooks_placed == 3:\n                max_sum = max(max_sum, current_sum)\n                return\n            if index == len(cells):\n                return\n            val, r, c = cells[index]\n            if r not in used_rows and c not in used_cols:\n                used_rows.add(r)\n                used_cols.add(c)\n                backtrack(index + 1, current_sum + val, rooks_placed + 1)\n                used_rows.remove(r)\n                used_cols.remove(c)\n            # Skip to the next cell\n            backtrack(index + 1, current_sum, rooks_placed)\n        \n        backtrack(0, 0, 0)\n        return max_sum",
+              "solution_hash": "35ed12a7626b39b4095579503d657a886fdbeb091dd638b5fdcfe8e60e297ca9",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpw74sog29.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.0720517635345459
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_5",
+          "solution": "from typing import List\n\n        class Solution:\n            def maximumValueSum(self, board: List[List[int]]) -> int:\n                m, n = len(board), len(board[0])\n                max_sum = float('-inf')\n                path = []\n                cols_used = [False] * n\n                \n                def backtrack(row):\n                    nonlocal max_sum, path, cols_used\n                    if row == 3:\n                        current_sum = sum(board[path[i][0]][path[i][1]] for i in range(3))\n                        if current_sum > max_sum:\n                            max_sum = current_sum\n                        return\n                    if row < m:\n                        for col in range(n):\n                            if not cols_used[col]:\n                                path.append((row, col))\n                                cols_used[col] = True\n                                backtrack(row + 1)\n                                path.pop()\n                                cols_used[col] = False\n                            \n                backtrack(0)\n                return max_sum",
+          "solution_hash": "303882aca8facad426a08fadc29548b3f9c8467352564586e7b090bcce204235",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419950/tmpqjo2aobi.py\", line 86\n    class Solution:\nIndentationError: unexpected indent\n",
+            "execution_time": 0.06489038467407227
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_6",
+              "solution": "from typing import List\n\n        class Solution:\n            def maximumValueSum(self, board: List[List[int]]) -> int:\n                m, n = len(board), len(board[0])\n                max_sum = float('-inf')\n                \n                # Iterate over all combinations of three different rows\n                for i in range(m):\n                    for j in range(i+1, m):\n                        for k in range(j+1, m):\n                            # For each combination of rows, find the maximum sum of cells\n                            # such that no two cells are in the same column.\n                            # This is equivalent to finding the maximum sum of a permutation\n                            # of column indices.\n                            for col1 in range(n):\n                                for col2 in range(n):\n                                    if col1 == col2:\n                                        continue\n                                    for col3 in range(n):\n                                        if col3 == col1 or col3 == col2:\n                                            continue\n                                        current_sum = board[i][col1] + board[j][col2] + board[k][col3]\n                                        if current_sum > max_sum:\n                                            max_sum = current_sum\n                return max_sum",
+              "solution_hash": "05b18c7477917f2b55811c82eef8085aeff5077f3f2dc3813d4ee7204393f844",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419950/tmpbfi4basc.py\", line 86\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.06599020957946777
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_7",
+              "solution": "from typing import List\n\n        class Solution:\n            def maximumValueSum(self, board: List[List[int]]) -> int:\n                m, n = len(board), len(board[0])\n                max_sum = float('-inf')\n                path = []\n                cols_used = set()\n                \n                def backtrack(row):\n                    nonlocal max_sum, path, cols_used\n                    if len(path) == 3:\n                        current_sum = sum(board[r][c] for r, c in path)\n                        if current_sum > max_sum:\n                            max_sum = current_sum\n                        return\n                    if row < m:\n                        for col in range(n):\n                            if col not in cols_used:\n                                path.append((row, col))\n                                cols_used.add(col)\n                                backtrack(row + 1)\n                                path.pop()\n                                cols_used.remove(col)\n                        # Skip to the next row without placing a rook in this row\n                        backtrack(row + 1)\n                            \n                backtrack(0)\n                return max_sum",
+              "solution_hash": "f261f18fbce7f041d108322232caa170ce19656709a57ae5ac205ae178fdf1dc",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419950/tmp8angzjtw.py\", line 86\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.06528210639953613
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        path = []\n        cols_used = [False] * n\n        \n        def backtrack(row):\n            nonlocal max_sum, path, cols_used\n            if len(path) == 3:\n                current_sum = sum(board[r][c] for r, c in path)\n                if current_sum > max_sum:\n                    max_sum = current_sum\n                return\n            if row < m:\n                for col in range(n):\n                    if not cols_used[col]:\n                        path.append((row, col))\n                        cols_used[col] = True\n                        backtrack(row + 1)\n                        path.pop()\n                        cols_used[col] = False\n                backtrack(row + 1)  # Skip placing a rook in this row\n        \n        backtrack(0)\n        return max_sum",
+              "solution_hash": "f75ee7d26b44031c471b052250d16bfe1bfaa2759bcb77c9cd6b30c6e127b6f6",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpp97z85o2.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.07079339027404785
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_9",
+          "solution": "from typing import List\n        import heapq\n\n        class Solution:\n            def maximumValueSum(self, board: List[List[int]]) -> int:\n                m, n = len(board), len(board[0])\n                max_sum = float('-inf')\n                \n                # Iterate over all combinations of three rows\n                for i in range(m):\n                    for j in range(i+1, m):\n                        for k in range(j+1, m):\n                            # Get the rows\n                            row1, row2, row3 = board[i], board[j], board[k]\n                            \n                            # Find the top 3 columns for each row\n                            top1 = heapq.nlargest(3, range(n), key=row1.__getitem__)\n                            top2 = heapq.nlargest(3, range(n), key=row2.__getitem__)\n                            top3 = heapq.nlargest(3, range(n), key=row3.__getitem__)\n                            \n                            # Iterate over all combinations of columns from the top 3 of each row\n                            for c1 in top1:\n                                for c2 in top2:\n                                    if c2 == c1:\n                                        continue  # Skip if c2 is the same as c1\n                                    for c3 in top3:\n                                        if c3 == c1 or c3 == c2:\n                                            continue  # Skip if c3 is the same as c1 or c2\n                                        current_sum = row1[c1] + row2[c2] + row3[c3]\n                                        if current_sum > max_sum:\n                                            max_sum = current_sum\n                return max_sum",
+          "solution_hash": "1f5e30b6efc7d6ad0686dd03aeabd7a36ab87dfc9b99327df71e089d8141507a",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419950/tmpm6nbkdvq.py\", line 85\n    import heapq\nIndentationError: unexpected indent\n",
+            "execution_time": 0.06451177597045898
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_10",
+              "solution": "from typing import List\n\n        class Solution:\n            def maximumValueSum(self, board: List[List[int]]) -> int:\n                m, n = len(board), len(board[0])\n                max_sum = float('-inf')\n                \n                # Iterate over all combinations of three rows\n                for i in range(m):\n                    for j in range(i+1, m):\n                        for k in range(j+1, m):\n                            # Get the rows\n                            row1, row2, row3 = board[i], board[j], board[k]\n                            \n                            # Collect all cells from the three rows with their column indices\n                            cells = []\n                            for col in range(n):\n                                cells.append((row1[col], col))\n                                cells.append((row2[col], col))\n                                cells.append((row3[col], col))\n                            \n                            # Sort the cells in descending order of their values\n                            cells.sort(reverse=True, key=lambda x: x[0])\n                            \n                            # Select the top three cells with unique columns\n                            selected = []\n                            used_cols = set()\n                            for val, col in cells:\n                                if col not in used_cols:\n                                    selected.append(val)\n                                    used_cols.add(col)\n                                    if len(selected) == 3:\n                                        break\n                            \n                            # If we have selected three values, update the max_sum\n                            if len(selected) == 3:\n                                current_sum = sum(selected)\n                                if current_sum > max_sum:\n                                    max_sum = current_sum\n                return max_sum",
+              "solution_hash": "53900534a6fb342a673861d101995279bb0929504b4c0116c8e7d37435582fc0",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419950/tmp0ne39abt.py\", line 86\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.06573176383972168
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_11",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        path = []\n        used_cols = [False] * n\n\n        def backtrack(row, current_sum):\n            nonlocal max_sum\n            if len(path) == 3:\n                max_sum = max(max_sum, current_sum)\n                return\n            if row == m:\n                return\n            # Skip this row\n            backtrack(row + 1, current_sum)\n            # Choose this row\n            for col in range(n):\n                if not used_cols[col]:\n                    used_cols[col] = True\n                    path.append((row, col))\n                    backtrack(row + 1, current_sum + board[row][col])\n                    path.pop()\n                    used_cols[col] = False\n\n        backtrack(0, 0)\n        return max_sum",
+              "solution_hash": "34036bf91d8ce759045547e535bb10a6d6e8bdfeb74ecfeba83bdc606a98f5cf",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmptx71nhsu.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.07179880142211914
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_12",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Backtracking function to select rows and columns\n        def backtrack(row, used_cols, current_sum):\n            nonlocal max_sum\n            if row == 3:\n                if current_sum > max_sum:\n                    max_sum = current_sum\n                return\n            for i in range(m):\n                for j in range(n):\n                    if j not in used_cols:\n                        used_cols.add(j)\n                        backtrack(row + 1, used_cols, current_sum + board[i][j])\n                        used_cols.remove(j)\n        \n        # Start backtracking from the first row with an empty set of used columns\n        backtrack(0, set(), 0)\n        return max_sum",
+              "solution_hash": "137e18fce8d3e101a433fdd7f7980a7d4b85593263be04e5960fb01b6faafc69",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpn77c37pd.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.07206034660339355
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 13,
+    "candidates_generated": 13,
+    "tests_passed": 0,
+    "tests_failed": 13,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 882.8800134658813,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.0,
+      "pass@3": 0.0,
+      "pass@5": 0.0,
+      "pass@10": 0.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 100)",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 100)",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 100)",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 99)",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 100)",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 13
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 14,
+    "test_cases": 1
+  }
+}

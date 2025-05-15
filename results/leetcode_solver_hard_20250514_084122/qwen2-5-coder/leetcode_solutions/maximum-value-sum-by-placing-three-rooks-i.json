@@ -1,0 +1,1074 @@
+{
+  "problem_id": "maximum-value-sum-by-placing-three-rooks-i",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 rows\n        for rows in itertools.combinations(range(m), 3):\n            # Iterate over all combinations of 3 columns\n            for cols in itertools.combinations(range(n), 3):\n                current_sum = sum(board[row][col] for row, col in zip(rows, cols))\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\nimport itertools\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Precompute the top 3 values in each row along with their column indices\n        top_values = []\n        for row in board:\n            # Get the top 3 values and their indices in the current row\n            top_values.append(sorted(enumerate(row), key=lambda x: x[1], reverse=True)[:3])\n        \n        # Iterate over all combinations of 3 rows\n        for rows in itertools.combinations(range(m), 3):\n            # Collect the top 3 values from these rows\n            candidates = [top_values[row] for row in rows]\n            \n            # Use a set to track used columns\n            used_cols = set()\n            best_combination = []\n            \n            # Try to pick one value from each row ensuring no column is reused\n            for i in range(3):\n                for col, val in candidates[i]:\n                    if col not in used_cols:\n                        used_cols.add(col)\n                        best_combination.append(val)\n                        break\n            \n            # If we have a valid combination of 3 values, calculate the sum\n            if len(best_combination) == 3:\n                current_sum = sum(best_combination)\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\nimport itertools\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Precompute the top 3 values in each row along with their column indices\n        top_values = []\n        for row in board:\n            # Get the top 3 values and their indices in the current row\n            top_values.append(sorted(enumerate(row), key=lambda x: x[1], reverse=True)[:3])\n        \n        # Iterate over all combinations of 3 rows\n        for rows in itertools.combinations(range(m), 3):\n            # Collect the top 3 values from these rows\n            candidates = [top_values[row] for row in rows]\n            \n            # Try all permutations of column selections from the top 3 values\n            for cols in itertools.permutations(range(3)):\n                # Calculate the sum for the current permutation of columns\n                current_sum = sum(candidates[i][cols[i]][1] for i in range(3))\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\nimport itertools\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Precompute the top 3 values in each row along with their column indices\n        top_values = []\n        for row in board:\n            # Get the top 3 values and their indices in the current row\n            top_values.append(sorted(enumerate(row), key=lambda x: x[1], reverse=True)[:3])\n        \n        # Iterate over all combinations of 3 rows\n        for rows in itertools.combinations(range(m), 3):\n            # Collect the top 3 values from these rows\n            candidates = [top_values[row] for row in rows]\n            \n            # Try all permutations of column selections from the candidates\n            for cols in itertools.permutations(range(3)):\n                # Calculate the sum for this permutation\n                current_sum = sum(candidates[i][cols[i]][1] for i in range(3))\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\nimport itertools\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Precompute the top 3 values in each row along with their column indices\n        top_values = []\n        for row in board:\n            # Get the top 3 values and their indices in the current row\n            top_values.append(sorted(enumerate(row), key=lambda x: x[1], reverse=True)[:3])\n        \n        # Iterate over all combinations of 3 rows\n        for rows in itertools.combinations(range(m), 3):\n            # Collect the top 3 values from these rows\n            candidates = [top_values[row] for row in rows]\n            \n            # Generate all permutations of column selections from the candidates\n            for cols in itertools.permutations(range(3)):\n                # Ensure no column is reused\n                used_cols = set()\n                current_sum = 0\n                valid = True\n                \n                for i in range(3):\n                    col_index, value = candidates[i][cols[i]]\n                    if col_index in used_cols:\n                        valid = False\n                        break\n                    used_cols.add(col_index)\n                    current_sum += value\n                \n                if valid:\n                    max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Sort each row in descending order and keep track of the original indices\n        sorted_rows = []\n        for i in range(m):\n            sorted_row = sorted((board[i][j], j) for j in range(n)), reverse=True)\n            sorted_rows.append(sorted_row[:3])  # Only keep top 3 values\n        \n        def backtrack(row, used_cols, current_sum):\n            if row == m:\n                return current_sum\n            \n            max_sum = float('-inf')\n            for value, col in sorted_rows[row]:\n                if col not in used_cols:\n                    used_cols.add(col)\n                    max_sum = max(max_sum, backtrack(row + 1, used_cols, current_sum + value))\n                    used_cols.remove(col)\n            \n            return max_sum\n        \n        return backtrack(0, set(), 0)",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        top_row_values = []\n        for i in range(m):\n            sorted_row = sorted((board[i][j], j) for j in range(n)), reverse=True)\n            top_row_values.append(sorted_row[:3])  # Only keep top 3 values\n        \n        top_col_values = []\n        for j in range(n):\n            sorted_col = sorted((board[i][j], i) for i in range(m)), reverse=True)\n            top_col_values.append(sorted_col[:3])  # Only keep top 3 values\n        \n        def backtrack(row, used_cols, current_sum):\n            if row == m:\n                return current_sum\n            \n            max_sum = float('-inf')\n            for value, col in top_row_values[row]:\n                if col not in used_cols:\n                    used_cols.add(col)\n                    max_sum = max(max_sum, backtrack(row + 1, used_cols, current_sum + value))\n                    used_cols.remove(col)\n            \n            return max_sum\n        \n        return backtrack(0, set(), 0)",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        top_row_values = []\n        for i in range(m):\n            sorted_row = sorted((board[i][j], j) for j in range(n)), reverse=True)\n            top_row_values.append(sorted_row[:3])  # Only keep top 3 values\n        \n        top_col_values = [[] for _ in range(n)]\n        for j in range(n):\n            sorted_col = sorted((board[i][j], i) for i in range(m)), reverse=True)\n            for value, i in sorted_col[:3]:  # Only keep top 3 values\n                top_col_values[j].append((value, i))\n        \n        def backtrack(row, used_cols, current_sum):\n            if row == m:\n                return current_sum\n            \n            max_sum = float('-inf')\n            for value, col in top_row_values[row]:\n                if col not in used_cols:\n                    used_cols.add(col)\n                    max_sum = max(max_sum, backtrack(row + 1, used_cols, current_sum + value))\n                    used_cols.remove(col)\n            \n            return max_sum\n        \n        return backtrack(0, set(), 0)",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values for each row and column\n        top_3_rows = []\n        top_3_cols = [[] for _ in range(n)]\n        \n        for i in range(m):\n            sorted_row = sorted((board[i][j], j) for j in range(n), reverse=True)\n            top_3_rows.append(sorted_row[:3])  # Keep top 3 values\n        \n        for j in range(n):\n            sorted_col = sorted((board[i][j], i) for i in range(m), reverse=True)\n            top_3_cols[j] = sorted_col[:3]  # Keep top 3 values\n        \n        def backtrack(row, used_cols, current_sum):\n            if row == m:\n                return current_sum\n            \n            max_sum = float('-inf')\n            for value, col in top_3_rows[row]:\n                if col not in used_cols:\n                    used_cols.add(col)\n                    max_sum = max(max_sum, backtrack(row + 1, used_cols, current_sum + value))\n                    used_cols.remove(col)\n            \n            return max_sum\n        \n        return backtrack(0, set(), 0)",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate top 3 values in each row\n        top_3_rows = []\n        for row in board:\n            top_3 = sorted(enumerate(row), key=lambda x: -x[1])[:3]\n            top_3_rows.append(top_3)\n        \n        # Calculate top 3 values in each column\n        top_3_cols = []\n        for col in range(n):\n            top_3 = sorted([(row, board[row][col]) for row in range(m)], key=lambda x: -x[1])[:3]\n            top_3_cols.append(top_3)\n        \n        max_sum = float('-inf')\n        \n        # Try placing rooks in all combinations of top 3 from each row\n        for r1, c1, val1 in top_3_rows[0]:\n            for r2, c2, val2 in top_3_rows[1]:\n                if c2 == c1:\n                    continue\n                for r3, c3, val3 in top_3_rows[2]:\n                    if c3 == c1 or c3 == c2:\n                        continue\n                    # Check if columns are unique\n                    if len(set([c1, c2, c3])) == 3:\n                        max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+    "from typing import List\nfrom itertools import permutations\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate top 3 values in each row\n        top_3_rows = []\n        for row in board:\n            top_3 = sorted(enumerate(row), key=lambda x: -x[1])[:3]\n            top_3_rows.append(top_3)\n        \n        max_sum = float('-inf')\n        \n        # Try placing rooks in all combinations of rows and unique columns\n        for row_indices in permutations(range(m), 3):\n            used_cols = set()\n            current_sum = 0\n            valid_placement = True\n            \n            for i, row in enumerate(row_indices):\n                for col, val in top_3_rows[row]:\n                    if col not in used_cols:\n                        used_cols.add(col)\n                        current_sum += val\n                        break\n                else:\n                    valid_placement = False\n                    break\n            \n            if valid_placement:\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate top 3 values in each row along with their indices\n        top_3_rows = []\n        for i in range(m):\n            row_values = [(j, board[i][j]) for j in range(n)]\n            row_values.sort(key=lambda x: -x[1])\n            top_3_rows.append(row_values[:3])\n        \n        max_sum = float('-inf')\n        \n        # Try placing rooks in all combinations of top 3 from each row\n        for r1, c1, val1 in top_3_rows[0]:\n            for r2, c2, val2 in top_3_rows[1]:\n                if r2 == r1:\n                    continue\n                for r3, c3, val3 in top_3_rows[2]:\n                    if r3 == r1 or r3 == r2:\n                        continue\n                    # Check if columns are unique\n                    if len(set([c1, c2, c3])) == 3:\n                        max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+    "from typing import List\nfrom itertools import permutations\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the sum of top 3 values for each row considering all column permutations\n        max_sum = float('-inf')\n        \n        # Iterate over all permutations of 3 rows\n        for row_indices in permutations(range(m), 3):\n            # For each permutation of rows, calculate the maximum sum by choosing unique columns\n            used_columns = set()\n            current_sum = 0\n            valid_placement = True\n            \n            for row in row_indices:\n                # Find the best column for the current row that hasn't been used yet\n                max_val = float('-inf')\n                best_col = -1\n                for col in range(n):\n                    if col not in used_columns and board[row][col] > max_val:\n                        max_val = board[row][col]\n                        best_col = col\n                \n                if best_col == -1:\n                    valid_placement = False\n                    break\n                \n                used_columns.add(best_col)\n                current_sum += max_val\n            \n            if valid_placement:\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Precompute the top 3 values in each row\n        row_top_values = []\n        for row in board:\n            top_three = heapq.nlargest(3, enumerate(row), key=lambda x: x[1])\n            row_top_values.append(top_three)\n        \n        # Iterate over all combinations of 3 rows\n        for r1, r2, r3 in itertools.combinations(range(m), 3):\n            # Get the top 3 values from each of the selected rows\n            top_r1 = row_top_values[r1]\n            top_r2 = row_top_values[r2]\n            top_r3 = row_top_values[r3]\n            \n            # Try all combinations of columns for these rows\n            for c1, v1 in top_r1:\n                for c2, v2 in top_r2:\n                    if c2 == c1:\n                        continue\n                    for c3, v3 in top_r3:\n                        if c3 == c1 or c3 == c2:\n                            continue\n                        max_sum = max(max_sum, v1 + v2 + v3)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Sort each row by value in descending order, keeping track of original indices\n        sorted_rows = [[(val, col) for col, val in enumerate(row)] for row in board]\n        for row in sorted_rows:\n            row.sort(reverse=True, key=lambda x: x[0])\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 rows\n        for r1 in range(m):\n            for r2 in range(r1 + 1, m):\n                for r3 in range(r2 + 1, m):\n                    # Try placing rooks in the top 3 positions of each row\n                    for c1, v1 in sorted_rows[r1][:3]:\n                        for c2, v2 in sorted_rows[r2][:3]:\n                            if c2 == c1:\n                                continue\n                            for c3, v3 in sorted_rows[r3][:3]:\n                                if c3 == c1 or c3 == c2:\n                                    continue\n                                max_sum = max(max_sum, v1 + v2 + v3)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate top 3 values in each row and column\n        top_row_values = []\n        for row in board:\n            top_row_values.append(sorted([(val, col) for col, val in enumerate(row)], reverse=True)[:3])\n        \n        top_col_values = [[] for _ in range(n)]\n        for col in range(n):\n            for row in range(m):\n                top_col_values[col].append((board[row][col], row))\n            top_col_values[col] = sorted(top_col_values[col], reverse=True)[:3]\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 rows\n        for r1 in range(m):\n            for r2 in range(r1 + 1, m):\n                for r3 in range(r2 + 1, m):\n                    # Try placing rooks in the top 3 positions of each row\n                    for v1, c1 in top_row_values[r1]:\n                        for v2, c2 in top_row_values[r2]:\n                            if c2 == c1:\n                                continue\n                            for v3, c3 in top_row_values[r3]:\n                                if c3 == c1 or c3 == c2:\n                                    continue\n                                # Check if columns are unique using top column values\n                                valid = True\n                                for val, row in top_col_values[c1]:\n                                    if row in {r2, r3}:\n                                        valid = False\n                                        break\n                                if not valid:\n                                    continue\n                                for val, row in top_col_values[c2]:\n                                    if row in {r1, r3}:\n                                        valid = False\n                                        break\n                                if not valid:\n                                    continue\n                                for val, row in top_col_values[c3]:\n                                    if row in {r1, r2}:\n                                        valid = False\n                                        break\n                                if valid:\n                                    max_sum = max(max_sum, v1 + v2 + v3)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the top 3 values in each row and column\n        top_row_values = []\n        top_col_values = [[] for _ in range(n)]\n        \n        for i in range(m):\n            row = sorted([(board[i][j], j) for j in range(n)], reverse=True)[:3]\n            top_row_values.append(row)\n            for val, j in row:\n                top_col_values[j].append((val, i))\n        \n        for j in range(n):\n            top_col_values[j] = sorted(top_col_values[j], reverse=True)[:3]\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 rows\n        for r1 in range(m):\n            for r2 in range(r1 + 1, m):\n                for r3 in range(r2 + 1, m):\n                    # Try placing rooks in the top 3 positions of each row\n                    for v1, c1 in top_row_values[r1]:\n                        for v2, c2 in top_row_values[r2]:\n                            if c2 == c1:\n                                continue\n                            for v3, c3 in top_row_values[r3]:\n                                if c3 == c1 or c3 == c2:\n                                    continue\n                                max_sum = max(max_sum, v1 + v2 + v3)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, get the top 3 values along with their column indices\n        top_three_per_row = []\n        for row in board:\n            top_three = sorted((val, col) for col, val in enumerate(row))[-3:]\n            top_three_per_row.append(top_three)\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 rows\n        for r1 in range(m):\n            for r2 in range(r1 + 1, m):\n                for r3 in range(r2 + 1, m):\n                    # Use sets to track used columns\n                    cols_used = set()\n                    current_sum = 0\n                    \n                    # Try placing rooks in the top 3 positions of each row\n                    for val, col in top_three_per_row[r1]:\n                        if col not in cols_used:\n                            cols_used.add(col)\n                            current_sum += val\n                            break\n                    else:\n                        continue  # If no valid column found, skip\n                    \n                    for val, col in top_three_per_row[r2]:\n                        if col not in cols_used:\n                            cols_used.add(col)\n                            current_sum += val\n                            break\n                    else:\n                        continue  # If no valid column found, skip\n                    \n                    for val, col in top_three_per_row[r3]:\n                        if col not in cols_used:\n                            cols_used.add(col)\n                            current_sum += val\n                            break\n                    else:\n                        continue  # If no valid column found, skip\n                    \n                    max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\nimport itertools\nimport heapq\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Precompute the top 3 non-negative values in each row\n        row_top_values = []\n        for row in board:\n            # Filter out negative values\n            filtered_row = [(i, val) for i, val in enumerate(row) if val >= 0]\n            # Get the top three values from the filtered row\n            top_three = heapq.nlargest(3, filtered_row, key=lambda x: x[1])\n            row_top_values.append(top_three)\n        \n        # Iterate over all combinations of 3 rows\n        for r1, r2, r3 in itertools.combinations(range(m), 3):\n            # Get the top 3 values from each of the selected rows\n            top_r1 = row_top_values[r1]\n            top_r2 = row_top_values[r2]\n            top_r3 = row_top_values[r3]\n            \n            # Skip if any row has fewer than 3 values\n            if len(top_r1) < 3 or len(top_r2) < 3 or len(top_r3) < 3:\n                continue\n            \n            # Try all combinations of columns for these rows\n            for c1, v1 in top_r1:\n                for c2, v2 in top_r2:\n                    if c2 == c1:\n                        continue\n                    for c3, v3 in top_r3:\n                        if c3 == c1 or c3 == c2:\n                            continue\n                        max_sum = max(max_sum, v1 + v2 + v3)\n        \n        return max_sum",
+    "from typing import List\nimport itertools\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Precompute the top 3 values in each row\n        row_top_values = []\n        for row in board:\n            # Sort the row in descending order based on values\n            sorted_row = sorted(enumerate(row), key=lambda x: x[1], reverse=True)\n            row_top_values.append(sorted_row[:3])  # Keep only top 3\n        \n        # Iterate over all combinations of 3 rows\n        for r1, r2, r3 in itertools.combinations(range(m), 3):\n            # Get the top 3 values from each of the selected rows\n            top_r1 = row_top_values[r1]\n            top_r2 = row_top_values[r2]\n            top_r3 = row_top_values[r3]\n            \n            # Try all combinations of columns for these rows\n            for c1, v1 in top_r1:\n                for c2, v2 in top_r2:\n                    if c2 == c1:\n                        continue\n                    for c3, v3 in top_r3:\n                        if c3 == c1 or c3 == c2:\n                            continue\n                        max_sum = max(max_sum, v1 + v2 + v3)\n        \n        return max_sum",
+    "from typing import List\nimport itertools\nimport heapq\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Precompute the top 3 values in each row (including negative values)\n        row_top_values = []\n        for row in board:\n            # Get the top three values from the row\n            top_three = heapq.nlargest(3, enumerate(row), key=lambda x: x[1])\n            row_top_values.append(top_three)\n        \n        # Iterate over all combinations of 3 rows\n        for r1, r2, r3 in itertools.combinations(range(m), 3):\n            # Get the top 3 values from each of the selected rows\n            top_r1 = row_top_values[r1]\n            top_r2 = row_top_values[r2]\n            top_r3 = row_top_values[r3]\n            \n            # Try all combinations of columns for these rows\n            for c1, v1 in top_r1:\n                for c2, v2 in top_r2:\n                    if c2 == c1:\n                        continue\n                    for c3, v3 in top_r3:\n                        if c3 == c1 or c3 == c2:\n                            continue\n                        max_sum = max(max_sum, v1 + v2 + v3)\n        \n        return max_sum",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        row_top_values = [heapq.nlargest(3, range(n), key=lambda j: board[i][j]) for i in range(m)]\n        col_top_values = [heapq.nlargest(3, range(m), key=lambda i: board[i][j]) for j in range(n)]\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 rows\n        for r1, r2, r3 in itertools.combinations(range(m), 3):\n            # Get the top 3 values from each of the selected rows\n            top_r1 = row_top_values[r1]\n            top_r2 = row_top_values[r2]\n            top_r3 = row_top_values[r3]\n            \n            # Try all combinations of columns for these rows\n            for c1 in top_r1:\n                for c2 in top_r2:\n                    if c2 == c1:\n                        continue\n                    for c3 in top_r3:\n                        if c3 == c1 or c3 == c2:\n                            continue\n                        # Ensure columns are unique\n                        if len({c1, c2, c3}) == 3:\n                            current_sum = board[r1][c1] + board[r2][c2] + board[r3][c3]\n                            max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the sum of the top 3 values in each row\n        row_sums = []\n        for i in range(m):\n            sorted_row = sorted(board[i], reverse=True)\n            row_sums.append(sum(sorted_row[:3]))\n        \n        # Calculate the sum of the top 3 values in each column\n        col_sums = [0] * n\n        for j in range(n):\n            col_values = [board[i][j] for i in range(m)]\n            sorted_col = sorted(col_values, reverse=True)\n            col_sums[j] = sum(sorted_col[:3])\n        \n        # Sort rows and columns by their sums in descending order\n        row_indices = sorted(range(m), key=lambda x: row_sums[x], reverse=True)\n        col_indices = sorted(range(n), key=lambda x: col_sums[x], reverse=True)\n        \n        # Use a greedy approach to select the best combination of rows and columns\n        max_sum = 0\n        used_cols = set()\n        for i in range(min(m, 3)):\n            row_index = row_indices[i]\n            current_max = 0\n            best_col = -1\n            for j in range(n):\n                if j not in used_cols:\n                    if board[row_index][j] > current_max:\n                        current_max = board[row_index][j]\n                        best_col = j\n            if best_col != -1:\n                max_sum += current_max\n                used_cols.add(best_col)\n        \n        return max_sum",
+    "from typing import List\nfrom itertools import permutations\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Collect the top 3 values in each row\n        row_top_values = []\n        for i in range(m):\n            sorted_row = sorted(enumerate(board[i]), key=lambda x: x[1], reverse=True)\n            row_top_values.append(sorted_row[:3])\n        \n        # Collect the top 3 values in each column\n        col_top_values = [[] for _ in range(n)]\n        for j in range(n):\n            col_values = [(i, board[i][j]) for i in range(m)]\n            sorted_col = sorted(col_values, key=lambda x: x[1], reverse=True)\n            for i in range(min(3, len(sorted_col))):\n                col_top_values[j].append(sorted_col[i])\n        \n        max_sum = 0\n        \n        # Iterate over all permutations of row indices\n        for row_perm in permutations(range(m), 3):\n            used_cols = set()\n            current_sum = 0\n            valid = True\n            \n            # Check each row in the permutation\n            for row in row_perm:\n                found = False\n                for col, val in row_top_values[row]:\n                    if col not in used_cols:\n                        current_sum += val\n                        used_cols.add(col)\n                        found = True\n                        break\n                if not found:\n                    valid = False\n                    break\n            \n            if valid:\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\nfrom itertools import combinations\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the sum of values for all combinations of 3 rows and 3 columns\n        max_sum = 0\n        for row_comb in combinations(range(m), 3):\n            for col_comb in combinations(range(n), 3):\n                current_sum = sum(board[r][c] for r, c in zip(row_comb, col_comb))\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\nfrom itertools import permutations\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the sum of the top 3 values in each row\n        row_sums = []\n        for i in range(m):\n            sorted_row = sorted(board[i], reverse=True)\n            row_sums.append(sorted_row[:3])\n        \n        max_sum = 0\n        \n        # Iterate over all permutations of 3 rows\n        for row_perm in permutations(range(m), 3):\n            # For each permutation of rows, find the best columns\n            used_cols = set()\n            current_sum = 0\n            for row in row_perm:\n                # Find the best column for the current row that hasn't been used yet\n                best_value = 0\n                best_col = -1\n                for col in range(n):\n                    if col not in used_cols and board[row][col] > best_value:\n                        best_value = board[row][col]\n                        best_col = col\n                if best_col != -1:\n                    current_sum += best_value\n                    used_cols.add(best_col)\n                else:\n                    break  # If we can't find a valid column, break out of the loop\n            \n            # Update the maximum sum found\n            max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 rows\n        for rows in itertools.combinations(range(m), 3):\n            # Iterate over all permutations of 3 columns\n            for cols in itertools.permutations(range(n), 3):\n                current_sum = sum(board[row][col] for row, col in zip(rows, cols))\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, find the top 3 values and their respective columns\n        top_values = []\n        for row in board:\n            # Create a list of (value, column) pairs\n            value_col_pairs = [(val, col) for col, val in enumerate(row)]\n            # Sort by value in descending order and take the top 3\n            value_col_pairs.sort(reverse=True, key=lambda x: x[0])\n            top_values.append(value_col_pairs[:3])\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of top 3 values from each row\n        for i in range(3):\n            for j in range(3):\n                for k in range(3):\n                    # Ensure columns are distinct\n                    if (top_values[0][i][1] != top_values[1][j][1] and \n                        top_values[1][j][1] != top_values[2][k][1] and \n                        top_values[0][i][1] != top_values[2][k][1]):\n                        current_sum = (top_values[0][i][0] + \n                                       top_values[1][j][0] + \n                                       top_values[2][k][0])\n                        max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        def backtrack(row, used_cols, current_sum):\n            nonlocal max_sum\n            if row == m:\n                max_sum = max(max_sum, current_sum)\n                return\n            \n            for col in range(n):\n                if col not in used_cols:\n                    used_cols.add(col)\n                    backtrack(row + 1, used_cols, current_sum + board[row][col])\n                    used_cols.remove(col)\n        \n        max_sum = float('-inf')\n        backtrack(0, set(), 0)\n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # dp[i][j][k] will store the maximum sum of placing k rooks in the first i rows\n        # using only columns in the mask j\n        dp = [[[float('-inf')] * (1 << n) for _ in range(m + 1)] for _ in range(4)]\n        dp[0][0][0] = 0\n        \n        for k in range(1, 4):  # Number of rooks\n            for i in range(1, m + 1):  # Current row\n                for mask in range(1 << n):  # Current column mask\n                    dp[k][i][mask] = dp[k][i - 1][mask]  # Option to skip the current row\n                    \n                    # Try placing a rook in each column of the current row\n                    for j in range(n):\n                        if mask & (1 << j):  # Check if column j is used in the mask\n                            new_mask = mask ^ (1 << j)  # Remove column j from the mask\n                            dp[k][i][mask] = max(dp[k][i][mask], dp[k - 1][i - 1][new_mask] + board[i - 1][j])\n        \n        # The answer is the maximum sum of placing 3 rooks in any configuration\n        return max(dp[3][m][mask] for mask in range(1 << n))",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        row_top_values = []\n        col_top_values = [[] for _ in range(n)]\n        \n        for i in range(m):\n            row_values = [(board[i][j], j) for j in range(n)]\n            row_values.sort(reverse=True, key=lambda x: x[0])\n            row_top_values.append(row_values[:3])\n            \n            for j in range(n):\n                col_top_values[j].append((board[i][j], i))\n        \n        for col_values in col_top_values:\n            col_values.sort(reverse=True, key=lambda x: x[0])\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of top 3 values from each row\n        for i in range(m):\n            for j in range(3):\n                val1, col1 = row_top_values[i][j]\n                for k in range(m):\n                    if k == i:\n                        continue\n                    for l in range(3):\n                        val2, col2 = row_top_values[k][l]\n                        if col2 == col1:\n                            continue\n                        for p in range(m):\n                            if p == i or p == k:\n                                continue\n                            for q in range(3):\n                                val3, col3 = row_top_values[p][q]\n                                if col3 == col1 or col3 == col2:\n                                    continue\n                                current_sum = val1 + val2 + val3\n                                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, find the top 3 values and their respective columns\n        top_three_per_row = []\n        for row in board:\n            # Create a list of tuples (value, column_index) and sort it by value in descending order\n            sorted_values = sorted((val, idx) for idx, val in enumerate(row), reverse=True)\n            # Take the top 3 values and their columns\n            top_three_per_row.append(sorted_values[:3])\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of top 3 values from each row\n        for r1, r2, r3 in zip(top_three_per_row[0], top_three_per_row[1], top_three_per_row[2]):\n            val1, col1 = r1\n            val2, col2 = r2\n            val3, col3 = r3\n            \n            # Ensure the columns are distinct\n            if len({col1, col2, col3}) == 3:\n                current_sum = val1 + val2 + val3\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\nfrom itertools import permutations\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the sum of placing rooks at each column for each row\n        row_sums = []\n        for row in board:\n            row_sums.append(sorted((val, idx) for idx, val in enumerate(row)), reverse=True)\n        \n        max_sum = float('-inf')\n        \n        # Try all permutations of 3 rows out of m\n        for row_indices in permutations(range(m), 3):\n            # Get the top values and columns for these rows\n            top_values = [row_sums[row] for row in row_indices]\n            \n            # Try all permutations of 3 columns out of n\n            for col_perm in permutations(range(n), 3):\n                current_sum = 0\n                valid_placement = True\n                \n                # Check if the columns are distinct and calculate the sum\n                for i, col in enumerate(col_perm):\n                    found = False\n                    for val, c in top_values[i]:\n                        if c == col:\n                            current_sum += val\n                            found = True\n                            break\n                    if not found:\n                        valid_placement = False\n                        break\n                \n                if valid_placement:\n                    max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\nfrom itertools import permutations\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the sum of top 3 values for each row and store their indices\n        top_three_per_row = []\n        for row in board:\n            sorted_values = sorted((val, idx) for idx, val in enumerate(row), reverse=True)\n            top_three_per_row.append(sorted_values[:3])\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all permutations of row indices\n        for row_indices in permutations(range(m), 3):\n            # Get the top 3 values for each selected row\n            selected_values = [top_three_per_row[row] for row in row_indices]\n            \n            # Iterate over all permutations of column indices for the selected rows\n            for col_indices in permutations(range(n), 3):\n                # Ensure the columns are distinct\n                if len(set(col_indices)) == 3:\n                    current_sum = sum(board[row][col] for row, col in zip(row_indices, col_indices))\n                    max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values and their indices for each row\n        top_three_per_row = []\n        for row in board:\n            sorted_values = sorted((val, idx) for idx, val in enumerate(row), reverse=True)\n            top_three_per_row.append(sorted_values[:3])\n        \n        max_sum = float('-inf')\n        \n        # Helper function to calculate the maximum sum for placing rooks in given rows\n        def backtrack(row, used_cols, current_sum):\n            nonlocal max_sum\n            if row == 3:\n                max_sum = max(max_sum, current_sum)\n                return\n            \n            for val, col in top_three_per_row[row]:\n                if col not in used_cols:\n                    used_cols.add(col)\n                    backtrack(row + 1, used_cols, current_sum + val)\n                    used_cols.remove(col)\n        \n        # Start backtracking from the first row with no columns used initially\n        backtrack(0, set(), 0)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Sort each row in descending order and keep track of original indices\n        sorted_rows = []\n        for i in range(m):\n            sorted_row = sorted((val, j) for j, val in enumerate(board[i]), reverse=True)\n            sorted_rows.append(sorted_row)\n        \n        max_sum = float('-inf')\n        \n        # Try placing rooks in the top 3 positions of each row combination\n        for i in range(m):\n            for j in range(i + 1, m):\n                for k in range(j + 1, m):\n                    # Get the top 3 values from each row\n                    top3_i = sorted_rows[i][:3]\n                    top3_j = sorted_rows[j][:3]\n                    top3_k = sorted_rows[k][:3]\n                    \n                    # Check all combinations of columns\n                    for val_i, col_i in top3_i:\n                        for val_j, col_j in top3_j:\n                            if col_j == col_i:\n                                continue\n                            for val_k, col_k in top3_k:\n                                if col_k == col_i or col_k == col_j:\n                                    continue\n                                current_sum = val_i + val_j + val_k\n                                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate top 3 values for each row and column\n        top3_rows = [[] for _ in range(m)]\n        top3_cols = [[] for _ in range(n)]\n        \n        for i in range(m):\n            for j in range(n):\n                val = board[i][j]\n                # Maintain top 3 values for each row\n                top3_rows[i].append((val, j))\n                top3_rows[i].sort(reverse=True)\n                if len(top3_rows[i]) > 3:\n                    top3_rows[i].pop()\n                \n                # Maintain top 3 values for each column\n                top3_cols[j].append((val, i))\n                top3_cols[j].sort(reverse=True)\n                if len(top3_cols[j]) > 3:\n                    top3_cols[j].pop()\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of top 3 values in rows\n        for (val1, col1), (val2, col2), (val3, col3) in self.combinations_of_three(top3_rows):\n            # Ensure no two rooks are in the same column\n            if col1 != col2 and col1 != col3 and col2 != col3:\n                max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum\n    \n    def combinations_of_three(self, top3_rows):\n        # Generate all combinations of top 3 values from different rows\n        for i in range(len(top3_rows)):\n            for j in range(i + 1, len(top3_rows)):\n                for k in range(j + 1, len(top3_rows)):\n                    for val1, col1 in top3_rows[i]:\n                        for val2, col2 in top3_rows[j]:\n                            for val3, col3 in top3_rows[k]:\n                                yield (val1, col1), (val2, col2), (val3, col3)",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values for each row and column\n        row_maxes = [[0] * n for _ in range(m)]\n        col_maxes = [[0] * m for _ in range(n)]\n        \n        for i in range(m):\n            row_values = sorted((board[i][j], j) for j in range(n))\n            for j in range(n):\n                row_maxes[i][j] = row_values[-(j + 1)][0]\n        \n        for j in range(n):\n            col_values = sorted((board[i][j], i) for i in range(m))\n            for i in range(m):\n                col_maxes[j][i] = col_values[-(i + 1)][0]\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 rows\n        for i in range(m):\n            for j in range(i + 1, m):\n                for k in range(j + 1, m):\n                    # For each combination of rows, try placing rooks in different columns\n                    for col1 in range(n):\n                        for col2 in range(n):\n                            if col2 == col1:\n                                continue\n                            for col3 in range(n):\n                                if col3 == col1 or col3 == col2:\n                                    continue\n                                current_sum = board[i][col1] + board[j][col2] + board[k][col3]\n                                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the top 3 values for each row\n        row_top3 = []\n        for i in range(m):\n            row_top3.append(heapq.nlargest(3, ((board[i][j], j) for j in range(n))))\n        \n        # Calculate the top 3 values for each column\n        col_top3 = []\n        for j in range(n):\n            col_top3.append(heapq.nlargest(3, ((board[i][j], i) for i in range(m))))\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 rows\n        for i in range(m):\n            for j in range(i + 1, m):\n                for k in range(j + 1, m):\n                    # Get the top 3 values from each row\n                    top3_i = row_top3[i]\n                    top3_j = row_top3[j]\n                    top3_k = row_top3[k]\n                    \n                    # Use a set to track used columns\n                    used_cols = set()\n                    current_max = 0\n                    \n                    # Select the best columns for the current row combination\n                    for val_i, col_i in top3_i:\n                        if col_i in used_cols:\n                            continue\n                        used_cols.add(col_i)\n                        current_max += val_i\n                        \n                        for val_j, col_j in top3_j:\n                            if col_j in used_cols:\n                                continue\n                            used_cols.add(col_j)\n                            current_max += val_j\n                            \n                            for val_k, col_k in top3_k:\n                                if col_k in used_cols:\n                                    continue\n                                current_max += val_k\n                                max_sum = max(max_sum, current_max)\n                                current_max -= val_k\n                            \n                            used_cols.remove(col_j)\n                            current_max -= val_j\n                        used_cols.remove(col_i)\n                        current_max -= val_i\n        \n        return max_sum"
+  ],
+  "total_candidates": 39,
+  "nodes_explored": 39,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 rows\n        for rows in itertools.combinations(range(m), 3):\n            # Iterate over all combinations of 3 columns\n            for cols in itertools.combinations(range(n), 3):\n                current_sum = sum(board[row][col] for row, col in zip(rows, cols))\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+      "solution_hash": "514cfa6b41061c2458d839abe138a77540aa25294def0f84908d92b3d95385e0",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpol8nmyx9.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+        "execution_time": 0.05865669250488281
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "from typing import List\nimport itertools\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Precompute the top 3 values in each row along with their column indices\n        top_values = []\n        for row in board:\n            # Get the top 3 values and their indices in the current row\n            top_values.append(sorted(enumerate(row), key=lambda x: x[1], reverse=True)[:3])\n        \n        # Iterate over all combinations of 3 rows\n        for rows in itertools.combinations(range(m), 3):\n            # Collect the top 3 values from these rows\n            candidates = [top_values[row] for row in rows]\n            \n            # Use a set to track used columns\n            used_cols = set()\n            best_combination = []\n            \n            # Try to pick one value from each row ensuring no column is reused\n            for i in range(3):\n                for col, val in candidates[i]:\n                    if col not in used_cols:\n                        used_cols.add(col)\n                        best_combination.append(val)\n                        break\n            \n            # If we have a valid combination of 3 values, calculate the sum\n            if len(best_combination) == 3:\n                current_sum = sum(best_combination)\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+          "solution_hash": "9d6c0777ba75dd941eafc73006630453588e0c74e5b91ad03d496cd99afd5d7a",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpij8giyrz.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+            "execution_time": 0.05993151664733887
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_2",
+              "solution": "from typing import List\nimport itertools\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Precompute the top 3 values in each row along with their column indices\n        top_values = []\n        for row in board:\n            # Get the top 3 values and their indices in the current row\n            top_values.append(sorted(enumerate(row), key=lambda x: x[1], reverse=True)[:3])\n        \n        # Iterate over all combinations of 3 rows\n        for rows in itertools.combinations(range(m), 3):\n            # Collect the top 3 values from these rows\n            candidates = [top_values[row] for row in rows]\n            \n            # Try all permutations of column selections from the top 3 values\n            for cols in itertools.permutations(range(3)):\n                # Calculate the sum for the current permutation of columns\n                current_sum = sum(candidates[i][cols[i]][1] for i in range(3))\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+              "solution_hash": "428145e3904da17b178c36531ab11543c16abefc0a0d52d384ce85c1c7ee792d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp1nf4exp7.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.05998826026916504
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_3",
+              "solution": "from typing import List\nimport itertools\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Precompute the top 3 values in each row along with their column indices\n        top_values = []\n        for row in board:\n            # Get the top 3 values and their indices in the current row\n            top_values.append(sorted(enumerate(row), key=lambda x: x[1], reverse=True)[:3])\n        \n        # Iterate over all combinations of 3 rows\n        for rows in itertools.combinations(range(m), 3):\n            # Collect the top 3 values from these rows\n            candidates = [top_values[row] for row in rows]\n            \n            # Try all permutations of column selections from the candidates\n            for cols in itertools.permutations(range(3)):\n                # Calculate the sum for this permutation\n                current_sum = sum(candidates[i][cols[i]][1] for i in range(3))\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+              "solution_hash": "428145e3904da17b178c36531ab11543c16abefc0a0d52d384ce85c1c7ee792d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp1nf4exp7.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.05998826026916504
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "from typing import List\nimport itertools\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Precompute the top 3 values in each row along with their column indices\n        top_values = []\n        for row in board:\n            # Get the top 3 values and their indices in the current row\n            top_values.append(sorted(enumerate(row), key=lambda x: x[1], reverse=True)[:3])\n        \n        # Iterate over all combinations of 3 rows\n        for rows in itertools.combinations(range(m), 3):\n            # Collect the top 3 values from these rows\n            candidates = [top_values[row] for row in rows]\n            \n            # Generate all permutations of column selections from the candidates\n            for cols in itertools.permutations(range(3)):\n                # Ensure no column is reused\n                used_cols = set()\n                current_sum = 0\n                valid = True\n                \n                for i in range(3):\n                    col_index, value = candidates[i][cols[i]]\n                    if col_index in used_cols:\n                        valid = False\n                        break\n                    used_cols.add(col_index)\n                    current_sum += value\n                \n                if valid:\n                    max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+              "solution_hash": "7d9d3cb29b12c096815d24d73350129924e451b78203e00a48c93a7146cb44de",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpngfm155o.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.057668209075927734
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_5",
+          "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Sort each row in descending order and keep track of the original indices\n        sorted_rows = []\n        for i in range(m):\n            sorted_row = sorted((board[i][j], j) for j in range(n)), reverse=True)\n            sorted_rows.append(sorted_row[:3])  # Only keep top 3 values\n        \n        def backtrack(row, used_cols, current_sum):\n            if row == m:\n                return current_sum\n            \n            max_sum = float('-inf')\n            for value, col in sorted_rows[row]:\n                if col not in used_cols:\n                    used_cols.add(col)\n                    max_sum = max(max_sum, backtrack(row + 1, used_cols, current_sum + value))\n                    used_cols.remove(col)\n            \n            return max_sum\n        \n        return backtrack(0, set(), 0)",
+          "solution_hash": "3e373a42615e517b48b52e8fedb33b34965aa012074d11ec0575ee770e2c5006",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419950/tmpc_2mfmh3.py\", line 93\n    sorted_row = sorted((board[i][j], j) for j in range(n)), reverse=True)\n                 ^\nSyntaxError: cannot assign to function call\n",
+            "execution_time": 0.0510861873626709
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_6",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        top_row_values = []\n        for i in range(m):\n            sorted_row = sorted((board[i][j], j) for j in range(n)), reverse=True)\n            top_row_values.append(sorted_row[:3])  # Only keep top 3 values\n        \n        top_col_values = []\n        for j in range(n):\n            sorted_col = sorted((board[i][j], i) for i in range(m)), reverse=True)\n            top_col_values.append(sorted_col[:3])  # Only keep top 3 values\n        \n        def backtrack(row, used_cols, current_sum):\n            if row == m:\n                return current_sum\n            \n            max_sum = float('-inf')\n            for value, col in top_row_values[row]:\n                if col not in used_cols:\n                    used_cols.add(col)\n                    max_sum = max(max_sum, backtrack(row + 1, used_cols, current_sum + value))\n                    used_cols.remove(col)\n            \n            return max_sum\n        \n        return backtrack(0, set(), 0)",
+              "solution_hash": "ed064ee0d1c94cb88c06dbcfe0ec0a40f46fd16c13429563977a29f86384700e",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419950/tmpb6_n2xb8.py\", line 93\n    sorted_row = sorted((board[i][j], j) for j in range(n)), reverse=True)\n                 ^\nSyntaxError: cannot assign to function call\n",
+                "execution_time": 0.053507328033447266
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_7",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        top_row_values = []\n        for i in range(m):\n            sorted_row = sorted((board[i][j], j) for j in range(n)), reverse=True)\n            top_row_values.append(sorted_row[:3])  # Only keep top 3 values\n        \n        top_col_values = [[] for _ in range(n)]\n        for j in range(n):\n            sorted_col = sorted((board[i][j], i) for i in range(m)), reverse=True)\n            for value, i in sorted_col[:3]:  # Only keep top 3 values\n                top_col_values[j].append((value, i))\n        \n        def backtrack(row, used_cols, current_sum):\n            if row == m:\n                return current_sum\n            \n            max_sum = float('-inf')\n            for value, col in top_row_values[row]:\n                if col not in used_cols:\n                    used_cols.add(col)\n                    max_sum = max(max_sum, backtrack(row + 1, used_cols, current_sum + value))\n                    used_cols.remove(col)\n            \n            return max_sum\n        \n        return backtrack(0, set(), 0)",
+              "solution_hash": "0461ece226c2dcdb98b42239d12b9ffa18f7e93169cb376a7daad2e67e8037b9",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419950/tmplxbingwt.py\", line 93\n    sorted_row = sorted((board[i][j], j) for j in range(n)), reverse=True)\n                 ^\nSyntaxError: cannot assign to function call\n",
+                "execution_time": 0.05750751495361328
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values for each row and column\n        top_3_rows = []\n        top_3_cols = [[] for _ in range(n)]\n        \n        for i in range(m):\n            sorted_row = sorted((board[i][j], j) for j in range(n), reverse=True)\n            top_3_rows.append(sorted_row[:3])  # Keep top 3 values\n        \n        for j in range(n):\n            sorted_col = sorted((board[i][j], i) for i in range(m), reverse=True)\n            top_3_cols[j] = sorted_col[:3]  # Keep top 3 values\n        \n        def backtrack(row, used_cols, current_sum):\n            if row == m:\n                return current_sum\n            \n            max_sum = float('-inf')\n            for value, col in top_3_rows[row]:\n                if col not in used_cols:\n                    used_cols.add(col)\n                    max_sum = max(max_sum, backtrack(row + 1, used_cols, current_sum + value))\n                    used_cols.remove(col)\n            \n            return max_sum\n        \n        return backtrack(0, set(), 0)",
+              "solution_hash": "89a1386b172faf96d3cb040a1c079692fc3d422b6fabb6b60ccccd6950365cb1",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419950/tmp1rt5ya7h.py\", line 95\n    sorted_row = sorted((board[i][j], j) for j in range(n), reverse=True)\n                        ^\nSyntaxError: Generator expression must be parenthesized\n",
+                "execution_time": 0.05271482467651367
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_9",
+          "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate top 3 values in each row\n        top_3_rows = []\n        for row in board:\n            top_3 = sorted(enumerate(row), key=lambda x: -x[1])[:3]\n            top_3_rows.append(top_3)\n        \n        # Calculate top 3 values in each column\n        top_3_cols = []\n        for col in range(n):\n            top_3 = sorted([(row, board[row][col]) for row in range(m)], key=lambda x: -x[1])[:3]\n            top_3_cols.append(top_3)\n        \n        max_sum = float('-inf')\n        \n        # Try placing rooks in all combinations of top 3 from each row\n        for r1, c1, val1 in top_3_rows[0]:\n            for r2, c2, val2 in top_3_rows[1]:\n                if c2 == c1:\n                    continue\n                for r3, c3, val3 in top_3_rows[2]:\n                    if c3 == c1 or c3 == c2:\n                        continue\n                    # Check if columns are unique\n                    if len(set([c1, c2, c3])) == 3:\n                        max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+          "solution_hash": "4b6bc7a6ec51626ed68739f07bceb2f9f7d18ca1212f999b3960ce407623177d",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp5cfigzya.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+            "execution_time": 0.06275010108947754
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_10",
+              "solution": "from typing import List\nfrom itertools import permutations\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate top 3 values in each row\n        top_3_rows = []\n        for row in board:\n            top_3 = sorted(enumerate(row), key=lambda x: -x[1])[:3]\n            top_3_rows.append(top_3)\n        \n        max_sum = float('-inf')\n        \n        # Try placing rooks in all combinations of rows and unique columns\n        for row_indices in permutations(range(m), 3):\n            used_cols = set()\n            current_sum = 0\n            valid_placement = True\n            \n            for i, row in enumerate(row_indices):\n                for col, val in top_3_rows[row]:\n                    if col not in used_cols:\n                        used_cols.add(col)\n                        current_sum += val\n                        break\n                else:\n                    valid_placement = False\n                    break\n            \n            if valid_placement:\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+              "solution_hash": "b0fa9076039fe423c99fbe8725202d8ca839fe8b354fde9b3f3463ab045b7293",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmppienffw3.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.058403968811035156
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_11",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate top 3 values in each row along with their indices\n        top_3_rows = []\n        for i in range(m):\n            row_values = [(j, board[i][j]) for j in range(n)]\n            row_values.sort(key=lambda x: -x[1])\n            top_3_rows.append(row_values[:3])\n        \n        max_sum = float('-inf')\n        \n        # Try placing rooks in all combinations of top 3 from each row\n        for r1, c1, val1 in top_3_rows[0]:\n            for r2, c2, val2 in top_3_rows[1]:\n                if r2 == r1:\n                    continue\n                for r3, c3, val3 in top_3_rows[2]:\n                    if r3 == r1 or r3 == r2:\n                        continue\n                    # Check if columns are unique\n                    if len(set([c1, c2, c3])) == 3:\n                        max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+              "solution_hash": "0b2aca1ddb6f7db1831bae2315ccb75fea62a2f285af01064168aae0a23d9cb0",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpgwxmd7wt.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.060630083084106445
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_12",
+              "solution": "from typing import List\nfrom itertools import permutations\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the sum of top 3 values for each row considering all column permutations\n        max_sum = float('-inf')\n        \n        # Iterate over all permutations of 3 rows\n        for row_indices in permutations(range(m), 3):\n            # For each permutation of rows, calculate the maximum sum by choosing unique columns\n            used_columns = set()\n            current_sum = 0\n            valid_placement = True\n            \n            for row in row_indices:\n                # Find the best column for the current row that hasn't been used yet\n                max_val = float('-inf')\n                best_col = -1\n                for col in range(n):\n                    if col not in used_columns and board[row][col] > max_val:\n                        max_val = board[row][col]\n                        best_col = col\n                \n                if best_col == -1:\n                    valid_placement = False\n                    break\n                \n                used_columns.add(best_col)\n                current_sum += max_val\n            \n            if valid_placement:\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+              "solution_hash": "612a5aac1bbc3bb151ea4790d1b5dfe2c2b9b40997c6069d7b349f0b4d44ae5b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpkovodyz6.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.05679202079772949
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Precompute the top 3 values in each row\n        row_top_values = []\n        for row in board:\n            top_three = heapq.nlargest(3, enumerate(row), key=lambda x: x[1])\n            row_top_values.append(top_three)\n        \n        # Iterate over all combinations of 3 rows\n        for r1, r2, r3 in itertools.combinations(range(m), 3):\n            # Get the top 3 values from each of the selected rows\n            top_r1 = row_top_values[r1]\n            top_r2 = row_top_values[r2]\n            top_r3 = row_top_values[r3]\n            \n            # Try all combinations of columns for these rows\n            for c1, v1 in top_r1:\n                for c2, v2 in top_r2:\n                    if c2 == c1:\n                        continue\n                    for c3, v3 in top_r3:\n                        if c3 == c1 or c3 == c2:\n                            continue\n                        max_sum = max(max_sum, v1 + v2 + v3)\n        \n        return max_sum",
+      "solution_hash": "62aa7cc55ba9f9a867542f4c6eca1ed66f208e928d82b9111496e3eabb96238d",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmplbr_wqf9.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+        "execution_time": 0.05673670768737793
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_14",
+          "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Sort each row by value in descending order, keeping track of original indices\n        sorted_rows = [[(val, col) for col, val in enumerate(row)] for row in board]\n        for row in sorted_rows:\n            row.sort(reverse=True, key=lambda x: x[0])\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 rows\n        for r1 in range(m):\n            for r2 in range(r1 + 1, m):\n                for r3 in range(r2 + 1, m):\n                    # Try placing rooks in the top 3 positions of each row\n                    for c1, v1 in sorted_rows[r1][:3]:\n                        for c2, v2 in sorted_rows[r2][:3]:\n                            if c2 == c1:\n                                continue\n                            for c3, v3 in sorted_rows[r3][:3]:\n                                if c3 == c1 or c3 == c2:\n                                    continue\n                                max_sum = max(max_sum, v1 + v2 + v3)\n        \n        return max_sum",
+          "solution_hash": "9bdaca981ff21e14f6a7b581be35970af98ca0b48a0126608213470b46ba7caa",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpyh213d4m.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+            "execution_time": 0.05965614318847656
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_15",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate top 3 values in each row and column\n        top_row_values = []\n        for row in board:\n            top_row_values.append(sorted([(val, col) for col, val in enumerate(row)], reverse=True)[:3])\n        \n        top_col_values = [[] for _ in range(n)]\n        for col in range(n):\n            for row in range(m):\n                top_col_values[col].append((board[row][col], row))\n            top_col_values[col] = sorted(top_col_values[col], reverse=True)[:3]\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 rows\n        for r1 in range(m):\n            for r2 in range(r1 + 1, m):\n                for r3 in range(r2 + 1, m):\n                    # Try placing rooks in the top 3 positions of each row\n                    for v1, c1 in top_row_values[r1]:\n                        for v2, c2 in top_row_values[r2]:\n                            if c2 == c1:\n                                continue\n                            for v3, c3 in top_row_values[r3]:\n                                if c3 == c1 or c3 == c2:\n                                    continue\n                                # Check if columns are unique using top column values\n                                valid = True\n                                for val, row in top_col_values[c1]:\n                                    if row in {r2, r3}:\n                                        valid = False\n                                        break\n                                if not valid:\n                                    continue\n                                for val, row in top_col_values[c2]:\n                                    if row in {r1, r3}:\n                                        valid = False\n                                        break\n                                if not valid:\n                                    continue\n                                for val, row in top_col_values[c3]:\n                                    if row in {r1, r2}:\n                                        valid = False\n                                        break\n                                if valid:\n                                    max_sum = max(max_sum, v1 + v2 + v3)\n        \n        return max_sum",
+              "solution_hash": "53f734d2ebc3286b6447269d95481b3c9deed20eb6ed1390f3186f9d2eacc4be",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmplhfe1wi6.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.06134366989135742
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_16",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the top 3 values in each row and column\n        top_row_values = []\n        top_col_values = [[] for _ in range(n)]\n        \n        for i in range(m):\n            row = sorted([(board[i][j], j) for j in range(n)], reverse=True)[:3]\n            top_row_values.append(row)\n            for val, j in row:\n                top_col_values[j].append((val, i))\n        \n        for j in range(n):\n            top_col_values[j] = sorted(top_col_values[j], reverse=True)[:3]\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 rows\n        for r1 in range(m):\n            for r2 in range(r1 + 1, m):\n                for r3 in range(r2 + 1, m):\n                    # Try placing rooks in the top 3 positions of each row\n                    for v1, c1 in top_row_values[r1]:\n                        for v2, c2 in top_row_values[r2]:\n                            if c2 == c1:\n                                continue\n                            for v3, c3 in top_row_values[r3]:\n                                if c3 == c1 or c3 == c2:\n                                    continue\n                                max_sum = max(max_sum, v1 + v2 + v3)\n        \n        return max_sum",
+              "solution_hash": "8e62e315706531c31acf50d90187f1804ad50db3a419c3bd663056bb7e128bd4",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpbwqbegq6.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.059035301208496094
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_17",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, get the top 3 values along with their column indices\n        top_three_per_row = []\n        for row in board:\n            top_three = sorted((val, col) for col, val in enumerate(row))[-3:]\n            top_three_per_row.append(top_three)\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 rows\n        for r1 in range(m):\n            for r2 in range(r1 + 1, m):\n                for r3 in range(r2 + 1, m):\n                    # Use sets to track used columns\n                    cols_used = set()\n                    current_sum = 0\n                    \n                    # Try placing rooks in the top 3 positions of each row\n                    for val, col in top_three_per_row[r1]:\n                        if col not in cols_used:\n                            cols_used.add(col)\n                            current_sum += val\n                            break\n                    else:\n                        continue  # If no valid column found, skip\n                    \n                    for val, col in top_three_per_row[r2]:\n                        if col not in cols_used:\n                            cols_used.add(col)\n                            current_sum += val\n                            break\n                    else:\n                        continue  # If no valid column found, skip\n                    \n                    for val, col in top_three_per_row[r3]:\n                        if col not in cols_used:\n                            cols_used.add(col)\n                            current_sum += val\n                            break\n                    else:\n                        continue  # If no valid column found, skip\n                    \n                    max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+              "solution_hash": "b8a6f9a6eca749bb2101f3b75dfde5ddc739cbc82abf324fcc48fbd7730b9189",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp1blwe4hh.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.059566497802734375
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_18",
+          "solution": "from typing import List\nimport itertools\nimport heapq\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Precompute the top 3 non-negative values in each row\n        row_top_values = []\n        for row in board:\n            # Filter out negative values\n            filtered_row = [(i, val) for i, val in enumerate(row) if val >= 0]\n            # Get the top three values from the filtered row\n            top_three = heapq.nlargest(3, filtered_row, key=lambda x: x[1])\n            row_top_values.append(top_three)\n        \n        # Iterate over all combinations of 3 rows\n        for r1, r2, r3 in itertools.combinations(range(m), 3):\n            # Get the top 3 values from each of the selected rows\n            top_r1 = row_top_values[r1]\n            top_r2 = row_top_values[r2]\n            top_r3 = row_top_values[r3]\n            \n            # Skip if any row has fewer than 3 values\n            if len(top_r1) < 3 or len(top_r2) < 3 or len(top_r3) < 3:\n                continue\n            \n            # Try all combinations of columns for these rows\n            for c1, v1 in top_r1:\n                for c2, v2 in top_r2:\n                    if c2 == c1:\n                        continue\n                    for c3, v3 in top_r3:\n                        if c3 == c1 or c3 == c2:\n                            continue\n                        max_sum = max(max_sum, v1 + v2 + v3)\n        \n        return max_sum",
+          "solution_hash": "1e145e6eca5a90791d90e5760b334ad615bce6c9f79acfda4295a6076cc2504e",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp1i26xfzx.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+            "execution_time": 0.05856633186340332
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_19",
+              "solution": "from typing import List\nimport itertools\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Precompute the top 3 values in each row\n        row_top_values = []\n        for row in board:\n            # Sort the row in descending order based on values\n            sorted_row = sorted(enumerate(row), key=lambda x: x[1], reverse=True)\n            row_top_values.append(sorted_row[:3])  # Keep only top 3\n        \n        # Iterate over all combinations of 3 rows\n        for r1, r2, r3 in itertools.combinations(range(m), 3):\n            # Get the top 3 values from each of the selected rows\n            top_r1 = row_top_values[r1]\n            top_r2 = row_top_values[r2]\n            top_r3 = row_top_values[r3]\n            \n            # Try all combinations of columns for these rows\n            for c1, v1 in top_r1:\n                for c2, v2 in top_r2:\n                    if c2 == c1:\n                        continue\n                    for c3, v3 in top_r3:\n                        if c3 == c1 or c3 == c2:\n                            continue\n                        max_sum = max(max_sum, v1 + v2 + v3)\n        \n        return max_sum",
+              "solution_hash": "e77eb9733fc7848d86ab3feec819190859cd8d179b44098c2d57e5cc28feace6",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp6x7p1gfa.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.059752702713012695
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_20",
+              "solution": "from typing import List\nimport itertools\nimport heapq\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Precompute the top 3 values in each row (including negative values)\n        row_top_values = []\n        for row in board:\n            # Get the top three values from the row\n            top_three = heapq.nlargest(3, enumerate(row), key=lambda x: x[1])\n            row_top_values.append(top_three)\n        \n        # Iterate over all combinations of 3 rows\n        for r1, r2, r3 in itertools.combinations(range(m), 3):\n            # Get the top 3 values from each of the selected rows\n            top_r1 = row_top_values[r1]\n            top_r2 = row_top_values[r2]\n            top_r3 = row_top_values[r3]\n            \n            # Try all combinations of columns for these rows\n            for c1, v1 in top_r1:\n                for c2, v2 in top_r2:\n                    if c2 == c1:\n                        continue\n                    for c3, v3 in top_r3:\n                        if c3 == c1 or c3 == c2:\n                            continue\n                        max_sum = max(max_sum, v1 + v2 + v3)\n        \n        return max_sum",
+              "solution_hash": "e8ea79ceca8f152f4facfce9dad4db07b58c0e091bc6f8945721b53062889336",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp_6cf7cj9.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.06263327598571777
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_21",
+              "solution": "from typing import List\nimport heapq\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        row_top_values = [heapq.nlargest(3, range(n), key=lambda j: board[i][j]) for i in range(m)]\n        col_top_values = [heapq.nlargest(3, range(m), key=lambda i: board[i][j]) for j in range(n)]\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 rows\n        for r1, r2, r3 in itertools.combinations(range(m), 3):\n            # Get the top 3 values from each of the selected rows\n            top_r1 = row_top_values[r1]\n            top_r2 = row_top_values[r2]\n            top_r3 = row_top_values[r3]\n            \n            # Try all combinations of columns for these rows\n            for c1 in top_r1:\n                for c2 in top_r2:\n                    if c2 == c1:\n                        continue\n                    for c3 in top_r3:\n                        if c3 == c1 or c3 == c2:\n                            continue\n                        # Ensure columns are unique\n                        if len({c1, c2, c3}) == 3:\n                            current_sum = board[r1][c1] + board[r2][c2] + board[r3][c3]\n                            max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+              "solution_hash": "882dae071dbf582d360a631dbb3cc0677ec5e21ac2e2fbdd78da2f5b3f7733b6",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpk4aauior.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.05801796913146973
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_22",
+          "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the sum of the top 3 values in each row\n        row_sums = []\n        for i in range(m):\n            sorted_row = sorted(board[i], reverse=True)\n            row_sums.append(sum(sorted_row[:3]))\n        \n        # Calculate the sum of the top 3 values in each column\n        col_sums = [0] * n\n        for j in range(n):\n            col_values = [board[i][j] for i in range(m)]\n            sorted_col = sorted(col_values, reverse=True)\n            col_sums[j] = sum(sorted_col[:3])\n        \n        # Sort rows and columns by their sums in descending order\n        row_indices = sorted(range(m), key=lambda x: row_sums[x], reverse=True)\n        col_indices = sorted(range(n), key=lambda x: col_sums[x], reverse=True)\n        \n        # Use a greedy approach to select the best combination of rows and columns\n        max_sum = 0\n        used_cols = set()\n        for i in range(min(m, 3)):\n            row_index = row_indices[i]\n            current_max = 0\n            best_col = -1\n            for j in range(n):\n                if j not in used_cols:\n                    if board[row_index][j] > current_max:\n                        current_max = board[row_index][j]\n                        best_col = j\n            if best_col != -1:\n                max_sum += current_max\n                used_cols.add(best_col)\n        \n        return max_sum",
+          "solution_hash": "8616767ac72c94f62e188317abe56889ee85b0648dac65d85203830b0e73aef3",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmphjvqqr2h.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+            "execution_time": 0.0583958625793457
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_23",
+              "solution": "from typing import List\nfrom itertools import permutations\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Collect the top 3 values in each row\n        row_top_values = []\n        for i in range(m):\n            sorted_row = sorted(enumerate(board[i]), key=lambda x: x[1], reverse=True)\n            row_top_values.append(sorted_row[:3])\n        \n        # Collect the top 3 values in each column\n        col_top_values = [[] for _ in range(n)]\n        for j in range(n):\n            col_values = [(i, board[i][j]) for i in range(m)]\n            sorted_col = sorted(col_values, key=lambda x: x[1], reverse=True)\n            for i in range(min(3, len(sorted_col))):\n                col_top_values[j].append(sorted_col[i])\n        \n        max_sum = 0\n        \n        # Iterate over all permutations of row indices\n        for row_perm in permutations(range(m), 3):\n            used_cols = set()\n            current_sum = 0\n            valid = True\n            \n            # Check each row in the permutation\n            for row in row_perm:\n                found = False\n                for col, val in row_top_values[row]:\n                    if col not in used_cols:\n                        current_sum += val\n                        used_cols.add(col)\n                        found = True\n                        break\n                if not found:\n                    valid = False\n                    break\n            \n            if valid:\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+              "solution_hash": "c6c29f92a84f2ae8e7abae61356c9b37910be708fa558eaa0e5a791cf103fe68",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp936ju43v.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.058011770248413086
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_24",
+              "solution": "from typing import List\nfrom itertools import combinations\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the sum of values for all combinations of 3 rows and 3 columns\n        max_sum = 0\n        for row_comb in combinations(range(m), 3):\n            for col_comb in combinations(range(n), 3):\n                current_sum = sum(board[r][c] for r, c in zip(row_comb, col_comb))\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+              "solution_hash": "d9ffaae8a4d8dc6334788f06d31871871555a8939c2b8c477f073d6d702c4262",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp2g1801xu.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.057263851165771484
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_25",
+              "solution": "from typing import List\nfrom itertools import permutations\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the sum of the top 3 values in each row\n        row_sums = []\n        for i in range(m):\n            sorted_row = sorted(board[i], reverse=True)\n            row_sums.append(sorted_row[:3])\n        \n        max_sum = 0\n        \n        # Iterate over all permutations of 3 rows\n        for row_perm in permutations(range(m), 3):\n            # For each permutation of rows, find the best columns\n            used_cols = set()\n            current_sum = 0\n            for row in row_perm:\n                # Find the best column for the current row that hasn't been used yet\n                best_value = 0\n                best_col = -1\n                for col in range(n):\n                    if col not in used_cols and board[row][col] > best_value:\n                        best_value = board[row][col]\n                        best_col = col\n                if best_col != -1:\n                    current_sum += best_value\n                    used_cols.add(best_col)\n                else:\n                    break  # If we can't find a valid column, break out of the loop\n            \n            # Update the maximum sum found\n            max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+              "solution_hash": "34a2d74ef80f8c65f5892a843e0024869dc67e52691eca0427e1c2d6d60a6497",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpvwg405m4.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.05740618705749512
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 rows\n        for rows in itertools.combinations(range(m), 3):\n            # Iterate over all permutations of 3 columns\n            for cols in itertools.permutations(range(n), 3):\n                current_sum = sum(board[row][col] for row, col in zip(rows, cols))\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+      "solution_hash": "37fee81c1a4b2b28895684376bd1c20356f0cc51e6fb307d5ff8e7ac35ed5c91",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpgaaz80ak.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+        "execution_time": 0.06055855751037598
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_27",
+          "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, find the top 3 values and their respective columns\n        top_values = []\n        for row in board:\n            # Create a list of (value, column) pairs\n            value_col_pairs = [(val, col) for col, val in enumerate(row)]\n            # Sort by value in descending order and take the top 3\n            value_col_pairs.sort(reverse=True, key=lambda x: x[0])\n            top_values.append(value_col_pairs[:3])\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of top 3 values from each row\n        for i in range(3):\n            for j in range(3):\n                for k in range(3):\n                    # Ensure columns are distinct\n                    if (top_values[0][i][1] != top_values[1][j][1] and \n                        top_values[1][j][1] != top_values[2][k][1] and \n                        top_values[0][i][1] != top_values[2][k][1]):\n                        current_sum = (top_values[0][i][0] + \n                                       top_values[1][j][0] + \n                                       top_values[2][k][0])\n                        max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+          "solution_hash": "f876adb15b935798612fdc9dd5dacc15608748fd24ab49060fee4eda313117e9",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpcnstxs2w.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+            "execution_time": 0.060234785079956055
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_28",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        def backtrack(row, used_cols, current_sum):\n            nonlocal max_sum\n            if row == m:\n                max_sum = max(max_sum, current_sum)\n                return\n            \n            for col in range(n):\n                if col not in used_cols:\n                    used_cols.add(col)\n                    backtrack(row + 1, used_cols, current_sum + board[row][col])\n                    used_cols.remove(col)\n        \n        max_sum = float('-inf')\n        backtrack(0, set(), 0)\n        return max_sum",
+              "solution_hash": "9b1dca7f96111ff04e40428f0ac084db26dc21f288295bdc9a866e19a7b731eb",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpve19nine.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.060079097747802734
+              },
+              "depth": 2,
+              "parent_id": "1_27",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_29",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # dp[i][j][k] will store the maximum sum of placing k rooks in the first i rows\n        # using only columns in the mask j\n        dp = [[[float('-inf')] * (1 << n) for _ in range(m + 1)] for _ in range(4)]\n        dp[0][0][0] = 0\n        \n        for k in range(1, 4):  # Number of rooks\n            for i in range(1, m + 1):  # Current row\n                for mask in range(1 << n):  # Current column mask\n                    dp[k][i][mask] = dp[k][i - 1][mask]  # Option to skip the current row\n                    \n                    # Try placing a rook in each column of the current row\n                    for j in range(n):\n                        if mask & (1 << j):  # Check if column j is used in the mask\n                            new_mask = mask ^ (1 << j)  # Remove column j from the mask\n                            dp[k][i][mask] = max(dp[k][i][mask], dp[k - 1][i - 1][new_mask] + board[i - 1][j])\n        \n        # The answer is the maximum sum of placing 3 rooks in any configuration\n        return max(dp[3][m][mask] for mask in range(1 << n))",
+              "solution_hash": "b6f5d991e94784020419e6ad1ed574b9ff01dce317ba8f3ba539b3441dcd9d0a",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpt_6cotdh.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.06111860275268555
+              },
+              "depth": 2,
+              "parent_id": "1_27",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_30",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        row_top_values = []\n        col_top_values = [[] for _ in range(n)]\n        \n        for i in range(m):\n            row_values = [(board[i][j], j) for j in range(n)]\n            row_values.sort(reverse=True, key=lambda x: x[0])\n            row_top_values.append(row_values[:3])\n            \n            for j in range(n):\n                col_top_values[j].append((board[i][j], i))\n        \n        for col_values in col_top_values:\n            col_values.sort(reverse=True, key=lambda x: x[0])\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of top 3 values from each row\n        for i in range(m):\n            for j in range(3):\n                val1, col1 = row_top_values[i][j]\n                for k in range(m):\n                    if k == i:\n                        continue\n                    for l in range(3):\n                        val2, col2 = row_top_values[k][l]\n                        if col2 == col1:\n                            continue\n                        for p in range(m):\n                            if p == i or p == k:\n                                continue\n                            for q in range(3):\n                                val3, col3 = row_top_values[p][q]\n                                if col3 == col1 or col3 == col2:\n                                    continue\n                                current_sum = val1 + val2 + val3\n                                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+              "solution_hash": "be8b92934292567f0e49525584dad30bc4c3d736135c767690c711ff1797efae",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmprodjrrgt.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.056684017181396484
+              },
+              "depth": 2,
+              "parent_id": "1_27",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_31",
+          "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, find the top 3 values and their respective columns\n        top_three_per_row = []\n        for row in board:\n            # Create a list of tuples (value, column_index) and sort it by value in descending order\n            sorted_values = sorted((val, idx) for idx, val in enumerate(row), reverse=True)\n            # Take the top 3 values and their columns\n            top_three_per_row.append(sorted_values[:3])\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of top 3 values from each row\n        for r1, r2, r3 in zip(top_three_per_row[0], top_three_per_row[1], top_three_per_row[2]):\n            val1, col1 = r1\n            val2, col2 = r2\n            val3, col3 = r3\n            \n            # Ensure the columns are distinct\n            if len({col1, col2, col3}) == 3:\n                current_sum = val1 + val2 + val3\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+          "solution_hash": "8a99f5b3fa6bb6bc56759140e05f342f0dbfadf3dbc2e08ab1378f84338a9592",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419950/tmpnyhpzc4n.py\", line 94\n    sorted_values = sorted((val, idx) for idx, val in enumerate(row), reverse=True)\n                           ^\nSyntaxError: Generator expression must be parenthesized\n",
+            "execution_time": 0.05130624771118164
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_32",
+              "solution": "from typing import List\nfrom itertools import permutations\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the sum of placing rooks at each column for each row\n        row_sums = []\n        for row in board:\n            row_sums.append(sorted((val, idx) for idx, val in enumerate(row)), reverse=True)\n        \n        max_sum = float('-inf')\n        \n        # Try all permutations of 3 rows out of m\n        for row_indices in permutations(range(m), 3):\n            # Get the top values and columns for these rows\n            top_values = [row_sums[row] for row in row_indices]\n            \n            # Try all permutations of 3 columns out of n\n            for col_perm in permutations(range(n), 3):\n                current_sum = 0\n                valid_placement = True\n                \n                # Check if the columns are distinct and calculate the sum\n                for i, col in enumerate(col_perm):\n                    found = False\n                    for val, c in top_values[i]:\n                        if c == col:\n                            current_sum += val\n                            found = True\n                            break\n                    if not found:\n                        valid_placement = False\n                        break\n                \n                if valid_placement:\n                    max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+              "solution_hash": "92563d65aabd717e83835607625a6585d13b0d4488a7015d59d9ee6079a2a39e",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp5w7h99n4.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.05975842475891113
+              },
+              "depth": 2,
+              "parent_id": "1_31",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_33",
+              "solution": "from typing import List\nfrom itertools import permutations\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the sum of top 3 values for each row and store their indices\n        top_three_per_row = []\n        for row in board:\n            sorted_values = sorted((val, idx) for idx, val in enumerate(row), reverse=True)\n            top_three_per_row.append(sorted_values[:3])\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all permutations of row indices\n        for row_indices in permutations(range(m), 3):\n            # Get the top 3 values for each selected row\n            selected_values = [top_three_per_row[row] for row in row_indices]\n            \n            # Iterate over all permutations of column indices for the selected rows\n            for col_indices in permutations(range(n), 3):\n                # Ensure the columns are distinct\n                if len(set(col_indices)) == 3:\n                    current_sum = sum(board[row][col] for row, col in zip(row_indices, col_indices))\n                    max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+              "solution_hash": "ba93c7f91797a97a489937cc5dfa874f56a4d03908910b4daf602d4c4ef8865c",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419950/tmp8zqbj514.py\", line 94\n    sorted_values = sorted((val, idx) for idx, val in enumerate(row), reverse=True)\n                           ^\nSyntaxError: Generator expression must be parenthesized\n",
+                "execution_time": 0.0518491268157959
+              },
+              "depth": 2,
+              "parent_id": "1_31",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_34",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values and their indices for each row\n        top_three_per_row = []\n        for row in board:\n            sorted_values = sorted((val, idx) for idx, val in enumerate(row), reverse=True)\n            top_three_per_row.append(sorted_values[:3])\n        \n        max_sum = float('-inf')\n        \n        # Helper function to calculate the maximum sum for placing rooks in given rows\n        def backtrack(row, used_cols, current_sum):\n            nonlocal max_sum\n            if row == 3:\n                max_sum = max(max_sum, current_sum)\n                return\n            \n            for val, col in top_three_per_row[row]:\n                if col not in used_cols:\n                    used_cols.add(col)\n                    backtrack(row + 1, used_cols, current_sum + val)\n                    used_cols.remove(col)\n        \n        # Start backtracking from the first row with no columns used initially\n        backtrack(0, set(), 0)\n        \n        return max_sum",
+              "solution_hash": "467cc6fdd9345c45ae3009c84b616665a152383a15971ab5d27d9f6fdf0b76e6",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419950/tmpsck79dup.py\", line 93\n    sorted_values = sorted((val, idx) for idx, val in enumerate(row), reverse=True)\n                           ^\nSyntaxError: Generator expression must be parenthesized\n",
+                "execution_time": 0.05507206916809082
+              },
+              "depth": 2,
+              "parent_id": "1_31",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_35",
+          "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Sort each row in descending order and keep track of original indices\n        sorted_rows = []\n        for i in range(m):\n            sorted_row = sorted((val, j) for j, val in enumerate(board[i]), reverse=True)\n            sorted_rows.append(sorted_row)\n        \n        max_sum = float('-inf')\n        \n        # Try placing rooks in the top 3 positions of each row combination\n        for i in range(m):\n            for j in range(i + 1, m):\n                for k in range(j + 1, m):\n                    # Get the top 3 values from each row\n                    top3_i = sorted_rows[i][:3]\n                    top3_j = sorted_rows[j][:3]\n                    top3_k = sorted_rows[k][:3]\n                    \n                    # Check all combinations of columns\n                    for val_i, col_i in top3_i:\n                        for val_j, col_j in top3_j:\n                            if col_j == col_i:\n                                continue\n                            for val_k, col_k in top3_k:\n                                if col_k == col_i or col_k == col_j:\n                                    continue\n                                current_sum = val_i + val_j + val_k\n                                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+          "solution_hash": "f3fab729210369daa9977c02fe7a2c99f8a5a2d356cdf66942a264b8304af137",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419950/tmpgiv1v2_j.py\", line 93\n    sorted_row = sorted((val, j) for j, val in enumerate(board[i]), reverse=True)\n                        ^\nSyntaxError: Generator expression must be parenthesized\n",
+            "execution_time": 0.050833940505981445
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_36",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate top 3 values for each row and column\n        top3_rows = [[] for _ in range(m)]\n        top3_cols = [[] for _ in range(n)]\n        \n        for i in range(m):\n            for j in range(n):\n                val = board[i][j]\n                # Maintain top 3 values for each row\n                top3_rows[i].append((val, j))\n                top3_rows[i].sort(reverse=True)\n                if len(top3_rows[i]) > 3:\n                    top3_rows[i].pop()\n                \n                # Maintain top 3 values for each column\n                top3_cols[j].append((val, i))\n                top3_cols[j].sort(reverse=True)\n                if len(top3_cols[j]) > 3:\n                    top3_cols[j].pop()\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of top 3 values in rows\n        for (val1, col1), (val2, col2), (val3, col3) in self.combinations_of_three(top3_rows):\n            # Ensure no two rooks are in the same column\n            if col1 != col2 and col1 != col3 and col2 != col3:\n                max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum\n    \n    def combinations_of_three(self, top3_rows):\n        # Generate all combinations of top 3 values from different rows\n        for i in range(len(top3_rows)):\n            for j in range(i + 1, len(top3_rows)):\n                for k in range(j + 1, len(top3_rows)):\n                    for val1, col1 in top3_rows[i]:\n                        for val2, col2 in top3_rows[j]:\n                            for val3, col3 in top3_rows[k]:\n                                yield (val1, col1), (val2, col2), (val3, col3)",
+              "solution_hash": "26816d08d71c0955265674c22d41baa891360b5e96c8611634938a95d8e95315",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpfnd3qn_z.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.0600581169128418
+              },
+              "depth": 2,
+              "parent_id": "1_35",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_37",
+              "solution": "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values for each row and column\n        row_maxes = [[0] * n for _ in range(m)]\n        col_maxes = [[0] * m for _ in range(n)]\n        \n        for i in range(m):\n            row_values = sorted((board[i][j], j) for j in range(n))\n            for j in range(n):\n                row_maxes[i][j] = row_values[-(j + 1)][0]\n        \n        for j in range(n):\n            col_values = sorted((board[i][j], i) for i in range(m))\n            for i in range(m):\n                col_maxes[j][i] = col_values[-(i + 1)][0]\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 rows\n        for i in range(m):\n            for j in range(i + 1, m):\n                for k in range(j + 1, m):\n                    # For each combination of rows, try placing rooks in different columns\n                    for col1 in range(n):\n                        for col2 in range(n):\n                            if col2 == col1:\n                                continue\n                            for col3 in range(n):\n                                if col3 == col1 or col3 == col2:\n                                    continue\n                                current_sum = board[i][col1] + board[j][col2] + board[k][col3]\n                                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+              "solution_hash": "ecefd0ffa81163896028fd3b1177711da769e4a003ecdfe22202b41df2fe84a9",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp6kefkamm.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.057291507720947266
+              },
+              "depth": 2,
+              "parent_id": "1_35",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_38",
+              "solution": "from typing import List\nimport heapq\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the top 3 values for each row\n        row_top3 = []\n        for i in range(m):\n            row_top3.append(heapq.nlargest(3, ((board[i][j], j) for j in range(n))))\n        \n        # Calculate the top 3 values for each column\n        col_top3 = []\n        for j in range(n):\n            col_top3.append(heapq.nlargest(3, ((board[i][j], i) for i in range(m))))\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 rows\n        for i in range(m):\n            for j in range(i + 1, m):\n                for k in range(j + 1, m):\n                    # Get the top 3 values from each row\n                    top3_i = row_top3[i]\n                    top3_j = row_top3[j]\n                    top3_k = row_top3[k]\n                    \n                    # Use a set to track used columns\n                    used_cols = set()\n                    current_max = 0\n                    \n                    # Select the best columns for the current row combination\n                    for val_i, col_i in top3_i:\n                        if col_i in used_cols:\n                            continue\n                        used_cols.add(col_i)\n                        current_max += val_i\n                        \n                        for val_j, col_j in top3_j:\n                            if col_j in used_cols:\n                                continue\n                            used_cols.add(col_j)\n                            current_max += val_j\n                            \n                            for val_k, col_k in top3_k:\n                                if col_k in used_cols:\n                                    continue\n                                current_max += val_k\n                                max_sum = max(max_sum, current_max)\n                                current_max -= val_k\n                            \n                            used_cols.remove(col_j)\n                            current_max -= val_j\n                        used_cols.remove(col_i)\n                        current_max -= val_i\n        \n        return max_sum",
+              "solution_hash": "165cbcb4ea94856d60ec5093546dd75d64ff52ccb4d3db777f830de6423e32f1",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp4ckp89t8.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n",
+                "execution_time": 0.05810141563415527
+              },
+              "depth": 2,
+              "parent_id": "1_35",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 39,
+    "candidates_generated": 39,
+    "tests_passed": 0,
+    "tests_failed": 39,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 971.4700367450714,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.0,
+      "pass@3": 0.0,
+      "pass@5": 0.0,
+      "pass@10": 0.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: cannot assign to function call (<string>, line 107)",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: cannot assign to function call (<string>, line 107)",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: cannot assign to function call (<string>, line 107)",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: Generator expression must be parenthesized (<string>, line 109)",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 26
+          }
+        ],
+        [
+          27,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 27
+          }
+        ],
+        [
+          28,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 28
+          }
+        ],
+        [
+          29,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 29
+          }
+        ],
+        [
+          30,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 30
+          }
+        ],
+        [
+          31,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: Generator expression must be parenthesized (<string>, line 108)",
+            "completion_id": 31
+          }
+        ],
+        [
+          32,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 32
+          }
+        ],
+        [
+          33,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: Generator expression must be parenthesized (<string>, line 108)",
+            "completion_id": 33
+          }
+        ],
+        [
+          34,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: Generator expression must be parenthesized (<string>, line 107)",
+            "completion_id": 34
+          }
+        ],
+        [
+          35,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: Generator expression must be parenthesized (<string>, line 107)",
+            "completion_id": 35
+          }
+        ],
+        [
+          36,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 36
+          }
+        ],
+        [
+          37,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 37
+          }
+        ],
+        [
+          38,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 38
+          }
+        ],
+        [
+          39,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 39
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 40,
+    "test_cases": 1
+  }
+}

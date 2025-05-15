@@ -1,0 +1,648 @@
+{
+  "problem_id": "construct-string-with-minimum-cost-easy",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "solved",
+  "best_solution": "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build empty string is 0\n        \n        # Precompute all possible matches\n        matches = [[] for _ in range(n + 1)]\n        for word, cost in zip(words, costs):\n            pos = 0\n            while True:\n                pos = target.find(word, pos)\n                if pos == -1:\n                    break\n                matches[pos + len(word)].append((pos, cost))\n                pos += 1\n        \n        # Dynamic Programming to find minimum cost\n        for i in range(1, n + 1):\n            for pos, cost in matches[i]:\n                dp[i] = min(dp[i], dp[pos] + cost)\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+  "passed_solutions": [
+    "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build empty string is 0\n        \n        # Precompute all possible matches\n        matches = [[] for _ in range(n + 1)]\n        for word, cost in zip(words, costs):\n            pos = 0\n            while True:\n                pos = target.find(word, pos)\n                if pos == -1:\n                    break\n                matches[pos + len(word)].append((pos, cost))\n                pos += 1\n        \n        # Dynamic Programming to find minimum cost\n        for i in range(1, n + 1):\n            for pos, cost in matches[i]:\n                dp[i] = min(dp[i], dp[pos] + cost)\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                # Create a map from ending index to list of (starting index, cost)\n                end_map = {}\n                for word, cost in zip(words, costs):\n                    word_len = len(word)\n                    for i in range(n - word_len + 1):\n                        if target[i:i+word_len] == word:\n                            if i + word_len - 1 not in end_map:\n                                end_map[i + word_len - 1] = []\n                            end_map[i + word_len - 1].append((i, cost))\n                \n                for end in range(n):\n                    if end in end_map:\n                        for start, cost in end_map[end]:\n                            dp[end + 1] = min(dp[end + 1], dp[start] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build an empty string is 0\n        \n        for i in range(1, n + 1):\n            for word, cost in zip(words, costs):\n                word_len = len(word)\n                if i >= word_len and target[i - word_len:i] == word:\n                    dp[i] = min(dp[i], dp[i - word_len] + cost)\n        \n        return dp[n] if dp[n] != float('inf') else -1"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build empty string is 0\n        \n        word_cost = {word: cost for word, cost in zip(words, costs)}\n        \n        for i in range(n):\n            for word, cost in word_cost.items():\n                word_len = len(word)\n                if i + word_len <= n and target[i:i+word_len] == word:\n                    dp[i + word_len] = min(dp[i + word_len], dp[i] + cost)\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(1, n + 1):\n                    for word, cost in word_cost.items():\n                        word_len = len(word)\n                        if i >= word_len and target[i - word_len:i] == word:\n                            dp[i] = min(dp[i], dp[i - word_len] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build empty string is 0\n        \n        word_cost = {word: cost for word, cost in zip(words, costs)}\n        \n        for i in range(n):\n            if dp[i] == float('inf'):\n                continue  # No way to reach this position\n            for word, cost in word_cost.items():\n                word_len = len(word)\n                if i + word_len <= n and target[i:i+word_len] == word:\n                    dp[i + word_len] = min(dp[i + word_len], dp[i] + cost)\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(1, n + 1):\n                    for j in range(i):\n                        substring = target[j:i]\n                        if substring in word_cost:\n                            dp[i] = min(dp[i], dp[j] + word_cost[substring])\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build empty string is 0\n        \n        # Precompute all possible matches\n        matches = [[] for _ in range(n + 1)]\n        for word, cost in zip(words, costs):\n            pos = 0\n            while True:\n                pos = target.find(word, pos)\n                if pos == -1:\n                    break\n                matches[pos + len(word)].append((pos, cost))\n                pos += 1\n        \n        # Dynamic Programming to find minimum cost\n        for i in range(1, n + 1):\n            for pos, cost in matches[i]:\n                dp[i] = min(dp[i], dp[pos] + cost)\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(n):\n                    for word, cost in word_cost.items():\n                        word_len = len(word)\n                        if i + word_len <= n and target[i:i+word_len] == word:\n                            dp[i + word_len] = min(dp[i + word_len], dp[i] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build empty string is 0\n        \n        # Create a dictionary to map words to their costs\n        word_cost = {word: cost for word, cost in zip(words, costs)}\n        \n        # Iterate through each position in the target string\n        for i in range(n):\n            # Check if the current position can be reached\n            if dp[i] == float('inf'):\n                continue\n            # Check each word to see if it matches the substring starting at position i\n            for word, cost in word_cost.items():\n                word_len = len(word)\n                # Check if the word matches the substring starting at position i\n                if i + word_len <= n and target[i:i+word_len] == word:\n                    # Update the cost to reach position i + word_len\n                    dp[i + word_len] = min(dp[i + word_len], dp[i] + cost)\n        \n        # If dp[n] is still infinity, it's impossible to form the target\n        return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(1, n + 1):\n                    for word, cost in word_cost.items():\n                        word_len = len(word)\n                        if i - word_len >= 0 and target[i - word_len:i] == word:\n                            dp[i] = min(dp[i], dp[i - word_len] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(1, n + 1):\n                    for word, cost in word_cost.items():\n                        word_len = len(word)\n                        if i >= word_len and target[i - word_len:i] == word:\n                            dp[i] = min(dp[i], dp[i - word_len] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(n):\n                    for j in range(i + 1, n + 1):\n                        substring = target[i:j]\n                        if substring in word_cost:\n                            dp[j] = min(dp[j], dp[i] + word_cost[substring])\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build empty string is 0\n        \n        word_cost = {word: cost for word, cost in zip(words, costs)}\n        \n        for i in range(n):\n            for word, cost in word_cost.items():\n                word_len = len(word)\n                end = i + word_len\n                if end > n:\n                    continue  # Word is longer than the remaining target substring\n                substring = target[i:end]\n                if substring == word:\n                    dp[end] = min(dp[end], dp[i] + cost)\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build empty string is 0\n        \n        word_cost = {word: cost for word, cost in zip(words, costs)}\n        \n        for i in range(1, n + 1):\n            for word, cost in word_cost.items():\n                word_len = len(word)\n                if i >= word_len and target[i - word_len:i] == word:\n                    dp[i] = min(dp[i], dp[i - word_len] + cost)\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+    "class TrieNode:\n            def __init__(self):\n                self.children = {}\n                self.cost = -1\n\n        class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                # Build trie\n                root = TrieNode()\n                for word, cost in zip(words, costs):\n                    node = root\n                    for char in word:\n                        if char not in node.children:\n                            node.children[char] = TrieNode()\n                        node = node.children[char]\n                    node.cost = cost\n                \n                # DP iteration\n                for i in range(n):\n                    if dp[i] == float('inf'):\n                        continue\n                    node = root\n                    for j in range(i, n):\n                        char = target[j]\n                        if char not in node.children:\n                            break\n                        node = node.children[char]\n                        if node.cost != -1:\n                            dp[j + 1] = min(dp[j + 1], dp[i] + node.cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost_map = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(n + 1):\n                    for word, cost in word_cost_map.items():\n                        word_len = len(word)\n                        if i + word_len <= n and target[i:i+word_len] == word:\n                            dp[i + word_len] = min(dp[i + word_len], dp[i] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost_map = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(n):\n                    for word, cost in word_cost_map.items():\n                        word_len = len(word)\n                        if i + word_len <= n and target[i:i+word_len] == word:\n                            dp[i + word_len] = min(dp[i + word_len], dp[i] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build empty string is 0\n        \n        word_cost_map = {word: cost for word, cost in zip(words, costs)}\n        \n        for i in range(n):\n            for j in range(i + 1, n + 1):\n                substring = target[i:j]\n                if substring in word_cost_map:\n                    cost = word_cost_map[substring]\n                    dp[j] = min(dp[j], dp[i] + cost)\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n\ndef minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:",
+    "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost_map = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(1, n + 1):\n                    for word, cost in word_cost_map.items():\n                        word_len = len(word)\n                        if i >= word_len and target[i - word_len:i] == word:\n                            dp[i] = min(dp[i], dp[i - word_len] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                # Create a map from ending index to list of (starting index, cost)\n                end_map = {}\n                for word, cost in zip(words, costs):\n                    word_len = len(word)\n                    for i in range(n - word_len + 1):\n                        if target[i:i+word_len] == word:\n                            if i + word_len - 1 not in end_map:\n                                end_map[i + word_len - 1] = []\n                            end_map[i + word_len - 1].append((i, cost))\n                \n                for end in range(n):\n                    if end in end_map:\n                        for start, cost in end_map[end]:\n                            dp[end + 1] = min(dp[end + 1], dp[start] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost_map = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(n):\n                    for word, cost in word_cost_map.items():\n                        word_len = len(word)\n                        if i + word_len <= n and target[i:i+word_len] == word:\n                            dp[i + word_len] = min(dp[i + word_len], dp[i] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                # Create a map from word to its cost\n                word_cost_map = {word: cost for word, cost in zip(words, costs)}\n                \n                # Precompute word lengths and sort words by length descending\n                words_sorted = sorted(words, key=len, reverse=True)\n                \n                for i in range(n):\n                    if dp[i] == float('inf'):\n                        continue  # No way to reach this position\n                    for word in words_sorted:\n                        word_len = len(word)\n                        if i + word_len <= n and target[i:i+word_len] == word:\n                            dp[i + word_len] = min(dp[i + word_len], dp[i] + word_cost_map[word])\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost_map = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(n):\n                    for word, cost in word_cost_map.items():\n                        word_len = len(word)\n                        if i + word_len <= n and target[i:i+word_len] == word:\n                            dp[i + word_len] = min(dp[i + word_len], dp[i] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build an empty string is 0\n        \n        for i in range(1, n + 1):\n            for word, cost in zip(words, costs):\n                word_len = len(word)\n                if i >= word_len and target[i - word_len:i] == word:\n                    dp[i] = min(dp[i], dp[i - word_len] + cost)\n        \n        return dp[n] if dp[n] != float('inf') else -1"
+  ],
+  "total_candidates": 23,
+  "nodes_explored": 23,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build empty string is 0\n        \n        word_cost = {word: cost for word, cost in zip(words, costs)}\n        \n        for i in range(n):\n            for word, cost in word_cost.items():\n                word_len = len(word)\n                if i + word_len <= n and target[i:i+word_len] == word:\n                    dp[i + word_len] = min(dp[i + word_len], dp[i] + cost)\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+      "solution_hash": "e767a1d195c09892fdd20d40f94ce9b542593cd3a77a5e4884c264411c9f0e69",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp0e5iyeti.py\", line 225, in <module>\n    check(Solution().minimumCost)\n  File \"/scratch/local/21419949/tmp0e5iyeti.py\", line 125, in check\n    assert candidate(target = \"alibaba\",words = ['ali', 'ba', 'ba', 'ba', 'ba', 'ba'],costs = [6, 1, 2, 3, 4, 5]) == 8\nAssertionError\n",
+        "execution_time": 0.06705117225646973
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(1, n + 1):\n                    for word, cost in word_cost.items():\n                        word_len = len(word)\n                        if i >= word_len and target[i - word_len:i] == word:\n                            dp[i] = min(dp[i], dp[i - word_len] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+          "solution_hash": "56291b11e77f24b8b78b6d8115a1e4162d2e9eda12693b864c5e84c3824043d4",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmphgb4mllv.py\", line 225, in <module>\n    check(Solution().minimumCost)\n  File \"/scratch/local/21419949/tmphgb4mllv.py\", line 125, in check\n    assert candidate(target = \"alibaba\",words = ['ali', 'ba', 'ba', 'ba', 'ba', 'ba'],costs = [6, 1, 2, 3, 4, 5]) == 8\nAssertionError\n",
+            "execution_time": 0.06763458251953125
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_2",
+              "solution": "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build empty string is 0\n        \n        word_cost = {word: cost for word, cost in zip(words, costs)}\n        \n        for i in range(n):\n            if dp[i] == float('inf'):\n                continue  # No way to reach this position\n            for word, cost in word_cost.items():\n                word_len = len(word)\n                if i + word_len <= n and target[i:i+word_len] == word:\n                    dp[i + word_len] = min(dp[i + word_len], dp[i] + cost)\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+              "solution_hash": "74e158582df931d59576f876351d7783d6ab68b31ba40fa6fca461b713889bec",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp4z4r3poe.py\", line 227, in <module>\n    check(Solution().minimumCost)\n  File \"/scratch/local/21419949/tmp4z4r3poe.py\", line 127, in check\n    assert candidate(target = \"alibaba\",words = ['ali', 'ba', 'ba', 'ba', 'ba', 'ba'],costs = [6, 1, 2, 3, 4, 5]) == 8\nAssertionError\n",
+                "execution_time": 0.06744956970214844
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_3",
+              "solution": "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(1, n + 1):\n                    for j in range(i):\n                        substring = target[j:i]\n                        if substring in word_cost:\n                            dp[i] = min(dp[i], dp[j] + word_cost[substring])\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+              "solution_hash": "21dcf2336e41b58ec00cba9e771272ee40f918be835212e8ad9d6b5d6525e40c",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpkqu3iuvl.py\", line 225, in <module>\n    check(Solution().minimumCost)\n  File \"/scratch/local/21419949/tmpkqu3iuvl.py\", line 125, in check\n    assert candidate(target = \"alibaba\",words = ['ali', 'ba', 'ba', 'ba', 'ba', 'ba'],costs = [6, 1, 2, 3, 4, 5]) == 8\nAssertionError\n",
+                "execution_time": 0.06644487380981445
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build empty string is 0\n        \n        # Precompute all possible matches\n        matches = [[] for _ in range(n + 1)]\n        for word, cost in zip(words, costs):\n            pos = 0\n            while True:\n                pos = target.find(word, pos)\n                if pos == -1:\n                    break\n                matches[pos + len(word)].append((pos, cost))\n                pos += 1\n        \n        # Dynamic Programming to find minimum cost\n        for i in range(1, n + 1):\n            for pos, cost in matches[i]:\n                dp[i] = min(dp[i], dp[pos] + cost)\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+              "solution_hash": "4be5ffa51649e1ac53a127d0cbda9578711569ae74cad6d8a15963cf964d9c56",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.06620478630065918
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": true
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_5",
+          "solution": "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(n):\n                    for word, cost in word_cost.items():\n                        word_len = len(word)\n                        if i + word_len <= n and target[i:i+word_len] == word:\n                            dp[i + word_len] = min(dp[i + word_len], dp[i] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+          "solution_hash": "e767a1d195c09892fdd20d40f94ce9b542593cd3a77a5e4884c264411c9f0e69",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpo3p4s59f.py\", line 225, in <module>\n    check(Solution().minimumCost)\n  File \"/scratch/local/21419949/tmpo3p4s59f.py\", line 125, in check\n    assert candidate(target = \"alibaba\",words = ['ali', 'ba', 'ba', 'ba', 'ba', 'ba'],costs = [6, 1, 2, 3, 4, 5]) == 8\nAssertionError\n",
+            "execution_time": 0.07171344757080078
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_6",
+              "solution": "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build empty string is 0\n        \n        # Create a dictionary to map words to their costs\n        word_cost = {word: cost for word, cost in zip(words, costs)}\n        \n        # Iterate through each position in the target string\n        for i in range(n):\n            # Check if the current position can be reached\n            if dp[i] == float('inf'):\n                continue\n            # Check each word to see if it matches the substring starting at position i\n            for word, cost in word_cost.items():\n                word_len = len(word)\n                # Check if the word matches the substring starting at position i\n                if i + word_len <= n and target[i:i+word_len] == word:\n                    # Update the cost to reach position i + word_len\n                    dp[i + word_len] = min(dp[i + word_len], dp[i] + cost)\n        \n        # If dp[n] is still infinity, it's impossible to form the target\n        return dp[n] if dp[n] != float('inf') else -1",
+              "solution_hash": "74e158582df931d59576f876351d7783d6ab68b31ba40fa6fca461b713889bec",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp4z4r3poe.py\", line 227, in <module>\n    check(Solution().minimumCost)\n  File \"/scratch/local/21419949/tmp4z4r3poe.py\", line 127, in check\n    assert candidate(target = \"alibaba\",words = ['ali', 'ba', 'ba', 'ba', 'ba', 'ba'],costs = [6, 1, 2, 3, 4, 5]) == 8\nAssertionError\n",
+                "execution_time": 0.06744956970214844
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_7",
+              "solution": "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(1, n + 1):\n                    for word, cost in word_cost.items():\n                        word_len = len(word)\n                        if i - word_len >= 0 and target[i - word_len:i] == word:\n                            dp[i] = min(dp[i], dp[i - word_len] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+              "solution_hash": "843ce090456b48ea98fe53328fea1dcf181f2129d0da5d175267adc2fe497da9",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpgq9rabj7.py\", line 225, in <module>\n    check(Solution().minimumCost)\n  File \"/scratch/local/21419949/tmpgq9rabj7.py\", line 125, in check\n    assert candidate(target = \"alibaba\",words = ['ali', 'ba', 'ba', 'ba', 'ba', 'ba'],costs = [6, 1, 2, 3, 4, 5]) == 8\nAssertionError\n",
+                "execution_time": 0.06706881523132324
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(1, n + 1):\n                    for word, cost in word_cost.items():\n                        word_len = len(word)\n                        if i >= word_len and target[i - word_len:i] == word:\n                            dp[i] = min(dp[i], dp[i - word_len] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+              "solution_hash": "56291b11e77f24b8b78b6d8115a1e4162d2e9eda12693b864c5e84c3824043d4",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmphgb4mllv.py\", line 225, in <module>\n    check(Solution().minimumCost)\n  File \"/scratch/local/21419949/tmphgb4mllv.py\", line 125, in check\n    assert candidate(target = \"alibaba\",words = ['ali', 'ba', 'ba', 'ba', 'ba', 'ba'],costs = [6, 1, 2, 3, 4, 5]) == 8\nAssertionError\n",
+                "execution_time": 0.06763458251953125
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_9",
+          "solution": "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(n):\n                    for j in range(i + 1, n + 1):\n                        substring = target[i:j]\n                        if substring in word_cost:\n                            dp[j] = min(dp[j], dp[i] + word_cost[substring])\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+          "solution_hash": "437efb9e0469d3e84d65cc1f428457646b6e686569d805493f93217d884f061d",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpwvqlmg1y.py\", line 225, in <module>\n    check(Solution().minimumCost)\n  File \"/scratch/local/21419949/tmpwvqlmg1y.py\", line 125, in check\n    assert candidate(target = \"alibaba\",words = ['ali', 'ba', 'ba', 'ba', 'ba', 'ba'],costs = [6, 1, 2, 3, 4, 5]) == 8\nAssertionError\n",
+            "execution_time": 0.06589555740356445
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_10",
+              "solution": "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build empty string is 0\n        \n        word_cost = {word: cost for word, cost in zip(words, costs)}\n        \n        for i in range(n):\n            for word, cost in word_cost.items():\n                word_len = len(word)\n                end = i + word_len\n                if end > n:\n                    continue  # Word is longer than the remaining target substring\n                substring = target[i:end]\n                if substring == word:\n                    dp[end] = min(dp[end], dp[i] + cost)\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+              "solution_hash": "57056b4f022edae300da77c91f5dcea835847a6e3af1f280537e611108eca715",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpoisvktdb.py\", line 229, in <module>\n    check(Solution().minimumCost)\n  File \"/scratch/local/21419949/tmpoisvktdb.py\", line 129, in check\n    assert candidate(target = \"alibaba\",words = ['ali', 'ba', 'ba', 'ba', 'ba', 'ba'],costs = [6, 1, 2, 3, 4, 5]) == 8\nAssertionError\n",
+                "execution_time": 0.06734347343444824
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_11",
+              "solution": "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build empty string is 0\n        \n        word_cost = {word: cost for word, cost in zip(words, costs)}\n        \n        for i in range(1, n + 1):\n            for word, cost in word_cost.items():\n                word_len = len(word)\n                if i >= word_len and target[i - word_len:i] == word:\n                    dp[i] = min(dp[i], dp[i - word_len] + cost)\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+              "solution_hash": "56291b11e77f24b8b78b6d8115a1e4162d2e9eda12693b864c5e84c3824043d4",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmphgb4mllv.py\", line 225, in <module>\n    check(Solution().minimumCost)\n  File \"/scratch/local/21419949/tmphgb4mllv.py\", line 125, in check\n    assert candidate(target = \"alibaba\",words = ['ali', 'ba', 'ba', 'ba', 'ba', 'ba'],costs = [6, 1, 2, 3, 4, 5]) == 8\nAssertionError\n",
+                "execution_time": 0.06763458251953125
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_12",
+              "solution": "class TrieNode:\n            def __init__(self):\n                self.children = {}\n                self.cost = -1\n\n        class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                # Build trie\n                root = TrieNode()\n                for word, cost in zip(words, costs):\n                    node = root\n                    for char in word:\n                        if char not in node.children:\n                            node.children[char] = TrieNode()\n                        node = node.children[char]\n                    node.cost = cost\n                \n                # DP iteration\n                for i in range(n):\n                    if dp[i] == float('inf'):\n                        continue\n                    node = root\n                    for j in range(i, n):\n                        char = target[j]\n                        if char not in node.children:\n                            break\n                        node = node.children[char]\n                        if node.cost != -1:\n                            dp[j + 1] = min(dp[j + 1], dp[i] + node.cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+              "solution_hash": "0f6ba286b93945abf213d4a11be96a5590274281840bf77058d22de21e8c85fd",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpymfdb281.py\", line 86\n    class Solution:\n                   ^\nIndentationError: unindent does not match any outer indentation level\n",
+                "execution_time": 0.05269908905029297
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost_map = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(n + 1):\n                    for word, cost in word_cost_map.items():\n                        word_len = len(word)\n                        if i + word_len <= n and target[i:i+word_len] == word:\n                            dp[i + word_len] = min(dp[i + word_len], dp[i] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+      "solution_hash": "b8f9cc1bcc3ca58c1c8aec6ebc5eeda00757f62991b54a22a3491cb04a4d5352",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp7ub0_1u6.py\", line 225, in <module>\n    check(Solution().minimumCost)\n  File \"/scratch/local/21419949/tmp7ub0_1u6.py\", line 125, in check\n    assert candidate(target = \"alibaba\",words = ['ali', 'ba', 'ba', 'ba', 'ba', 'ba'],costs = [6, 1, 2, 3, 4, 5]) == 8\nAssertionError\n",
+        "execution_time": 0.06554937362670898
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_14",
+          "solution": "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost_map = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(n):\n                    for word, cost in word_cost_map.items():\n                        word_len = len(word)\n                        if i + word_len <= n and target[i:i+word_len] == word:\n                            dp[i + word_len] = min(dp[i + word_len], dp[i] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+          "solution_hash": "b9fd574bfa3d91a638c7ab2d414dc18b43cf471a87302dc731961bf74988cc6a",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp8i4_h7sb.py\", line 225, in <module>\n    check(Solution().minimumCost)\n  File \"/scratch/local/21419949/tmp8i4_h7sb.py\", line 125, in check\n    assert candidate(target = \"alibaba\",words = ['ali', 'ba', 'ba', 'ba', 'ba', 'ba'],costs = [6, 1, 2, 3, 4, 5]) == 8\nAssertionError\n",
+            "execution_time": 0.06670951843261719
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_15",
+              "solution": "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build empty string is 0\n        \n        word_cost_map = {word: cost for word, cost in zip(words, costs)}\n        \n        for i in range(n):\n            for j in range(i + 1, n + 1):\n                substring = target[i:j]\n                if substring in word_cost_map:\n                    cost = word_cost_map[substring]\n                    dp[j] = min(dp[j], dp[i] + cost)\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+              "solution_hash": "6d0a551a8efffb0224c11318d8ed696d779920fa1d19f530740ac2d0a7052575",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpqiz2bch6.py\", line 226, in <module>\n    check(Solution().minimumCost)\n  File \"/scratch/local/21419949/tmpqiz2bch6.py\", line 126, in check\n    assert candidate(target = \"alibaba\",words = ['ali', 'ba', 'ba', 'ba', 'ba', 'ba'],costs = [6, 1, 2, 3, 4, 5]) == 8\nAssertionError\n",
+                "execution_time": 0.06381845474243164
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_16",
+              "solution": "class Solution:\n\ndef minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:",
+              "solution_hash": "56f5e237cf21d48cd88cde81f4d1085ed2fdc1fbea8e6acd2d03ddcfd78cd8ae",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmp2d_yhxks.py\", line 83\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n    ^\nIndentationError: expected an indented block\n",
+                "execution_time": 0.05304837226867676
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_17",
+              "solution": "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost_map = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(1, n + 1):\n                    for word, cost in word_cost_map.items():\n                        word_len = len(word)\n                        if i >= word_len and target[i - word_len:i] == word:\n                            dp[i] = min(dp[i], dp[i - word_len] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+              "solution_hash": "0ccd78e7f54ad35c156f38e08e96854596a25256c36dc29123c0d8a7dad45362",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp3a3wf6uv.py\", line 225, in <module>\n    check(Solution().minimumCost)\n  File \"/scratch/local/21419949/tmp3a3wf6uv.py\", line 125, in check\n    assert candidate(target = \"alibaba\",words = ['ali', 'ba', 'ba', 'ba', 'ba', 'ba'],costs = [6, 1, 2, 3, 4, 5]) == 8\nAssertionError\n",
+                "execution_time": 0.0671842098236084
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_18",
+          "solution": "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                # Create a map from ending index to list of (starting index, cost)\n                end_map = {}\n                for word, cost in zip(words, costs):\n                    word_len = len(word)\n                    for i in range(n - word_len + 1):\n                        if target[i:i+word_len] == word:\n                            if i + word_len - 1 not in end_map:\n                                end_map[i + word_len - 1] = []\n                            end_map[i + word_len - 1].append((i, cost))\n                \n                for end in range(n):\n                    if end in end_map:\n                        for start, cost in end_map[end]:\n                            dp[end + 1] = min(dp[end + 1], dp[start] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+          "solution_hash": "d475103cc4d96286ece3f5bad0041be8c6945807d668912bfdf21e73c9c2fea1",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07132840156555176
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_19",
+          "solution": "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost_map = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(n):\n                    for word, cost in word_cost_map.items():\n                        word_len = len(word)\n                        if i + word_len <= n and target[i:i+word_len] == word:\n                            dp[i + word_len] = min(dp[i + word_len], dp[i] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+          "solution_hash": "b9fd574bfa3d91a638c7ab2d414dc18b43cf471a87302dc731961bf74988cc6a",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp8i4_h7sb.py\", line 225, in <module>\n    check(Solution().minimumCost)\n  File \"/scratch/local/21419949/tmp8i4_h7sb.py\", line 125, in check\n    assert candidate(target = \"alibaba\",words = ['ali', 'ba', 'ba', 'ba', 'ba', 'ba'],costs = [6, 1, 2, 3, 4, 5]) == 8\nAssertionError\n",
+            "execution_time": 0.06670951843261719
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_20",
+              "solution": "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                # Create a map from word to its cost\n                word_cost_map = {word: cost for word, cost in zip(words, costs)}\n                \n                # Precompute word lengths and sort words by length descending\n                words_sorted = sorted(words, key=len, reverse=True)\n                \n                for i in range(n):\n                    if dp[i] == float('inf'):\n                        continue  # No way to reach this position\n                    for word in words_sorted:\n                        word_len = len(word)\n                        if i + word_len <= n and target[i:i+word_len] == word:\n                            dp[i + word_len] = min(dp[i + word_len], dp[i] + word_cost_map[word])\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+              "solution_hash": "37b48c8d08cbcfb0666bd659d340de6e7b86bf455ae395232098f738036b0533",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmptq5kuusr.py\", line 231, in <module>\n    check(Solution().minimumCost)\n  File \"/scratch/local/21419949/tmptq5kuusr.py\", line 131, in check\n    assert candidate(target = \"alibaba\",words = ['ali', 'ba', 'ba', 'ba', 'ba', 'ba'],costs = [6, 1, 2, 3, 4, 5]) == 8\nAssertionError\n",
+                "execution_time": 0.06767988204956055
+              },
+              "depth": 2,
+              "parent_id": "1_19",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_21",
+              "solution": "class Solution:\n            def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n                n = len(target)\n                dp = [float('inf')] * (n + 1)\n                dp[0] = 0  # Cost to build empty string is 0\n                \n                word_cost_map = {word: cost for word, cost in zip(words, costs)}\n                \n                for i in range(n):\n                    for word, cost in word_cost_map.items():\n                        word_len = len(word)\n                        if i + word_len <= n and target[i:i+word_len] == word:\n                            dp[i + word_len] = min(dp[i + word_len], dp[i] + cost)\n                \n                return dp[n] if dp[n] != float('inf') else -1",
+              "solution_hash": "b9fd574bfa3d91a638c7ab2d414dc18b43cf471a87302dc731961bf74988cc6a",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp8i4_h7sb.py\", line 225, in <module>\n    check(Solution().minimumCost)\n  File \"/scratch/local/21419949/tmp8i4_h7sb.py\", line 125, in check\n    assert candidate(target = \"alibaba\",words = ['ali', 'ba', 'ba', 'ba', 'ba', 'ba'],costs = [6, 1, 2, 3, 4, 5]) == 8\nAssertionError\n",
+                "execution_time": 0.06670951843261719
+              },
+              "depth": 2,
+              "parent_id": "1_19",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def minimumCost(self, target: str, words: List[str], costs: List[int]) -> int:\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0  # Cost to build an empty string is 0\n        \n        for i in range(1, n + 1):\n            for word, cost in zip(words, costs):\n                word_len = len(word)\n                if i >= word_len and target[i - word_len:i] == word:\n                    dp[i] = min(dp[i], dp[i - word_len] + cost)\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+      "solution_hash": "2cc3df7fc9515647ee29b996081e2b0f9239c21399e74a379d31aae9eccb111c",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.0717630386352539
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    }
+  ],
+  "stats": {
+    "nodes_explored": 23,
+    "candidates_generated": 23,
+    "tests_passed": 3,
+    "tests_failed": 20,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 986.3358733654022,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.16666666666666663,
+      "pass@3": 0.43675889328063244,
+      "pass@5": 0.6352343308865048,
+      "pass@10": 0.9057971014492754
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unindent does not match any outer indentation level (<string>, line 102)",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: expected an indented block (<string>, line 99)",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 23
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 24,
+    "test_cases": 1
+  }
+}

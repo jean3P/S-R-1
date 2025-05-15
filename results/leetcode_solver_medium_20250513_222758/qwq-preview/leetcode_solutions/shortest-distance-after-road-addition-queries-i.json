@@ -1,0 +1,326 @@
+{
+  "problem_id": "shortest-distance-after-road-addition-queries-i",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "solved",
+  "best_solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = {i: [i + 1] for i in range(n - 1)}\n        graph[n - 1] = []\n        \n        # Compute initial shortest distances\n        distances = self.bfs_shortest_path(graph, 0, n)\n        \n        answers = []\n        \n        for query in queries:\n            ui, vi = query\n            # Add the new road to the graph\n            if ui in graph:\n                graph[ui].append(vi)\n            else:\n                graph[ui] = [vi]\n            \n            # If the new road can potentially make the path shorter, update distances\n            if distances[ui] != -1:\n                new_dist = distances[ui] + 1\n                if distances[vi] == -1 or new_dist < distances[vi]:\n                    distances[vi] = new_dist\n                    # Update distances for all nodes reachable from vi\n                    queue = deque([vi])\n                    while queue:\n                        current = queue.popleft()\n                        for neighbor in graph[current]:\n                            if distances[current] + 1 < distances[neighbor]:\n                                distances[neighbor] = distances[current] + 1\n                                queue.append(neighbor)\n            \n            answers.append(distances[n - 1])\n        \n        return answers\n    \n    def bfs_shortest_path(self, graph, start, n):\n        distances = [-1] * n\n        distances[start] = 0\n        queue = deque([start])\n        \n        while queue:\n            current = queue.popleft()\n            for neighbor in graph[current]:\n                if distances[neighbor] == -1:\n                    distances[neighbor] = distances[current] + 1\n                    queue.append(neighbor)\n        \n        return distances",
+  "passed_solutions": [
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = {i: [i + 1] for i in range(n - 1)}\n        graph[n - 1] = []\n        \n        answers = []\n        \n        for query in queries:\n            ui, vi = query\n            # Add the new road to the graph\n            if ui in graph:\n                graph[ui].append(vi)\n            else:\n                graph[ui] = [vi]\n            \n            # Compute the shortest path from 0 to n-1 using BFS\n            distance = [-1] * n\n            distance[0] = 0\n            queue = deque([0])\n            \n            while queue:\n                current = queue.popleft()\n                for neighbor in graph[current]:\n                    if distance[neighbor] == -1:\n                        distance[neighbor] = distance[current] + 1\n                        queue.append(neighbor)\n            \n            # Record the distance to n-1\n            answers.append(distance[n - 1])\n        \n        return answers",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = {i: [i + 1] for i in range(n - 1)}\n        graph[n - 1] = []\n        \n        # Precompute the initial shortest distances\n        distances = [float('inf')] * n\n        distances[0] = 0\n        queue = deque([0])\n        \n        while queue:\n            current = queue.popleft()\n            for neighbor in graph[current]:\n                if distances[current] + 1 < distances[neighbor]:\n                    distances[neighbor] = distances[current] + 1\n                    queue.append(neighbor)\n        \n        answers = []\n        \n        for query in queries:\n            ui, vi = query\n            # Add the new road to the graph\n            if ui in graph:\n                graph[ui].append(vi)\n            else:\n                graph[ui] = [vi]\n            \n            # If the new road can potentially make the path shorter, update distances\n            if distances[ui] + 1 < distances[vi]:\n                distances[vi] = distances[ui] + 1\n                queue.append(vi)\n                # Update distances of all neighbors of vi\n                while queue:\n                    current = queue.popleft()\n                    for neighbor in graph[current]:\n                        if distances[current] + 1 < distances[neighbor]:\n                            distances[neighbor] = distances[current] + 1\n                            queue.append(neighbor)\n            \n            answers.append(distances[n - 1])\n        \n        return answers",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = {i: [i + 1] for i in range(n - 1)}\n        graph[n - 1] = []\n        \n        # Precompute the initial shortest distances\n        distances = [float('inf')] * n\n        distances[0] = 0\n        queue = deque([0])\n        \n        while queue:\n            current = queue.popleft()\n            for neighbor in graph[current]:\n                if distances[current] + 1 < distances[neighbor]:\n                    distances[neighbor] = distances[current] + 1\n                    queue.append(neighbor)\n        \n        answers = []\n        \n        for query in queries:\n            ui, vi = query\n            # Add the new road to the graph\n            if ui in graph:\n                graph[ui].append(vi)\n            else:\n                graph[ui] = [vi]\n            \n            # If the new road can potentially make the path shorter, update distances\n            if distances[ui] + 1 < distances[vi]:\n                distances[vi] = distances[ui] + 1\n                queue.append(vi)\n                # Update distances of all neighbors of vi\n                while queue:\n                    current = queue.popleft()\n                    for neighbor in graph[current]:\n                        if distances[current] + 1 < distances[neighbor]:\n                            distances[neighbor] = distances[current] + 1\n                            queue.append(neighbor)\n            \n            answers.append(distances[n - 1])\n        \n        return answers",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = {i: [i + 1] for i in range(n - 1)}\n        graph[n - 1] = []\n        \n        # Compute initial shortest distances\n        distances = self.bfs_shortest_path(graph, 0, n)\n        \n        answers = []\n        \n        for query in queries:\n            ui, vi = query\n            # Add the new road to the graph\n            if ui in graph:\n                graph[ui].append(vi)\n            else:\n                graph[ui] = [vi]\n            \n            # If the new road can potentially make the path shorter, update distances\n            if distances[ui] != -1:\n                new_dist = distances[ui] + 1\n                if distances[vi] == -1 or new_dist < distances[vi]:\n                    distances[vi] = new_dist\n                    # Update distances for all nodes reachable from vi\n                    queue = deque([vi])\n                    while queue:\n                        current = queue.popleft()\n                        for neighbor in graph[current]:\n                            if distances[current] + 1 < distances[neighbor]:\n                                distances[neighbor] = distances[current] + 1\n                                queue.append(neighbor)\n            \n            answers.append(distances[n - 1])\n        \n        return answers\n    \n    def bfs_shortest_path(self, graph, start, n):\n        distances = [-1] * n\n        distances[start] = 0\n        queue = deque([start])\n        \n        while queue:\n            current = queue.popleft()\n            for neighbor in graph[current]:\n                if distances[neighbor] == -1:\n                    distances[neighbor] = distances[current] + 1\n                    queue.append(neighbor)\n        \n        return distances",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = {i: [i + 1] for i in range(n - 1)}\n        graph[n - 1] = []\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra(start):\n            distances = [float('inf')] * n\n            distances[start] = 0\n            pq = [(0, start)]\n            \n            while pq:\n                current_dist, current_node = heapq.heappop(pq)\n                if current_dist > distances[current_node]:\n                    continue\n                for neighbor in graph[current_node]:\n                    distance = current_dist + 1\n                    if distance < distances[neighbor]:\n                        distances[neighbor] = distance\n                        heapq.heappush(pq, (distance, neighbor))\n            return distances\n        \n        answers = []\n        distances = dijkstra(0)\n        \n        for query in queries:\n            ui, vi = query\n            # Add the new road to the graph\n            if ui in graph:\n                graph[ui].append(vi)\n            else:\n                graph[ui] = [vi]\n            \n            # Update distances if the new road provides a shorter path\n            if distances[ui] != float('inf'):\n                new_distance = distances[ui] + 1\n                if new_distance < distances[vi]:\n                    distances[vi] = new_distance\n                    # Update distances for all nodes reachable from vi\n                    pq = [(new_distance, vi)]\n                    while pq:\n                        current_dist, current_node = heapq.heappop(pq)\n                        if current_dist > distances[current_node]:\n                            continue\n                        for neighbor in graph[current_node]:\n                            distance = current_dist + 1\n                            if distance < distances[neighbor]:\n                                distances[neighbor] = distance\n                                heapq.heappush(pq, (distance, neighbor))\n            \n            answers.append(distances[n - 1])\n        \n        return answers",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = [[] for _ in range(n)]\n        for i in range(n - 1):\n            graph[i].append(i + 1)\n        \n        answer = []\n        for query in queries:\n            ui, vi = query\n            graph[ui].append(vi)\n            # After adding the new road, compute the shortest path from 0 to n-1\n            distance = self.bfs_shortest_path(graph, 0, n - 1)\n            answer.append(distance)\n        \n        return answer\n    \n    def bfs_shortest_path(self, graph, start, end):\n        queue = deque()\n        queue.append((start, 0))  # (node, distance)\n        visited = set()\n        visited.add(start)\n        \n        while queue:\n            current, distance = queue.popleft()\n            if current == end:\n                return distance\n            for neighbor in graph[current]:\n                if neighbor not in visited:\n                    visited.add(neighbor)\n                    queue.append((neighbor, distance + 1))\n        \n        # If no path found\n        return -1"
+  ],
+  "all_solutions": [
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = {i: [i + 1] for i in range(n - 1)}\n        graph[n - 1] = []\n        \n        answers = []\n        \n        for query in queries:\n            ui, vi = query\n            #",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = {i: [i + 1] for i in range(n - 1)}\n        graph[n - 1] = []\n        \n        answers = []\n        \n        for query in queries:\n            ui, vi = query\n            # Add the new road to the graph\n            if ui in graph:\n                graph[ui].append(vi)\n            else:\n                graph[ui] = [vi]\n            \n            # Compute the shortest path from 0 to n-1 using BFS\n            distance = [-1] * n\n            distance[0] = 0\n            queue = deque([0])\n            \n            while queue:\n                current = queue.popleft()\n                for neighbor in graph[current]:\n                    if distance[neighbor] == -1:\n                        distance[neighbor] = distance[current] + 1\n                        queue.append(neighbor)\n            \n            # Record the distance to n-1\n            answers.append(distance[n - 1])\n        \n        return answers",
+    "from typing import List\n        import heapq\n\n        class Solution:\n            def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n                # Initialize the graph with initial roads\n                graph = {i: [i + 1] for i in range(n - 1)}\n                graph[n - 1] = []\n                \n                answers = []\n                \n                for query in queries:\n                    ui, vi = query\n                    # Add the new road to the graph\n                    if ui in graph:\n                        graph[ui].append(vi)\n                    else:\n                        graph[ui] = [vi]\n                    \n                    # Compute the shortest path from 0 to n-1 using Dijkstra's algorithm\n                    distance = self.dijkstra(graph, n, 0)\n                    answers.append(distance[n - 1])\n                \n                return answers\n            \n            def dijkstra(self, graph, n, start):\n                # Initialize distances\n                distances = [float('inf')] * n\n                distances[start] = 0\n                # Priority queue to store nodes to visit, initialized with start node\n                queue = [(0, start)]\n                \n                while queue:\n                    current_distance, current_node = heapq.heappop(queue)\n                    \n                    # Nodes can get added to the priority queue multiple times. We only\n                    # process a node the first time we remove it from the priority queue.\n                    if current_distance > distances[current_node]:\n                        continue\n                    \n                    # Explore neighbors\n                    for neighbor in graph[current_node]:\n                        distance = current_distance + 1  # Since all edges have weight 1\n                        # Only consider this new path if it's better\n                        if distance < distances[neighbor]:\n                            distances[neighbor] = distance\n                            heapq.heappush(queue, (distance, neighbor))\n                \n                return distances",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = {i: [i + 1] for i in range(n - 1)}\n        graph[n - 1] = []\n        \n        # Precompute the initial shortest distances\n        distances = [float('inf')] * n\n        distances[0] = 0\n        queue = deque([0])\n        \n        while queue:\n            current = queue.popleft()\n            for neighbor in graph[current]:\n                if distances[current] + 1 < distances[neighbor]:\n                    distances[neighbor] = distances[current] + 1\n                    queue.append(neighbor)\n        \n        answers = []\n        \n        for query in queries:\n            ui, vi = query\n            # Add the new road to the graph\n            if ui in graph:\n                graph[ui].append(vi)\n            else:\n                graph[ui] = [vi]\n            \n            # If the new road can potentially make the path shorter, update distances\n            if distances[ui] + 1 < distances[vi]:\n                distances[vi] = distances[ui] + 1\n                queue.append(vi)\n                # Update distances of all neighbors of vi\n                while queue:\n                    current = queue.popleft()\n                    for neighbor in graph[current]:\n                        if distances[current] + 1 < distances[neighbor]:\n                            distances[neighbor] = distances[current] + 1\n                            queue.append(neighbor)\n            \n            answers.append(distances[n - 1])\n        \n        return answers",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = {i: [i + 1] for i in range(n - 1)}\n        graph[n - 1] = []\n        \n        # Precompute the initial shortest distances\n        distances = [float('inf')] * n\n        distances[0] = 0\n        queue = deque([0])\n        \n        while queue:\n            current = queue.popleft()\n            for neighbor in graph[current]:\n                if distances[current] + 1 < distances[neighbor]:\n                    distances[neighbor] = distances[current] + 1\n                    queue.append(neighbor)\n        \n        answers = []\n        \n        for query in queries:\n            ui, vi = query\n            # Add the new road to the graph\n            if ui in graph:\n                graph[ui].append(vi)\n            else:\n                graph[ui] = [vi]\n            \n            # If the new road can potentially make the path shorter, update distances\n            if distances[ui] + 1 < distances[vi]:\n                distances[vi] = distances[ui] + 1\n                queue.append(vi)\n                # Update distances of all neighbors of vi\n                while queue:\n                    current = queue.popleft()\n                    for neighbor in graph[current]:\n                        if distances[current] + 1 < distances[neighbor]:\n                            distances[neighbor] = distances[current] + 1\n                            queue.append(neighbor)\n            \n            answers.append(distances[n - 1])\n        \n        return answers",
+    "from typing import List\n\n        class Solution:\n            def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n                # Initialize the graph with initial roads\n                graph = {i: [i + 1] for i in range(n - 1)}\n                graph[n - 1] = []\n                \n                # Precompute the initial shortest distances\n                distances = [n - 1 - i for i in range(n)]\n                \n                answers = []\n                \n                for query in queries:\n                    ui, vi = query\n                    # Add the new road to the graph\n                    if ui in graph:\n                        graph[ui].append(vi)\n                    else:\n                        graph[ui] = [vi]\n                    \n                    # Update the distances array considering the new road\n                    # The new road from ui to vi allows reaching vi from ui in one step\n                    # So, the distance to n-1 from ui can be updated if distance to vi is known\n                    # We need to propagate this update backwards from vi to ui\n                    # But to simplify, we can recompute the distances incrementally\n                    \n                    # Start from ui and see if the distance can be improved\n                    queue = [ui]\n                    visited = set()\n                    while queue:\n                        current = queue.pop(0)\n                        if current in visited:\n                            continue\n                        visited.add(current)\n                        # Update the distance for current node\n                        min_dist = min(distances[next_node] + 1 for next_node in graph[current])\n                        if min_dist < distances[current]:\n                            distances[current] = min_dist\n                            # If updated, need to check predecessors that can reach current\n                            for pred in graph:\n                                if current in graph[pred]:\n                                    queue.append(pred)\n                    \n                    answers.append(distances[0])\n                \n                return answers",
+    "from typing import List\n        from collections import deque\n\n        class Solution:\n            def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n                # Initialize the graph with initial roads\n                graph = {i: [i + 1] for i in range(n - 1)}\n                graph[n - 1] = []\n                \n                answers = []\n                \n                for query in queries:\n                    ui, vi = query\n                    # Add the new road to the graph\n                    if ui in graph:\n                        graph[ui].append(vi)\n                    else:\n                        graph[ui] = [vi]\n                    \n                    # Compute the shortest path from 0 to n-1\n                    distance = self.bfs_shortest_path(graph, 0, n - 1, n)\n                    answers.append(distance)\n                \n                return answers\n            \n            def bfs_shortest_path(self, graph, start, end, n):\n                visited = [False] * n\n                queue = deque()\n                queue.append((start, 0))\n                visited[start] = True\n                \n                while queue:\n                    current, dist = queue.popleft()\n                    if current == end:\n                        return dist\n                    for neighbor in graph[current]:\n                        if not visited[neighbor]:\n                            visited[neighbor] = True\n                            queue.append((neighbor, dist + 1))\n                return -1  # If no path is found, though in this problem, it's guaranteed to be connected",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = {i: [i + 1] for i in range(n - 1)}\n        graph[n - 1] = []\n        \n        # Compute initial shortest distances\n        distances = self.bfs_shortest_path(graph, 0, n)\n        \n        answers = []\n        \n        for query in queries:\n            ui, vi = query\n            # Add the new road to the graph\n            if ui in graph:\n                graph[ui].append(vi)\n            else:\n                graph[ui] = [vi]\n            \n            # If the new road can potentially make the path shorter, update distances\n            if distances[ui] != -1:\n                new_dist = distances[ui] + 1\n                if distances[vi] == -1 or new_dist < distances[vi]:\n                    distances[vi] = new_dist\n                    # Update distances for all nodes reachable from vi\n                    queue = deque([vi])\n                    while queue:\n                        current = queue.popleft()\n                        for neighbor in graph[current]:\n                            if distances[current] + 1 < distances[neighbor]:\n                                distances[neighbor] = distances[current] + 1\n                                queue.append(neighbor)\n            \n            answers.append(distances[n - 1])\n        \n        return answers\n    \n    def bfs_shortest_path(self, graph, start, n):\n        distances = [-1] * n\n        distances[start] = 0\n        queue = deque([start])\n        \n        while queue:\n            current = queue.popleft()\n            for neighbor in graph[current]:\n                if distances[neighbor] == -1:\n                    distances[neighbor] = distances[current] + 1\n                    queue.append(neighbor)\n        \n        return distances",
+    "from typing import List\n        from collections import deque\n\n        class Solution:\n            def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n                # Initialize the graph with initial roads\n                graph = {i: [i + 1] for i in range(n - 1)}\n                graph[n - 1] = []\n                \n                # Add all query roads to the graph\n                for query in queries:\n                    ui, vi = query\n                    if ui in graph:\n                        graph[ui].append(vi)\n                    else:\n                        graph[ui] = [vi]\n                \n                # Compute the shortest path from 0 to n-1 using BFS\n                distance = self.bfs_shortest_path(graph, 0, n - 1, n)\n                answers = [distance]\n                \n                # Reverse the queries and remove roads one by one to simulate processing queries one by one\n                reversed_queries = queries[::-1]\n                for query in reversed_queries:\n                    ui, vi = query\n                    # Remove the road from ui to vi\n                    graph[ui].remove(vi)\n                    # Compute the shortest path from 0 to n-1 without this road\n                    dist = self.bfs_shortest_path(graph, 0, n - 1, n)\n                    # Insert the road back for the next iteration\n                    graph[ui].append(vi)\n                    # Prepend the distance to the answers list\n                    answers.insert(0, dist)\n                \n                # Remove the last element which was added after processing all queries\n                answers.pop()\n                return answers\n            \n            def bfs_shortest_path(self, graph, start, end, n):\n                visited = [False] * n\n                queue = deque()\n                queue.append((start, 0))\n                visited[start] = True\n                \n                while queue:\n                    current, dist = queue.popleft()\n                    if current == end:\n                        return dist\n                    for neighbor in graph[current]:\n                        if not visited[neighbor]:\n                            visited[neighbor] = True\n                            queue.append((neighbor, dist + 1))\n                return -1  # If no path is found, though in this problem, it's guaranteed to be connected",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = {i: [i + 1] for i in range(n - 1)}\n        graph[n - 1] = []\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra(start):\n            distances = [float('inf')] * n\n            distances[start] = 0\n            pq = [(0, start)]\n            \n            while pq:\n                current_dist, current_node = heapq.heappop(pq)\n                if current_dist > distances[current_node]:\n                    continue\n                for neighbor in graph[current_node]:\n                    distance = current_dist + 1\n                    if distance < distances[neighbor]:\n                        distances[neighbor] = distance\n                        heapq.heappush(pq, (distance, neighbor))\n            return distances\n        \n        answers = []\n        distances = dijkstra(0)\n        \n        for query in queries:\n            ui, vi = query\n            # Add the new road to the graph\n            if ui in graph:\n                graph[ui].append(vi)\n            else:\n                graph[ui] = [vi]\n            \n            # Update distances if the new road provides a shorter path\n            if distances[ui] != float('inf'):\n                new_distance = distances[ui] + 1\n                if new_distance < distances[vi]:\n                    distances[vi] = new_distance\n                    # Update distances for all nodes reachable from vi\n                    pq = [(new_distance, vi)]\n                    while pq:\n                        current_dist, current_node = heapq.heappop(pq)\n                        if current_dist > distances[current_node]:\n                            continue\n                        for neighbor in graph[current_node]:\n                            distance = current_dist + 1\n                            if distance < distances[neighbor]:\n                                distances[neighbor] = distance\n                                heapq.heappush(pq, (distance, neighbor))\n            \n            answers.append(distances[n - 1])\n        \n        return answers",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = [[] for _ in range(n)]\n        for i in range(n - 1):\n            graph[i].append(i + 1)\n        \n        answer = []\n        for query in queries:\n            ui, vi = query\n            graph[ui].append(vi)\n            # After adding the new road, compute the shortest path from 0 to n-1\n            distance = self.bfs_shortest_path(graph, 0, n - 1)\n            answer.append(distance)\n        \n        return answer\n    \n    def bfs_shortest_path(self, graph, start, end):\n        queue = deque()\n        queue.append((start, 0))  # (node, distance)\n        visited = set()\n        visited.add(start)\n        \n        while queue:\n            current, distance = queue.popleft()\n            if current == end:\n                return distance\n            for neighbor in graph[current]:\n                if neighbor not in visited:\n                    visited.add(neighbor)\n                    queue.append((neighbor, distance + 1))\n        \n        # If no path found\n        return -1"
+  ],
+  "total_candidates": 11,
+  "nodes_explored": 11,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = {i: [i + 1] for i in range(n - 1)}\n        graph[n - 1] = []\n        \n        answers = []\n        \n        for query in queries:\n            ui, vi = query\n            #",
+      "solution_hash": "442997e755e2150be49fbca9ee5a2fda53af455d44a6f007c353e36e91836979",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpakfjqv3y.py\", line 172, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419949/tmpakfjqv3y.py\", line 98, in check\n    assert candidate(n = 7,queries = [[0, 5], [1, 6], [2, 4]]) == [2, 2, 2]\nAssertionError\n",
+        "execution_time": 0.06727433204650879
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = {i: [i + 1] for i in range(n - 1)}\n        graph[n - 1] = []\n        \n        answers = []\n        \n        for query in queries:\n            ui, vi = query\n            # Add the new road to the graph\n            if ui in graph:\n                graph[ui].append(vi)\n            else:\n                graph[ui] = [vi]\n            \n            # Compute the shortest path from 0 to n-1 using BFS\n            distance = [-1] * n\n            distance[0] = 0\n            queue = deque([0])\n            \n            while queue:\n                current = queue.popleft()\n                for neighbor in graph[current]:\n                    if distance[neighbor] == -1:\n                        distance[neighbor] = distance[current] + 1\n                        queue.append(neighbor)\n            \n            # Record the distance to n-1\n            answers.append(distance[n - 1])\n        \n        return answers",
+          "solution_hash": "1ff288d40baeaf4567bd6635e06e29f3e8f704be8ddc74a545f6e0b9e0dc1dc6",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07184505462646484
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_2",
+          "solution": "from typing import List\n        import heapq\n\n        class Solution:\n            def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n                # Initialize the graph with initial roads\n                graph = {i: [i + 1] for i in range(n - 1)}\n                graph[n - 1] = []\n                \n                answers = []\n                \n                for query in queries:\n                    ui, vi = query\n                    # Add the new road to the graph\n                    if ui in graph:\n                        graph[ui].append(vi)\n                    else:\n                        graph[ui] = [vi]\n                    \n                    # Compute the shortest path from 0 to n-1 using Dijkstra's algorithm\n                    distance = self.dijkstra(graph, n, 0)\n                    answers.append(distance[n - 1])\n                \n                return answers\n            \n            def dijkstra(self, graph, n, start):\n                # Initialize distances\n                distances = [float('inf')] * n\n                distances[start] = 0\n                # Priority queue to store nodes to visit, initialized with start node\n                queue = [(0, start)]\n                \n                while queue:\n                    current_distance, current_node = heapq.heappop(queue)\n                    \n                    # Nodes can get added to the priority queue multiple times. We only\n                    # process a node the first time we remove it from the priority queue.\n                    if current_distance > distances[current_node]:\n                        continue\n                    \n                    # Explore neighbors\n                    for neighbor in graph[current_node]:\n                        distance = current_distance + 1  # Since all edges have weight 1\n                        # Only consider this new path if it's better\n                        if distance < distances[neighbor]:\n                            distances[neighbor] = distance\n                            heapq.heappush(queue, (distance, neighbor))\n                \n                return distances",
+          "solution_hash": "d568b6cf632080634f470fde8531ea2b714f443153bbb6d5884755a48ca28a5f",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmp6uxa6dvp.py\", line 82\n    import heapq\nIndentationError: unexpected indent\n",
+            "execution_time": 0.0566105842590332
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_3",
+              "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = {i: [i + 1] for i in range(n - 1)}\n        graph[n - 1] = []\n        \n        # Precompute the initial shortest distances\n        distances = [float('inf')] * n\n        distances[0] = 0\n        queue = deque([0])\n        \n        while queue:\n            current = queue.popleft()\n            for neighbor in graph[current]:\n                if distances[current] + 1 < distances[neighbor]:\n                    distances[neighbor] = distances[current] + 1\n                    queue.append(neighbor)\n        \n        answers = []\n        \n        for query in queries:\n            ui, vi = query\n            # Add the new road to the graph\n            if ui in graph:\n                graph[ui].append(vi)\n            else:\n                graph[ui] = [vi]\n            \n            # If the new road can potentially make the path shorter, update distances\n            if distances[ui] + 1 < distances[vi]:\n                distances[vi] = distances[ui] + 1\n                queue.append(vi)\n                # Update distances of all neighbors of vi\n                while queue:\n                    current = queue.popleft()\n                    for neighbor in graph[current]:\n                        if distances[current] + 1 < distances[neighbor]:\n                            distances[neighbor] = distances[current] + 1\n                            queue.append(neighbor)\n            \n            answers.append(distances[n - 1])\n        \n        return answers",
+              "solution_hash": "9d2122ccd2fd95c5e4862dbf21fc2caaf4a2a766338c1582ea40ad31ab775efa",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.0675210952758789
+              },
+              "depth": 2,
+              "parent_id": "1_2",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_4",
+              "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = {i: [i + 1] for i in range(n - 1)}\n        graph[n - 1] = []\n        \n        # Precompute the initial shortest distances\n        distances = [float('inf')] * n\n        distances[0] = 0\n        queue = deque([0])\n        \n        while queue:\n            current = queue.popleft()\n            for neighbor in graph[current]:\n                if distances[current] + 1 < distances[neighbor]:\n                    distances[neighbor] = distances[current] + 1\n                    queue.append(neighbor)\n        \n        answers = []\n        \n        for query in queries:\n            ui, vi = query\n            # Add the new road to the graph\n            if ui in graph:\n                graph[ui].append(vi)\n            else:\n                graph[ui] = [vi]\n            \n            # If the new road can potentially make the path shorter, update distances\n            if distances[ui] + 1 < distances[vi]:\n                distances[vi] = distances[ui] + 1\n                queue.append(vi)\n                # Update distances of all neighbors of vi\n                while queue:\n                    current = queue.popleft()\n                    for neighbor in graph[current]:\n                        if distances[current] + 1 < distances[neighbor]:\n                            distances[neighbor] = distances[current] + 1\n                            queue.append(neighbor)\n            \n            answers.append(distances[n - 1])\n        \n        return answers",
+              "solution_hash": "9d2122ccd2fd95c5e4862dbf21fc2caaf4a2a766338c1582ea40ad31ab775efa",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.0675210952758789
+              },
+              "depth": 2,
+              "parent_id": "1_2",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_5",
+              "solution": "from typing import List\n\n        class Solution:\n            def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n                # Initialize the graph with initial roads\n                graph = {i: [i + 1] for i in range(n - 1)}\n                graph[n - 1] = []\n                \n                # Precompute the initial shortest distances\n                distances = [n - 1 - i for i in range(n)]\n                \n                answers = []\n                \n                for query in queries:\n                    ui, vi = query\n                    # Add the new road to the graph\n                    if ui in graph:\n                        graph[ui].append(vi)\n                    else:\n                        graph[ui] = [vi]\n                    \n                    # Update the distances array considering the new road\n                    # The new road from ui to vi allows reaching vi from ui in one step\n                    # So, the distance to n-1 from ui can be updated if distance to vi is known\n                    # We need to propagate this update backwards from vi to ui\n                    # But to simplify, we can recompute the distances incrementally\n                    \n                    # Start from ui and see if the distance can be improved\n                    queue = [ui]\n                    visited = set()\n                    while queue:\n                        current = queue.pop(0)\n                        if current in visited:\n                            continue\n                        visited.add(current)\n                        # Update the distance for current node\n                        min_dist = min(distances[next_node] + 1 for next_node in graph[current])\n                        if min_dist < distances[current]:\n                            distances[current] = min_dist\n                            # If updated, need to check predecessors that can reach current\n                            for pred in graph:\n                                if current in graph[pred]:\n                                    queue.append(pred)\n                    \n                    answers.append(distances[0])\n                \n                return answers",
+              "solution_hash": "c4e451bc54d3d05f7a36b361f708c2fbca296d6037480b1fe731f6d11e74b866",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpa6hqzacv.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.0572054386138916
+              },
+              "depth": 2,
+              "parent_id": "1_2",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_6",
+          "solution": "from typing import List\n        from collections import deque\n\n        class Solution:\n            def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n                # Initialize the graph with initial roads\n                graph = {i: [i + 1] for i in range(n - 1)}\n                graph[n - 1] = []\n                \n                answers = []\n                \n                for query in queries:\n                    ui, vi = query\n                    # Add the new road to the graph\n                    if ui in graph:\n                        graph[ui].append(vi)\n                    else:\n                        graph[ui] = [vi]\n                    \n                    # Compute the shortest path from 0 to n-1\n                    distance = self.bfs_shortest_path(graph, 0, n - 1, n)\n                    answers.append(distance)\n                \n                return answers\n            \n            def bfs_shortest_path(self, graph, start, end, n):\n                visited = [False] * n\n                queue = deque()\n                queue.append((start, 0))\n                visited[start] = True\n                \n                while queue:\n                    current, dist = queue.popleft()\n                    if current == end:\n                        return dist\n                    for neighbor in graph[current]:\n                        if not visited[neighbor]:\n                            visited[neighbor] = True\n                            queue.append((neighbor, dist + 1))\n                return -1  # If no path is found, though in this problem, it's guaranteed to be connected",
+          "solution_hash": "56f421a94113eb4821e7e596840ab9718c6016d9e8ba081eaeb0ebf8e7452d59",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmpk_tp87x_.py\", line 82\n    from collections import deque\nIndentationError: unexpected indent\n",
+            "execution_time": 0.05271601676940918
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_7",
+              "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = {i: [i + 1] for i in range(n - 1)}\n        graph[n - 1] = []\n        \n        # Compute initial shortest distances\n        distances = self.bfs_shortest_path(graph, 0, n)\n        \n        answers = []\n        \n        for query in queries:\n            ui, vi = query\n            # Add the new road to the graph\n            if ui in graph:\n                graph[ui].append(vi)\n            else:\n                graph[ui] = [vi]\n            \n            # If the new road can potentially make the path shorter, update distances\n            if distances[ui] != -1:\n                new_dist = distances[ui] + 1\n                if distances[vi] == -1 or new_dist < distances[vi]:\n                    distances[vi] = new_dist\n                    # Update distances for all nodes reachable from vi\n                    queue = deque([vi])\n                    while queue:\n                        current = queue.popleft()\n                        for neighbor in graph[current]:\n                            if distances[current] + 1 < distances[neighbor]:\n                                distances[neighbor] = distances[current] + 1\n                                queue.append(neighbor)\n            \n            answers.append(distances[n - 1])\n        \n        return answers\n    \n    def bfs_shortest_path(self, graph, start, n):\n        distances = [-1] * n\n        distances[start] = 0\n        queue = deque([start])\n        \n        while queue:\n            current = queue.popleft()\n            for neighbor in graph[current]:\n                if distances[neighbor] == -1:\n                    distances[neighbor] = distances[current] + 1\n                    queue.append(neighbor)\n        \n        return distances",
+              "solution_hash": "30fb369d5fb5c534f6485d93ac2a7e600c7457bc9478d32e65ffb6711ca7f8b4",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.0670919418334961
+              },
+              "depth": 2,
+              "parent_id": "1_6",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_8",
+              "solution": "from typing import List\n        from collections import deque\n\n        class Solution:\n            def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n                # Initialize the graph with initial roads\n                graph = {i: [i + 1] for i in range(n - 1)}\n                graph[n - 1] = []\n                \n                # Add all query roads to the graph\n                for query in queries:\n                    ui, vi = query\n                    if ui in graph:\n                        graph[ui].append(vi)\n                    else:\n                        graph[ui] = [vi]\n                \n                # Compute the shortest path from 0 to n-1 using BFS\n                distance = self.bfs_shortest_path(graph, 0, n - 1, n)\n                answers = [distance]\n                \n                # Reverse the queries and remove roads one by one to simulate processing queries one by one\n                reversed_queries = queries[::-1]\n                for query in reversed_queries:\n                    ui, vi = query\n                    # Remove the road from ui to vi\n                    graph[ui].remove(vi)\n                    # Compute the shortest path from 0 to n-1 without this road\n                    dist = self.bfs_shortest_path(graph, 0, n - 1, n)\n                    # Insert the road back for the next iteration\n                    graph[ui].append(vi)\n                    # Prepend the distance to the answers list\n                    answers.insert(0, dist)\n                \n                # Remove the last element which was added after processing all queries\n                answers.pop()\n                return answers\n            \n            def bfs_shortest_path(self, graph, start, end, n):\n                visited = [False] * n\n                queue = deque()\n                queue.append((start, 0))\n                visited[start] = True\n                \n                while queue:\n                    current, dist = queue.popleft()\n                    if current == end:\n                        return dist\n                    for neighbor in graph[current]:\n                        if not visited[neighbor]:\n                            visited[neighbor] = True\n                            queue.append((neighbor, dist + 1))\n                return -1  # If no path is found, though in this problem, it's guaranteed to be connected",
+              "solution_hash": "e7428d216ee0a5d293822922a051389f083a9a07ceecec77df76eb60211d1885",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpn1y5zr7d.py\", line 82\n    from collections import deque\nIndentationError: unexpected indent\n",
+                "execution_time": 0.0569460391998291
+              },
+              "depth": 2,
+              "parent_id": "1_6",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_9",
+              "solution": "from typing import List\nimport heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = {i: [i + 1] for i in range(n - 1)}\n        graph[n - 1] = []\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra(start):\n            distances = [float('inf')] * n\n            distances[start] = 0\n            pq = [(0, start)]\n            \n            while pq:\n                current_dist, current_node = heapq.heappop(pq)\n                if current_dist > distances[current_node]:\n                    continue\n                for neighbor in graph[current_node]:\n                    distance = current_dist + 1\n                    if distance < distances[neighbor]:\n                        distances[neighbor] = distance\n                        heapq.heappush(pq, (distance, neighbor))\n            return distances\n        \n        answers = []\n        distances = dijkstra(0)\n        \n        for query in queries:\n            ui, vi = query\n            # Add the new road to the graph\n            if ui in graph:\n                graph[ui].append(vi)\n            else:\n                graph[ui] = [vi]\n            \n            # Update distances if the new road provides a shorter path\n            if distances[ui] != float('inf'):\n                new_distance = distances[ui] + 1\n                if new_distance < distances[vi]:\n                    distances[vi] = new_distance\n                    # Update distances for all nodes reachable from vi\n                    pq = [(new_distance, vi)]\n                    while pq:\n                        current_dist, current_node = heapq.heappop(pq)\n                        if current_dist > distances[current_node]:\n                            continue\n                        for neighbor in graph[current_node]:\n                            distance = current_dist + 1\n                            if distance < distances[neighbor]:\n                                distances[neighbor] = distance\n                                heapq.heappush(pq, (distance, neighbor))\n            \n            answers.append(distances[n - 1])\n        \n        return answers",
+              "solution_hash": "8ad3d87ba4d86f61b09702b99d82680d7f4caa7612901b7017264b699b7b497c",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.06886792182922363
+              },
+              "depth": 2,
+              "parent_id": "1_6",
+              "children": [],
+              "passed": true
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = [[] for _ in range(n)]\n        for i in range(n - 1):\n            graph[i].append(i + 1)\n        \n        answer = []\n        for query in queries:\n            ui, vi = query\n            graph[ui].append(vi)\n            # After adding the new road, compute the shortest path from 0 to n-1\n            distance = self.bfs_shortest_path(graph, 0, n - 1)\n            answer.append(distance)\n        \n        return answer\n    \n    def bfs_shortest_path(self, graph, start, end):\n        queue = deque()\n        queue.append((start, 0))  # (node, distance)\n        visited = set()\n        visited.add(start)\n        \n        while queue:\n            current, distance = queue.popleft()\n            if current == end:\n                return distance\n            for neighbor in graph[current]:\n                if neighbor not in visited:\n                    visited.add(neighbor)\n                    queue.append((neighbor, distance + 1))\n        \n        # If no path found\n        return -1",
+      "solution_hash": "33c0c684755ea1f1c86141973b36363bd6eb440fcac7dd2d7e350f549b2f6178",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.07263731956481934
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    }
+  ],
+  "stats": {
+    "nodes_explored": 11,
+    "candidates_generated": 11,
+    "tests_passed": 6,
+    "tests_failed": 5,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 845.8998277187347,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.5833333333333334,
+      "pass@3": 0.9545454545454546,
+      "pass@5": 0.9987373737373737,
+      "pass@10": 1.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 11
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 12,
+    "test_cases": 1
+  }
+}

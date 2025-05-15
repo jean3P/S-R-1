@@ -1,0 +1,429 @@
+{
+  "problem_id": "maximum-multiplication-score",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "solved",
+  "best_solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        first = second = third = fourth = -float('inf')\n        \n        for num in b:\n            new_first = max(first, a[0] * num)\n            new_second = max(second, first + a[1] * num)\n            new_third = max(third, second + a[2] * num)\n            new_fourth = max(fourth, third + a[3] * num)\n            \n            first, second, third, fourth = new_first, new_second, new_third, new_fourth\n        \n        return fourth",
+  "passed_solutions": [
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Precompute the products for each a[i] and sort b accordingly\n        sorted_b = []\n        for i in range(4):\n            # Create a list of tuples (b[j], j) and sort based on a[i] * b[j]\n            temp = sorted([(b[j], j) for j in range(len(b))], key=lambda x: -a[i] * x[0])\n            sorted_b.append(temp)\n        \n        max_score = -float('inf')\n        # Iterate through all possible combinations of indices\n        for i0 in range(len(b)):\n            for i1 in range(i0 + 1, len(b)):\n                for i2 in range(i1 + 1, len(b)):\n                    for i3 in range(i2 + 1, len(b)):\n                        current = a[0] * b[i0] + a[1] * b[i1] + a[2] * b[i2] + a[3] * b[i3]\n                        if current > max_score:\n                            max_score = current\n                        # Early exit if we find the maximum possible\n                        if max_score == float('inf'):\n                            return max_score\n        return max_score",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        first = second = third = fourth = -float('inf')\n        \n        for num in b:\n            if third != -float('inf'):\n                fourth = max(fourth, third + a[3] * num)\n            if second != -float('inf'):\n                third = max(third, second + a[2] * num)\n            if first != -float('inf'):\n                second = max(second, first + a[1] * num)\n            first = max(first, a[0] * num)\n        \n        return fourth",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [-float('inf')] * 4\n        dp[0] = a[0] * b[0]\n        \n        for i in range(1, len(b)):\n            new_dp = dp.copy()\n            new_dp[0] = max(dp[0], a[0] * b[i])\n            for j in range(1, 4):\n                if dp[j-1] != -float('inf'):\n                    new_dp[j] = max(dp[j], dp[j-1] + a[j] * b[i])\n            dp = new_dp\n        \n        return dp[3]",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        n = len(b)\n        dp = [[-float('inf')] * 4 for _ in range(n)]\n        \n        dp[0][0] = a[0] * b[0]\n        \n        for i in range(1, n):\n            dp[i][0] = max(dp[i-1][0], a[0] * b[i])\n            for j in range(1, 4):\n                if dp[i-1][j-1] != -float('inf'):\n                    dp[i][j] = max(dp[i][j], dp[i-1][j-1] + a[j] * b[i])\n                if j <= i:\n                    dp[i][j] = max(dp[i][j], dp[i-1][j] if dp[i-1][j] != -float('inf') else -float('inf'))\n        \n        return max(dp[-1][3], dp[-1][3], dp[-1][3], dp[-1][3])",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [-float('inf')] * 5\n        dp[0] = 0\n        \n        for num in b:\n            new_dp = dp.copy()\n            for i in range(1, 5):\n                if dp[i-1] != -float('inf'):\n                    new_dp[i] = max(new_dp[i], dp[i-1] + a[i-1] * num)\n            dp = new_dp\n        \n        return dp[4]",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        first = second = third = fourth = -float('inf')\n        \n        for num in b:\n            new_first = max(first, a[0] * num)\n            new_second = max(second, first + a[1] * num)\n            new_third = max(third, second + a[2] * num)\n            new_fourth = max(fourth, third + a[3] * num)\n            \n            first, second, third, fourth = new_first, new_second, new_third, new_fourth\n        \n        return fourth",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [-inf] * 5  # dp[i] represents the max score for selecting i elements\n        dp[0] = 0\n        for num in b:\n            # Iterate backwards to prevent overwriting values we still need\n            for i in range(4, 0, -1):\n                if dp[i-1] != -inf:\n                    dp[i] = max(dp[i], dp[i-1] + a[i-1] * num)\n        return dp[4]"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [[-inf] * 4 for _ in range(len(b))]\n        dp[0][0] = a[0] * b[0]\n        \n        for i in range(1, len(b)):\n            dp[i][0] = max(dp[i-1][0], a[0] * b[i])\n            for j in range(1, 4):\n                if dp[i-1][j-1] != -inf:\n                    dp[i][j] = max(dp[i-1][j], dp[i-1][j-1] + a[j] * b[i])\n        \n        return max(dp[-1][3], max(dp[-1][3], max(dp[-1][3], max(dp[-1][3]))))",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Initialize the list to keep track of top sums for each step\n        dp = []\n        # For the first element in a, compute a[0] * b[j] for all j\n        first = [(a[0] * b[j], j) for j in range(len(b))]\n        # Sort and keep top 4\n        first.sort(reverse=True, key=lambda x: x[0])\n        dp.append(first[:4])\n        \n        # Iterate for the remaining elements in a\n        for i in range(1, 4):\n            current = []\n            # For each possible j in b\n            for j in range(len(b)):\n                # For each possible previous sum and index\n                for prev_sum, prev_j in dp[i-1]:\n                    if prev_j < j:\n                        new_sum = prev_sum + a[i] * b[j]\n                        current.append((new_sum, j))\n            # Sort and keep top 4\n            current.sort(reverse=True, key=lambda x: x[0])\n            dp.append(current[:4])\n        \n        # The maximum score is the maximum sum in the last step\n        if not dp[3]:\n            return -float('inf')\n        return max(s for s, _ in dp[3])",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort the elements of b along with their indices in descending order\n        sorted_b = sorted([(val, idx) for idx, val in enumerate(b)], key=lambda x: (-x[0], x[1]))\n        \n        # Select the top 4 elements ensuring their indices are in increasing order\n        selected = []\n        last_idx = -1\n        for val, idx in sorted_b:\n            if idx > last_idx:\n                selected.append(val)\n                last_idx = idx\n                if len(selected) == 4:\n                    break\n        \n        # Calculate the score using the selected values\n        return a[0] * selected[0] + a[1] * selected[1] + a[2] * selected[2] + a[3] * selected[3]",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Precompute the products for each a[i] and sort b accordingly\n        sorted_b = []\n        for i in range(4):\n            # Create a list of tuples (b[j], j) and sort based on a[i] * b[j]\n            temp = sorted([(b[j], j) for j in range(len(b))], key=lambda x: -a[i] * x[0])\n            sorted_b.append(temp)\n        \n        max_score = -float('inf')\n        # Iterate through all possible combinations of indices\n        for i0 in range(len(b)):\n            for i1 in range(i0 + 1, len(b)):\n                for i2 in range(i1 + 1, len(b)):\n                    for i3 in range(i2 + 1, len(b)):\n                        current = a[0] * b[i0] + a[1] * b[i1] + a[2] * b[i2] + a[3] * b[i3]\n                        if current > max_score:\n                            max_score = current\n                        # Early exit if we find the maximum possible\n                        if max_score == float('inf'):\n                            return max_score\n        return max_score",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Precompute the top 4 elements for each position in a\n        top = []\n        for i in range(4):\n            # For each a[i], find the top 4 b[j] values, considering the previous indices\n            if i == 0:\n                # For the first element, take top 4 b[j]\n                current = sorted([(a[0] * b[j], j) for j in range(len(b))], reverse=True)[:4]\n            else:\n                current = []\n                # For each possible j in b\n                for j in range(len(b)):\n                    # For each possible previous sum and index\n                    for prev_sum, prev_j in top[i-1]:\n                        if prev_j < j:\n                            new_sum = prev_sum + a[i] * b[j]\n                            current.append((new_sum, j))\n                # Keep top 4 sums\n                current.sort(reverse=True, key=lambda x: x[0])\n                current = current[:4]\n            top.append(current)\n        \n        # The maximum score is the maximum sum in the last step\n        if not top[3]:\n            return -float('inf')\n        return max(s for s, _ in top[3])",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        first = second = third = fourth = -float('inf')\n        \n        for num in b:\n            if third != -float('inf'):\n                fourth = max(fourth, third + a[3] * num)\n            if second != -float('inf'):\n                third = max(third, second + a[2] * num)\n            if first != -float('inf'):\n                second = max(second, first + a[1] * num)\n            first = max(first, a[0] * num)\n        \n        return fourth",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [-float('inf')] * 4\n        dp[0] = a[0] * b[0]\n        \n        for i in range(1, len(b)):\n            new_dp = dp.copy()\n            new_dp[0] = max(dp[0], a[0] * b[i])\n            for j in range(1, 4):\n                if dp[j-1] != -float('inf'):\n                    new_dp[j] = max(dp[j], dp[j-1] + a[j] * b[i])\n            dp = new_dp\n        \n        return dp[3]",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [[-inf] * 4 for _ in range(len(b))]\n        dp[0][0] = a[0] * b[0]\n        \n        for i in range(1, len(b)):\n            dp[i][0] = max(dp[i-1][0], a[0] * b[i])\n            for j in range(1, 4):\n                if dp[i-1][j-1] != -inf:\n                    dp[i][j] = max(dp[i-1][j], dp[i-1][j-1] + a[j] * b[i])\n                if j < i:\n                    dp[i][j] = max(dp[i][j], a[j] * b[i])\n        \n        return max(dp[-1][3], max(dp[len(b)-1][3], max(dp[len(b)-1][3], max(dp[len(b)-1][3])))",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        n = len(b)\n        dp = [[-float('inf')] * 4 for _ in range(n)]\n        \n        dp[0][0] = a[0] * b[0]\n        \n        for i in range(1, n):\n            dp[i][0] = max(dp[i-1][0], a[0] * b[i])\n            for j in range(1, 4):\n                if dp[i-1][j-1] != -float('inf'):\n                    dp[i][j] = max(dp[i][j], dp[i-1][j-1] + a[j] * b[i])\n                if j <= i:\n                    dp[i][j] = max(dp[i][j], dp[i-1][j] if dp[i-1][j] != -float('inf') else -float('inf'))\n        \n        return max(dp[-1][3], dp[-1][3], dp[-1][3], dp[-1][3])",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [-float('inf')] * 5\n        dp[0] = 0\n        \n        for num in b:\n            new_dp = dp.copy()\n            for i in range(1, 5):\n                if dp[i-1] != -float('inf'):\n                    new_dp[i] = max(new_dp[i], dp[i-1] + a[i-1] * num)\n            dp = new_dp\n        \n        return dp[4]",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [[-float('inf')] * 4 for _ in range(len(b))]\n        dp[0][0] = a[0] * b[0]\n        \n        for i in range(1, len(b)):\n            dp[i][0] = max(dp[i-1][0], a[0] * b[i])\n            for j in range(1, 4):\n                if dp[i-1][j-1] != -float('inf'):\n                    dp[i][j] = max(dp[i-1][j], dp[i-1][j-1] + a[j] * b[i])\n                if j <= i:\n                    dp[i][j] = max(dp[i][j], a[j] * b[i])\n        \n        return max(dp[-1][3], dp[-1][3], dp[-1][3], dp[-1][3])",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort the array b in descending order\n        b_sorted = sorted(b, reverse=True)\n        # Take the top 4 elements from the sorted array\n        top4 = b_sorted[:4]\n        # Calculate the score by multiplying corresponding elements and summing them\n        score = sum(x * y for x, y in zip(a, top4))\n        return score",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp0 = dp1 = dp2 = dp3 = -float('inf')\n        \n        for num in b:\n            new_dp3 = max(dp3 + a[3] * num, dp2 + a[3] * num)\n            new_dp2 = max(dp2 + a[2] * num, dp1 + a[2] * num)\n            new_dp1 = max(dp1 + a[1] * num, dp0 + a[1] * num)\n            new_dp0 = max(dp0 + a[0] * num, a[0] * num)\n            \n            dp3, dp2, dp1, dp0 = new_dp3, new_dp2, new_dp1, new_dp0\n        \n        return dp3",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        first = second = third = fourth = -float('inf')\n        \n        for num in b:\n            new_first = max(first, a[0] * num)\n            new_second = max(second, first + a[1] * num)\n            new_third = max(third, second + a[2] * num)\n            new_fourth = max(fourth, third + a[3] * num)\n            \n            first, second, third, fourth = new_first, new_second, new_third, new_fourth\n        \n        return fourth",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [-inf] * 5  # dp[i] represents the max score for selecting i elements\n        dp[0] = 0\n        for num in b:\n            # Iterate backwards to prevent overwriting values we still need\n            for i in range(4, 0, -1):\n                if dp[i-1] != -inf:\n                    dp[i] = max(dp[i], dp[i-1] + a[i-1] * num)\n        return dp[4]"
+  ],
+  "total_candidates": 15,
+  "nodes_explored": 15,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [[-inf] * 4 for _ in range(len(b))]\n        dp[0][0] = a[0] * b[0]\n        \n        for i in range(1, len(b)):\n            dp[i][0] = max(dp[i-1][0], a[0] * b[i])\n            for j in range(1, 4):\n                if dp[i-1][j-1] != -inf:\n                    dp[i][j] = max(dp[i-1][j], dp[i-1][j-1] + a[j] * b[i])\n        \n        return max(dp[-1][3], max(dp[-1][3], max(dp[-1][3], max(dp[-1][3]))))",
+      "solution_hash": "c5548383d6989ccc0a89a978a3be105fdba59e8e04a6b29e9acc597001e3f4cd",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp_wjq_nk1.py\", line 204, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmp_wjq_nk1.py\", line 96, in check\n    assert candidate(a = [0, 0, 0, 0],b = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) == 0\n  File \"/scratch/local/21419949/tmp_wjq_nk1.py\", line 92, in maxScore\n    return max(dp[-1][3], max(dp[-1][3], max(dp[-1][3], max(dp[-1][3]))))\nTypeError: 'int' object is not iterable\n",
+        "execution_time": 0.06744503974914551
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Initialize the list to keep track of top sums for each step\n        dp = []\n        # For the first element in a, compute a[0] * b[j] for all j\n        first = [(a[0] * b[j], j) for j in range(len(b))]\n        # Sort and keep top 4\n        first.sort(reverse=True, key=lambda x: x[0])\n        dp.append(first[:4])\n        \n        # Iterate for the remaining elements in a\n        for i in range(1, 4):\n            current = []\n            # For each possible j in b\n            for j in range(len(b)):\n                # For each possible previous sum and index\n                for prev_sum, prev_j in dp[i-1]:\n                    if prev_j < j:\n                        new_sum = prev_sum + a[i] * b[j]\n                        current.append((new_sum, j))\n            # Sort and keep top 4\n            current.sort(reverse=True, key=lambda x: x[0])\n            dp.append(current[:4])\n        \n        # The maximum score is the maximum sum in the last step\n        if not dp[3]:\n            return -float('inf')\n        return max(s for s, _ in dp[3])",
+          "solution_hash": "1fcaeab042e27fb0cdac94029de5f4a2478e23d3bbd00800e95f9f56f4f567e2",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp1hsull6w.py\", line 220, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmp1hsull6w.py\", line 113, in check\n    assert candidate(a = [1, 2, 3, 4],b = [10, 20, 30, 40, 50, 60, 70, 80]) == 700\nAssertionError\n",
+            "execution_time": 0.06893253326416016
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_2",
+              "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort the elements of b along with their indices in descending order\n        sorted_b = sorted([(val, idx) for idx, val in enumerate(b)], key=lambda x: (-x[0], x[1]))\n        \n        # Select the top 4 elements ensuring their indices are in increasing order\n        selected = []\n        last_idx = -1\n        for val, idx in sorted_b:\n            if idx > last_idx:\n                selected.append(val)\n                last_idx = idx\n                if len(selected) == 4:\n                    break\n        \n        # Calculate the score using the selected values\n        return a[0] * selected[0] + a[1] * selected[1] + a[2] * selected[2] + a[3] * selected[3]",
+              "solution_hash": "8d644e06e4af7f0843ecbd981cc0d6863a4e2ed777e65f54c058c767f8e73e5f",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpeffupl7p.py\", line 209, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmpeffupl7p.py\", line 101, in check\n    assert candidate(a = [0, 0, 0, 0],b = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) == 0\n  File \"/scratch/local/21419949/tmpeffupl7p.py\", line 97, in maxScore\n    return a[0] * selected[0] + a[1] * selected[1] + a[2] * selected[2] + a[3] * selected[3]\nIndexError: list index out of range\n",
+                "execution_time": 0.06822609901428223
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_3",
+              "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Precompute the products for each a[i] and sort b accordingly\n        sorted_b = []\n        for i in range(4):\n            # Create a list of tuples (b[j], j) and sort based on a[i] * b[j]\n            temp = sorted([(b[j], j) for j in range(len(b))], key=lambda x: -a[i] * x[0])\n            sorted_b.append(temp)\n        \n        max_score = -float('inf')\n        # Iterate through all possible combinations of indices\n        for i0 in range(len(b)):\n            for i1 in range(i0 + 1, len(b)):\n                for i2 in range(i1 + 1, len(b)):\n                    for i3 in range(i2 + 1, len(b)):\n                        current = a[0] * b[i0] + a[1] * b[i1] + a[2] * b[i2] + a[3] * b[i3]\n                        if current > max_score:\n                            max_score = current\n                        # Early exit if we find the maximum possible\n                        if max_score == float('inf'):\n                            return max_score\n        return max_score",
+              "solution_hash": "bd4a241d996fd52383e085e11d9b9fada2abd81544c7ad80cfbbf1ce1c5ab91a",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 1.0485718250274658
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_4",
+              "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Precompute the top 4 elements for each position in a\n        top = []\n        for i in range(4):\n            # For each a[i], find the top 4 b[j] values, considering the previous indices\n            if i == 0:\n                # For the first element, take top 4 b[j]\n                current = sorted([(a[0] * b[j], j) for j in range(len(b))], reverse=True)[:4]\n            else:\n                current = []\n                # For each possible j in b\n                for j in range(len(b)):\n                    # For each possible previous sum and index\n                    for prev_sum, prev_j in top[i-1]:\n                        if prev_j < j:\n                            new_sum = prev_sum + a[i] * b[j]\n                            current.append((new_sum, j))\n                # Keep top 4 sums\n                current.sort(reverse=True, key=lambda x: x[0])\n                current = current[:4]\n            top.append(current)\n        \n        # The maximum score is the maximum sum in the last step\n        if not top[3]:\n            return -float('inf')\n        return max(s for s, _ in top[3])",
+              "solution_hash": "d808be5f5a2b2824a17f7fb8692e2b2f6b22632cb3e61787e494ed4491e00df9",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpa4hdzxmn.py\", line 219, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmpa4hdzxmn.py\", line 112, in check\n    assert candidate(a = [1, 2, 3, 4],b = [10, 20, 30, 40, 50, 60, 70, 80]) == 700\nAssertionError\n",
+                "execution_time": 0.06868505477905273
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_5",
+          "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        first = second = third = fourth = -float('inf')\n        \n        for num in b:\n            if third != -float('inf'):\n                fourth = max(fourth, third + a[3] * num)\n            if second != -float('inf'):\n                third = max(third, second + a[2] * num)\n            if first != -float('inf'):\n                second = max(second, first + a[1] * num)\n            first = max(first, a[0] * num)\n        \n        return fourth",
+          "solution_hash": "90b381fa5c750f875a1a60267572dadc2416352990358a3a8e3c88eb5c61377b",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.0683584213256836
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_6",
+          "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [-float('inf')] * 4\n        dp[0] = a[0] * b[0]\n        \n        for i in range(1, len(b)):\n            new_dp = dp.copy()\n            new_dp[0] = max(dp[0], a[0] * b[i])\n            for j in range(1, 4):\n                if dp[j-1] != -float('inf'):\n                    new_dp[j] = max(dp[j], dp[j-1] + a[j] * b[i])\n            dp = new_dp\n        \n        return dp[3]",
+          "solution_hash": "da1e009fcd9bf7021f42124845137985916817944f8e901e154558207da92b3a",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07380080223083496
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [],
+          "passed": true
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [[-inf] * 4 for _ in range(len(b))]\n        dp[0][0] = a[0] * b[0]\n        \n        for i in range(1, len(b)):\n            dp[i][0] = max(dp[i-1][0], a[0] * b[i])\n            for j in range(1, 4):\n                if dp[i-1][j-1] != -inf:\n                    dp[i][j] = max(dp[i-1][j], dp[i-1][j-1] + a[j] * b[i])\n                if j < i:\n                    dp[i][j] = max(dp[i][j], a[j] * b[i])\n        \n        return max(dp[-1][3], max(dp[len(b)-1][3], max(dp[len(b)-1][3], max(dp[len(b)-1][3])))",
+      "solution_hash": "b74d19c70b992625287e5ba236bd45ce7b18af3d9208ece6e7de3ba594c43b4a",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "  File \"/scratch/local/21419949/tmp87ef83_t.py\", line 97\n    def check(candidate):\n    ^\nSyntaxError: invalid syntax\n",
+        "execution_time": 0.06023049354553223
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_8",
+          "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        n = len(b)\n        dp = [[-float('inf')] * 4 for _ in range(n)]\n        \n        dp[0][0] = a[0] * b[0]\n        \n        for i in range(1, n):\n            dp[i][0] = max(dp[i-1][0], a[0] * b[i])\n            for j in range(1, 4):\n                if dp[i-1][j-1] != -float('inf'):\n                    dp[i][j] = max(dp[i][j], dp[i-1][j-1] + a[j] * b[i])\n                if j <= i:\n                    dp[i][j] = max(dp[i][j], dp[i-1][j] if dp[i-1][j] != -float('inf') else -float('inf'))\n        \n        return max(dp[-1][3], dp[-1][3], dp[-1][3], dp[-1][3])",
+          "solution_hash": "50344f0ef99dffdefeb0ff887629f324d8181fe9314096e7fee0e9d9336a7733",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.0714871883392334
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_9",
+          "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [-float('inf')] * 5\n        dp[0] = 0\n        \n        for num in b:\n            new_dp = dp.copy()\n            for i in range(1, 5):\n                if dp[i-1] != -float('inf'):\n                    new_dp[i] = max(new_dp[i], dp[i-1] + a[i-1] * num)\n            dp = new_dp\n        \n        return dp[4]",
+          "solution_hash": "42e418ac8baa6909fadc8fea84c35700b0688ccdc01838418648e233a0577398",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07432150840759277
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_10",
+          "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [[-float('inf')] * 4 for _ in range(len(b))]\n        dp[0][0] = a[0] * b[0]\n        \n        for i in range(1, len(b)):\n            dp[i][0] = max(dp[i-1][0], a[0] * b[i])\n            for j in range(1, 4):\n                if dp[i-1][j-1] != -float('inf'):\n                    dp[i][j] = max(dp[i-1][j], dp[i-1][j-1] + a[j] * b[i])\n                if j <= i:\n                    dp[i][j] = max(dp[i][j], a[j] * b[i])\n        \n        return max(dp[-1][3], dp[-1][3], dp[-1][3], dp[-1][3])",
+          "solution_hash": "8c6a687c0b4080ee1b66ee0865017b4caa2eca807602cece8c80d4fa040d2cd7",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpjummod2j.py\", line 206, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmpjummod2j.py\", line 104, in check\n    assert candidate(a = [10, -10, 10, -10],b = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) == -20\nAssertionError\n",
+            "execution_time": 0.07410264015197754
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_11",
+              "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort the array b in descending order\n        b_sorted = sorted(b, reverse=True)\n        # Take the top 4 elements from the sorted array\n        top4 = b_sorted[:4]\n        # Calculate the score by multiplying corresponding elements and summing them\n        score = sum(x * y for x, y in zip(a, top4))\n        return score",
+              "solution_hash": "0264b9b75ed67e923d77e7b7950b99faedf5d0667d35e29e9510bc61391773a6",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpd2vjzp2c.py\", line 201, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmpd2vjzp2c.py\", line 94, in check\n    assert candidate(a = [1, 2, 3, 4],b = [10, 20, 30, 40, 50, 60, 70, 80]) == 700\nAssertionError\n",
+                "execution_time": 0.0684661865234375
+              },
+              "depth": 2,
+              "parent_id": "1_10",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_12",
+              "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp0 = dp1 = dp2 = dp3 = -float('inf')\n        \n        for num in b:\n            new_dp3 = max(dp3 + a[3] * num, dp2 + a[3] * num)\n            new_dp2 = max(dp2 + a[2] * num, dp1 + a[2] * num)\n            new_dp1 = max(dp1 + a[1] * num, dp0 + a[1] * num)\n            new_dp0 = max(dp0 + a[0] * num, a[0] * num)\n            \n            dp3, dp2, dp1, dp0 = new_dp3, new_dp2, new_dp1, new_dp0\n        \n        return dp3",
+              "solution_hash": "b8d087f39c6ff70bf00ee2628832d8ed137f4095c3085bb4a4711729e8811e6b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp_boua3c0.py\", line 205, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmp_boua3c0.py\", line 98, in check\n    assert candidate(a = [1, 2, 3, 4],b = [10, 20, 30, 40, 50, 60, 70, 80]) == 700\nAssertionError\n",
+                "execution_time": 0.06752419471740723
+              },
+              "depth": 2,
+              "parent_id": "1_10",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_13",
+              "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        first = second = third = fourth = -float('inf')\n        \n        for num in b:\n            new_first = max(first, a[0] * num)\n            new_second = max(second, first + a[1] * num)\n            new_third = max(third, second + a[2] * num)\n            new_fourth = max(fourth, third + a[3] * num)\n            \n            first, second, third, fourth = new_first, new_second, new_third, new_fourth\n        \n        return fourth",
+              "solution_hash": "a70d0d71f07a1de7518d80670d76ac4557b7dc6d3222e904d3e58b713b48ffbd",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.06715679168701172
+              },
+              "depth": 2,
+              "parent_id": "1_10",
+              "children": [],
+              "passed": true
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [-inf] * 5  # dp[i] represents the max score for selecting i elements\n        dp[0] = 0\n        for num in b:\n            # Iterate backwards to prevent overwriting values we still need\n            for i in range(4, 0, -1):\n                if dp[i-1] != -inf:\n                    dp[i] = max(dp[i], dp[i-1] + a[i-1] * num)\n        return dp[4]",
+      "solution_hash": "4ac69859e513ef54f43a8125edc0749bbfc824ff09b63ca23542ffa6cb3939db",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.0753633975982666
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    }
+  ],
+  "stats": {
+    "nodes_explored": 15,
+    "candidates_generated": 15,
+    "tests_passed": 7,
+    "tests_failed": 8,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 907.4007668495178,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.5,
+      "pass@3": 0.9,
+      "pass@5": 0.9871794871794872,
+      "pass@10": 1.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: 'int' object is not iterable",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: list index out of range",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: invalid syntax (<string>, line 112)",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 15
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 16,
+    "test_cases": 1
+  }
+}

@@ -1,0 +1,433 @@
+{
+  "problem_id": "maximum-multiplication-score",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "solved",
+  "best_solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Initialize the dp arrays with negative infinity\n        dp1, dp2, dp3, dp4 = -inf, -inf, -inf, -inf\n        \n        for num in b:\n            # Update dp4 first as it depends on dp3\n            dp4 = max(dp4, dp3 + a[3] * num)\n            dp3 = max(dp3, dp2 + a[2] * num)\n            dp2 = max(dp2, dp1 + a[1] * num)\n            dp1 = max(dp1, a[0] * num)\n        \n        return dp4",
+  "passed_solutions": [
+    "from typing import List\nimport itertools\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort b in descending order\n        b_sorted = sorted(b, reverse=True)\n        \n        # Calculate the score for all combinations of 4 indices\n        max_score = float('-inf')\n        for combo in itertools.combinations(range(len(b)), 4):\n            score = sum(a[i] * b[combo[i]] for i in range(4))\n            max_score = max(max_score, score)\n        \n        return max_score",
+    "from typing import List\nfrom itertools import combinations\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        max_score = float('-inf')\n        # Iterate over all combinations of 4 indices from b\n        for combo in combinations(range(len(b)), 4):\n            # Calculate the score for the current combination\n            score = sum(a[i] * b[combo[i]] for i in range(4))\n            # Update max_score if the current score is higher\n            max_score = max(max_score, score)\n        return max_score",
+    "from typing import List\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        n = len(b)\n        # Initialize DP arrays to store the best scores up to each point\n        dp1 = [float('-inf')] * n  # Best score using one element\n        dp2 = [float('-inf')] * n  # Best score using two elements\n        dp3 = [float('-inf')] * n  # Best score using three elements\n        \n        # Fill dp1 with the best scores using a[0]\n        for i in range(n):\n            dp1[i] = max(dp1[i-1], a[0] * b[i])\n        \n        # Fill dp2 with the best scores using a[1] and the best scores from dp1\n        for i in range(1, n):\n            dp2[i] = max(dp2[i-1], dp1[i-1] + a[1] * b[i])\n        \n        # Fill dp3 with the best scores using a[2] and the best scores from dp2\n        for i in range(2, n):\n            dp3[i] = max(dp3[i-1], dp2[i-1] + a[2] * b[i])\n        \n        # Calculate the final result using a[3] and the best scores from dp3\n        max_score = float('-inf')\n        for i in range(3, n):\n            max_score = max(max_score, dp3[i-1] + a[3] * b[i])\n        \n        return max_score",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Initialize the dp arrays with negative infinity\n        dp1, dp2, dp3, dp4 = -inf, -inf, -inf, -inf\n        \n        for num in b:\n            # Update dp4 first as it depends on dp3\n            dp4 = max(dp4, dp3 + a[3] * num)\n            dp3 = max(dp3, dp2 + a[2] * num)\n            dp2 = max(dp2, dp1 + a[1] * num)\n            dp1 = max(dp1, a[0] * num)\n        \n        return dp4",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Initialize the dp arrays with negative infinity\n        dp1, dp2, dp3, dp4 = float('-inf'), float('-inf'), float('-inf'), float('-inf')\n        \n        for num in b:\n            # Update dp4 first as it depends on dp3\n            dp4 = max(dp4, dp3 + a[3] * num)\n            # Update dp3 next as it depends on dp2\n            dp3 = max(dp3, dp2 + a[2] * num)\n            # Update dp2 next as it depends on dp1\n            dp2 = max(dp2, dp1 + a[1] * num)\n            # Update dp1 which only depends on the current number\n            dp1 = max(dp1, a[0] * num)\n        \n        return dp4"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        n = len(b)\n        dp = [[-inf] * 5 for _ in range(n + 1)]\n        dp[0][0] = 0\n        \n        for i in range(1, n + 1):\n            for j in range(1, 5):\n                dp[i][j] = max(dp[i - 1][j], dp[i - 1][j - 1] + a[j - 1] * b[i - 1])\n        \n        return dp[n][4]",
+    "from typing import List\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort b in ascending order\n        b.sort()\n        \n        # Initialize score\n        score = 0\n        \n        # Use two pointers to select elements from b\n        left = 0\n        right = len(b) - 1\n        \n        # Iterate over coefficients in a\n        for coeff in sorted(a, key=lambda x: abs(x), reverse=True):\n            if coeff > 0:\n                # If coefficient is positive, take the largest remaining element\n                score += coeff * b[right]\n                right -= 1\n            else:\n                # If coefficient is negative, take the smallest remaining element\n                score += coeff * b[left]\n                left += 1\n        \n        return score",
+    "from typing import List\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        n = len(b)\n        \n        # Create lists of tuples (value, index) for b\n        b_with_indices = [(val, idx) for idx, val in enumerate(b)]\n        \n        # Sort b_with_indices based on values\n        b_with_indices.sort()\n        \n        # Initialize arrays to store maximum scores\n        max1 = [0] * n\n        max2 = [0] * n\n        max3 = [0] * n\n        \n        # Calculate max1: max(a[0] * b[i])\n        for i in range(n):\n            if i == 0:\n                max1[i] = a[0] * b_with_indices[i][0]\n            else:\n                max1[i] = max(max1[i - 1], a[0] * b_with_indices[i][0])\n        \n        # Calculate max2: max(max1[j] + a[1] * b[i]) for j < i\n        for i in range(n):\n            if i == 0:\n                max2[i] = float('-inf')\n            elif i == 1:\n                max2[i] = max1[0] + a[1] * b_with_indices[i][0]\n            else:\n                max2[i] = max(max2[i - 1], max1[i - 1] + a[1] * b_with_indices[i][0])\n        \n        # Calculate max3: max(max2[j] + a[2] * b[i]) for j < i\n        for i in range(n):\n            if i == 0 or i == 1:\n                max3[i] = float('-inf')\n            elif i == 2:\n                max3[i] = max2[1] + a[2] * b_with_indices[i][0]\n            else:\n                max3[i] = max(max3[i - 1], max2[i - 1] + a[2] * b_with_indices[i][0])\n        \n        # Find the maximum score: max(max3[j] + a[3] * b[i]) for j < i\n        max_score = float('-inf')\n        for i in range(n):\n            if i >= 3:\n                max_score = max(max_score, max3[i - 1] + a[3] * b_with_indices[i][0])\n        \n        return max_score",
+    "from typing import List\nimport itertools\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort b in descending order\n        b_sorted = sorted(b, reverse=True)\n        \n        # Calculate the score for all combinations of 4 indices\n        max_score = float('-inf')\n        for combo in itertools.combinations(range(len(b)), 4):\n            score = sum(a[i] * b[combo[i]] for i in range(4))\n            max_score = max(max_score, score)\n        \n        return max_score",
+    "from typing import List\nfrom itertools import combinations\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort b in descending order along with their original indices\n        indexed_b = sorted(enumerate(b), key=lambda x: x[1], reverse=True)\n        \n        # Precompute the best scores for the first two coefficients\n        best_two_scores = {}\n        for i in range(len(indexed_b)):\n            for j in range(i + 1, len(indexed_b)):\n                idx_i, val_i = indexed_b[i]\n                idx_j, val_j = indexed_b[j]\n                best_two_scores[(idx_j, idx_i)] = a[0] * val_i + a[1] * val_j\n        \n        # Precompute the best scores for the first three coefficients\n        best_three_scores = {}\n        for i in range(len(indexed_b)):\n            for j in range(i + 1, len(indexed_b)):\n                for k in range(j + 1, len(indexed_b)):\n                    idx_i, val_i = indexed_b[i]\n                    idx_j, val_j = indexed_b[j]\n                    idx_k, val_k = indexed_b[k]\n                    best_three_scores[(idx_k, idx_j, idx_i)] = best_two_scores[(idx_j, idx_i)] + a[2] * val_k\n        \n        # Compute the best score for all four coefficients\n        max_score = float('-inf')\n        for i in range(len(indexed_b)):\n            for j in range(i + 1, len(indexed_b)):\n                for k in range(j + 1, len(indexed_b)):\n                    for l in range(k + 1, len(indexed_b)):\n                        idx_i, val_i = indexed_b[i]\n                        idx_j, val_j = indexed_b[j]\n                        idx_k, val_k = indexed_b[k]\n                        idx_l, val_l = indexed_b[l]\n                        current_score = best_three_scores[(idx_k, idx_j, idx_i)] + a[3] * val_l\n                        max_score = max(max_score, current_score)\n        \n        return max_score",
+    "from typing import List\nfrom itertools import combinations\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Pair each element with its index and sort by the element value\n        indexed_b = sorted((val, idx) for idx, val in enumerate(b))\n        \n        max_score = float('-inf')\n        # Iterate over all combinations of 4 indices\n        for comb in combinations(indexed_b, 4):\n            # Ensure the indices are in increasing order\n            if comb[0][1] < comb[1][1] < comb[2][1] < comb[3][1]:\n                score = a[0] * comb[0][0] + a[1] * comb[1][0] + a[2] * comb[2][0] + a[3] * comb[3][0]\n                max_score = max(max_score, score)\n        \n        return max_score",
+    "from typing import List\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort b in descending order\n        b_sorted = sorted(b, reverse=True)\n        \n        # Initialize variables to store the best candidates\n        best_pos = [float('-inf')] * 4\n        best_neg = [float('inf')] * 4\n        \n        # Collect the top 4 positive and negative values from b\n        for val in b_sorted:\n            if val >= 0:\n                best_pos.pop()\n                best_pos.insert(0, val)\n            else:\n                best_neg.pop()\n                best_neg.insert(0, val)\n        \n        max_score = float('-inf')\n        \n        # Evaluate all combinations of best positive and negative candidates\n        for i0 in range(4):\n            for i1 in range(4):\n                for i2 in range(4):\n                    for i3 in range(4):\n                        # Ensure we are using distinct indices\n                        if len(set([i0, i1, i2, i3])) == 4:\n                            score = (a[0] * best_pos[i0] +\n                                     a[1] * best_pos[i1] +\n                                     a[2] * best_pos[i2] +\n                                     a[3] * best_pos[i3])\n                            max_score = max(max_score, score)\n                            \n                            score = (a[0] * best_pos[i0] +\n                                     a[1] * best_pos[i1] +\n                                     a[2] * best_pos[i2] +\n                                     a[3] * best_neg[i3])\n                            max_score = max(max_score, score)\n                            \n                            score = (a[0] * best_pos[i0] +\n                                     a[1] * best_pos[i1] +\n                                     a[2] * best_neg[i2] +\n                                     a[3] * best_neg[i3])\n                            max_score = max(max_score, score)\n                            \n                            score = (a[0] * best_pos[i0] +\n                                     a[1] * best_neg[i1] +\n                                     a[2] * best_neg[i2] +\n                                     a[3] * best_neg[i3])\n                            max_score = max(max_score, score)\n                            \n                            score = (a[0] * best_neg[i0] +\n                                     a[1] * best_neg[i1] +\n                                     a[2] * best_neg[i2] +\n                                     a[3] * best_neg[i3])\n                            max_score = max(max_score, score)\n        \n        return max_score",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Create a list of tuples (a[i] * b[j], j) for each element in b\n        # This helps in sorting based on the product value while keeping track of original indices\n        indexed_b = [(a[0] * b[i], i) for i in range(len(b))]\n        heapq.heapify(indexed_b)\n        \n        # Get the top 4 smallest products (most negative contributions)\n        top4_negatives = heapq.nsmallest(4, indexed_b)\n        \n        # Create a list of tuples (-a[i] * b[j], j) for each element in b\n        # This helps in sorting based on the product value while keeping track of original indices\n        indexed_b_positive = [(-a[3] * b[i], i) for i in range(len(b))]\n        heapq.heapify(indexed_b_positive)\n        \n        # Get the top 4 largest products (most positive contributions)\n        top4_positives = heapq.nsmallest(4, indexed_b_positive)\n        \n        max_score = float('-inf')\n        \n        # Try different combinations of top 4 negative and positive contributions\n        for i in range(4):\n            for j in range(4):\n                for k in range(4):\n                    for l in range(4):\n                        # Extract values and indices\n                        neg1_val, neg1_idx = top4_negatives[i]\n                        neg2_val, neg2_idx = top4_negatives[j]\n                        pos1_val, pos1_idx = top4_positives[k]\n                        pos2_val, pos2_idx = top4_positives[l]\n                        \n                        # Check if indices are in increasing order\n                        if neg1_idx < neg2_idx < pos1_idx < pos2_idx:\n                            score = -neg1_val + -neg2_val + -pos1_val + -pos2_val\n                            max_score = max(max_score, score)\n        \n        return max_score",
+    "from typing import List\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        n = len(b)\n        \n        # Sort indices based on the values in b\n        sorted_indices = sorted(range(n), key=lambda x: b[x])\n        \n        # Initialize variables to store the best scores\n        max_a0_b_i = [float('-inf')] * n\n        max_a0_b_i_a1_b_j = [float('-inf')] * n\n        max_a0_b_i_a1_b_j_a2_b_k = [float('-inf')] * n\n        \n        # Compute the best scores incrementally\n        for i in range(n):\n            if i > 0:\n                max_a0_b_i[i] = max(max_a0_b_i[i-1], a[0] * b[sorted_indices[i]])\n            \n            if i > 1:\n                j = sorted_indices[i-1]\n                max_a0_b_i_a1_b_j[i] = max(max_a0_b_i_a1_b_j[i-1], max_a0_b_i[j] + a[1] * b[sorted_indices[i]])\n            \n            if i > 2:\n                k = sorted_indices[i-2]\n                max_a0_b_i_a1_b_j_a2_b_k[i] = max(max_a0_b_i_a1_b_j_a2_b_k[i-1], max_a0_b_i_a1_b_j[k] + a[2] * b[sorted_indices[i]])\n        \n        # Calculate the final maximum score\n        max_score = float('-inf')\n        for l in range(3, n):\n            m = sorted_indices[l-1]\n            score = max_a0_b_i_a1_b_j_a2_b_k[m] + a[3] * b[sorted_indices[l]]\n            max_score = max(max_score, score)\n        \n        return max_score",
+    "from typing import List\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Create a list of tuples (a[i], b[j]) and sort it based on the product a[i] * b[j]\n        indexed_b = [(val, idx) for idx, val in enumerate(b)]\n        indexed_b.sort(key=lambda x: a[0] * x[0], reverse=True)\n        \n        # Select the top 4 elements based on the first coefficient\n        top_four = indexed_b[:4]\n        \n        # Sort these top 4 elements by their original index to ensure i0 < i1 < i2 < i3\n        top_four.sort(key=lambda x: x[1])\n        \n        # Calculate the score\n        score = sum(a[i] * top_four[i][0] for i in range(4))\n        \n        return score",
+    "from typing import List\nfrom itertools import combinations\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        max_score = float('-inf')\n        # Iterate over all combinations of 4 indices from b\n        for combo in combinations(range(len(b)), 4):\n            # Calculate the score for the current combination\n            score = sum(a[i] * b[combo[i]] for i in range(4))\n            # Update max_score if the current score is higher\n            max_score = max(max_score, score)\n        return max_score",
+    "from typing import List\nimport itertools\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        n = len(b)\n        # Sort b while keeping track of original indices\n        indexed_b = sorted((val, idx) for idx, val in enumerate(b))\n        \n        # dp[k][i] will store the maximum score using k elements up to index i in the sorted list\n        dp = [[float('-inf')] * n for _ in range(5)]\n        dp[0] = [0] * n  # Base case: score is 0 when using 0 elements\n        \n        for k in range(1, 5):\n            max_prev_score = float('-inf')\n            for i in range(k-1, n):\n                # Update max_prev_score with the best score using k-1 elements before index i\n                if i > k-1:\n                    max_prev_score = max(max_prev_score, dp[k-1][i-1])\n                # Calculate the score if we include the current element\n                dp[k][i] = max_prev_score + a[k-1] * indexed_b[i][0]\n        \n        # The answer is the maximum score using exactly 4 elements\n        return max(dp[4])\n\n# Example usage:\n# sol = Solution()\n# print(sol.maxScore([3, 2, 5, 6], [2, -6, 4, -5, -3, 2, -7]))  # Output: 26\n# print(sol.maxScore([-1, 4, 5, -2], [-5, -1, -3, -2, -4]))     # Output: -1",
+    "from typing import List\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        n = len(b)\n        # Initialize DP arrays to store the best scores up to each point\n        dp1 = [float('-inf')] * n  # Best score using one element\n        dp2 = [float('-inf')] * n  # Best score using two elements\n        dp3 = [float('-inf')] * n  # Best score using three elements\n        \n        # Fill dp1 with the best scores using a[0]\n        for i in range(n):\n            dp1[i] = max(dp1[i-1], a[0] * b[i])\n        \n        # Fill dp2 with the best scores using a[1] and the best scores from dp1\n        for i in range(1, n):\n            dp2[i] = max(dp2[i-1], dp1[i-1] + a[1] * b[i])\n        \n        # Fill dp3 with the best scores using a[2] and the best scores from dp2\n        for i in range(2, n):\n            dp3[i] = max(dp3[i-1], dp2[i-1] + a[2] * b[i])\n        \n        # Calculate the final result using a[3] and the best scores from dp3\n        max_score = float('-inf')\n        for i in range(3, n):\n            max_score = max(max_score, dp3[i-1] + a[3] * b[i])\n        \n        return max_score",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Initialize the dp arrays with negative infinity\n        dp1, dp2, dp3, dp4 = -inf, -inf, -inf, -inf\n        \n        for num in b:\n            # Update dp4 first as it depends on dp3\n            dp4 = max(dp4, dp3 + a[3] * num)\n            dp3 = max(dp3, dp2 + a[2] * num)\n            dp2 = max(dp2, dp1 + a[1] * num)\n            dp1 = max(dp1, a[0] * num)\n        \n        return dp4",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Initialize the dp arrays with negative infinity\n        dp1, dp2, dp3, dp4 = float('-inf'), float('-inf'), float('-inf'), float('-inf')\n        \n        for num in b:\n            # Update dp4 first as it depends on dp3\n            dp4 = max(dp4, dp3 + a[3] * num)\n            # Update dp3 next as it depends on dp2\n            dp3 = max(dp3, dp2 + a[2] * num)\n            # Update dp2 next as it depends on dp1\n            dp2 = max(dp2, dp1 + a[1] * num)\n            # Update dp1 which only depends on the current number\n            dp1 = max(dp1, a[0] * num)\n        \n        return dp4"
+  ],
+  "total_candidates": 15,
+  "nodes_explored": 15,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        n = len(b)\n        dp = [[-inf] * 5 for _ in range(n + 1)]\n        dp[0][0] = 0\n        \n        for i in range(1, n + 1):\n            for j in range(1, 5):\n                dp[i][j] = max(dp[i - 1][j], dp[i - 1][j - 1] + a[j - 1] * b[i - 1])\n        \n        return dp[n][4]",
+      "solution_hash": "faaf99cfdd8727348d5fbbb4659c87e75aa0efa58832d270e0b11474b4996463",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmprsw8cf9c.py\", line 203, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmprsw8cf9c.py\", line 96, in check\n    assert candidate(a = [1, 2, 3, 4],b = [10, 20, 30, 40, 50, 60, 70, 80]) == 700\nAssertionError\n",
+        "execution_time": 0.06773781776428223
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "from typing import List\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort b in ascending order\n        b.sort()\n        \n        # Initialize score\n        score = 0\n        \n        # Use two pointers to select elements from b\n        left = 0\n        right = len(b) - 1\n        \n        # Iterate over coefficients in a\n        for coeff in sorted(a, key=lambda x: abs(x), reverse=True):\n            if coeff > 0:\n                # If coefficient is positive, take the largest remaining element\n                score += coeff * b[right]\n                right -= 1\n            else:\n                # If coefficient is negative, take the smallest remaining element\n                score += coeff * b[left]\n                left += 1\n        \n        return score",
+          "solution_hash": "23c6496dcdd279655f7fc0bec17dbcd2426ed8c7a1507daa0424e306c6d251f8",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp5c_92weu.py\", line 218, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmp5c_92weu.py\", line 113, in check\n    assert candidate(a = [-1, -2, -3, -4],b = [-10, -9, -8, -7, -6, -5, -4, -3, -2, -1]) == 80\nAssertionError\n",
+            "execution_time": 0.06679749488830566
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_2",
+              "solution": "from typing import List\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        n = len(b)\n        \n        # Create lists of tuples (value, index) for b\n        b_with_indices = [(val, idx) for idx, val in enumerate(b)]\n        \n        # Sort b_with_indices based on values\n        b_with_indices.sort()\n        \n        # Initialize arrays to store maximum scores\n        max1 = [0] * n\n        max2 = [0] * n\n        max3 = [0] * n\n        \n        # Calculate max1: max(a[0] * b[i])\n        for i in range(n):\n            if i == 0:\n                max1[i] = a[0] * b_with_indices[i][0]\n            else:\n                max1[i] = max(max1[i - 1], a[0] * b_with_indices[i][0])\n        \n        # Calculate max2: max(max1[j] + a[1] * b[i]) for j < i\n        for i in range(n):\n            if i == 0:\n                max2[i] = float('-inf')\n            elif i == 1:\n                max2[i] = max1[0] + a[1] * b_with_indices[i][0]\n            else:\n                max2[i] = max(max2[i - 1], max1[i - 1] + a[1] * b_with_indices[i][0])\n        \n        # Calculate max3: max(max2[j] + a[2] * b[i]) for j < i\n        for i in range(n):\n            if i == 0 or i == 1:\n                max3[i] = float('-inf')\n            elif i == 2:\n                max3[i] = max2[1] + a[2] * b_with_indices[i][0]\n            else:\n                max3[i] = max(max3[i - 1], max2[i - 1] + a[2] * b_with_indices[i][0])\n        \n        # Find the maximum score: max(max3[j] + a[3] * b[i]) for j < i\n        max_score = float('-inf')\n        for i in range(n):\n            if i >= 3:\n                max_score = max(max_score, max3[i - 1] + a[3] * b_with_indices[i][0])\n        \n        return max_score",
+              "solution_hash": "522b4989ddc3403e84ad2563f0b782467146d3933d4b42d3721e43066036c072",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpbhadjha8.py\", line 241, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmpbhadjha8.py\", line 137, in check\n    assert candidate(a = [100000, -100000, 100000, -100000],b = [100000, -100000, 100000, -100000, 100000, -100000, 100000, -100000]) == 40000000000\nAssertionError\n",
+                "execution_time": 0.06625223159790039
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_3",
+              "solution": "from typing import List\nimport itertools\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort b in descending order\n        b_sorted = sorted(b, reverse=True)\n        \n        # Calculate the score for all combinations of 4 indices\n        max_score = float('-inf')\n        for combo in itertools.combinations(range(len(b)), 4):\n            score = sum(a[i] * b[combo[i]] for i in range(4))\n            max_score = max(max_score, score)\n        \n        return max_score",
+              "solution_hash": "09790d4f16d18cff9ce5df0e562f30efc0f29a25c27f8207055f1a6bf5af3a10",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 2.3989806175231934
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_4",
+              "solution": "from typing import List\nfrom itertools import combinations\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort b in descending order along with their original indices\n        indexed_b = sorted(enumerate(b), key=lambda x: x[1], reverse=True)\n        \n        # Precompute the best scores for the first two coefficients\n        best_two_scores = {}\n        for i in range(len(indexed_b)):\n            for j in range(i + 1, len(indexed_b)):\n                idx_i, val_i = indexed_b[i]\n                idx_j, val_j = indexed_b[j]\n                best_two_scores[(idx_j, idx_i)] = a[0] * val_i + a[1] * val_j\n        \n        # Precompute the best scores for the first three coefficients\n        best_three_scores = {}\n        for i in range(len(indexed_b)):\n            for j in range(i + 1, len(indexed_b)):\n                for k in range(j + 1, len(indexed_b)):\n                    idx_i, val_i = indexed_b[i]\n                    idx_j, val_j = indexed_b[j]\n                    idx_k, val_k = indexed_b[k]\n                    best_three_scores[(idx_k, idx_j, idx_i)] = best_two_scores[(idx_j, idx_i)] + a[2] * val_k\n        \n        # Compute the best score for all four coefficients\n        max_score = float('-inf')\n        for i in range(len(indexed_b)):\n            for j in range(i + 1, len(indexed_b)):\n                for k in range(j + 1, len(indexed_b)):\n                    for l in range(k + 1, len(indexed_b)):\n                        idx_i, val_i = indexed_b[i]\n                        idx_j, val_j = indexed_b[j]\n                        idx_k, val_k = indexed_b[k]\n                        idx_l, val_l = indexed_b[l]\n                        current_score = best_three_scores[(idx_k, idx_j, idx_i)] + a[3] * val_l\n                        max_score = max(max_score, current_score)\n        \n        return max_score",
+              "solution_hash": "50a7537d3b46efe95709bbd83f6aa9bcf959cdf292bab69f7ae1b681b9911320",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp8i11lgc9.py\", line 232, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmp8i11lgc9.py\", line 125, in check\n    assert candidate(a = [1, 2, 3, 4],b = [10, 20, 30, 40, 50, 60, 70, 80]) == 700\nAssertionError\n",
+                "execution_time": 0.06914854049682617
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_5",
+          "solution": "from typing import List\nfrom itertools import combinations\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Pair each element with its index and sort by the element value\n        indexed_b = sorted((val, idx) for idx, val in enumerate(b))\n        \n        max_score = float('-inf')\n        # Iterate over all combinations of 4 indices\n        for comb in combinations(indexed_b, 4):\n            # Ensure the indices are in increasing order\n            if comb[0][1] < comb[1][1] < comb[2][1] < comb[3][1]:\n                score = a[0] * comb[0][0] + a[1] * comb[1][0] + a[2] * comb[2][0] + a[3] * comb[3][0]\n                max_score = max(max_score, score)\n        \n        return max_score",
+          "solution_hash": "276803b68cc1b33da25aa55942cfa4ea03b158d042e4dcaffdad0d7959752274",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp5gthy7je.py\", line 209, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmp5gthy7je.py\", line 105, in check\n    assert candidate(a = [100000, -100000, 100000, -100000],b = [100000, -100000, 100000, -100000, 100000, -100000, 100000, -100000]) == 40000000000\nAssertionError\n",
+            "execution_time": 0.06699466705322266
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_6",
+              "solution": "from typing import List\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort b in descending order\n        b_sorted = sorted(b, reverse=True)\n        \n        # Initialize variables to store the best candidates\n        best_pos = [float('-inf')] * 4\n        best_neg = [float('inf')] * 4\n        \n        # Collect the top 4 positive and negative values from b\n        for val in b_sorted:\n            if val >= 0:\n                best_pos.pop()\n                best_pos.insert(0, val)\n            else:\n                best_neg.pop()\n                best_neg.insert(0, val)\n        \n        max_score = float('-inf')\n        \n        # Evaluate all combinations of best positive and negative candidates\n        for i0 in range(4):\n            for i1 in range(4):\n                for i2 in range(4):\n                    for i3 in range(4):\n                        # Ensure we are using distinct indices\n                        if len(set([i0, i1, i2, i3])) == 4:\n                            score = (a[0] * best_pos[i0] +\n                                     a[1] * best_pos[i1] +\n                                     a[2] * best_pos[i2] +\n                                     a[3] * best_pos[i3])\n                            max_score = max(max_score, score)\n                            \n                            score = (a[0] * best_pos[i0] +\n                                     a[1] * best_pos[i1] +\n                                     a[2] * best_pos[i2] +\n                                     a[3] * best_neg[i3])\n                            max_score = max(max_score, score)\n                            \n                            score = (a[0] * best_pos[i0] +\n                                     a[1] * best_pos[i1] +\n                                     a[2] * best_neg[i2] +\n                                     a[3] * best_neg[i3])\n                            max_score = max(max_score, score)\n                            \n                            score = (a[0] * best_pos[i0] +\n                                     a[1] * best_neg[i1] +\n                                     a[2] * best_neg[i2] +\n                                     a[3] * best_neg[i3])\n                            max_score = max(max_score, score)\n                            \n                            score = (a[0] * best_neg[i0] +\n                                     a[1] * best_neg[i1] +\n                                     a[2] * best_neg[i2] +\n                                     a[3] * best_neg[i3])\n                            max_score = max(max_score, score)\n        \n        return max_score",
+              "solution_hash": "074cce1531e6aab355ccfc233ec56eaf58db76fa581bdd769115cad083bc6942",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp5hg2dwx0.py\", line 252, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmp5hg2dwx0.py\", line 145, in check\n    assert candidate(a = [1, 2, 3, 4],b = [10, 20, 30, 40, 50, 60, 70, 80]) == 700\nAssertionError\n",
+                "execution_time": 0.06821751594543457
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_7",
+              "solution": "from typing import List\nimport heapq\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Create a list of tuples (a[i] * b[j], j) for each element in b\n        # This helps in sorting based on the product value while keeping track of original indices\n        indexed_b = [(a[0] * b[i], i) for i in range(len(b))]\n        heapq.heapify(indexed_b)\n        \n        # Get the top 4 smallest products (most negative contributions)\n        top4_negatives = heapq.nsmallest(4, indexed_b)\n        \n        # Create a list of tuples (-a[i] * b[j], j) for each element in b\n        # This helps in sorting based on the product value while keeping track of original indices\n        indexed_b_positive = [(-a[3] * b[i], i) for i in range(len(b))]\n        heapq.heapify(indexed_b_positive)\n        \n        # Get the top 4 largest products (most positive contributions)\n        top4_positives = heapq.nsmallest(4, indexed_b_positive)\n        \n        max_score = float('-inf')\n        \n        # Try different combinations of top 4 negative and positive contributions\n        for i in range(4):\n            for j in range(4):\n                for k in range(4):\n                    for l in range(4):\n                        # Extract values and indices\n                        neg1_val, neg1_idx = top4_negatives[i]\n                        neg2_val, neg2_idx = top4_negatives[j]\n                        pos1_val, pos1_idx = top4_positives[k]\n                        pos2_val, pos2_idx = top4_positives[l]\n                        \n                        # Check if indices are in increasing order\n                        if neg1_idx < neg2_idx < pos1_idx < pos2_idx:\n                            score = -neg1_val + -neg2_val + -pos1_val + -pos2_val\n                            max_score = max(max_score, score)\n        \n        return max_score",
+              "solution_hash": "0c8b5dff62308751a072357122f0538598957e5de52006bc688476324d5f6a48",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpu0y8tyft.py\", line 232, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmpu0y8tyft.py\", line 125, in check\n    assert candidate(a = [1, 2, 3, 4],b = [10, 20, 30, 40, 50, 60, 70, 80]) == 700\nAssertionError\n",
+                "execution_time": 0.07233572006225586
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "from typing import List\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        n = len(b)\n        \n        # Sort indices based on the values in b\n        sorted_indices = sorted(range(n), key=lambda x: b[x])\n        \n        # Initialize variables to store the best scores\n        max_a0_b_i = [float('-inf')] * n\n        max_a0_b_i_a1_b_j = [float('-inf')] * n\n        max_a0_b_i_a1_b_j_a2_b_k = [float('-inf')] * n\n        \n        # Compute the best scores incrementally\n        for i in range(n):\n            if i > 0:\n                max_a0_b_i[i] = max(max_a0_b_i[i-1], a[0] * b[sorted_indices[i]])\n            \n            if i > 1:\n                j = sorted_indices[i-1]\n                max_a0_b_i_a1_b_j[i] = max(max_a0_b_i_a1_b_j[i-1], max_a0_b_i[j] + a[1] * b[sorted_indices[i]])\n            \n            if i > 2:\n                k = sorted_indices[i-2]\n                max_a0_b_i_a1_b_j_a2_b_k[i] = max(max_a0_b_i_a1_b_j_a2_b_k[i-1], max_a0_b_i_a1_b_j[k] + a[2] * b[sorted_indices[i]])\n        \n        # Calculate the final maximum score\n        max_score = float('-inf')\n        for l in range(3, n):\n            m = sorted_indices[l-1]\n            score = max_a0_b_i_a1_b_j_a2_b_k[m] + a[3] * b[sorted_indices[l]]\n            max_score = max(max_score, score)\n        \n        return max_score",
+              "solution_hash": "9e1cf72649e7731aad599c38358cc4409edf1e3e3b7e05789d698565260a5b43",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp44m8q_xh.py\", line 227, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmp44m8q_xh.py\", line 120, in check\n    assert candidate(a = [1, 2, 3, 4],b = [10, 20, 30, 40, 50, 60, 70, 80]) == 700\nAssertionError\n",
+                "execution_time": 0.06848955154418945
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_9",
+          "solution": "from typing import List\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Create a list of tuples (a[i], b[j]) and sort it based on the product a[i] * b[j]\n        indexed_b = [(val, idx) for idx, val in enumerate(b)]\n        indexed_b.sort(key=lambda x: a[0] * x[0], reverse=True)\n        \n        # Select the top 4 elements based on the first coefficient\n        top_four = indexed_b[:4]\n        \n        # Sort these top 4 elements by their original index to ensure i0 < i1 < i2 < i3\n        top_four.sort(key=lambda x: x[1])\n        \n        # Calculate the score\n        score = sum(a[i] * top_four[i][0] for i in range(4))\n        \n        return score",
+          "solution_hash": "859691bbb2b476fdabfae6b7ab01c419254987445aaefcf5a15d2c78a17d740d",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpt8prkkba.py\", line 210, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmpt8prkkba.py\", line 106, in check\n    assert candidate(a = [100000, -100000, 100000, -100000],b = [100000, -100000, 100000, -100000, 100000, -100000, 100000, -100000]) == 40000000000\nAssertionError\n",
+            "execution_time": 0.07315421104431152
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_10",
+              "solution": "from typing import List\nfrom itertools import combinations\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        max_score = float('-inf')\n        # Iterate over all combinations of 4 indices from b\n        for combo in combinations(range(len(b)), 4):\n            # Calculate the score for the current combination\n            score = sum(a[i] * b[combo[i]] for i in range(4))\n            # Update max_score if the current score is higher\n            max_score = max(max_score, score)\n        return max_score",
+              "solution_hash": "afa6ab0a926be95b13086450b07fcdf8f6c2b84102d86e28ec553a3b0aad5d4d",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 2.3977506160736084
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_11",
+              "solution": "from typing import List\nimport itertools\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        n = len(b)\n        # Sort b while keeping track of original indices\n        indexed_b = sorted((val, idx) for idx, val in enumerate(b))\n        \n        # dp[k][i] will store the maximum score using k elements up to index i in the sorted list\n        dp = [[float('-inf')] * n for _ in range(5)]\n        dp[0] = [0] * n  # Base case: score is 0 when using 0 elements\n        \n        for k in range(1, 5):\n            max_prev_score = float('-inf')\n            for i in range(k-1, n):\n                # Update max_prev_score with the best score using k-1 elements before index i\n                if i > k-1:\n                    max_prev_score = max(max_prev_score, dp[k-1][i-1])\n                # Calculate the score if we include the current element\n                dp[k][i] = max_prev_score + a[k-1] * indexed_b[i][0]\n        \n        # The answer is the maximum score using exactly 4 elements\n        return max(dp[4])\n\n# Example usage:\n# sol = Solution()\n# print(sol.maxScore([3, 2, 5, 6], [2, -6, 4, -5, -3, 2, -7]))  # Output: 26\n# print(sol.maxScore([-1, 4, 5, -2], [-5, -1, -3, -2, -4]))     # Output: -1",
+              "solution_hash": "451cbdd4463389748113c11539e70af1a6096e803a4438e31613655361afecce",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpnzomsnrk.py\", line 221, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmpnzomsnrk.py\", line 115, in check\n    assert candidate(a = [10, 20, 30, 40],b = [1, 2, 3, 4]) == 300\nAssertionError\n",
+                "execution_time": 0.06831669807434082
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_12",
+              "solution": "from typing import List\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        n = len(b)\n        # Initialize DP arrays to store the best scores up to each point\n        dp1 = [float('-inf')] * n  # Best score using one element\n        dp2 = [float('-inf')] * n  # Best score using two elements\n        dp3 = [float('-inf')] * n  # Best score using three elements\n        \n        # Fill dp1 with the best scores using a[0]\n        for i in range(n):\n            dp1[i] = max(dp1[i-1], a[0] * b[i])\n        \n        # Fill dp2 with the best scores using a[1] and the best scores from dp1\n        for i in range(1, n):\n            dp2[i] = max(dp2[i-1], dp1[i-1] + a[1] * b[i])\n        \n        # Fill dp3 with the best scores using a[2] and the best scores from dp2\n        for i in range(2, n):\n            dp3[i] = max(dp3[i-1], dp2[i-1] + a[2] * b[i])\n        \n        # Calculate the final result using a[3] and the best scores from dp3\n        max_score = float('-inf')\n        for i in range(3, n):\n            max_score = max(max_score, dp3[i-1] + a[3] * b[i])\n        \n        return max_score",
+              "solution_hash": "fd199b7fdb888458b2a165c3ad4686a70a91a5e51f60d115f30e8250aeb1e9a2",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.07366394996643066
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": true
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Initialize the dp arrays with negative infinity\n        dp1, dp2, dp3, dp4 = -inf, -inf, -inf, -inf\n        \n        for num in b:\n            # Update dp4 first as it depends on dp3\n            dp4 = max(dp4, dp3 + a[3] * num)\n            dp3 = max(dp3, dp2 + a[2] * num)\n            dp2 = max(dp2, dp1 + a[1] * num)\n            dp1 = max(dp1, a[0] * num)\n        \n        return dp4",
+      "solution_hash": "1a72dc090c738f533cc4b7af00d93400b1a1372b9ee30e952db4f73dc2da7167",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.07323527336120605
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Initialize the dp arrays with negative infinity\n        dp1, dp2, dp3, dp4 = float('-inf'), float('-inf'), float('-inf'), float('-inf')\n        \n        for num in b:\n            # Update dp4 first as it depends on dp3\n            dp4 = max(dp4, dp3 + a[3] * num)\n            # Update dp3 next as it depends on dp2\n            dp3 = max(dp3, dp2 + a[2] * num)\n            # Update dp2 next as it depends on dp1\n            dp2 = max(dp2, dp1 + a[1] * num)\n            # Update dp1 which only depends on the current number\n            dp1 = max(dp1, a[0] * num)\n        \n        return dp4",
+      "solution_hash": "16d6be87c4a76e010447816d036146a59dcb9eccda1449ad288f317bdc1eedb8",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.07332968711853027
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    }
+  ],
+  "stats": {
+    "nodes_explored": 15,
+    "candidates_generated": 15,
+    "tests_passed": 5,
+    "tests_failed": 10,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 380.890606880188,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.3749999999999999,
+      "pass@3": 0.7857142857142858,
+      "pass@5": 0.9423076923076923,
+      "pass@10": 0.9998751248751249
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 15
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 16,
+    "test_cases": 1
+  }
+}

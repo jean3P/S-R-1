@@ -1,0 +1,1074 @@
+{
+  "problem_id": "shortest-distance-after-road-addition-queries-ii",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        from heapq import heappush, heappop\n        \n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [inf] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                current_dist, u = heappop(pq)\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heappush(pq, (distance, v))\n            \n            return dist[n - 1]\n        \n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))  # Add the new road\n            result.append(dijkstra())  # Compute the shortest path after adding the new road\n        \n        return result",
+    "from collections import defaultdict, deque\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Initialize distances with infinity\n        dist = [float('inf')] * n\n        dist[0] = 0\n        \n        # Perform a BFS to initialize the shortest paths\n        queue = deque([0])\n        while queue:\n            u = queue.popleft()\n            for v, weight in graph[u]:\n                if dist[u] + weight < dist[v]:\n                    dist[v] = dist[u] + weight\n                    queue.append(v)\n        \n        result = []\n        for u, v in queries:\n            # Add the new road\n            graph[u].append((v, 1))\n            \n            # Update the shortest paths affected by the new road\n            if dist[u] + 1 < dist[v]:\n                dist[v] = dist[u] + 1\n                queue = deque([v])\n                while queue:\n                    u = queue.popleft()\n                    for v, weight in graph[u]:\n                        if dist[u] + weight < dist[v]:\n                            dist[v] = dist[u] + weight\n                            queue.append(v)\n            \n            result.append(dist[n - 1])\n        \n        return result",
+    "from collections import defaultdict\nimport heapq\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        def dijkstra():\n            # Initialize distances with infinity\n            dist = [float('inf')] * n\n            dist[0] = 0\n            \n            # Priority queue for Dijkstra's algorithm\n            pq = [(0, 0)]\n            while pq:\n                current_dist, u = heapq.heappop(pq)\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heapq.heappush(pq, (distance, v))\n            return dist\n        \n        result = []\n        for u, v in queries:\n            # Add the new road\n            graph[u].append((v, 1))\n            \n            # Recalculate the shortest paths using Dijkstra's algorithm\n            dist = dijkstra()\n            \n            # Append the shortest path from 0 to n-1 to the result\n            result.append(dist[n - 1])\n        \n        return result",
+    "from collections import defaultdict\nfrom heapq import heappop, heappush\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        def dijkstra():\n            # Initialize distances with infinity\n            dist = [float('inf')] * n\n            dist[0] = 0\n            \n            # Priority queue for Dijkstra's algorithm\n            pq = [(0, 0)]\n            while pq:\n                current_dist, u = heappop(pq)\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heappush(pq, (distance, v))\n            return dist\n        \n        result = []\n        for u, v in queries:\n            # Add the new road\n            graph[u].append((v, 1))\n            \n            # Recalculate shortest paths using Dijkstra's algorithm\n            dist = dijkstra()\n            \n            # Append the shortest path to the last city\n            result.append(dist[n - 1])\n        \n        return result",
+    "from collections import defaultdict\nfrom heapq import heappop, heappush\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        def dijkstra():\n            # Initialize distances with infinity\n            dist = [float('inf')] * n\n            dist[0] = 0\n            \n            # Priority queue for Dijkstra's algorithm\n            pq = [(0, 0)]\n            \n            while pq:\n                current_dist, u = heappop(pq)\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heappush(pq, (distance, v))\n            \n            return dist\n        \n        # Initial shortest path calculation\n        dist = dijkstra()\n        result = []\n        \n        for u, v in queries:\n            # Add the new road\n            graph[u].append((v, 1))\n            \n            # Recalculate shortest paths from 0 to n-1 considering the new road\n            dist = dijkstra()\n            \n            # Append the shortest path from 0 to n-1 after the current query\n            result.append(dist[n - 1])\n        \n        return result",
+    "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Reverse the queries to process them in reverse order\n        queries.reverse()\n        \n        # Function to perform Dijkstra's algorithm from the end\n        def dijkstra_from_end():\n            dist = [float('inf')] * n\n            dist[n - 1] = 0\n            pq = [(0, n - 1)]  # (distance, node)\n            \n            while pq:\n                current_dist, u = heappop(pq)\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heappush(pq, (distance, v))\n            \n            return dist\n        \n        # Perform initial Dijkstra's from the end\n        dist_from_end = dijkstra_from_end()\n        \n        result = []\n        for u, v in reversed(queries):\n            # Add the new road\n            graph[u].append((v, 1))\n            # Update the distances from the end considering the new road\n            pq = [(dist_from_end[v], v)]\n            while pq:\n                current_dist, u = heappop(pq)\n                if current_dist > dist_from_end[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist_from_end[v]:\n                        dist_from_end[v] = distance\n                        heappush(pq, (distance, v))\n            # Append the current shortest path from 0 to n-1\n            result.append(dist_from_end[0] if dist_from_end[0] != float('inf') else -1)\n        \n        # Since we processed queries in reverse, we need to reverse the result\n        result.reverse()\n        return result",
+    "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm from the start\n        def dijkstra_from_start():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                current_dist, u = heappop(pq)\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heappush(pq, (distance, v))\n            \n            return dist\n        \n        # Perform initial Dijkstra's from the start\n        dist_from_start = dijkstra_from_start()\n        \n        result = []\n        for u, v in queries:\n            # Add the new road\n            graph[u].append((v, 1))\n            # Update the distances from the start considering the new road\n            pq = [(dist_from_start[u] + 1, v)]  # New road has a weight of 1\n            while pq:\n                current_dist, u = heappop(pq)\n                if current_dist >= dist_from_start[u]:\n                    continue\n                dist_from_start[u] = current_dist\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist_from_start[v]:\n                        heappush(pq, (distance, v))\n            # Append the current shortest path from 0 to n-1\n            result.append(dist_from_start[n - 1] if dist_from_start[n - 1] != float('inf') else -1)\n        \n        return result",
+    "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm from the start\n        def dijkstra_from_start():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                current_dist, u = heappop(pq)\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heappush(pq, (distance, v))\n            \n            return dist\n        \n        result = []\n        for u, v in queries:\n            # Add the new road\n            graph[u].append((v, 1))\n            # Recalculate the shortest paths from the start\n            dist_from_start = dijkstra_from_start()\n            # Append the current shortest path from 0 to n-1\n            result.append(dist_from_start[n - 1] if dist_from_start[n - 1] != float('inf') else -1)\n        \n        return result",
+    "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm from the start\n        def dijkstra_from_start():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                current_dist, u = heappop(pq)\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heappush(pq, (distance, v))\n            \n            return dist\n        \n        result = []\n        for u, v in queries:\n            # Add the new road\n            graph[u].append((v, 1))\n            # Recalculate the shortest path from the start\n            dist_from_start = dijkstra_from_start()\n            # Append the current shortest path from 0 to n-1\n            result.append(dist_from_start[n - 1] if dist_from_start[n - 1] != float('inf') else -1)\n        \n        return result",
+    "from typing import List\nfrom collections import defaultdict\nimport bisect\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append(i + 1)\n        \n        # Precompute the shortest path from 0 to all other nodes using BFS\n        from collections import deque\n        dist = [float('inf')] * n\n        dist[0] = 0\n        queue = deque([0])\n        while queue:\n            u = queue.popleft()\n            for v in graph[u]:\n                if dist[v] == float('inf'):\n                    dist[v] = dist[u] + 1\n                    queue.append(v)\n        \n        # Process the queries\n        result = []\n        for u, v in queries:\n            # Update the graph with the new road\n            graph[u].append(v)\n            \n            # Use binary lifting to efficiently update the shortest paths\n            # Here, we only need to consider the path from u to v and update the distances accordingly\n            if dist[v] > dist[u] + 1:\n                dist[v] = dist[u] + 1\n                # Update all nodes that can reach v through u\n                stack = [(v, dist[v])]\n                visited = set([v])\n                while stack:\n                    current, current_dist = stack.pop()\n                    for neighbor in graph[current]:\n                        if neighbor not in visited and dist[neighbor] > current_dist + 1:\n                            dist[neighbor] = current_dist + 1\n                            visited.add(neighbor)\n                            stack.append((neighbor, dist[neighbor]))\n            \n            result.append(dist[n - 1])\n        \n        return result",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = {i: [] for i in range(n)}\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to compute the shortest path from start to end using Dijkstra's algorithm\n        def dijkstra(start, end):\n            dist = [float('inf')] * n\n            dist[start] = 0\n            pq = [(0, start)]\n            while pq:\n                current_dist, u = heapq.heappop(pq)\n                if u == end:\n                    return current_dist\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heapq.heappush(pq, (distance, v))\n            return dist[end]\n        \n        # Process the queries\n        result = []\n        for u, v in queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Compute the shortest path from 0 to n-1\n            shortest_path = dijkstra(0, n - 1)\n            result.append(shortest_path)\n        \n        return result",
+    "from typing import List\nimport heapq\nfrom collections import defaultdict\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm and return the shortest distance from start to end\n        def dijkstra(start, end):\n            dist = [float('inf')] * n\n            dist[start] = 0\n            pq = [(0, start)]\n            while pq:\n                current_dist, u = heapq.heappop(pq)\n                if u == end:\n                    return current_dist\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heapq.heappush(pq, (distance, v))\n            return dist[end]\n        \n        # Process the queries\n        result = []\n        for u, v in queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Compute the shortest path from 0 to n-1 after adding the new road\n            shortest_path = dijkstra(0, n - 1)\n            result.append(shortest_path)\n        \n        return result",
+    "from typing import List\nimport heapq\nfrom collections import defaultdict\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to compute shortest path from 0 to n-1 using Dijkstra's algorithm\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            while pq:\n                current_dist, u = heapq.heappop(pq)\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heapq.heappush(pq, (distance, v))\n            return dist\n        \n        # Initial shortest path calculation\n        dist = dijkstra()\n        result = []\n        \n        # Process each query\n        for u, v in queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Recalculate the shortest path from 0 to n-1\n            dist = dijkstra()\n            # Append the shortest path to the result\n            result.append(dist[n - 1])\n        \n        return result",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        from heapq import heappush, heappop\n        \n        # Initialize the graph with default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [inf] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            return dist[n - 1]\n        \n        # Process each query and compute the shortest path\n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            result.append(dijkstra())\n        \n        return result",
+    "from typing import List\nfrom collections import defaultdict\nimport heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Reverse the queries to process them in reverse order\n        reversed_queries = queries[::-1]\n        \n        # Initialize the graph with default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Initialize the distance array with infinity\n        dist = [float('inf')] * n\n        dist[n - 1] = 0\n        \n        # Min-heap for Dijkstra's algorithm\n        pq = [(0, n - 1)]\n        \n        # Perform Dijkstra's algorithm from the end to the start\n        while pq:\n            d, u = heapq.heappop(pq)\n            if d > dist[u]:\n                continue\n            for v, w in graph[u]:\n                if dist[u] + w < dist[v]:\n                    dist[v] = dist[u] + w\n                    heapq.heappush(pq, (dist[v], v))\n        \n        # Process each reversed query and update the graph and distances\n        result = []\n        for u, v in reversed_queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Update the distances using Dijkstra's algorithm starting from v\n            pq = [(dist[v], v)]\n            visited = set()\n            while pq:\n                d, u = heapq.heappop(pq)\n                if u in visited:\n                    continue\n                visited.add(u)\n                if d < dist[u]:\n                    dist[u] = d\n                for neighbor, weight in graph[u]:\n                    if neighbor not in visited and d + weight < dist[neighbor]:\n                        dist[neighbor] = d + weight\n                        heapq.heappush(pq, (dist[neighbor], neighbor))\n            # Append the current shortest distance from 0 to n-1\n            result.append(dist[0])\n        \n        # The result needs to be reversed because we processed queries in reverse order\n        return result[::-1]",
+    "from typing import List\nfrom collections import defaultdict\nimport heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm from node 0\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]\n            while pq:\n                d, u = heapq.heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heapq.heappush(pq, (dist[v], v))\n            return dist\n        \n        # Initial shortest path distances\n        dist = dijkstra()\n        result = []\n        \n        # Process each query\n        for u, v in queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Update the distances using Dijkstra's algorithm starting from u\n            pq = [(dist[u], u)]\n            visited = set()\n            while pq:\n                d, u = heapq.heappop(pq)\n                if u in visited:\n                    continue\n                visited.add(u)\n                if d < dist[u]:\n                    dist[u] = d\n                for neighbor, weight in graph[u]:\n                    if neighbor not in visited and d + weight < dist[neighbor]:\n                        dist[neighbor] = d + weight\n                        heapq.heappush(pq, (dist[neighbor], neighbor))\n            # Append the current shortest distance from 0 to n-1\n            result.append(dist[n - 1])\n        \n        return result",
+    "from typing import List\nfrom collections import defaultdict\nimport heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm from node 0\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]\n            while pq:\n                d, u = heapq.heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heapq.heappush(pq, (dist[v], v))\n            return dist\n        \n        # Initial shortest distances\n        dist = dijkstra()\n        result = []\n        \n        # Process each query\n        for u, v in queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Update the distances using Dijkstra's algorithm starting from 0\n            dist = dijkstra()\n            # Append the current shortest distance from 0 to n-1\n            result.append(dist[n - 1])\n        \n        return result",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with default roads\n        graph = [[] for _ in range(n)]\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm from node 0\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]\n            while pq:\n                d, u = heapq.heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heapq.heappush(pq, (dist[v], v))\n            return dist\n        \n        # Initial shortest path distances\n        dist = dijkstra()\n        result = []\n        \n        # Process each query\n        for u, v in queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Update the distances using Dijkstra's algorithm starting from u\n            pq = [(dist[u], u)]\n            visited = set()\n            while pq:\n                d, u = heapq.heappop(pq)\n                if u in visited:\n                    continue\n                visited.add(u)\n                if d < dist[u]:\n                    dist[u] = d\n                for neighbor, weight in graph[u]:\n                    if neighbor not in visited and d + weight < dist[neighbor]:\n                        dist[neighbor] = d + weight\n                        heapq.heappush(pq, (dist[neighbor], neighbor))\n            # Append the current shortest distance from 0 to n-1\n            result.append(dist[n - 1])\n        \n        return result",
+    "from collections import defaultdict\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Step 1: Build the graph with initial roads in reverse\n        graph = defaultdict(list)\n        for i in range(1, n):\n            graph[i].append((i - 1, 1))\n        \n        # Step 2: Process queries in reverse order\n        reversed_queries = queries[::-1]\n        distances = [float('inf')] * n\n        distances[n - 1] = 0\n        \n        # Helper function to relax edges\n        def relax(u, v, weight):\n            if distances[u] > distances[v] + weight:\n                distances[u] = distances[v] + weight\n        \n        # Process each reversed query\n        for u, v in reversed_queries:\n            relax(u, v, 1)\n            # Relax all nodes reachable from u\n            stack = [u]\n            visited = set([u])\n            while stack:\n                current = stack.pop()\n                for neighbor, weight in graph[current]:\n                    if neighbor not in visited:\n                        relax(neighbor, current, weight)\n                        visited.add(neighbor)\n                        stack.append(neighbor)\n        \n        # Step 3: Collect results in forward order\n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            result.append(distances[0] if distances[0] != float('inf') else -1)\n        \n        return result",
+    "from collections import defaultdict\nimport heapq\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm and return the shortest distance from 0 to n-1\n        def dijkstra():\n            distances = [float('inf')] * n\n            distances[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                dist, node = heapq.heappop(pq)\n                if dist > distances[node]:\n                    continue\n                for neighbor, weight in graph[node]:\n                    new_dist = dist + weight\n                    if new_dist < distances[neighbor]:\n                        distances[neighbor] = new_dist\n                        heapq.heappush(pq, (new_dist, neighbor))\n            \n            return distances[n - 1]\n        \n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            shortest_path = dijkstra()\n            result.append(shortest_path if shortest_path != float('inf') else -1)\n        \n        return result",
+    "from collections import defaultdict\nimport heapq\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        def dijkstra(graph, start, n):\n            distances = [float('inf')] * n\n            distances[start] = 0\n            pq = [(0, start)]\n            \n            while pq:\n                current_dist, current_node = heapq.heappop(pq)\n                \n                if current_dist > distances[current_node]:\n                    continue\n                \n                for neighbor, weight in graph[current_node]:\n                    distance = current_dist + weight\n                    \n                    if distance < distances[neighbor]:\n                        distances[neighbor] = distance\n                        heapq.heappush(pq, (distance, neighbor))\n            \n            return distances\n        \n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            distances = dijkstra(graph, 0, n)\n            result.append(distances[n - 1] if distances[n - 1] != float('inf') else -1)\n        \n        return result",
+    "from collections import defaultdict\nimport heapq\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            distances = [float('inf')] * n\n            distances[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                dist, node = heapq.heappop(pq)\n                if dist > distances[node]:\n                    continue\n                for neighbor, weight in graph[node]:\n                    new_dist = dist + weight\n                    if new_dist < distances[neighbor]:\n                        distances[neighbor] = new_dist\n                        heapq.heappush(pq, (new_dist, neighbor))\n            \n            return distances\n        \n        # Process each query and compute the shortest path after each addition\n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            distances = dijkstra()\n            result.append(distances[n - 1] if distances[n - 1] != float('inf') else -1)\n        \n        return result",
+    "from collections import defaultdict\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append(i + 1)\n        \n        # Initialize distances with infinity\n        dist = [float('inf')] * n\n        dist[0] = 0\n        \n        # Function to perform a single-source shortest path update\n        def update_distances(start):\n            stack = [start]\n            while stack:\n                u = stack.pop()\n                for v in graph[u]:\n                    if dist[u] + 1 < dist[v]:\n                        dist[v] = dist[u] + 1\n                        stack.append(v)\n        \n        # Initial update for the default roads\n        update_distances(0)\n        \n        # Process each query and compute the shortest path\n        result = []\n        for u, v in queries:\n            graph[u].append(v)\n            update_distances(u)\n            result.append(dist[n - 1])\n        \n        return result",
+    "from collections import defaultdict\nimport heapq\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                d, u = heapq.heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    if dist[u] + weight < dist[v]:\n                        dist[v] = dist[u] + weight\n                        heapq.heappush(pq, (dist[v], v))\n            \n            return dist\n        \n        # Initial shortest path calculation\n        dist = dijkstra()\n        \n        # Process each query and compute the shortest path\n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            dist = dijkstra()  # Recalculate shortest paths after each query\n            result.append(dist[n - 1])\n        \n        return result",
+    "from collections import defaultdict, deque\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append(i + 1)\n        \n        # Initialize distances with infinity\n        dist = [float('inf')] * n\n        dist[0] = 0\n        \n        # Function to perform a single-source shortest path update using BFS\n        def update_distances():\n            queue = deque([0])\n            visited = set([0])\n            while queue:\n                u = queue.popleft()\n                for v in graph[u]:\n                    if dist[u] + 1 < dist[v]:\n                        dist[v] = dist[u] + 1\n                        if v not in visited:\n                            visited.add(v)\n                            queue.append(v)\n        \n        # Initial update for the default roads\n        update_distances()\n        \n        # Process each query and compute the shortest path\n        result = []\n        for u, v in queries:\n            graph[u].append(v)\n            if dist[u] + 1 < dist[v]:  # Only update if the new path is shorter\n                dist[v] = dist[u] + 1\n                update_distances()  # Re-run BFS to update affected paths\n            result.append(dist[n - 1])\n        \n        return result",
+    "from collections import defaultdict\nimport heapq\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            while pq:\n                d, u = heapq.heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    if dist[u] + weight < dist[v]:\n                        dist[v] = dist[u] + weight\n                        heapq.heappush(pq, (dist[v], v))\n            return dist\n        \n        # Initial shortest path calculation\n        dist = dijkstra()\n        \n        # Process each query and compute the shortest path\n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            dist = dijkstra()  # Recalculate shortest paths after each query\n            result.append(dist[n - 1])\n        \n        return result",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        from heapq import heappush, heappop\n        \n        # Initialize the graph with initial roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [inf] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            \n            return dist[n - 1]\n        \n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            result.append(dijkstra())\n        \n        return result",
+    "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            \n            return dist\n        \n        # Initial shortest path calculation\n        dist = dijkstra()\n        result = []\n        \n        for u, v in queries:\n            graph[u].append((v, 1))\n            # Update distances starting from u\n            pq = [(dist[u], u)]\n            visited = set()\n            while pq:\n                d, node = heappop(pq)\n                if node in visited:\n                    continue\n                visited.add(node)\n                if d < dist[node]:\n                    dist[node] = d\n                for neighbor, weight in graph[node]:\n                    if neighbor not in visited and d + weight < dist[neighbor]:\n                        dist[neighbor] = d + weight\n                        heappush(pq, (dist[neighbor], neighbor))\n            \n            result.append(dist[n - 1])\n        \n        return result",
+    "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the reverse graph with initial roads\n        reverse_graph = defaultdict(list)\n        for i in range(1, n):\n            reverse_graph[i].append((i - 1, 1))\n        \n        # Function to perform Dijkstra's algorithm from the end to the start\n        def dijkstra_from_end():\n            dist = [float('inf')] * n\n            dist[n - 1] = 0\n            pq = [(0, n - 1)]  # (distance, node)\n            \n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in reverse_graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            \n            return dist\n        \n        # Initial shortest path calculation from end to start\n        dist_from_end = dijkstra_from_end()\n        result = []\n        \n        for u, v in queries:\n            # Add the new road to the reverse graph\n            reverse_graph[v].append((u, 1))\n            # Update distances starting from v\n            pq = [(dist_from_end[v], v)]\n            visited = set()\n            while pq:\n                d, node = heappop(pq)\n                if node in visited:\n                    continue\n                visited.add(node)\n                if d < dist_from_end[node]:\n                    dist_from_end[node] = d\n                for neighbor, weight in reverse_graph[node]:\n                    if neighbor not in visited and d + weight < dist_from_end[neighbor]:\n                        dist_from_end[neighbor] = d + weight\n                        heappush(pq, (dist_from_end[neighbor], neighbor))\n            \n            result.append(dist_from_end[0] if dist_from_end[0] != float('inf') else -1)\n        \n        return result",
+    "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the reverse graph with initial roads\n        reverse_graph = defaultdict(list)\n        for i in range(1, n):\n            reverse_graph[i].append((i - 1, 1))\n        \n        # Function to perform Dijkstra's algorithm on the reverse graph\n        def dijkstra_reverse(start):\n            dist = [float('inf')] * n\n            dist[start] = 0\n            pq = [(0, start)]  # (distance, node)\n            \n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in reverse_graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            \n            return dist\n        \n        # Initial shortest path calculation from n-1 to 0\n        dist_from_end = dijkstra_reverse(n - 1)\n        result = []\n        \n        # Process each query\n        for u, v in queries:\n            # Add the new road to the reverse graph\n            reverse_graph[v].append((u, 1))\n            # Update distances starting from v\n            pq = [(dist_from_end[v] + 1, v)]\n            visited = set()\n            while pq:\n                d, node = heappop(pq)\n                if node in visited:\n                    continue\n                visited.add(node)\n                if d < dist_from_end[node]:\n                    dist_from_end[node] = d\n                for neighbor, weight in reverse_graph[node]:\n                    if neighbor not in visited and d + weight < dist_from_end[neighbor]:\n                        dist_from_end[neighbor] = d + weight\n                        heappush(pq, (dist_from_end[neighbor], neighbor))\n            \n            result.append(dist_from_end[0] if dist_from_end[0] != float('inf') else -1)\n        \n        return result",
+    "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the reverse graph with initial roads\n        reverse_graph = defaultdict(list)\n        for i in range(1, n):\n            reverse_graph[i].append((i - 1, 1))\n        \n        # Function to perform Dijkstra's algorithm on the reverse graph\n        def dijkstra_reverse(start):\n            dist = [float('inf')] * n\n            dist[start] = 0\n            pq = [(0, start)]  # (distance, node)\n            \n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in reverse_graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            \n            return dist\n        \n        # Initial shortest path calculation from n-1 to 0\n        dist_from_end = dijkstra_reverse(n - 1)\n        result = []\n        \n        for u, v in queries:\n            # Add the new road to the reverse graph\n            reverse_graph[v].append((u, 1))\n            # Update distances starting from v\n            pq = [(dist_from_end[v], v)]\n            visited = set()\n            while pq:\n                d, node = heappop(pq)\n                if node in visited:\n                    continue\n                visited.add(node)\n                if d < dist_from_end[node]:\n                    dist_from_end[node] = d\n                for neighbor, weight in reverse_graph[node]:\n                    if neighbor not in visited and d + weight < dist_from_end[neighbor]:\n                        dist_from_end[neighbor] = d + weight\n                        heappush(pq, (dist_from_end[neighbor], neighbor))\n            \n            result.append(dist_from_end[0] if dist_from_end[0] != float('inf') else -1)\n        \n        return result",
+    "from collections import defaultdict\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Step 1: Build the reverse graph\n        reverse_graph = defaultdict(list)\n        for i in range(n - 1):\n            reverse_graph[i + 1].append(i)\n        \n        # Step 2: Initialize the shortest path to each node from the end\n        shortest_to_end = [float('inf')] * n\n        shortest_to_end[n - 1] = 0\n        \n        # Step 3: Perform a reverse BFS to calculate shortest paths to the end\n        queue = [n - 1]\n        while queue:\n            current = queue.pop(0)\n            for neighbor in reverse_graph[current]:\n                if shortest_to_end[neighbor] > shortest_to_end[current] + 1:\n                    shortest_to_end[neighbor] = shortest_to_end[current] + 1\n                    queue.append(neighbor)\n        \n        # Step 4: Process each query and update the shortest path\n        result = []\n        for u, v in queries:\n            # Add the new road to the reverse graph\n            reverse_graph[v].append(u)\n            # Update the shortest path to the end starting from u\n            if shortest_to_end[u] + 1 < shortest_to_end[v]:\n                shortest_to_end[v] = shortest_to_end[u] + 1\n                # Propagate the change to all nodes that can reach v\n                queue = [v]\n                visited = set([v])\n                while queue:\n                    current = queue.pop(0)\n                    for neighbor in reverse_graph[current]:\n                        if neighbor not in visited and shortest_to_end[neighbor] > shortest_to_end[current] + 1:\n                            shortest_to_end[neighbor] = shortest_to_end[current] + 1\n                            visited.add(neighbor)\n                            queue.append(neighbor)\n            # Append the shortest path from 0 to n-1\n            result.append(shortest_to_end[0] if shortest_to_end[0] != float('inf') else -1)\n        \n        return result",
+    "from heapq import heappop, heappush\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default unidirectional roads\n        graph = {i: [(i + 1, 1)] for i in range(n - 1)}\n        graph[n - 1] = []  # No outgoing edges from the last city\n        \n        # Function to compute the shortest path from 0 to n-1 using Dijkstra's algorithm\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            return dist[n - 1]\n        \n        result = []\n        for u, v in queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Compute the shortest path from 0 to n-1 after adding the new road\n            shortest_path = dijkstra()\n            result.append(shortest_path if shortest_path != float('inf') else -1)\n        \n        return result",
+    "from collections import defaultdict\nimport heapq\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm and find the shortest path from 0 to n-1\n        def dijkstra():\n            distances = [float('inf')] * n\n            distances[0] = 0\n            priority_queue = [(0, 0)]\n            \n            while priority_queue:\n                current_distance, current_node = heapq.heappop(priority_queue)\n                \n                if current_distance > distances[current_node]:\n                    continue\n                \n                for neighbor, weight in graph[current_node]:\n                    distance = current_distance + weight\n                    \n                    if distance < distances[neighbor]:\n                        distances[neighbor] = distance\n                        heapq.heappush(priority_queue, (distance, neighbor))\n            \n            return distances[n - 1]\n        \n        result = []\n        for u, v in queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Calculate the shortest path from 0 to n-1 after adding the new road\n            shortest_path = dijkstra()\n            result.append(shortest_path if shortest_path != float('inf') else -1)\n        \n        return result",
+    "from collections import defaultdict\nimport heapq\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm and find the shortest path from 0 to n-1\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            while pq:\n                d, u = heapq.heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    if dist[u] + weight < dist[v]:\n                        dist[v] = dist[u] + weight\n                        heapq.heappush(pq, (dist[v], v))\n            return dist[n - 1]\n        \n        result = []\n        for u, v in queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Compute the shortest path from 0 to n-1 using Dijkstra's algorithm\n            shortest_path = dijkstra()\n            result.append(shortest_path if shortest_path != float('inf') else -1)\n        \n        return result",
+    "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            \n            return dist\n        \n        # Initial shortest path distances\n        dist = dijkstra()\n        \n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            # Only recompute distances from nodes affected by the new edge\n            pq = [(dist[u] + 1, v)]\n            visited = set()\n            while pq:\n                d, node = heappop(pq)\n                if node in visited or d >= dist[node]:\n                    continue\n                visited.add(node)\n                dist[node] = d\n                if node == n - 1:\n                    break\n                for neighbor, weight in graph[node]:\n                    if neighbor not in visited:\n                        heappush(pq, (d + weight, neighbor))\n            \n            result.append(dist[n - 1])\n        \n        return result",
+    "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            \n            return dist\n        \n        # Initial shortest path distances\n        dist = dijkstra()\n        \n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            # Use a min-heap to update the shortest paths efficiently\n            pq = [(dist[u] + 1, v)]\n            while pq:\n                d, node = heappop(pq)\n                if d >= dist[node]:\n                    continue\n                dist[node] = d\n                for neighbor, weight in graph[node]:\n                    heappush(pq, (d + weight, neighbor))\n            \n            result.append(dist[n - 1])\n        \n        return result",
+    "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            \n            return dist\n        \n        # Initial shortest path distances\n        dist = dijkstra()\n        \n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            # Recompute distances using Dijkstra's algorithm starting from node 0\n            dist = dijkstra()\n            result.append(dist[n - 1])\n        \n        return result",
+    "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            \n            return dist\n        \n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            dist = dijkstra()\n            result.append(dist[n - 1])\n        \n        return result"
+  ],
+  "total_candidates": 39,
+  "nodes_explored": 39,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        from heapq import heappush, heappop\n        \n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [inf] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                current_dist, u = heappop(pq)\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heappush(pq, (distance, v))\n            \n            return dist[n - 1]\n        \n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))  # Add the new road\n            result.append(dijkstra())  # Compute the shortest path after adding the new road\n        \n        return result",
+      "solution_hash": "ab6ca7608a9e308325cf21784a824fe263584abb484d013e3817abe7346da0a8",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpkva8fxhc.py\", line 158, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpkva8fxhc.py\", line 118, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+        "execution_time": 0.06258130073547363
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "from collections import defaultdict, deque\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Initialize distances with infinity\n        dist = [float('inf')] * n\n        dist[0] = 0\n        \n        # Perform a BFS to initialize the shortest paths\n        queue = deque([0])\n        while queue:\n            u = queue.popleft()\n            for v, weight in graph[u]:\n                if dist[u] + weight < dist[v]:\n                    dist[v] = dist[u] + weight\n                    queue.append(v)\n        \n        result = []\n        for u, v in queries:\n            # Add the new road\n            graph[u].append((v, 1))\n            \n            # Update the shortest paths affected by the new road\n            if dist[u] + 1 < dist[v]:\n                dist[v] = dist[u] + 1\n                queue = deque([v])\n                while queue:\n                    u = queue.popleft()\n                    for v, weight in graph[u]:\n                        if dist[u] + weight < dist[v]:\n                            dist[v] = dist[u] + weight\n                            queue.append(v)\n            \n            result.append(dist[n - 1])\n        \n        return result",
+          "solution_hash": "ab2b8f2248bab19420ff723c2c929877a365c8330fb760688b73df3096c0692d",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpabdfaxlm.py\", line 167, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpabdfaxlm.py\", line 127, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+            "execution_time": 0.06217694282531738
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_2",
+              "solution": "from collections import defaultdict\nimport heapq\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        def dijkstra():\n            # Initialize distances with infinity\n            dist = [float('inf')] * n\n            dist[0] = 0\n            \n            # Priority queue for Dijkstra's algorithm\n            pq = [(0, 0)]\n            while pq:\n                current_dist, u = heapq.heappop(pq)\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heapq.heappush(pq, (distance, v))\n            return dist\n        \n        result = []\n        for u, v in queries:\n            # Add the new road\n            graph[u].append((v, 1))\n            \n            # Recalculate the shortest paths using Dijkstra's algorithm\n            dist = dijkstra()\n            \n            # Append the shortest path from 0 to n-1 to the result\n            result.append(dist[n - 1])\n        \n        return result",
+              "solution_hash": "dea5f0a9883db84dbf3eb7cdf47fa2487b00949d28bfcb896d5875aafbed21d4",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpdu15oy98.py\", line 166, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpdu15oy98.py\", line 126, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06257915496826172
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_3",
+              "solution": "from collections import defaultdict\nfrom heapq import heappop, heappush\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        def dijkstra():\n            # Initialize distances with infinity\n            dist = [float('inf')] * n\n            dist[0] = 0\n            \n            # Priority queue for Dijkstra's algorithm\n            pq = [(0, 0)]\n            while pq:\n                current_dist, u = heappop(pq)\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heappush(pq, (distance, v))\n            return dist\n        \n        result = []\n        for u, v in queries:\n            # Add the new road\n            graph[u].append((v, 1))\n            \n            # Recalculate shortest paths using Dijkstra's algorithm\n            dist = dijkstra()\n            \n            # Append the shortest path to the last city\n            result.append(dist[n - 1])\n        \n        return result",
+              "solution_hash": "d0fb34c280c95cf0d1a1d8f7e7774c92c9cf3fc313a76c56f87ac6fa0e6f4b14",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpmwmbr5ti.py\", line 166, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpmwmbr5ti.py\", line 126, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06592845916748047
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "from collections import defaultdict\nfrom heapq import heappop, heappush\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        def dijkstra():\n            # Initialize distances with infinity\n            dist = [float('inf')] * n\n            dist[0] = 0\n            \n            # Priority queue for Dijkstra's algorithm\n            pq = [(0, 0)]\n            \n            while pq:\n                current_dist, u = heappop(pq)\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heappush(pq, (distance, v))\n            \n            return dist\n        \n        # Initial shortest path calculation\n        dist = dijkstra()\n        result = []\n        \n        for u, v in queries:\n            # Add the new road\n            graph[u].append((v, 1))\n            \n            # Recalculate shortest paths from 0 to n-1 considering the new road\n            dist = dijkstra()\n            \n            # Append the shortest path from 0 to n-1 after the current query\n            result.append(dist[n - 1])\n        \n        return result",
+              "solution_hash": "9a8daf4f7f3af47390d397d46803e8d659f3eb0ca6357651e93bb1c347d22ea2",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp28wq8zr7.py\", line 171, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp28wq8zr7.py\", line 131, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.061716556549072266
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_5",
+          "solution": "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Reverse the queries to process them in reverse order\n        queries.reverse()\n        \n        # Function to perform Dijkstra's algorithm from the end\n        def dijkstra_from_end():\n            dist = [float('inf')] * n\n            dist[n - 1] = 0\n            pq = [(0, n - 1)]  # (distance, node)\n            \n            while pq:\n                current_dist, u = heappop(pq)\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heappush(pq, (distance, v))\n            \n            return dist\n        \n        # Perform initial Dijkstra's from the end\n        dist_from_end = dijkstra_from_end()\n        \n        result = []\n        for u, v in reversed(queries):\n            # Add the new road\n            graph[u].append((v, 1))\n            # Update the distances from the end considering the new road\n            pq = [(dist_from_end[v], v)]\n            while pq:\n                current_dist, u = heappop(pq)\n                if current_dist > dist_from_end[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist_from_end[v]:\n                        dist_from_end[v] = distance\n                        heappush(pq, (distance, v))\n            # Append the current shortest path from 0 to n-1\n            result.append(dist_from_end[0] if dist_from_end[0] != float('inf') else -1)\n        \n        # Since we processed queries in reverse, we need to reverse the result\n        result.reverse()\n        return result",
+          "solution_hash": "a8ed456b8a0d7e1ce9039ef87c71e4645033991bc8b227567f8d0cf3f7e75f28",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp5sss6ygg.py\", line 181, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp5sss6ygg.py\", line 140, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+            "execution_time": 0.062358856201171875
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_6",
+              "solution": "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm from the start\n        def dijkstra_from_start():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                current_dist, u = heappop(pq)\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heappush(pq, (distance, v))\n            \n            return dist\n        \n        # Perform initial Dijkstra's from the start\n        dist_from_start = dijkstra_from_start()\n        \n        result = []\n        for u, v in queries:\n            # Add the new road\n            graph[u].append((v, 1))\n            # Update the distances from the start considering the new road\n            pq = [(dist_from_start[u] + 1, v)]  # New road has a weight of 1\n            while pq:\n                current_dist, u = heappop(pq)\n                if current_dist >= dist_from_start[u]:\n                    continue\n                dist_from_start[u] = current_dist\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist_from_start[v]:\n                        heappush(pq, (distance, v))\n            # Append the current shortest path from 0 to n-1\n            result.append(dist_from_start[n - 1] if dist_from_start[n - 1] != float('inf') else -1)\n        \n        return result",
+              "solution_hash": "7db4e122febb4b35166baed6810407fa60f15e24119b0af1c13bff190ef65e73",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpishxrkkj.py\", line 176, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpishxrkkj.py\", line 136, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.0635213851928711
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_7",
+              "solution": "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm from the start\n        def dijkstra_from_start():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                current_dist, u = heappop(pq)\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heappush(pq, (distance, v))\n            \n            return dist\n        \n        result = []\n        for u, v in queries:\n            # Add the new road\n            graph[u].append((v, 1))\n            # Recalculate the shortest paths from the start\n            dist_from_start = dijkstra_from_start()\n            # Append the current shortest path from 0 to n-1\n            result.append(dist_from_start[n - 1] if dist_from_start[n - 1] != float('inf') else -1)\n        \n        return result",
+              "solution_hash": "8d1c153c0c1cf3f000e935b05d336015ec5b1136a535335bb678098b84248f6b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmphq1h7281.py\", line 164, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmphq1h7281.py\", line 124, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06189870834350586
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm from the start\n        def dijkstra_from_start():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                current_dist, u = heappop(pq)\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heappush(pq, (distance, v))\n            \n            return dist\n        \n        result = []\n        for u, v in queries:\n            # Add the new road\n            graph[u].append((v, 1))\n            # Recalculate the shortest path from the start\n            dist_from_start = dijkstra_from_start()\n            # Append the current shortest path from 0 to n-1\n            result.append(dist_from_start[n - 1] if dist_from_start[n - 1] != float('inf') else -1)\n        \n        return result",
+              "solution_hash": "8d1c153c0c1cf3f000e935b05d336015ec5b1136a535335bb678098b84248f6b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmphq1h7281.py\", line 164, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmphq1h7281.py\", line 124, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06189870834350586
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_9",
+          "solution": "from typing import List\nfrom collections import defaultdict\nimport bisect\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append(i + 1)\n        \n        # Precompute the shortest path from 0 to all other nodes using BFS\n        from collections import deque\n        dist = [float('inf')] * n\n        dist[0] = 0\n        queue = deque([0])\n        while queue:\n            u = queue.popleft()\n            for v in graph[u]:\n                if dist[v] == float('inf'):\n                    dist[v] = dist[u] + 1\n                    queue.append(v)\n        \n        # Process the queries\n        result = []\n        for u, v in queries:\n            # Update the graph with the new road\n            graph[u].append(v)\n            \n            # Use binary lifting to efficiently update the shortest paths\n            # Here, we only need to consider the path from u to v and update the distances accordingly\n            if dist[v] > dist[u] + 1:\n                dist[v] = dist[u] + 1\n                # Update all nodes that can reach v through u\n                stack = [(v, dist[v])]\n                visited = set([v])\n                while stack:\n                    current, current_dist = stack.pop()\n                    for neighbor in graph[current]:\n                        if neighbor not in visited and dist[neighbor] > current_dist + 1:\n                            dist[neighbor] = current_dist + 1\n                            visited.add(neighbor)\n                            stack.append((neighbor, dist[neighbor]))\n            \n            result.append(dist[n - 1])\n        \n        return result",
+          "solution_hash": "d676abe6d20744382e8abb8c182c07d284369759ed6350ad5036a3ca576fdf4d",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp8zxh4u15.py\", line 172, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp8zxh4u15.py\", line 132, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+            "execution_time": 0.061240196228027344
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_10",
+              "solution": "from typing import List\nimport heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = {i: [] for i in range(n)}\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to compute the shortest path from start to end using Dijkstra's algorithm\n        def dijkstra(start, end):\n            dist = [float('inf')] * n\n            dist[start] = 0\n            pq = [(0, start)]\n            while pq:\n                current_dist, u = heapq.heappop(pq)\n                if u == end:\n                    return current_dist\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heapq.heappush(pq, (distance, v))\n            return dist[end]\n        \n        # Process the queries\n        result = []\n        for u, v in queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Compute the shortest path from 0 to n-1\n            shortest_path = dijkstra(0, n - 1)\n            result.append(shortest_path)\n        \n        return result",
+              "solution_hash": "b3db5c08096f6b969f563a5c762979ba2d3151d77850ede79e32245e858d128a",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpeb3y0463.py\", line 163, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpeb3y0463.py\", line 123, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06308317184448242
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_11",
+              "solution": "from typing import List\nimport heapq\nfrom collections import defaultdict\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm and return the shortest distance from start to end\n        def dijkstra(start, end):\n            dist = [float('inf')] * n\n            dist[start] = 0\n            pq = [(0, start)]\n            while pq:\n                current_dist, u = heapq.heappop(pq)\n                if u == end:\n                    return current_dist\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heapq.heappush(pq, (distance, v))\n            return dist[end]\n        \n        # Process the queries\n        result = []\n        for u, v in queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Compute the shortest path from 0 to n-1 after adding the new road\n            shortest_path = dijkstra(0, n - 1)\n            result.append(shortest_path)\n        \n        return result",
+              "solution_hash": "cca7cdd854ddea8a10bb0c9606fed2c5472db41ebf12774145c18e085c43ff8d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpn8c2z5pz.py\", line 164, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpn8c2z5pz.py\", line 124, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06206345558166504
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_12",
+              "solution": "from typing import List\nimport heapq\nfrom collections import defaultdict\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to compute shortest path from 0 to n-1 using Dijkstra's algorithm\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            while pq:\n                current_dist, u = heapq.heappop(pq)\n                if current_dist > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    distance = current_dist + weight\n                    if distance < dist[v]:\n                        dist[v] = distance\n                        heapq.heappush(pq, (distance, v))\n            return dist\n        \n        # Initial shortest path calculation\n        dist = dijkstra()\n        result = []\n        \n        # Process each query\n        for u, v in queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Recalculate the shortest path from 0 to n-1\n            dist = dijkstra()\n            # Append the shortest path to the result\n            result.append(dist[n - 1])\n        \n        return result",
+              "solution_hash": "ad61f15313f5503f8a4db973ef3cdca4dd40b1a95ca8fb528fd06a59ca41922e",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpfuxi7vps.py\", line 166, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpfuxi7vps.py\", line 126, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.060767412185668945
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        from heapq import heappush, heappop\n        \n        # Initialize the graph with default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [inf] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            return dist[n - 1]\n        \n        # Process each query and compute the shortest path\n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            result.append(dijkstra())\n        \n        return result",
+      "solution_hash": "9250294676337d72354d743ed11fb79232d648cb0f33784988f04d94414f2bcb",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpg5ii1805.py\", line 156, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpg5ii1805.py\", line 116, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+        "execution_time": 0.06172823905944824
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_14",
+          "solution": "from typing import List\nfrom collections import defaultdict\nimport heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Reverse the queries to process them in reverse order\n        reversed_queries = queries[::-1]\n        \n        # Initialize the graph with default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Initialize the distance array with infinity\n        dist = [float('inf')] * n\n        dist[n - 1] = 0\n        \n        # Min-heap for Dijkstra's algorithm\n        pq = [(0, n - 1)]\n        \n        # Perform Dijkstra's algorithm from the end to the start\n        while pq:\n            d, u = heapq.heappop(pq)\n            if d > dist[u]:\n                continue\n            for v, w in graph[u]:\n                if dist[u] + w < dist[v]:\n                    dist[v] = dist[u] + w\n                    heapq.heappush(pq, (dist[v], v))\n        \n        # Process each reversed query and update the graph and distances\n        result = []\n        for u, v in reversed_queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Update the distances using Dijkstra's algorithm starting from v\n            pq = [(dist[v], v)]\n            visited = set()\n            while pq:\n                d, u = heapq.heappop(pq)\n                if u in visited:\n                    continue\n                visited.add(u)\n                if d < dist[u]:\n                    dist[u] = d\n                for neighbor, weight in graph[u]:\n                    if neighbor not in visited and d + weight < dist[neighbor]:\n                        dist[neighbor] = d + weight\n                        heapq.heappush(pq, (dist[neighbor], neighbor))\n            # Append the current shortest distance from 0 to n-1\n            result.append(dist[0])\n        \n        # The result needs to be reversed because we processed queries in reverse order\n        return result[::-1]",
+          "solution_hash": "4c6928b28b2b8a74a978d7298aac943ef803015dca721b8077883c0646d0160d",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp3dzizxo4.py\", line 180, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp3dzizxo4.py\", line 139, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+            "execution_time": 0.06319093704223633
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_15",
+              "solution": "from typing import List\nfrom collections import defaultdict\nimport heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm from node 0\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]\n            while pq:\n                d, u = heapq.heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heapq.heappush(pq, (dist[v], v))\n            return dist\n        \n        # Initial shortest path distances\n        dist = dijkstra()\n        result = []\n        \n        # Process each query\n        for u, v in queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Update the distances using Dijkstra's algorithm starting from u\n            pq = [(dist[u], u)]\n            visited = set()\n            while pq:\n                d, u = heapq.heappop(pq)\n                if u in visited:\n                    continue\n                visited.add(u)\n                if d < dist[u]:\n                    dist[u] = d\n                for neighbor, weight in graph[u]:\n                    if neighbor not in visited and d + weight < dist[neighbor]:\n                        dist[neighbor] = d + weight\n                        heapq.heappush(pq, (dist[neighbor], neighbor))\n            # Append the current shortest distance from 0 to n-1\n            result.append(dist[n - 1])\n        \n        return result",
+              "solution_hash": "8dee296391f595034ee34c6c38d0da07adb8332cd220ff87c1b452415a4e9e56",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpwifbje6h.py\", line 177, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpwifbje6h.py\", line 137, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06428647041320801
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_16",
+              "solution": "from typing import List\nfrom collections import defaultdict\nimport heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm from node 0\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]\n            while pq:\n                d, u = heapq.heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heapq.heappush(pq, (dist[v], v))\n            return dist\n        \n        # Initial shortest distances\n        dist = dijkstra()\n        result = []\n        \n        # Process each query\n        for u, v in queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Update the distances using Dijkstra's algorithm starting from 0\n            dist = dijkstra()\n            # Append the current shortest distance from 0 to n-1\n            result.append(dist[n - 1])\n        \n        return result",
+              "solution_hash": "787bc3b4d1bda7e9d9c722b211d881b3c29642e5de68b4b365cc94040ebf2b2f",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpnamg6adv.py\", line 165, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpnamg6adv.py\", line 125, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06347465515136719
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_17",
+              "solution": "from typing import List\nimport heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with default roads\n        graph = [[] for _ in range(n)]\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm from node 0\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]\n            while pq:\n                d, u = heapq.heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heapq.heappush(pq, (dist[v], v))\n            return dist\n        \n        # Initial shortest path distances\n        dist = dijkstra()\n        result = []\n        \n        # Process each query\n        for u, v in queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Update the distances using Dijkstra's algorithm starting from u\n            pq = [(dist[u], u)]\n            visited = set()\n            while pq:\n                d, u = heapq.heappop(pq)\n                if u in visited:\n                    continue\n                visited.add(u)\n                if d < dist[u]:\n                    dist[u] = d\n                for neighbor, weight in graph[u]:\n                    if neighbor not in visited and d + weight < dist[neighbor]:\n                        dist[neighbor] = d + weight\n                        heapq.heappush(pq, (dist[neighbor], neighbor))\n            # Append the current shortest distance from 0 to n-1\n            result.append(dist[n - 1])\n        \n        return result",
+              "solution_hash": "af9e9870d8323e08bc3adcc5140f927996c31ce047c0d1319290c1e61eb19853",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpuv5nvmiq.py\", line 176, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpuv5nvmiq.py\", line 136, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06424283981323242
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_18",
+          "solution": "from collections import defaultdict\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Step 1: Build the graph with initial roads in reverse\n        graph = defaultdict(list)\n        for i in range(1, n):\n            graph[i].append((i - 1, 1))\n        \n        # Step 2: Process queries in reverse order\n        reversed_queries = queries[::-1]\n        distances = [float('inf')] * n\n        distances[n - 1] = 0\n        \n        # Helper function to relax edges\n        def relax(u, v, weight):\n            if distances[u] > distances[v] + weight:\n                distances[u] = distances[v] + weight\n        \n        # Process each reversed query\n        for u, v in reversed_queries:\n            relax(u, v, 1)\n            # Relax all nodes reachable from u\n            stack = [u]\n            visited = set([u])\n            while stack:\n                current = stack.pop()\n                for neighbor, weight in graph[current]:\n                    if neighbor not in visited:\n                        relax(neighbor, current, weight)\n                        visited.add(neighbor)\n                        stack.append(neighbor)\n        \n        # Step 3: Collect results in forward order\n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            result.append(distances[0] if distances[0] != float('inf') else -1)\n        \n        return result",
+          "solution_hash": "828c5fbe521a87103d85f13236da4c7d593ca459113c4d114071071823722f9b",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpbmku33v3.py\", line 166, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpbmku33v3.py\", line 125, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+            "execution_time": 0.06644558906555176
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_19",
+              "solution": "from collections import defaultdict\nimport heapq\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm and return the shortest distance from 0 to n-1\n        def dijkstra():\n            distances = [float('inf')] * n\n            distances[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                dist, node = heapq.heappop(pq)\n                if dist > distances[node]:\n                    continue\n                for neighbor, weight in graph[node]:\n                    new_dist = dist + weight\n                    if new_dist < distances[neighbor]:\n                        distances[neighbor] = new_dist\n                        heapq.heappush(pq, (new_dist, neighbor))\n            \n            return distances[n - 1]\n        \n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            shortest_path = dijkstra()\n            result.append(shortest_path if shortest_path != float('inf') else -1)\n        \n        return result",
+              "solution_hash": "95343f332361792770c3d52452f68c3c437c0c58f04fd3606a3c18fae4c6c500",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp2wt1k3y5.py\", line 161, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp2wt1k3y5.py\", line 121, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06346321105957031
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_20",
+              "solution": "from collections import defaultdict\nimport heapq\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        def dijkstra(graph, start, n):\n            distances = [float('inf')] * n\n            distances[start] = 0\n            pq = [(0, start)]\n            \n            while pq:\n                current_dist, current_node = heapq.heappop(pq)\n                \n                if current_dist > distances[current_node]:\n                    continue\n                \n                for neighbor, weight in graph[current_node]:\n                    distance = current_dist + weight\n                    \n                    if distance < distances[neighbor]:\n                        distances[neighbor] = distance\n                        heapq.heappush(pq, (distance, neighbor))\n            \n            return distances\n        \n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            distances = dijkstra(graph, 0, n)\n            result.append(distances[n - 1] if distances[n - 1] != float('inf') else -1)\n        \n        return result",
+              "solution_hash": "9ef93cd756dd692431c2c7d5a04802f808ddb04192765ae2c16737250a4a153d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpi8yyhcpe.py\", line 162, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpi8yyhcpe.py\", line 122, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06315922737121582
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_21",
+              "solution": "from collections import defaultdict\nimport heapq\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            distances = [float('inf')] * n\n            distances[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                dist, node = heapq.heappop(pq)\n                if dist > distances[node]:\n                    continue\n                for neighbor, weight in graph[node]:\n                    new_dist = dist + weight\n                    if new_dist < distances[neighbor]:\n                        distances[neighbor] = new_dist\n                        heapq.heappush(pq, (new_dist, neighbor))\n            \n            return distances\n        \n        # Process each query and compute the shortest path after each addition\n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            distances = dijkstra()\n            result.append(distances[n - 1] if distances[n - 1] != float('inf') else -1)\n        \n        return result",
+              "solution_hash": "577dcb9ef66f8718b79d825f4a139d677deea41159c6b9cd9ad515de45d5ef91",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpde640d6h.py\", line 162, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpde640d6h.py\", line 122, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06868648529052734
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_22",
+          "solution": "from collections import defaultdict\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append(i + 1)\n        \n        # Initialize distances with infinity\n        dist = [float('inf')] * n\n        dist[0] = 0\n        \n        # Function to perform a single-source shortest path update\n        def update_distances(start):\n            stack = [start]\n            while stack:\n                u = stack.pop()\n                for v in graph[u]:\n                    if dist[u] + 1 < dist[v]:\n                        dist[v] = dist[u] + 1\n                        stack.append(v)\n        \n        # Initial update for the default roads\n        update_distances(0)\n        \n        # Process each query and compute the shortest path\n        result = []\n        for u, v in queries:\n            graph[u].append(v)\n            update_distances(u)\n            result.append(dist[n - 1])\n        \n        return result",
+          "solution_hash": "e3269851c0dc03e47c6463b0402faece3ed76dc2ce3926aa5011c55d0604505c",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpqxoxo2ie.py\", line 160, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpqxoxo2ie.py\", line 120, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+            "execution_time": 0.06431460380554199
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_23",
+              "solution": "from collections import defaultdict\nimport heapq\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                d, u = heapq.heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    if dist[u] + weight < dist[v]:\n                        dist[v] = dist[u] + weight\n                        heapq.heappush(pq, (dist[v], v))\n            \n            return dist\n        \n        # Initial shortest path calculation\n        dist = dijkstra()\n        \n        # Process each query and compute the shortest path\n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            dist = dijkstra()  # Recalculate shortest paths after each query\n            result.append(dist[n - 1])\n        \n        return result",
+              "solution_hash": "a189d7ac85b5eb4decb27e5e071123ea808721993fcba51dcdd8722de9d65004",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpp223rxgu.py\", line 164, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpp223rxgu.py\", line 124, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06377816200256348
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_24",
+              "solution": "from collections import defaultdict, deque\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append(i + 1)\n        \n        # Initialize distances with infinity\n        dist = [float('inf')] * n\n        dist[0] = 0\n        \n        # Function to perform a single-source shortest path update using BFS\n        def update_distances():\n            queue = deque([0])\n            visited = set([0])\n            while queue:\n                u = queue.popleft()\n                for v in graph[u]:\n                    if dist[u] + 1 < dist[v]:\n                        dist[v] = dist[u] + 1\n                        if v not in visited:\n                            visited.add(v)\n                            queue.append(v)\n        \n        # Initial update for the default roads\n        update_distances()\n        \n        # Process each query and compute the shortest path\n        result = []\n        for u, v in queries:\n            graph[u].append(v)\n            if dist[u] + 1 < dist[v]:  # Only update if the new path is shorter\n                dist[v] = dist[u] + 1\n                update_distances()  # Re-run BFS to update affected paths\n            result.append(dist[n - 1])\n        \n        return result",
+              "solution_hash": "f7dc2cbff98f85f14298f00af29692b4c694fd196f5103f83339296c7f8129ef",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp4w4ba0x4.py\", line 165, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp4w4ba0x4.py\", line 124, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.06290817260742188
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_25",
+              "solution": "from collections import defaultdict\nimport heapq\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            while pq:\n                d, u = heapq.heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    if dist[u] + weight < dist[v]:\n                        dist[v] = dist[u] + weight\n                        heapq.heappush(pq, (dist[v], v))\n            return dist\n        \n        # Initial shortest path calculation\n        dist = dijkstra()\n        \n        # Process each query and compute the shortest path\n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            dist = dijkstra()  # Recalculate shortest paths after each query\n            result.append(dist[n - 1])\n        \n        return result",
+              "solution_hash": "a189d7ac85b5eb4decb27e5e071123ea808721993fcba51dcdd8722de9d65004",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpp223rxgu.py\", line 164, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpp223rxgu.py\", line 124, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06377816200256348
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        from heapq import heappush, heappop\n        \n        # Initialize the graph with initial roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [inf] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            \n            return dist[n - 1]\n        \n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            result.append(dijkstra())\n        \n        return result",
+      "solution_hash": "9250294676337d72354d743ed11fb79232d648cb0f33784988f04d94414f2bcb",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpppc70dgs.py\", line 157, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpppc70dgs.py\", line 117, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+        "execution_time": 0.06120586395263672
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_27",
+          "solution": "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            \n            return dist\n        \n        # Initial shortest path calculation\n        dist = dijkstra()\n        result = []\n        \n        for u, v in queries:\n            graph[u].append((v, 1))\n            # Update distances starting from u\n            pq = [(dist[u], u)]\n            visited = set()\n            while pq:\n                d, node = heappop(pq)\n                if node in visited:\n                    continue\n                visited.add(node)\n                if d < dist[node]:\n                    dist[node] = d\n                for neighbor, weight in graph[node]:\n                    if neighbor not in visited and d + weight < dist[neighbor]:\n                        dist[neighbor] = d + weight\n                        heappush(pq, (dist[neighbor], neighbor))\n            \n            result.append(dist[n - 1])\n        \n        return result",
+          "solution_hash": "87275091c01e0e917d8967a04f708e5756c2bfd126355d4272ac2083410854fe",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpikknxf1m.py\", line 177, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpikknxf1m.py\", line 137, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+            "execution_time": 0.06444907188415527
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_28",
+              "solution": "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the reverse graph with initial roads\n        reverse_graph = defaultdict(list)\n        for i in range(1, n):\n            reverse_graph[i].append((i - 1, 1))\n        \n        # Function to perform Dijkstra's algorithm from the end to the start\n        def dijkstra_from_end():\n            dist = [float('inf')] * n\n            dist[n - 1] = 0\n            pq = [(0, n - 1)]  # (distance, node)\n            \n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in reverse_graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            \n            return dist\n        \n        # Initial shortest path calculation from end to start\n        dist_from_end = dijkstra_from_end()\n        result = []\n        \n        for u, v in queries:\n            # Add the new road to the reverse graph\n            reverse_graph[v].append((u, 1))\n            # Update distances starting from v\n            pq = [(dist_from_end[v], v)]\n            visited = set()\n            while pq:\n                d, node = heappop(pq)\n                if node in visited:\n                    continue\n                visited.add(node)\n                if d < dist_from_end[node]:\n                    dist_from_end[node] = d\n                for neighbor, weight in reverse_graph[node]:\n                    if neighbor not in visited and d + weight < dist_from_end[neighbor]:\n                        dist_from_end[neighbor] = d + weight\n                        heappush(pq, (dist_from_end[neighbor], neighbor))\n            \n            result.append(dist_from_end[0] if dist_from_end[0] != float('inf') else -1)\n        \n        return result",
+              "solution_hash": "c8b71be0010707994255ea797c4412c2311584a9701bec151a8a931aa36c1af4",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp4p5vohg8.py\", line 178, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp4p5vohg8.py\", line 138, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06316304206848145
+              },
+              "depth": 2,
+              "parent_id": "1_27",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_29",
+              "solution": "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the reverse graph with initial roads\n        reverse_graph = defaultdict(list)\n        for i in range(1, n):\n            reverse_graph[i].append((i - 1, 1))\n        \n        # Function to perform Dijkstra's algorithm on the reverse graph\n        def dijkstra_reverse(start):\n            dist = [float('inf')] * n\n            dist[start] = 0\n            pq = [(0, start)]  # (distance, node)\n            \n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in reverse_graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            \n            return dist\n        \n        # Initial shortest path calculation from n-1 to 0\n        dist_from_end = dijkstra_reverse(n - 1)\n        result = []\n        \n        # Process each query\n        for u, v in queries:\n            # Add the new road to the reverse graph\n            reverse_graph[v].append((u, 1))\n            # Update distances starting from v\n            pq = [(dist_from_end[v] + 1, v)]\n            visited = set()\n            while pq:\n                d, node = heappop(pq)\n                if node in visited:\n                    continue\n                visited.add(node)\n                if d < dist_from_end[node]:\n                    dist_from_end[node] = d\n                for neighbor, weight in reverse_graph[node]:\n                    if neighbor not in visited and d + weight < dist_from_end[neighbor]:\n                        dist_from_end[neighbor] = d + weight\n                        heappush(pq, (dist_from_end[neighbor], neighbor))\n            \n            result.append(dist_from_end[0] if dist_from_end[0] != float('inf') else -1)\n        \n        return result",
+              "solution_hash": "3353b79b3803f964766a508475709ee179e11c6e64edc9d5cbc5bc8ab7fe9aa9",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpbcop6687.py\", line 179, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpbcop6687.py\", line 138, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.06218671798706055
+              },
+              "depth": 2,
+              "parent_id": "1_27",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_30",
+              "solution": "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the reverse graph with initial roads\n        reverse_graph = defaultdict(list)\n        for i in range(1, n):\n            reverse_graph[i].append((i - 1, 1))\n        \n        # Function to perform Dijkstra's algorithm on the reverse graph\n        def dijkstra_reverse(start):\n            dist = [float('inf')] * n\n            dist[start] = 0\n            pq = [(0, start)]  # (distance, node)\n            \n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in reverse_graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            \n            return dist\n        \n        # Initial shortest path calculation from n-1 to 0\n        dist_from_end = dijkstra_reverse(n - 1)\n        result = []\n        \n        for u, v in queries:\n            # Add the new road to the reverse graph\n            reverse_graph[v].append((u, 1))\n            # Update distances starting from v\n            pq = [(dist_from_end[v], v)]\n            visited = set()\n            while pq:\n                d, node = heappop(pq)\n                if node in visited:\n                    continue\n                visited.add(node)\n                if d < dist_from_end[node]:\n                    dist_from_end[node] = d\n                for neighbor, weight in reverse_graph[node]:\n                    if neighbor not in visited and d + weight < dist_from_end[neighbor]:\n                        dist_from_end[neighbor] = d + weight\n                        heappush(pq, (dist_from_end[neighbor], neighbor))\n            \n            result.append(dist_from_end[0] if dist_from_end[0] != float('inf') else -1)\n        \n        return result",
+              "solution_hash": "7dcaad19f110ef67134d8c085f8cf4a75b0f53aa8c6ffb3a886a51af162112fb",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpa65g88l5.py\", line 178, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpa65g88l5.py\", line 138, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.061672210693359375
+              },
+              "depth": 2,
+              "parent_id": "1_27",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_31",
+          "solution": "from collections import defaultdict\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Step 1: Build the reverse graph\n        reverse_graph = defaultdict(list)\n        for i in range(n - 1):\n            reverse_graph[i + 1].append(i)\n        \n        # Step 2: Initialize the shortest path to each node from the end\n        shortest_to_end = [float('inf')] * n\n        shortest_to_end[n - 1] = 0\n        \n        # Step 3: Perform a reverse BFS to calculate shortest paths to the end\n        queue = [n - 1]\n        while queue:\n            current = queue.pop(0)\n            for neighbor in reverse_graph[current]:\n                if shortest_to_end[neighbor] > shortest_to_end[current] + 1:\n                    shortest_to_end[neighbor] = shortest_to_end[current] + 1\n                    queue.append(neighbor)\n        \n        # Step 4: Process each query and update the shortest path\n        result = []\n        for u, v in queries:\n            # Add the new road to the reverse graph\n            reverse_graph[v].append(u)\n            # Update the shortest path to the end starting from u\n            if shortest_to_end[u] + 1 < shortest_to_end[v]:\n                shortest_to_end[v] = shortest_to_end[u] + 1\n                # Propagate the change to all nodes that can reach v\n                queue = [v]\n                visited = set([v])\n                while queue:\n                    current = queue.pop(0)\n                    for neighbor in reverse_graph[current]:\n                        if neighbor not in visited and shortest_to_end[neighbor] > shortest_to_end[current] + 1:\n                            shortest_to_end[neighbor] = shortest_to_end[current] + 1\n                            visited.add(neighbor)\n                            queue.append(neighbor)\n            # Append the shortest path from 0 to n-1\n            result.append(shortest_to_end[0] if shortest_to_end[0] != float('inf') else -1)\n        \n        return result",
+          "solution_hash": "039d02b097d6ea39a7eb3afb0b15f05b913f41e6f84519f2b6147bcef323a396",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpw1sd36uv.py\", line 170, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpw1sd36uv.py\", line 129, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+            "execution_time": 0.06209087371826172
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_32",
+              "solution": "from heapq import heappop, heappush\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default unidirectional roads\n        graph = {i: [(i + 1, 1)] for i in range(n - 1)}\n        graph[n - 1] = []  # No outgoing edges from the last city\n        \n        # Function to compute the shortest path from 0 to n-1 using Dijkstra's algorithm\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            return dist[n - 1]\n        \n        result = []\n        for u, v in queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Compute the shortest path from 0 to n-1 after adding the new road\n            shortest_path = dijkstra()\n            result.append(shortest_path if shortest_path != float('inf') else -1)\n        \n        return result",
+              "solution_hash": "abecc539acce7e8a9eab9aa2c09051ce1f3a01b1d0154358efbe7789b7529f8d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp3jbvyq59.py\", line 158, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp3jbvyq59.py\", line 118, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06372737884521484
+              },
+              "depth": 2,
+              "parent_id": "1_31",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_33",
+              "solution": "from collections import defaultdict\nimport heapq\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm and find the shortest path from 0 to n-1\n        def dijkstra():\n            distances = [float('inf')] * n\n            distances[0] = 0\n            priority_queue = [(0, 0)]\n            \n            while priority_queue:\n                current_distance, current_node = heapq.heappop(priority_queue)\n                \n                if current_distance > distances[current_node]:\n                    continue\n                \n                for neighbor, weight in graph[current_node]:\n                    distance = current_distance + weight\n                    \n                    if distance < distances[neighbor]:\n                        distances[neighbor] = distance\n                        heapq.heappush(priority_queue, (distance, neighbor))\n            \n            return distances[n - 1]\n        \n        result = []\n        for u, v in queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Calculate the shortest path from 0 to n-1 after adding the new road\n            shortest_path = dijkstra()\n            result.append(shortest_path if shortest_path != float('inf') else -1)\n        \n        return result",
+              "solution_hash": "5896567064323e49d34ca0dcc5c0f3ecfe0296f0193e501f020d0ee872e41484",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpmcqgvos8.py\", line 166, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpmcqgvos8.py\", line 126, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.0636289119720459
+              },
+              "depth": 2,
+              "parent_id": "1_31",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_34",
+              "solution": "from collections import defaultdict\nimport heapq\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with the default roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm and find the shortest path from 0 to n-1\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            while pq:\n                d, u = heapq.heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, weight in graph[u]:\n                    if dist[u] + weight < dist[v]:\n                        dist[v] = dist[u] + weight\n                        heapq.heappush(pq, (dist[v], v))\n            return dist[n - 1]\n        \n        result = []\n        for u, v in queries:\n            # Add the new road to the graph\n            graph[u].append((v, 1))\n            # Compute the shortest path from 0 to n-1 using Dijkstra's algorithm\n            shortest_path = dijkstra()\n            result.append(shortest_path if shortest_path != float('inf') else -1)\n        \n        return result",
+              "solution_hash": "b7686eaf5f40a8e4dcfb75ac2a1e6e1b8ef380befdfb42358e354c9ff277bb13",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpy_s5uj8n.py\", line 160, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpy_s5uj8n.py\", line 120, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06424093246459961
+              },
+              "depth": 2,
+              "parent_id": "1_31",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_35",
+          "solution": "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            \n            return dist\n        \n        # Initial shortest path distances\n        dist = dijkstra()\n        \n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            # Only recompute distances from nodes affected by the new edge\n            pq = [(dist[u] + 1, v)]\n            visited = set()\n            while pq:\n                d, node = heappop(pq)\n                if node in visited or d >= dist[node]:\n                    continue\n                visited.add(node)\n                dist[node] = d\n                if node == n - 1:\n                    break\n                for neighbor, weight in graph[node]:\n                    if neighbor not in visited:\n                        heappush(pq, (d + weight, neighbor))\n            \n            result.append(dist[n - 1])\n        \n        return result",
+          "solution_hash": "ad921773d6f43fc51339f9d6733e34f077434ae05bb3f68cd78aac19abc74126",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpu6lrx5ot.py\", line 177, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpu6lrx5ot.py\", line 137, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+            "execution_time": 0.06375861167907715
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_36",
+              "solution": "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            \n            return dist\n        \n        # Initial shortest path distances\n        dist = dijkstra()\n        \n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            # Use a min-heap to update the shortest paths efficiently\n            pq = [(dist[u] + 1, v)]\n            while pq:\n                d, node = heappop(pq)\n                if d >= dist[node]:\n                    continue\n                dist[node] = d\n                for neighbor, weight in graph[node]:\n                    heappush(pq, (d + weight, neighbor))\n            \n            result.append(dist[n - 1])\n        \n        return result",
+              "solution_hash": "b29ec730c9ed34680f5d81c908600d1536920350a73fb0abe50cc54015fd8870",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp903dli8o.py\", line 172, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp903dli8o.py\", line 132, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06334209442138672
+              },
+              "depth": 2,
+              "parent_id": "1_35",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_37",
+              "solution": "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            \n            return dist\n        \n        # Initial shortest path distances\n        dist = dijkstra()\n        \n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            # Recompute distances using Dijkstra's algorithm starting from node 0\n            dist = dijkstra()\n            result.append(dist[n - 1])\n        \n        return result",
+              "solution_hash": "d8a53430ec70f29fd4ff6c98cc22ecdd89c8f02a4832cef12f2eef04a9f79ad7",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp00w_vbyt.py\", line 164, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp00w_vbyt.py\", line 124, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06259655952453613
+              },
+              "depth": 2,
+              "parent_id": "1_35",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_38",
+              "solution": "from collections import defaultdict\nfrom heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = defaultdict(list)\n        for i in range(n - 1):\n            graph[i].append((i + 1, 1))\n        \n        # Function to perform Dijkstra's algorithm\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            \n            while pq:\n                d, u = heappop(pq)\n                if d > dist[u]:\n                    continue\n                for v, w in graph[u]:\n                    if dist[u] + w < dist[v]:\n                        dist[v] = dist[u] + w\n                        heappush(pq, (dist[v], v))\n            \n            return dist\n        \n        result = []\n        for u, v in queries:\n            graph[u].append((v, 1))\n            dist = dijkstra()\n            result.append(dist[n - 1])\n        \n        return result",
+              "solution_hash": "05f338d277901614e0764bb133557129ca3726e0a09a355494324aa4eedcef8d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpjymwwzwr.py\", line 160, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpjymwwzwr.py\", line 120, in check\n    assert candidate(n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]) == [3, 2, 2, 1]\nAssertionError\n",
+                "execution_time": 0.06249213218688965
+              },
+              "depth": 2,
+              "parent_id": "1_35",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 39,
+    "candidates_generated": 39,
+    "tests_passed": 0,
+    "tests_failed": 39,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 1312.192545413971,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.025000000000000022,
+      "pass@3": 0.07499999999999996,
+      "pass@5": 0.125,
+      "pass@10": 0.25
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 26
+          }
+        ],
+        [
+          27,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 27
+          }
+        ],
+        [
+          28,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 28
+          }
+        ],
+        [
+          29,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 29
+          }
+        ],
+        [
+          30,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 30
+          }
+        ],
+        [
+          31,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 31
+          }
+        ],
+        [
+          32,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 32
+          }
+        ],
+        [
+          33,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 33
+          }
+        ],
+        [
+          34,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 34
+          }
+        ],
+        [
+          35,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 35
+          }
+        ],
+        [
+          36,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 36
+          }
+        ],
+        [
+          37,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 37
+          }
+        ],
+        [
+          38,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 38
+          }
+        ],
+        [
+          39,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 39
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 40,
+    "test_cases": 1
+  }
+}

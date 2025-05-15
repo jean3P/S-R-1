@@ -1,0 +1,755 @@
+{
+  "problem_id": "count-substrings-that-can-be-rearranged-to-contain-a-string-i",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "solved",
+  "best_solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        # Count the frequency of each character in word2\n        word2_count = Counter(word2)\n        required_chars = len(word2_count)\n        formed_chars = 0\n        \n        # Initialize the sliding window\n        left = 0\n        right = 0\n        window_count = {}\n        valid_substrings = 0\n        n = len(word1)\n        m = len(word2)\n        \n        while right < n:\n            char = word1[right]\n            window_count[char] = window_count.get(char, 0) + 1\n            \n            # Check if the current character meets the requirement\n            if char in word2_count and window_count[char] == word2_count[char]:\n                formed_chars += 1\n            \n            # Try to contract the window until it ceases to be 'desirable'\n            while left <= right and formed_chars == required_chars:\n                # Add all substrings starting from left to right\n                valid_substrings += n - right\n                \n                # The character at the position pointed by the `left` pointer is no longer a part of the window\n                char = word1[left]\n                window_count[char] -= 1\n                if char in word2_count and window_count[char] < word2_count[char]:\n                    formed_chars -= 1\n                \n                # Move the left pointer ahead\n                left += 1\n            \n            # Keep expanding the window\n            right += 1\n        \n        return valid_substrings",
+  "passed_solutions": [
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        # Count the frequency of each character in word2\n        word2_count = Counter(word2)\n        required_chars = len(word2_count)\n        formed_chars = 0\n        \n        # Initialize the sliding window\n        left = 0\n        right = 0\n        window_count = {}\n        valid_substrings = 0\n        n = len(word1)\n        m = len(word2)\n        \n        while right < n:\n            char = word1[right]\n            window_count[char] = window_count.get(char, 0) + 1\n            \n            # Check if the current character meets the requirement\n            if char in word2_count and window_count[char] == word2_count[char]:\n                formed_chars += 1\n            \n            # Try to contract the window until it ceases to be 'desirable'\n            while left <= right and formed_chars == required_chars:\n                # Add all substrings starting from left to right\n                valid_substrings += n - right\n                \n                # The character at the position pointed by the `left` pointer is no longer a part of the window\n                char = word1[left]\n                window_count[char] -= 1\n                if char in word2_count and window_count[char] < word2_count[char]:\n                    formed_chars -= 1\n                \n                # Move the left pointer ahead\n                left += 1\n            \n            # Keep expanding the window\n            right += 1\n        \n        return valid_substrings",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Iterate over each possible starting point of the substring\n        for start in range(n - k + 1):\n            # Initialize the counter for the current window\n            window_count = Counter()\n            \n            # Count characters in the current window\n            for i in range(start, n):\n                window_count[word1[i]] += 1\n                \n                # If the window size is at least k, check if it's valid\n                if i - start + 1 >= k:\n                    # Create a copy of the window counter for the prefix check\n                    prefix_count = window_count.copy()\n                    \n                    # Check if the prefix of the window can be rearranged to word2\n                    for char in word2:\n                        if prefix_count[char] > 0:\n                            prefix_count[char] -= 1\n                        else:\n                            break\n                    else:\n                        # If we successfully matched all characters in word2, it's valid\n                        valid_count += 1\n        \n        return valid_count"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        # Count the frequency of each character in word2\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k-1])\n        valid_count = 0\n        \n        # Slide the window over word1\n        for i in range(k-1, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Check if the current window can be rearranged to have word2 as a prefix\n            if window_count & word2_count == word2_count:\n                valid_count += n - i\n            \n            # Remove the character that is sliding out of the window\n            window_count[word1[i-k+1]] -= 1\n            if window_count[word1[i-k+1]] == 0:\n                del window_count[word1[i-k+1]]\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k-1])\n        valid_count = 0\n        \n        # Slide the window over word1\n        for i in range(k-1, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Check if the current window can be rearranged to have word2 as a prefix\n            if window_count & word2_count == word2_count and all(window_count[char] >= word2_count[char] for char in word2_count):\n                valid_count += n - i\n            \n            # Remove the character that is sliding out of the window\n            window_count[word1[i-k+1]] -= 1\n            if window_count[word1[i-k+1]] == 0:\n                del window_count[word1[i-k+1]]\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Function to check if the current window can be rearranged to have word2 as a prefix\n        def is_valid(window_count):\n            for char, count in word2_count.items():\n                if window_count[char] < count:\n                    return False\n            return True\n        \n        # Iterate over each possible starting point of the substring\n        for start in range(n - k + 1):\n            # Initialize the counter for the current window\n            window_count = Counter(word1[start:start+k])\n            \n            # Check if the initial window is valid\n            if is_valid(window_count):\n                valid_count += n - start - k + 1\n            \n            # Expand the window to the right\n            for end in range(start + k, n):\n                window_count[word1[end]] += 1\n                \n                # Check if the expanded window is valid\n                if is_valid(window_count):\n                    valid_count += n - end\n                else:\n                    break\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        \n        # Initialize the counter for the first window\n        window_count = Counter()\n        valid_count = 0\n        \n        # Slide the window over word1\n        for i in range(n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # If the window size exceeds the length of word2, remove the character that is sliding out of the window\n            if i >= k:\n                window_count[word1[i - k]] -= 1\n                if window_count[word1[i - k]] == 0:\n                    del window_count[word1[i - k]]\n            \n            # Check if the current window can be rearranged to have word2 as a prefix\n            if window_count & word2_count == word2_count and all(window_count[char] >= word2_count[char] for char in word2_count):\n                valid_count += n - i\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        \n        # Initialize the counter for the first window\n        window_count = Counter()\n        valid_count = 0\n        \n        # Slide the window over word1\n        for i in range(n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Ensure the window size is at least k\n            if i >= k:\n                # Remove the character that is sliding out of the window\n                start_char = word1[i - k]\n                window_count[start_char] -= 1\n                if window_count[start_char] == 0:\n                    del window_count[start_char]\n            \n            # Check if the current window can be rearranged to have word2 as a prefix\n            if all(window_count[char] >= word2_count[char] for char in word2_count):\n                valid_count += 1\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Initialize the counter for the first window\n        window_count = Counter()\n        \n        # Slide the window over word1\n        for i in range(n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Ensure the window size is at least k\n            if i >= k:\n                # Remove the character that is sliding out of the window\n                start_char = word1[i - k]\n                window_count[start_char] -= 1\n                if window_count[start_char] == 0:\n                    del window_count[start_char]\n            \n            # Check if the current window's prefix can be rearranged to have word2 as a prefix\n            if i >= k - 1 and window_count & word2_count == word2_count:\n                # Check if the prefix of the window can be rearranged to match word2\n                prefix = word1[i - k + 1:i + 1]\n                if sorted(prefix[:k]) == sorted(word2):\n                    valid_count += n - i\n            \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k])\n        \n        # Check the first window\n        if window_count & word2_count == word2_count:\n            valid_count += n - k + 1\n        \n        # Slide the window over word1\n        for i in range(k, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Remove the character that is sliding out of the window\n            start_char = word1[i - k]\n            window_count[start_char] -= 1\n            if window_count[start_char] == 0:\n                del window_count[start_char]\n            \n            # Check if the current window contains at least the characters in word2\n            if window_count & word2_count == word2_count:\n                valid_count += n - i\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Function to check if the current window can form word2 as a prefix\n        def can_form_word2(window_count):\n            for char, count in word2_count.items():\n                if window_count[char] < count:\n                    return False\n            return True\n        \n        # Initialize the counter for the first window\n        window_count = Counter()\n        \n        # Slide the window over word1\n        for i in range(n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Ensure the window size is at least k\n            if i >= k:\n                # Remove the character that is sliding out of the window\n                start_char = word1[i - k]\n                window_count[start_char] -= 1\n                if window_count[start_char] == 0:\n                    del window_count[start_char]\n            \n            # Check if the current window's prefix can be rearranged to have word2 as a prefix\n            if i >= k - 1 and can_form_word2(window_count):\n                valid_count += n - i\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Initialize the counter for the first window\n        window_count = Counter()\n        required_chars = word2_count.copy()\n        formed = 0\n        \n        # Slide the window over word1\n        for i in range(n):\n            # Add the new character to the window\n            char = word1[i]\n            window_count[char] += 1\n            \n            # If the current character is required and its count matches the required count, increment formed\n            if char in required_chars and window_count[char] == required_chars[char]:\n                formed += 1\n            \n            # Ensure the window size is at least k\n            if i >= k:\n                # Remove the character that is sliding out of the window\n                start_char = word1[i - k]\n                if start_char in required_chars and window_count[start_char] == required_chars[start_char]:\n                    formed -= 1\n                window_count[start_char] -= 1\n                if window_count[start_char] == 0:\n                    del window_count[start_char]\n            \n            # If all characters are formed, count all valid substrings starting from the beginning of the window\n            if formed == len(required_chars):\n                valid_count += n - i\n        \n        return valid_count",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import deque\n        \n        k = len(word2)\n        n = len(word1)\n        sorted_word2 = ''.join(sorted(word2))\n        valid_count = 0\n        \n        # Use a deque to maintain the current window\n        window = deque()\n        \n        for i in range(n):\n            window.append(word1[i])\n            \n            # Ensure the window size is at least k\n            if len(window) >= k:\n                # Sort the first k characters of the window\n                if ''.join(sorted(window[:k])) == sorted_word2:\n                    valid_count += n - i\n                \n                # Remove the character that is sliding out of the window\n                window.popleft()\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        k = len(word2)\n        n = len(word1)\n        target_count = Counter(word2)\n        valid_count = 0\n        \n        # Iterate over each possible starting point of a substring in word1\n        for start in range(n - k + 1):\n            # Count the characters in the current window of size k\n            window_count = Counter(word1[start:start + k])\n            \n            # Check if the window count matches the target count\n            if window_count == target_count:\n                # If it matches, all substrings starting here are valid\n                valid_count += n - start - k + 1\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        k = len(word2)\n        n = len(word1)\n        target_count = Counter(word2)\n        valid_count = 0\n        \n        # Initialize the counter for the first window\n        current_count = Counter(word1[:k-1])\n        \n        for i in range(k-1, n):\n            # Add the new character to the window\n            current_count[word1[i]] += 1\n            \n            # Check if the current window can be rearranged to contain word2 as a prefix\n            if current_count == target_count:\n                valid_count += n - i\n            \n            # Remove the character that is sliding out of the window\n            current_count[word1[i-k+1]] -= 1\n            if current_count[word1[i-k+1]] == 0:\n                del current_count[word1[i-k+1]]\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        k = len(word2)\n        n = len(word1)\n        target_counter = Counter(word2)\n        valid_count = 0\n        \n        # Initialize the counter for the first window\n        current_counter = Counter(word1[:k-1])\n        \n        for i in range(k-1, n):\n            # Add the new character to the window\n            current_counter[word1[i]] += 1\n            \n            # Check if the current window can be rearranged to start with word2\n            if current_counter == target_counter:\n                valid_count += n - i\n            \n            # Remove the character that is sliding out of the window\n            current_counter[word1[i-k+1]] -= 1\n            if current_counter[word1[i-k+1]] == 0:\n                del current_counter[word1[i-k+1]]\n        \n        return valid_count",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        # Count the frequency of each character in word2\n        word2_count = Counter(word2)\n        required_chars = len(word2_count)\n        formed_chars = 0\n        \n        # Initialize the sliding window\n        left = 0\n        right = 0\n        window_count = {}\n        valid_substrings = 0\n        n = len(word1)\n        m = len(word2)\n        \n        while right < n:\n            char = word1[right]\n            window_count[char] = window_count.get(char, 0) + 1\n            \n            # Check if the current character meets the requirement\n            if char in word2_count and window_count[char] == word2_count[char]:\n                formed_chars += 1\n            \n            # Try to contract the window until it ceases to be 'desirable'\n            while left <= right and formed_chars == required_chars:\n                # Add all substrings starting from left to right\n                valid_substrings += n - right\n                \n                # The character at the position pointed by the `left` pointer is no longer a part of the window\n                char = word1[left]\n                window_count[char] -= 1\n                if char in word2_count and window_count[char] < word2_count[char]:\n                    formed_chars -= 1\n                \n                # Move the left pointer ahead\n                left += 1\n            \n            # Keep expanding the window\n            right += 1\n        \n        return valid_substrings",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        # Count the frequency of each character in word2\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k-1])\n        valid_count = 0\n        \n        # Slide the window over word1\n        for i in range(k-1, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Check if the current window can be rearranged to start with word2\n            if window_count == word2_count:\n                valid_count += 1\n            \n            # Remove the character that is sliding out of the window\n            start_char = word1[i-k+1]\n            if window_count[start_char] == 1:\n                del window_count[start_char]\n            else:\n                window_count[start_char] -= 1\n        \n        return valid_count",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        # Count the frequency of each character in word2\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Iterate over each possible starting point in word1\n        for start in range(n - k + 1):\n            # Initialize the counter for the current window\n            window_count = Counter()\n            \n            # Expand the window while the prefix condition is satisfied\n            for end in range(start, n):\n                window_count[word1[end]] += 1\n                \n                # If the window size is at least k, check if it can be rearranged to start with word2\n                if end - start + 1 >= k:\n                    if window_count & word2_count == word2_count:\n                        valid_count += 1\n                    else:\n                        break\n        \n        return valid_count",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        # Count the frequency of each character in word2\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k])\n        \n        # Check the first window\n        if window_count == word2_count:\n            valid_count += 1\n        \n        # Slide the window across word1\n        for i in range(k, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Remove the character that is no longer in the window\n            window_count[word1[i - k]] -= 1\n            \n            # If the count becomes zero, remove it from the counter\n            if window_count[word1[i - k]] == 0:\n                del window_count[word1[i - k]]\n            \n            # Check if the current window matches word2's character count\n            if window_count == word2_count:\n                valid_count += 1\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k-1])\n        \n        # Slide the window over word1\n        for i in range(k-1, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Check if the current window can be rearranged to start with word2\n            if window_count & word2_count == word2_count:\n                valid_count += n - i\n            \n            # Remove the character that is sliding out of the window\n            window_count[word1[i-k+1]] -= 1\n            if window_count[word1[i-k+1]] == 0:\n                del window_count[word1[i-k+1]]\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        required_chars = len(word2_count)\n        formed = 0\n        \n        # Initialize the counter for the first window\n        window_count = Counter()\n        \n        # Set up the initial window\n        for i in range(min(k, n)):\n            char = word1[i]\n            window_count[char] += 1\n            if char in word2_count and window_count[char] == word2_count[char]:\n                formed += 1\n        \n        # Check the first window\n        if formed == required_chars:\n            valid_count += n - k + 1\n        \n        # Slide the window across word1\n        for i in range(k, n):\n            # Add the new character to the window\n            new_char = word1[i]\n            window_count[new_char] += 1\n            if new_char in word2_count and window_count[new_char] == word2_count[new_char]:\n                formed += 1\n            \n            # Remove the old character from the window\n            old_char = word1[i - k]\n            if old_char in word2_count and window_count[old_char] == word2_count[old_char]:\n                formed -= 1\n            window_count[old_char] -= 1\n            if window_count[old_char] == 0:\n                del window_count[old_char]\n            \n            # Check if the current window is valid\n            if formed == required_chars:\n                valid_count += 1\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k])\n        valid_count = 0\n        \n        # Check if the first window is valid\n        if window_count == word2_count:\n            valid_count += n - k + 1\n        \n        # Slide the window over word1\n        for i in range(k, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Remove the character that is sliding out of the window\n            start_char = word1[i-k]\n            if window_count[start_char] == 1:\n                del window_count[start_char]\n            else:\n                window_count[start_char] -= 1\n            \n            # Check if the current window can be rearranged to start with word2\n            if window_count == word2_count:\n                valid_count += n - i\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Iterate over each possible starting point of the substring\n        for start in range(n - k + 1):\n            # Initialize the counter for the first window of length k\n            window_count = Counter(word1[start:start+k])\n            \n            # Check if the first window can be rearranged to start with word2\n            if window_count == word2_count:\n                valid_count += 1\n            \n            # Slide the window over the remaining part of word1\n            for i in range(start + k, n):\n                # Add the new character to the window\n                window_count[word1[i]] += 1\n                \n                # Remove the character that is sliding out of the window\n                start_char = word1[i-k]\n                if window_count[start_char] == 1:\n                    del window_count[start_char]\n                else:\n                    window_count[start_char] -= 1\n                \n                # Check if the current window can be rearranged to start with word2\n                if window_count == word2_count:\n                    valid_count += 1\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Iterate over each possible starting point of a substring in word1\n        for start in range(n - k + 1):\n            # Initialize the counter for the current window\n            window_count = Counter(word1[start:start+k])\n            \n            # Check if the current window can be rearranged to start with word2\n            if window_count == word2_count:\n                # If it can, all substrings starting from this point are valid\n                valid_count += n - start - k + 1\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Iterate over each possible starting point of the substring\n        for start in range(n - k + 1):\n            # Initialize the counter for the current window\n            window_count = Counter()\n            \n            # Count characters in the current window\n            for i in range(start, n):\n                window_count[word1[i]] += 1\n                \n                # If the window size is at least k, check if it's valid\n                if i - start + 1 >= k:\n                    # Create a copy of the window counter for the prefix check\n                    prefix_count = window_count.copy()\n                    \n                    # Check if the prefix of the window can be rearranged to word2\n                    for char in word2:\n                        if prefix_count[char] > 0:\n                            prefix_count[char] -= 1\n                        else:\n                            break\n                    else:\n                        # If we successfully matched all characters in word2, it's valid\n                        valid_count += 1\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Helper function to check if the current window can be rearranged to start with word2\n        def is_valid_prefix(window_count):\n            for char, count in word2_count.items():\n                if window_count[char] < count:\n                    return False\n            return True\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k])\n        \n        # Check the first window\n        if is_valid_prefix(window_count):\n            valid_count += n - k + 1\n        \n        # Slide the window over word1\n        for i in range(k, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Remove the character that is sliding out of the window\n            start_char = word1[i-k]\n            if window_count[start_char] == 1:\n                del window_count[start_char]\n            else:\n                window_count[start_char] -= 1\n            \n            # Check if the current window can be rearranged to start with word2\n            if is_valid_prefix(window_count):\n                valid_count += n - i\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Helper function to check if the current window can be rearranged to start with word2\n        def is_valid_prefix(window_count):\n            for char, count in word2_count.items():\n                if window_count[char] < count:\n                    return False\n            return True\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k])\n        \n        # Check the first window\n        if is_valid_prefix(window_count):\n            valid_count += n - k + 1\n        \n        # Slide the window over word1\n        for i in range(k, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Remove the character that is sliding out of the window\n            start_char = word1[i-k]\n            if window_count[start_char] == 1:\n                del window_count[start_char]\n            else:\n                window_count[start_char] -= 1\n            \n            # Check if the current window can be rearranged to start with word2\n            if is_valid_prefix(window_count):\n                valid_count += 1\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Helper function to check if the current window can be rearranged to start with word2\n        def is_valid_prefix(window_count):\n            for char, count in word2_count.items():\n                if window_count[char] < count:\n                    return False\n            return True\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k])\n        \n        # Check the first window\n        if is_valid_prefix(window_count):\n            valid_count += 1\n        \n        # Slide the window over word1\n        for i in range(k, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Remove the character that is sliding out of the window\n            start_char = word1[i-k]\n            if window_count[start_char] == 1:\n                del window_count[start_char]\n            else:\n                window_count[start_char] -= 1\n            \n            # Check if the current window can be rearranged to start with word2\n            if is_valid_prefix(window_count):\n                valid_count += 1\n        \n        return valid_count",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Helper function to check if the current window can be rearranged to start with word2\n        def is_valid_prefix(window_count):\n            for char, count in word2_count.items():\n                if window_count[char] < count:\n                    return False\n            return True\n        \n        # Iterate over each possible starting position in word1\n        for start in range(n - k + 1):\n            # Initialize the counter for the current window\n            window_count = Counter(word1[start:start+k])\n            \n            # Check if the current window can be rearranged to start with word2\n            if is_valid_prefix(window_count):\n                # If valid, all substrings starting from this point are valid\n                valid_count += n - start - k + 1\n                \n                # Slide the window to the right, expanding it\n                for end in range(start + k, n):\n                    # Add the new character to the window\n                    window_count[word1[end]] += 1\n                    \n                    # Check if the expanded window can still be rearranged to start with word2\n                    if is_valid_prefix(window_count):\n                        valid_count += 1\n                    else:\n                        break\n        \n        return valid_count"
+  ],
+  "total_candidates": 27,
+  "nodes_explored": 27,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        # Count the frequency of each character in word2\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k-1])\n        valid_count = 0\n        \n        # Slide the window over word1\n        for i in range(k-1, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Check if the current window can be rearranged to have word2 as a prefix\n            if window_count & word2_count == word2_count:\n                valid_count += n - i\n            \n            # Remove the character that is sliding out of the window\n            window_count[word1[i-k+1]] -= 1\n            if window_count[word1[i-k+1]] == 0:\n                del window_count[word1[i-k+1]]\n        \n        return valid_count",
+      "solution_hash": "b689d7b8134d7f0ef745cfeef7117d730e6fb45a1388faa694b86601572f22b4",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp7d49pg_z.py\", line 222, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmp7d49pg_z.py\", line 116, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+        "execution_time": 0.06532430648803711
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k-1])\n        valid_count = 0\n        \n        # Slide the window over word1\n        for i in range(k-1, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Check if the current window can be rearranged to have word2 as a prefix\n            if window_count & word2_count == word2_count and all(window_count[char] >= word2_count[char] for char in word2_count):\n                valid_count += n - i\n            \n            # Remove the character that is sliding out of the window\n            window_count[word1[i-k+1]] -= 1\n            if window_count[word1[i-k+1]] == 0:\n                del window_count[word1[i-k+1]]\n        \n        return valid_count",
+          "solution_hash": "30b0e4d415e315d2941a0c51369704d37f77845617e6bda477f08e22bdf5d1be",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpja6iw8oy.py\", line 221, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpja6iw8oy.py\", line 115, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+            "execution_time": 0.06535959243774414
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_2",
+              "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Function to check if the current window can be rearranged to have word2 as a prefix\n        def is_valid(window_count):\n            for char, count in word2_count.items():\n                if window_count[char] < count:\n                    return False\n            return True\n        \n        # Iterate over each possible starting point of the substring\n        for start in range(n - k + 1):\n            # Initialize the counter for the current window\n            window_count = Counter(word1[start:start+k])\n            \n            # Check if the initial window is valid\n            if is_valid(window_count):\n                valid_count += n - start - k + 1\n            \n            # Expand the window to the right\n            for end in range(start + k, n):\n                window_count[word1[end]] += 1\n                \n                # Check if the expanded window is valid\n                if is_valid(window_count):\n                    valid_count += n - end\n                else:\n                    break\n        \n        return valid_count",
+              "solution_hash": "0eb32e314f28d5334256a3e5088e7b24549a389bd1a01c610cca7d5eccc27ffc",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp4j7sgqjw.py\", line 230, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmp4j7sgqjw.py\", line 120, in check\n    assert candidate(word1 = \"banana\",word2 = \"ban\") == 4\nAssertionError\n",
+                "execution_time": 0.06471657752990723
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_3",
+              "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        \n        # Initialize the counter for the first window\n        window_count = Counter()\n        valid_count = 0\n        \n        # Slide the window over word1\n        for i in range(n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # If the window size exceeds the length of word2, remove the character that is sliding out of the window\n            if i >= k:\n                window_count[word1[i - k]] -= 1\n                if window_count[word1[i - k]] == 0:\n                    del window_count[word1[i - k]]\n            \n            # Check if the current window can be rearranged to have word2 as a prefix\n            if window_count & word2_count == word2_count and all(window_count[char] >= word2_count[char] for char in word2_count):\n                valid_count += n - i\n        \n        return valid_count",
+              "solution_hash": "e0d87a0894878391d564ab25f64fba4b1f2884d0da04640b9b61128d0080dcda",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpheueydw3.py\", line 222, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpheueydw3.py\", line 116, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+                "execution_time": 0.06444835662841797
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        \n        # Initialize the counter for the first window\n        window_count = Counter()\n        valid_count = 0\n        \n        # Slide the window over word1\n        for i in range(n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Ensure the window size is at least k\n            if i >= k:\n                # Remove the character that is sliding out of the window\n                start_char = word1[i - k]\n                window_count[start_char] -= 1\n                if window_count[start_char] == 0:\n                    del window_count[start_char]\n            \n            # Check if the current window can be rearranged to have word2 as a prefix\n            if all(window_count[char] >= word2_count[char] for char in word2_count):\n                valid_count += 1\n        \n        return valid_count",
+              "solution_hash": "3602118a9d8cb74f0a66815f0eacda1e9913ebaff97f0cba49cee6c110a17496",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpdbg7zrev.py\", line 224, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpdbg7zrev.py\", line 114, in check\n    assert candidate(word1 = \"banana\",word2 = \"ban\") == 4\nAssertionError\n",
+                "execution_time": 0.06375956535339355
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_5",
+          "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Initialize the counter for the first window\n        window_count = Counter()\n        \n        # Slide the window over word1\n        for i in range(n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Ensure the window size is at least k\n            if i >= k:\n                # Remove the character that is sliding out of the window\n                start_char = word1[i - k]\n                window_count[start_char] -= 1\n                if window_count[start_char] == 0:\n                    del window_count[start_char]\n            \n            # Check if the current window's prefix can be rearranged to have word2 as a prefix\n            if i >= k - 1 and window_count & word2_count == word2_count:\n                # Check if the prefix of the window can be rearranged to match word2\n                prefix = word1[i - k + 1:i + 1]\n                if sorted(prefix[:k]) == sorted(word2):\n                    valid_count += n - i\n            \n        return valid_count",
+          "solution_hash": "a0163fb6d757947743fe6a1c38c2fa87e2752e3ca1c4cf9b0f92514ad0474c68",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpkso4tqd3.py\", line 227, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpkso4tqd3.py\", line 121, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+            "execution_time": 0.06521058082580566
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_6",
+              "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k])\n        \n        # Check the first window\n        if window_count & word2_count == word2_count:\n            valid_count += n - k + 1\n        \n        # Slide the window over word1\n        for i in range(k, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Remove the character that is sliding out of the window\n            start_char = word1[i - k]\n            window_count[start_char] -= 1\n            if window_count[start_char] == 0:\n                del window_count[start_char]\n            \n            # Check if the current window contains at least the characters in word2\n            if window_count & word2_count == word2_count:\n                valid_count += n - i\n        \n        return valid_count",
+              "solution_hash": "84db84b2b21b177873b8ff80184e84b2971d7f8a989165c04b7c4166e24fb215",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpi3vucw7f.py\", line 226, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpi3vucw7f.py\", line 120, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+                "execution_time": 0.06701946258544922
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_7",
+              "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Function to check if the current window can form word2 as a prefix\n        def can_form_word2(window_count):\n            for char, count in word2_count.items():\n                if window_count[char] < count:\n                    return False\n            return True\n        \n        # Initialize the counter for the first window\n        window_count = Counter()\n        \n        # Slide the window over word1\n        for i in range(n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Ensure the window size is at least k\n            if i >= k:\n                # Remove the character that is sliding out of the window\n                start_char = word1[i - k]\n                window_count[start_char] -= 1\n                if window_count[start_char] == 0:\n                    del window_count[start_char]\n            \n            # Check if the current window's prefix can be rearranged to have word2 as a prefix\n            if i >= k - 1 and can_form_word2(window_count):\n                valid_count += n - i\n        \n        return valid_count",
+              "solution_hash": "ced61e4a7bd09aaa797a814d575f5d5bb7fa828d8c1a3ead89834c0e1785860a",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp9_9bp52u.py\", line 231, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmp9_9bp52u.py\", line 125, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+                "execution_time": 0.07063627243041992
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Initialize the counter for the first window\n        window_count = Counter()\n        required_chars = word2_count.copy()\n        formed = 0\n        \n        # Slide the window over word1\n        for i in range(n):\n            # Add the new character to the window\n            char = word1[i]\n            window_count[char] += 1\n            \n            # If the current character is required and its count matches the required count, increment formed\n            if char in required_chars and window_count[char] == required_chars[char]:\n                formed += 1\n            \n            # Ensure the window size is at least k\n            if i >= k:\n                # Remove the character that is sliding out of the window\n                start_char = word1[i - k]\n                if start_char in required_chars and window_count[start_char] == required_chars[start_char]:\n                    formed -= 1\n                window_count[start_char] -= 1\n                if window_count[start_char] == 0:\n                    del window_count[start_char]\n            \n            # If all characters are formed, count all valid substrings starting from the beginning of the window\n            if formed == len(required_chars):\n                valid_count += n - i\n        \n        return valid_count",
+              "solution_hash": "67b3f828e8b5636b2f6b07597f6dd2ee8c7cfa9cf675e7897e8bfb5ee052a448",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpr1zox3xn.py\", line 233, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpr1zox3xn.py\", line 127, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+                "execution_time": 0.0702674388885498
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_9",
+          "solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import deque\n        \n        k = len(word2)\n        n = len(word1)\n        sorted_word2 = ''.join(sorted(word2))\n        valid_count = 0\n        \n        # Use a deque to maintain the current window\n        window = deque()\n        \n        for i in range(n):\n            window.append(word1[i])\n            \n            # Ensure the window size is at least k\n            if len(window) >= k:\n                # Sort the first k characters of the window\n                if ''.join(sorted(window[:k])) == sorted_word2:\n                    valid_count += n - i\n                \n                # Remove the character that is sliding out of the window\n                window.popleft()\n        \n        return valid_count",
+          "solution_hash": "7f6e6a9268850ea3405c3ecca326d23e136cdd51a6a3681159c393e3c535eb6d",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpi531yvx0.py\", line 219, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpi531yvx0.py\", line 109, in check\n    assert candidate(word1 = \"banana\",word2 = \"ban\") == 4\n  File \"/scratch/local/21419949/tmpi531yvx0.py\", line 99, in validSubstringCount\n    if ''.join(sorted(window[:k])) == sorted_word2:\nTypeError: sequence index must be integer, not 'slice'\n",
+            "execution_time": 0.0657188892364502
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_10",
+              "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        k = len(word2)\n        n = len(word1)\n        target_count = Counter(word2)\n        valid_count = 0\n        \n        # Iterate over each possible starting point of a substring in word1\n        for start in range(n - k + 1):\n            # Count the characters in the current window of size k\n            window_count = Counter(word1[start:start + k])\n            \n            # Check if the window count matches the target count\n            if window_count == target_count:\n                # If it matches, all substrings starting here are valid\n                valid_count += n - start - k + 1\n        \n        return valid_count",
+              "solution_hash": "24e82525625654c80eff06c6f1c1eac1fbe474ac565e5443a91904808c74b045",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp6jpreewx.py\", line 214, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmp6jpreewx.py\", line 108, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+                "execution_time": 0.06502580642700195
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_11",
+              "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        k = len(word2)\n        n = len(word1)\n        target_count = Counter(word2)\n        valid_count = 0\n        \n        # Initialize the counter for the first window\n        current_count = Counter(word1[:k-1])\n        \n        for i in range(k-1, n):\n            # Add the new character to the window\n            current_count[word1[i]] += 1\n            \n            # Check if the current window can be rearranged to contain word2 as a prefix\n            if current_count == target_count:\n                valid_count += n - i\n            \n            # Remove the character that is sliding out of the window\n            current_count[word1[i-k+1]] -= 1\n            if current_count[word1[i-k+1]] == 0:\n                del current_count[word1[i-k+1]]\n        \n        return valid_count",
+              "solution_hash": "364188fde0bc9f047f282b72dde03abfec5f432478d60ef4779fe034496e1ed3",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpdoaayt_4.py\", line 220, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpdoaayt_4.py\", line 114, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+                "execution_time": 0.06424188613891602
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_12",
+              "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        k = len(word2)\n        n = len(word1)\n        target_counter = Counter(word2)\n        valid_count = 0\n        \n        # Initialize the counter for the first window\n        current_counter = Counter(word1[:k-1])\n        \n        for i in range(k-1, n):\n            # Add the new character to the window\n            current_counter[word1[i]] += 1\n            \n            # Check if the current window can be rearranged to start with word2\n            if current_counter == target_counter:\n                valid_count += n - i\n            \n            # Remove the character that is sliding out of the window\n            current_counter[word1[i-k+1]] -= 1\n            if current_counter[word1[i-k+1]] == 0:\n                del current_counter[word1[i-k+1]]\n        \n        return valid_count",
+              "solution_hash": "4c7010ce92757f3de782d0b32740e4f09275b106f05721f136e374e492dc2b26",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpasi7kk5r.py\", line 220, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpasi7kk5r.py\", line 114, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+                "execution_time": 0.06535577774047852
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        # Count the frequency of each character in word2\n        word2_count = Counter(word2)\n        required_chars = len(word2_count)\n        formed_chars = 0\n        \n        # Initialize the sliding window\n        left = 0\n        right = 0\n        window_count = {}\n        valid_substrings = 0\n        n = len(word1)\n        m = len(word2)\n        \n        while right < n:\n            char = word1[right]\n            window_count[char] = window_count.get(char, 0) + 1\n            \n            # Check if the current character meets the requirement\n            if char in word2_count and window_count[char] == word2_count[char]:\n                formed_chars += 1\n            \n            # Try to contract the window until it ceases to be 'desirable'\n            while left <= right and formed_chars == required_chars:\n                # Add all substrings starting from left to right\n                valid_substrings += n - right\n                \n                # The character at the position pointed by the `left` pointer is no longer a part of the window\n                char = word1[left]\n                window_count[char] -= 1\n                if char in word2_count and window_count[char] < word2_count[char]:\n                    formed_chars -= 1\n                \n                # Move the left pointer ahead\n                left += 1\n            \n            # Keep expanding the window\n            right += 1\n        \n        return valid_substrings",
+      "solution_hash": "1d1e59d3e7cbf496671903dd93485e2f6328a6e9ea7e0d0191ca36d760e62c8f",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.07113146781921387
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        # Count the frequency of each character in word2\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k-1])\n        valid_count = 0\n        \n        # Slide the window over word1\n        for i in range(k-1, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Check if the current window can be rearranged to start with word2\n            if window_count == word2_count:\n                valid_count += 1\n            \n            # Remove the character that is sliding out of the window\n            start_char = word1[i-k+1]\n            if window_count[start_char] == 1:\n                del window_count[start_char]\n            else:\n                window_count[start_char] -= 1\n        \n        return valid_count",
+      "solution_hash": "09c0ae4ca476d3589e3fc9f2936260c39dce29b3ef74706a37c695f8e306e1ce",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp1ie8esb1.py\", line 224, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmp1ie8esb1.py\", line 114, in check\n    assert candidate(word1 = \"banana\",word2 = \"ban\") == 4\nAssertionError\n",
+        "execution_time": 0.0700368881225586
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_15",
+          "solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        # Count the frequency of each character in word2\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Iterate over each possible starting point in word1\n        for start in range(n - k + 1):\n            # Initialize the counter for the current window\n            window_count = Counter()\n            \n            # Expand the window while the prefix condition is satisfied\n            for end in range(start, n):\n                window_count[word1[end]] += 1\n                \n                # If the window size is at least k, check if it can be rearranged to start with word2\n                if end - start + 1 >= k:\n                    if window_count & word2_count == word2_count:\n                        valid_count += 1\n                    else:\n                        break\n        \n        return valid_count",
+          "solution_hash": "2ef081c59660244b80d8e4b7901706352311aa62d8be256afc2927838cab0f91",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpgau3bgi3.py\", line 221, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpgau3bgi3.py\", line 115, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+            "execution_time": 0.06680870056152344
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_16",
+              "solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        # Count the frequency of each character in word2\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k])\n        \n        # Check the first window\n        if window_count == word2_count:\n            valid_count += 1\n        \n        # Slide the window across word1\n        for i in range(k, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Remove the character that is no longer in the window\n            window_count[word1[i - k]] -= 1\n            \n            # If the count becomes zero, remove it from the counter\n            if window_count[word1[i - k]] == 0:\n                del window_count[word1[i - k]]\n            \n            # Check if the current window matches word2's character count\n            if window_count == word2_count:\n                valid_count += 1\n        \n        return valid_count",
+              "solution_hash": "7b588cf99910417918877bfdb54717cb71e5f76c8955b6f4fc2d59076aee05b7",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpoolo_isi.py\", line 228, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpoolo_isi.py\", line 118, in check\n    assert candidate(word1 = \"banana\",word2 = \"ban\") == 4\nAssertionError\n",
+                "execution_time": 0.06490254402160645
+              },
+              "depth": 2,
+              "parent_id": "1_15",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_17",
+              "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k-1])\n        \n        # Slide the window over word1\n        for i in range(k-1, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Check if the current window can be rearranged to start with word2\n            if window_count & word2_count == word2_count:\n                valid_count += n - i\n            \n            # Remove the character that is sliding out of the window\n            window_count[word1[i-k+1]] -= 1\n            if window_count[word1[i-k+1]] == 0:\n                del window_count[word1[i-k+1]]\n        \n        return valid_count",
+              "solution_hash": "5b831e5b25e48c1901e29e971a073017c7ff8c20ebadef9ac201b8080a79cc39",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp2vvu1a4s.py\", line 221, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmp2vvu1a4s.py\", line 115, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+                "execution_time": 0.06484723091125488
+              },
+              "depth": 2,
+              "parent_id": "1_15",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_18",
+              "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        required_chars = len(word2_count)\n        formed = 0\n        \n        # Initialize the counter for the first window\n        window_count = Counter()\n        \n        # Set up the initial window\n        for i in range(min(k, n)):\n            char = word1[i]\n            window_count[char] += 1\n            if char in word2_count and window_count[char] == word2_count[char]:\n                formed += 1\n        \n        # Check the first window\n        if formed == required_chars:\n            valid_count += n - k + 1\n        \n        # Slide the window across word1\n        for i in range(k, n):\n            # Add the new character to the window\n            new_char = word1[i]\n            window_count[new_char] += 1\n            if new_char in word2_count and window_count[new_char] == word2_count[new_char]:\n                formed += 1\n            \n            # Remove the old character from the window\n            old_char = word1[i - k]\n            if old_char in word2_count and window_count[old_char] == word2_count[old_char]:\n                formed -= 1\n            window_count[old_char] -= 1\n            if window_count[old_char] == 0:\n                del window_count[old_char]\n            \n            # Check if the current window is valid\n            if formed == required_chars:\n                valid_count += 1\n        \n        return valid_count",
+              "solution_hash": "f42f74a38b1cbe839cd9f968cd9818cdd5ff992d2cf61995264617051cd4ca5d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp1eghjeyh.py\", line 240, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmp1eghjeyh.py\", line 133, in check\n    assert candidate(word1 = \"aaaabc\",word2 = \"aaa\") == 7\nAssertionError\n",
+                "execution_time": 0.07049775123596191
+              },
+              "depth": 2,
+              "parent_id": "1_15",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_19",
+          "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k])\n        valid_count = 0\n        \n        # Check if the first window is valid\n        if window_count == word2_count:\n            valid_count += n - k + 1\n        \n        # Slide the window over word1\n        for i in range(k, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Remove the character that is sliding out of the window\n            start_char = word1[i-k]\n            if window_count[start_char] == 1:\n                del window_count[start_char]\n            else:\n                window_count[start_char] -= 1\n            \n            # Check if the current window can be rearranged to start with word2\n            if window_count == word2_count:\n                valid_count += n - i\n        \n        return valid_count",
+          "solution_hash": "05dec7d236858eb596619047d482e5c0c1d5f99a99df9452b311fa4348b331dd",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp48dz8c1g.py\", line 227, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmp48dz8c1g.py\", line 121, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+            "execution_time": 0.06380009651184082
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_20",
+              "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Iterate over each possible starting point of the substring\n        for start in range(n - k + 1):\n            # Initialize the counter for the first window of length k\n            window_count = Counter(word1[start:start+k])\n            \n            # Check if the first window can be rearranged to start with word2\n            if window_count == word2_count:\n                valid_count += 1\n            \n            # Slide the window over the remaining part of word1\n            for i in range(start + k, n):\n                # Add the new character to the window\n                window_count[word1[i]] += 1\n                \n                # Remove the character that is sliding out of the window\n                start_char = word1[i-k]\n                if window_count[start_char] == 1:\n                    del window_count[start_char]\n                else:\n                    window_count[start_char] -= 1\n                \n                # Check if the current window can be rearranged to start with word2\n                if window_count == word2_count:\n                    valid_count += 1\n        \n        return valid_count",
+              "solution_hash": "88c9f6e75b577dabc746b4d5d52f076c43a793707419117fd88f6900ad1fb05d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpudwcq9x5.py\", line 229, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpudwcq9x5.py\", line 119, in check\n    assert candidate(word1 = \"banana\",word2 = \"ban\") == 4\nAssertionError\n",
+                "execution_time": 0.06673908233642578
+              },
+              "depth": 2,
+              "parent_id": "1_19",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_21",
+              "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Iterate over each possible starting point of a substring in word1\n        for start in range(n - k + 1):\n            # Initialize the counter for the current window\n            window_count = Counter(word1[start:start+k])\n            \n            # Check if the current window can be rearranged to start with word2\n            if window_count == word2_count:\n                # If it can, all substrings starting from this point are valid\n                valid_count += n - start - k + 1\n        \n        return valid_count",
+              "solution_hash": "8acfcd0aaf5046188d3e75f66be36e65e34e31a31e6cd294b3c1e5bdefc6adbb",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpjj3uod2k.py\", line 214, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpjj3uod2k.py\", line 108, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+                "execution_time": 0.06936836242675781
+              },
+              "depth": 2,
+              "parent_id": "1_19",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_22",
+              "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Iterate over each possible starting point of the substring\n        for start in range(n - k + 1):\n            # Initialize the counter for the current window\n            window_count = Counter()\n            \n            # Count characters in the current window\n            for i in range(start, n):\n                window_count[word1[i]] += 1\n                \n                # If the window size is at least k, check if it's valid\n                if i - start + 1 >= k:\n                    # Create a copy of the window counter for the prefix check\n                    prefix_count = window_count.copy()\n                    \n                    # Check if the prefix of the window can be rearranged to word2\n                    for char in word2:\n                        if prefix_count[char] > 0:\n                            prefix_count[char] -= 1\n                        else:\n                            break\n                    else:\n                        # If we successfully matched all characters in word2, it's valid\n                        valid_count += 1\n        \n        return valid_count",
+              "solution_hash": "f26468db8fcd545195c6d198caab41cd84a6109ff26917d9b87fe252eb3b5e1c",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.18128633499145508
+              },
+              "depth": 2,
+              "parent_id": "1_19",
+              "children": [],
+              "passed": true
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_23",
+          "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Helper function to check if the current window can be rearranged to start with word2\n        def is_valid_prefix(window_count):\n            for char, count in word2_count.items():\n                if window_count[char] < count:\n                    return False\n            return True\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k])\n        \n        # Check the first window\n        if is_valid_prefix(window_count):\n            valid_count += n - k + 1\n        \n        # Slide the window over word1\n        for i in range(k, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Remove the character that is sliding out of the window\n            start_char = word1[i-k]\n            if window_count[start_char] == 1:\n                del window_count[start_char]\n            else:\n                window_count[start_char] -= 1\n            \n            # Check if the current window can be rearranged to start with word2\n            if is_valid_prefix(window_count):\n                valid_count += n - i\n        \n        return valid_count",
+          "solution_hash": "98a6699a734a204414da8858ce9ac7d762b986c3bfd819b493d4439d89db9bf1",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpc60_x0oh.py\", line 234, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpc60_x0oh.py\", line 128, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+            "execution_time": 0.06655645370483398
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_24",
+              "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Helper function to check if the current window can be rearranged to start with word2\n        def is_valid_prefix(window_count):\n            for char, count in word2_count.items():\n                if window_count[char] < count:\n                    return False\n            return True\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k])\n        \n        # Check the first window\n        if is_valid_prefix(window_count):\n            valid_count += n - k + 1\n        \n        # Slide the window over word1\n        for i in range(k, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Remove the character that is sliding out of the window\n            start_char = word1[i-k]\n            if window_count[start_char] == 1:\n                del window_count[start_char]\n            else:\n                window_count[start_char] -= 1\n            \n            # Check if the current window can be rearranged to start with word2\n            if is_valid_prefix(window_count):\n                valid_count += 1\n        \n        return valid_count",
+              "solution_hash": "ce7c417c4198a946b084f6b97faa6f707e27eab143e72a1aa3b0e3d3850b29b7",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp1atgcge8.py\", line 234, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmp1atgcge8.py\", line 127, in check\n    assert candidate(word1 = \"aaaabc\",word2 = \"aaa\") == 7\nAssertionError\n",
+                "execution_time": 0.06497573852539062
+              },
+              "depth": 2,
+              "parent_id": "1_23",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_25",
+              "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Helper function to check if the current window can be rearranged to start with word2\n        def is_valid_prefix(window_count):\n            for char, count in word2_count.items():\n                if window_count[char] < count:\n                    return False\n            return True\n        \n        # Initialize the counter for the first window\n        window_count = Counter(word1[:k])\n        \n        # Check the first window\n        if is_valid_prefix(window_count):\n            valid_count += 1\n        \n        # Slide the window over word1\n        for i in range(k, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Remove the character that is sliding out of the window\n            start_char = word1[i-k]\n            if window_count[start_char] == 1:\n                del window_count[start_char]\n            else:\n                window_count[start_char] -= 1\n            \n            # Check if the current window can be rearranged to start with word2\n            if is_valid_prefix(window_count):\n                valid_count += 1\n        \n        return valid_count",
+              "solution_hash": "716668b719f0e0b8514b3311d6942e6120cc35bd2d316440ccf546d5a36b8d27",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp1urmnw8w.py\", line 234, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmp1urmnw8w.py\", line 124, in check\n    assert candidate(word1 = \"banana\",word2 = \"ban\") == 4\nAssertionError\n",
+                "execution_time": 0.0650629997253418
+              },
+              "depth": 2,
+              "parent_id": "1_23",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_26",
+              "solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        word2_count = Counter(word2)\n        k = len(word2)\n        n = len(word1)\n        valid_count = 0\n        \n        # Helper function to check if the current window can be rearranged to start with word2\n        def is_valid_prefix(window_count):\n            for char, count in word2_count.items():\n                if window_count[char] < count:\n                    return False\n            return True\n        \n        # Iterate over each possible starting position in word1\n        for start in range(n - k + 1):\n            # Initialize the counter for the current window\n            window_count = Counter(word1[start:start+k])\n            \n            # Check if the current window can be rearranged to start with word2\n            if is_valid_prefix(window_count):\n                # If valid, all substrings starting from this point are valid\n                valid_count += n - start - k + 1\n                \n                # Slide the window to the right, expanding it\n                for end in range(start + k, n):\n                    # Add the new character to the window\n                    window_count[word1[end]] += 1\n                    \n                    # Check if the expanded window can still be rearranged to start with word2\n                    if is_valid_prefix(window_count):\n                        valid_count += 1\n                    else:\n                        break\n        \n        return valid_count",
+              "solution_hash": "04a10173c22c1a599e0a25c37f9729b88f7721446d4201aa52ca6f8ae481f678",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpjjvgl8k2.py\", line 232, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpjjvgl8k2.py\", line 122, in check\n    assert candidate(word1 = \"banana\",word2 = \"ban\") == 4\nAssertionError\n",
+                "execution_time": 0.07015347480773926
+              },
+              "depth": 2,
+              "parent_id": "1_23",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 27,
+    "candidates_generated": 27,
+    "tests_passed": 2,
+    "tests_failed": 25,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 643.0839600563049,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.10714285714285698,
+      "pass@3": 0.297924297924298,
+      "pass@5": 0.4594017094017093,
+      "pass@10": 0.7509157509157509
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: sequence index must be integer, not 'slice'",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 26
+          }
+        ],
+        [
+          27,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 27
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 28,
+    "test_cases": 1
+  }
+}

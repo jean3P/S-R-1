@@ -1,0 +1,415 @@
+{
+  "problem_id": "maximum-multiplication-score",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "solved",
+  "best_solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [0] + [-inf] * 4\n        for num in b:\n            temp_dp = dp.copy()\n            for i in range(1, 5):\n                temp_dp[i] = max(dp[i], dp[i-1] + a[i-1] * num)\n            dp = temp_dp\n        return dp[4]",
+  "passed_solutions": [
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [0] + [-inf] * 4\n        for num in b:\n            temp_dp = dp.copy()\n            for i in range(1, 5):\n                temp_dp[i] = max(dp[i], dp[i-1] + a[i-1] * num)\n            dp = temp_dp\n        return dp[4]"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [0] + [-inf] * 4\n        for num in b:\n            temp_dp = dp.copy()\n            for i in range(1, 5):\n                temp_dp[i] = max(dp[i], dp[i-1] + a[i-1] * num)\n            dp = temp_dp\n        return dp[4]",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        a.sort()\n        b.sort()\n        \n        n = len(b)\n        dp = [0] * 5\n        for i in range(4):\n            dp[i+1] = dp[i] + a[i] * b[n-1-i]\n        \n        for i in range(n-5, -1, -1):\n            for j in range(4, 0, -1):\n                dp[j] = max(dp[j], dp[j-1] + a[j-1] * b[i])\n        \n        return dp[4]",
+    "from typing import List\n\n        class Solution:\n            def maxScore(self, a: List[int], b: List[int]) -> int:\n                # Pair each element in b with its corresponding weight in a\n                paired = []\n                for val in b:\n                    for weight in a:\n                        paired.append((val, weight))\n                \n                # Sort the paired list based on the product of val and weight\n                # If weight is positive, sort descending by val\n                # If weight is negative, sort ascending by val\n                paired_sorted = sorted(paired, key=lambda x: x[0] if x[1] < 0 else -x[0])\n                \n                # Select the top 4 pairs\n                top_pairs = paired_sorted[:4]\n                \n                # Calculate the score\n                score = sum(val * weight for val, weight in top_pairs)\n                return score",
+    "from typing import List\n\n        class Solution:\n            def maxScore(self, a: List[int], b: List[int]) -> int:\n                # Create a list of tuples (value, index) for array b\n                b_with_idx = list(enumerate(b))\n                # Sort this list based on the value multiplied by the corresponding weight in a\n                # We need to consider the sign of the weight to sort accordingly\n                # For positive weights, sort descending by value\n                # For negative weights, sort ascending by value\n                a_sorted = sorted(enumerate(a), key=lambda x: x[1], reverse=True)\n                b_sorted = sorted(b_with_idx, key=lambda x: (a_sorted[0][1] < 0) ^ (x[1] < 0), reverse=True)\n                \n                # Select the top 4 elements based on the sorted order\n                selected = b_sorted[:4]\n                # Sort the selected elements by their original indices to maintain order\n                selected_sorted = sorted(selected, key=lambda x: x[0])\n                \n                # Calculate the score\n                score = sum(a[i] * selected_sorted[i][1] for i in range(4))\n                return score",
+    "from typing import List\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Create a list of tuples (b_val, weight) for each combination of b and a\n        paired = [(val, weight) for val in b for weight in a]\n        \n        # Sort the paired list based on the product of val and weight\n        # If weight is positive, sort descending by val\n        # If weight is negative, sort ascending by val\n        paired_sorted = sorted(paired, key=lambda x: x[0] if x[1] < 0 else -x[0])\n        \n        # Select the top 4 pairs\n        top_pairs = paired_sorted[:4]\n        \n        # Calculate the score\n        score = sum(val * weight for val, weight in top_pairs)\n        return score",
+    "from typing import List\n\n        class Solution:\n            def maxScore(self, a: List[int], b: List[int]) -> int:\n                # Initialize four variables to keep track of the maximum scores\n                # for selecting 1 to 4 elements from b.\n                max1 = float('-inf')\n                max2 = float('-inf')\n                max3 = float('-inf')\n                max4 = float('-inf')\n                \n                # Iterate through each element in b.\n                for num in b:\n                    # Calculate the new score for selecting this as the first element.\n                    new_max1 = a[0] * num\n                    # Calculate the new score for selecting this as the second element.\n                    new_max2 = max1 + a[1] * num\n                    # Calculate the new score for selecting this as the third element.\n                    new_max3 = max2 + a[2] * num\n                    # Calculate the new score for selecting this as the fourth element.\n                    new_max4 = max3 + a[3] * num\n                    \n                    # Update the maximum scores.\n                    max1 = max(max1, new_max1)\n                    max2 = max(max2, new_max2)\n                    max3 = max(max3, new_max3)\n                    max4 = max(max4, new_max4)\n                \n                # The final result is the maximum score for selecting 4 elements.\n                return max4",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort array a in descending order\n        a_sorted = sorted(a, reverse=True)\n        \n        # Sort array b in descending order\n        b_sorted = sorted(b, reverse=True)\n        \n        # Calculate the score\n        score = sum(a_sorted[i] * b_sorted[i] for i in range(4))\n        \n        return score",
+    "from typing import List\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort array b in descending order\n        b_sorted = sorted(b, reverse=True)\n        \n        # Initialize pointers for selecting elements from b_sorted\n        left = 0  # Pointer for positive a[i]\n        right = len(b_sorted) - 1  # Pointer for negative a[i]\n        \n        score = 0\n        for num in a:\n            if num > 0:\n                # For positive a[i], pick the largest remaining in b_sorted\n                score += num * b_sorted[left]\n                left += 1\n            else:\n                # For negative a[i], pick the smallest (most negative) remaining in b_sorted\n                score += num * b_sorted[right]\n                right -= 1\n        return score",
+    "from typing import List\n\n        class Solution:\n            def maxScore(self, a: List[int], b: List[int]) -> int:\n                # Separate b into positive and negative numbers\n                pos_b = [num for num in b if num >= 0]\n                neg_b = [num for num in b if num < 0]\n                \n                # Sort positive_b in descending order and negative_b in ascending order\n                pos_b.sort(reverse=True)\n                neg_b.sort()\n                \n                max_score = float('-inf')\n                # Iterate through all possible splits of choosing indices for positive and negative numbers\n                for pos_count in range(5):  # pos_count can be 0 to 4\n                    neg_count = 4 - pos_count\n                    if pos_count > len(pos_b) or neg_count > len(neg_b):\n                        continue\n                    # Select top pos_count positive numbers and top neg_count negative numbers\n                    selected_pos = pos_b[:pos_count]\n                    selected_neg = neg_b[:neg_count]\n                    # Combine and sort selected numbers in descending order\n                    selected = selected_pos + selected_neg\n                    selected.sort(reverse=True)\n                    # Multiply with sorted a in descending order\n                    a_sorted = sorted(a, reverse=True)\n                    score = sum(a_sorted[i] * selected[i] for i in range(4))\n                    if score > max_score:\n                        max_score = score\n                return max_score",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort array b in ascending order\n        b_sorted = sorted(b)\n        \n        # Initialize variables to track the score\n        score = 0\n        \n        # Create a list of tuples (absolute value of a[i], sign of a[i])\n        a_abs_sign = [(abs(val), 1 if val >= 0 else -1) for val in a]\n        \n        # Sort this list in descending order based on absolute values\n        a_abs_sign_sorted = sorted(a_abs_sign, key=lambda x: x[0], reverse=True)\n        \n        # Initialize pointers for b_sorted\n        left = 0\n        right = len(b_sorted) - 1\n        \n        # Iterate through the sorted a_abs_sign\n        for abs_val, sign in a_abs_sign_sorted:\n            if sign > 0:\n                # For positive a values, pick the largest available from b\n                score += abs_val * b_sorted[right]\n                right -= 1\n            else:\n                # For negative a values, pick the smallest available from b\n                score += abs_val * b_sorted[left]\n                left += 1\n        \n        return score",
+    "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Separate indices of a into positive and negative weights\n        pos_indices = [i for i, x in enumerate(a) if x > 0]\n        neg_indices = [i for i, x in enumerate(a) if x <= 0]\n        \n        # Sort b accordingly\n        pos_b = sorted(b, reverse=True)\n        neg_b = sorted(b)\n        \n        # Select elements for positive weights\n        pos_selected = [pos_b[i] for i in pos_indices]\n        \n        # Select elements for negative weights\n        neg_selected = [neg_b[i] for i in neg_indices]\n        \n        # Calculate the score\n        score = sum(a[i] * pos_selected.pop(0) if a[i] > 0 else a[i] * neg_selected.pop(0) for i in range(4))\n        \n        return score",
+    "from typing import List\n\n        class Solution:\n            def maxScore(self, a: List[int], b: List[int]) -> int:\n                # Separate indices of a into positive and negative weights\n                pos_indices = [i for i, x in enumerate(a) if x > 0]\n                neg_indices = [i for i, x in enumerate(a) if x <= 0]\n                \n                # Sort b in descending order for positive weights and ascending for negative weights\n                sorted_b_desc = sorted(b, reverse=True)\n                sorted_b_asc = sorted(b)\n                \n                # Select elements for positive weights from the largest in b\n                pos_selected = [sorted_b_desc[i] for i in pos_indices]\n                \n                # Select elements for negative weights from the smallest in b\n                neg_selected = [sorted_b_asc[i] for i in neg_indices]\n                \n                # Calculate the score\n                score = sum(a[i] * pos_selected.pop(0) if a[i] > 0 else a[i] * neg_selected.pop(0) for i in range(4))\n                \n                return score",
+    "class Solution:\n            def maxScore(self, a: List[int], b: List[int]) -> int:\n                # Sort a in descending order\n                a_sorted = sorted(a, reverse=True)\n                # Sort b in descending order based on absolute values\n                b_sorted = sorted(b, key=abs, reverse=True)\n                \n                score = 0\n                for i in range(4):\n                    # If a_sorted[i] is positive, take the largest b_sorted element\n                    # If a_sorted[i] is negative, take the smallest b_sorted element\n                    if a_sorted[i] >= 0:\n                        score += a_sorted[i] * b_sorted[i]\n                    else:\n                        # Since b_sorted is sorted by absolute values, the smallest element is at the end\n                        # But we need to consider the actual value, so we take the last element if it's negative\n                        if b_sorted[-1] < 0:\n                            score += a_sorted[i] * b_sorted[-1]\n                            b_sorted.pop(-1)\n                        else:\n                            # If the last element is positive, we need to find the smallest (most negative) element\n                            # So we look for the smallest element in the entire list\n                            min_b = min(b_sorted)\n                            score += a_sorted[i] * min_b\n                            b_sorted.remove(min_b)\n                return score",
+    "from typing import List\n\n        class Solution:\n            def maxScore(self, a: List[int], b: List[int]) -> int:\n                # Separate indices of a into positive and negative weights\n                pos_indices = [i for i, x in enumerate(a) if x > 0]\n                neg_indices = [i for i, x in enumerate(a) if x <= 0]\n                \n                # Sort b for positive and negative weights separately\n                pos_b = sorted([b[i] for i in pos_indices], reverse=True)\n                neg_b = sorted([b[i] for i in neg_indices])\n                \n                # Select elements for positive weights\n                pos_selected = pos_b[:len(pos_indices)]\n                \n                # Select elements for negative weights\n                neg_selected = neg_b[:len(neg_indices)]\n                \n                # Calculate the score\n                score = sum(a[i] * pos_selected.pop(0) if a[i] > 0 else a[i] * neg_selected.pop(0) for i in range(4))\n                \n                return score"
+  ],
+  "total_candidates": 14,
+  "nodes_explored": 14,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        dp = [0] + [-inf] * 4\n        for num in b:\n            temp_dp = dp.copy()\n            for i in range(1, 5):\n                temp_dp[i] = max(dp[i], dp[i-1] + a[i-1] * num)\n            dp = temp_dp\n        return dp[4]",
+      "solution_hash": "56c371297600db3ab192634079b4dbbf9e884d98ec261653d5bbfef89d517ae0",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.06854724884033203
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        a.sort()\n        b.sort()\n        \n        n = len(b)\n        dp = [0] * 5\n        for i in range(4):\n            dp[i+1] = dp[i] + a[i] * b[n-1-i]\n        \n        for i in range(n-5, -1, -1):\n            for j in range(4, 0, -1):\n                dp[j] = max(dp[j], dp[j-1] + a[j-1] * b[i])\n        \n        return dp[4]",
+      "solution_hash": "ad2979e4435d19e55610a24225efbd492cad530ce50047f3609a475e85ea4eee",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp6pbts4q0.py\", line 207, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmp6pbts4q0.py\", line 100, in check\n    assert candidate(a = [1, 2, 3, 4],b = [10, 20, 30, 40, 50, 60, 70, 80]) == 700\nAssertionError\n",
+        "execution_time": 0.07148885726928711
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_2",
+          "solution": "from typing import List\n\n        class Solution:\n            def maxScore(self, a: List[int], b: List[int]) -> int:\n                # Pair each element in b with its corresponding weight in a\n                paired = []\n                for val in b:\n                    for weight in a:\n                        paired.append((val, weight))\n                \n                # Sort the paired list based on the product of val and weight\n                # If weight is positive, sort descending by val\n                # If weight is negative, sort ascending by val\n                paired_sorted = sorted(paired, key=lambda x: x[0] if x[1] < 0 else -x[0])\n                \n                # Select the top 4 pairs\n                top_pairs = paired_sorted[:4]\n                \n                # Calculate the score\n                score = sum(val * weight for val, weight in top_pairs)\n                return score",
+          "solution_hash": "862958e961cbaafd76c5afda486d08074cad3f11f7b623b48b0ee217650b5b69",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmpb4hj3w12.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+            "execution_time": 0.054366350173950195
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_3",
+              "solution": "from typing import List\n\n        class Solution:\n            def maxScore(self, a: List[int], b: List[int]) -> int:\n                # Create a list of tuples (value, index) for array b\n                b_with_idx = list(enumerate(b))\n                # Sort this list based on the value multiplied by the corresponding weight in a\n                # We need to consider the sign of the weight to sort accordingly\n                # For positive weights, sort descending by value\n                # For negative weights, sort ascending by value\n                a_sorted = sorted(enumerate(a), key=lambda x: x[1], reverse=True)\n                b_sorted = sorted(b_with_idx, key=lambda x: (a_sorted[0][1] < 0) ^ (x[1] < 0), reverse=True)\n                \n                # Select the top 4 elements based on the sorted order\n                selected = b_sorted[:4]\n                # Sort the selected elements by their original indices to maintain order\n                selected_sorted = sorted(selected, key=lambda x: x[0])\n                \n                # Calculate the score\n                score = sum(a[i] * selected_sorted[i][1] for i in range(4))\n                return score",
+              "solution_hash": "fff67f45efa2bfe79e52aa66560211d4b68df27e4c62d9e4f5bf678fc01ee4bf",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpsgoejgb7.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.054570913314819336
+              },
+              "depth": 2,
+              "parent_id": "1_2",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "from typing import List\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Create a list of tuples (b_val, weight) for each combination of b and a\n        paired = [(val, weight) for val in b for weight in a]\n        \n        # Sort the paired list based on the product of val and weight\n        # If weight is positive, sort descending by val\n        # If weight is negative, sort ascending by val\n        paired_sorted = sorted(paired, key=lambda x: x[0] if x[1] < 0 else -x[0])\n        \n        # Select the top 4 pairs\n        top_pairs = paired_sorted[:4]\n        \n        # Calculate the score\n        score = sum(val * weight for val, weight in top_pairs)\n        return score",
+              "solution_hash": "e0cfd4c7e527d27df36c0bcb18cf11931caacfa6ce080a1127d80d10e7a78e6b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpdn43m9ns.py\", line 210, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmpdn43m9ns.py\", line 103, in check\n    assert candidate(a = [1, 2, 3, 4],b = [10, 20, 30, 40, 50, 60, 70, 80]) == 700\nAssertionError\n",
+                "execution_time": 0.06690192222595215
+              },
+              "depth": 2,
+              "parent_id": "1_2",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_5",
+              "solution": "from typing import List\n\n        class Solution:\n            def maxScore(self, a: List[int], b: List[int]) -> int:\n                # Initialize four variables to keep track of the maximum scores\n                # for selecting 1 to 4 elements from b.\n                max1 = float('-inf')\n                max2 = float('-inf')\n                max3 = float('-inf')\n                max4 = float('-inf')\n                \n                # Iterate through each element in b.\n                for num in b:\n                    # Calculate the new score for selecting this as the first element.\n                    new_max1 = a[0] * num\n                    # Calculate the new score for selecting this as the second element.\n                    new_max2 = max1 + a[1] * num\n                    # Calculate the new score for selecting this as the third element.\n                    new_max3 = max2 + a[2] * num\n                    # Calculate the new score for selecting this as the fourth element.\n                    new_max4 = max3 + a[3] * num\n                    \n                    # Update the maximum scores.\n                    max1 = max(max1, new_max1)\n                    max2 = max(max2, new_max2)\n                    max3 = max(max3, new_max3)\n                    max4 = max(max4, new_max4)\n                \n                # The final result is the maximum score for selecting 4 elements.\n                return max4",
+              "solution_hash": "8286df85391a5a98916ebf5c8c96f80c3553a0e7ad33137ea700bbdfb5b8d6d0",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpyzlukebu.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05365633964538574
+              },
+              "depth": 2,
+              "parent_id": "1_2",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_6",
+          "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort array a in descending order\n        a_sorted = sorted(a, reverse=True)\n        \n        # Sort array b in descending order\n        b_sorted = sorted(b, reverse=True)\n        \n        # Calculate the score\n        score = sum(a_sorted[i] * b_sorted[i] for i in range(4))\n        \n        return score",
+          "solution_hash": "f4a2b37c50aeaecb1fa732f3244dcea400fffad2ab283448d5cd4495222730bc",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpe6kj7rfi.py\", line 204, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmpe6kj7rfi.py\", line 99, in check\n    assert candidate(a = [-1, -2, -3, -4],b = [-10, -9, -8, -7, -6, -5, -4, -3, -2, -1]) == 80\nAssertionError\n",
+            "execution_time": 0.06661248207092285
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_7",
+              "solution": "from typing import List\n\nclass Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort array b in descending order\n        b_sorted = sorted(b, reverse=True)\n        \n        # Initialize pointers for selecting elements from b_sorted\n        left = 0  # Pointer for positive a[i]\n        right = len(b_sorted) - 1  # Pointer for negative a[i]\n        \n        score = 0\n        for num in a:\n            if num > 0:\n                # For positive a[i], pick the largest remaining in b_sorted\n                score += num * b_sorted[left]\n                left += 1\n            else:\n                # For negative a[i], pick the smallest (most negative) remaining in b_sorted\n                score += num * b_sorted[right]\n                right -= 1\n        return score",
+              "solution_hash": "e8e75e7f852fa1985a67715ae6a1b4c4b618785d4bcf73cfcdc65fd1dce1ce21",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpbvp81u3g.py\", line 214, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmpbvp81u3g.py\", line 107, in check\n    assert candidate(a = [1, 2, 3, 4],b = [10, 20, 30, 40, 50, 60, 70, 80]) == 700\nAssertionError\n",
+                "execution_time": 0.06800436973571777
+              },
+              "depth": 2,
+              "parent_id": "1_6",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "from typing import List\n\n        class Solution:\n            def maxScore(self, a: List[int], b: List[int]) -> int:\n                # Separate b into positive and negative numbers\n                pos_b = [num for num in b if num >= 0]\n                neg_b = [num for num in b if num < 0]\n                \n                # Sort positive_b in descending order and negative_b in ascending order\n                pos_b.sort(reverse=True)\n                neg_b.sort()\n                \n                max_score = float('-inf')\n                # Iterate through all possible splits of choosing indices for positive and negative numbers\n                for pos_count in range(5):  # pos_count can be 0 to 4\n                    neg_count = 4 - pos_count\n                    if pos_count > len(pos_b) or neg_count > len(neg_b):\n                        continue\n                    # Select top pos_count positive numbers and top neg_count negative numbers\n                    selected_pos = pos_b[:pos_count]\n                    selected_neg = neg_b[:neg_count]\n                    # Combine and sort selected numbers in descending order\n                    selected = selected_pos + selected_neg\n                    selected.sort(reverse=True)\n                    # Multiply with sorted a in descending order\n                    a_sorted = sorted(a, reverse=True)\n                    score = sum(a_sorted[i] * selected[i] for i in range(4))\n                    if score > max_score:\n                        max_score = score\n                return max_score",
+              "solution_hash": "a1f1944d8bbcab500cc57d3ad5e5c6b6e3f3f28078407c8cd8e53e5534ebccd2",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpveiwd27_.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.053452253341674805
+              },
+              "depth": 2,
+              "parent_id": "1_6",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_9",
+              "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Sort array b in ascending order\n        b_sorted = sorted(b)\n        \n        # Initialize variables to track the score\n        score = 0\n        \n        # Create a list of tuples (absolute value of a[i], sign of a[i])\n        a_abs_sign = [(abs(val), 1 if val >= 0 else -1) for val in a]\n        \n        # Sort this list in descending order based on absolute values\n        a_abs_sign_sorted = sorted(a_abs_sign, key=lambda x: x[0], reverse=True)\n        \n        # Initialize pointers for b_sorted\n        left = 0\n        right = len(b_sorted) - 1\n        \n        # Iterate through the sorted a_abs_sign\n        for abs_val, sign in a_abs_sign_sorted:\n            if sign > 0:\n                # For positive a values, pick the largest available from b\n                score += abs_val * b_sorted[right]\n                right -= 1\n            else:\n                # For negative a values, pick the smallest available from b\n                score += abs_val * b_sorted[left]\n                left += 1\n        \n        return score",
+              "solution_hash": "a721f896252123e1e66dd2bb9ef837272e8b6c7c3ece94494360929afa1e527c",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpnycgr0a6.py\", line 222, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmpnycgr0a6.py\", line 117, in check\n    assert candidate(a = [-1, -2, -3, -4],b = [-10, -9, -8, -7, -6, -5, -4, -3, -2, -1]) == 80\nAssertionError\n",
+                "execution_time": 0.06520509719848633
+              },
+              "depth": 2,
+              "parent_id": "1_6",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_10",
+          "solution": "class Solution:\n    def maxScore(self, a: List[int], b: List[int]) -> int:\n        # Separate indices of a into positive and negative weights\n        pos_indices = [i for i, x in enumerate(a) if x > 0]\n        neg_indices = [i for i, x in enumerate(a) if x <= 0]\n        \n        # Sort b accordingly\n        pos_b = sorted(b, reverse=True)\n        neg_b = sorted(b)\n        \n        # Select elements for positive weights\n        pos_selected = [pos_b[i] for i in pos_indices]\n        \n        # Select elements for negative weights\n        neg_selected = [neg_b[i] for i in neg_indices]\n        \n        # Calculate the score\n        score = sum(a[i] * pos_selected.pop(0) if a[i] > 0 else a[i] * neg_selected.pop(0) for i in range(4))\n        \n        return score",
+          "solution_hash": "98c6968ca90aa7b01e025f30814b6c610af8a2e157e9e69797c9955be546a90b",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpb1zrhm8o.py\", line 212, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmpb1zrhm8o.py\", line 105, in check\n    assert candidate(a = [1, 2, 3, 4],b = [10, 20, 30, 40, 50, 60, 70, 80]) == 700\nAssertionError\n",
+            "execution_time": 0.06634402275085449
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_11",
+              "solution": "from typing import List\n\n        class Solution:\n            def maxScore(self, a: List[int], b: List[int]) -> int:\n                # Separate indices of a into positive and negative weights\n                pos_indices = [i for i, x in enumerate(a) if x > 0]\n                neg_indices = [i for i, x in enumerate(a) if x <= 0]\n                \n                # Sort b in descending order for positive weights and ascending for negative weights\n                sorted_b_desc = sorted(b, reverse=True)\n                sorted_b_asc = sorted(b)\n                \n                # Select elements for positive weights from the largest in b\n                pos_selected = [sorted_b_desc[i] for i in pos_indices]\n                \n                # Select elements for negative weights from the smallest in b\n                neg_selected = [sorted_b_asc[i] for i in neg_indices]\n                \n                # Calculate the score\n                score = sum(a[i] * pos_selected.pop(0) if a[i] > 0 else a[i] * neg_selected.pop(0) for i in range(4))\n                \n                return score",
+              "solution_hash": "8f160a53d3661d51f2a27aacce93b09ba22f3f42ab8a78327684ea777039b322",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmp68danmxw.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.053765296936035156
+              },
+              "depth": 2,
+              "parent_id": "1_10",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_12",
+              "solution": "class Solution:\n            def maxScore(self, a: List[int], b: List[int]) -> int:\n                # Sort a in descending order\n                a_sorted = sorted(a, reverse=True)\n                # Sort b in descending order based on absolute values\n                b_sorted = sorted(b, key=abs, reverse=True)\n                \n                score = 0\n                for i in range(4):\n                    # If a_sorted[i] is positive, take the largest b_sorted element\n                    # If a_sorted[i] is negative, take the smallest b_sorted element\n                    if a_sorted[i] >= 0:\n                        score += a_sorted[i] * b_sorted[i]\n                    else:\n                        # Since b_sorted is sorted by absolute values, the smallest element is at the end\n                        # But we need to consider the actual value, so we take the last element if it's negative\n                        if b_sorted[-1] < 0:\n                            score += a_sorted[i] * b_sorted[-1]\n                            b_sorted.pop(-1)\n                        else:\n                            # If the last element is positive, we need to find the smallest (most negative) element\n                            # So we look for the smallest element in the entire list\n                            min_b = min(b_sorted)\n                            score += a_sorted[i] * min_b\n                            b_sorted.remove(min_b)\n                return score",
+              "solution_hash": "7a9a9610d0e86b06b579db072d1b16ad66f137381c7399912292f516ed26901e",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmps8q9w1g7.py\", line 218, in <module>\n    check(Solution().maxScore)\n  File \"/scratch/local/21419949/tmps8q9w1g7.py\", line 113, in check\n    assert candidate(a = [-1, -2, -3, -4],b = [-10, -9, -8, -7, -6, -5, -4, -3, -2, -1]) == 80\nAssertionError\n",
+                "execution_time": 0.06564855575561523
+              },
+              "depth": 2,
+              "parent_id": "1_10",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_13",
+              "solution": "from typing import List\n\n        class Solution:\n            def maxScore(self, a: List[int], b: List[int]) -> int:\n                # Separate indices of a into positive and negative weights\n                pos_indices = [i for i, x in enumerate(a) if x > 0]\n                neg_indices = [i for i, x in enumerate(a) if x <= 0]\n                \n                # Sort b for positive and negative weights separately\n                pos_b = sorted([b[i] for i in pos_indices], reverse=True)\n                neg_b = sorted([b[i] for i in neg_indices])\n                \n                # Select elements for positive weights\n                pos_selected = pos_b[:len(pos_indices)]\n                \n                # Select elements for negative weights\n                neg_selected = neg_b[:len(neg_indices)]\n                \n                # Calculate the score\n                score = sum(a[i] * pos_selected.pop(0) if a[i] > 0 else a[i] * neg_selected.pop(0) for i in range(4))\n                \n                return score",
+              "solution_hash": "c59c9349a41c1164361f970c41ef540198751f85bb1973a823bead7f12a1e333",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmppqms3sx4.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05294060707092285
+              },
+              "depth": 2,
+              "parent_id": "1_10",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 14,
+    "candidates_generated": 14,
+    "tests_passed": 1,
+    "tests_failed": 13,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 598.6293060779572,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.1333333333333333,
+      "pass@3": 0.37142857142857144,
+      "pass@5": 0.5714285714285714,
+      "pass@10": 0.9047619047619048
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 14
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 15,
+    "test_cases": 1
+  }
+}

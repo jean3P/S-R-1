@@ -1,0 +1,1074 @@
+{
+  "problem_id": "constructing-two-increasing-arrays",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        \n        @lru_cache(None)\n        def dp(i, j, prev):\n            if i == n1 and j == n2:\n                return 0\n            \n            res = inf\n            \n            if i < n1:\n                if nums1[i] == 0:\n                    for x in range(prev + 1, 1001, 2):\n                        res = min(res, max(x, dp(i + 1, j, x)))\n                else:\n                    for x in range(prev + 1, 1001, 2):\n                        res = min(res, max(x, dp(i + 1, j, x)))\n            \n            if j < n2:\n                if nums2[j] == 0:\n                    for x in range(prev + 1, 1001, 2):\n                        res = min(res, max(x, dp(i, j + 1, x)))\n                else:\n                    for x in range(prev + 2, 1001, 2):\n                        res = min(res, max(x, dp(i, j + 1, x)))\n            \n            return res\n        \n        return dp(0, 0, -1)",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or (nums1[i] == 0 and even < odd) or (nums1[i] == 1 and even >= odd)):\n                if nums1[i] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                j += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1:\n                if nums1[i] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                i += 1\n            \n            if j < n2:\n                if nums2[j] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                j += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or (nums1[i] == 0 and even > last_used) or (nums1[i] == 1 and odd > last_used)):\n                if nums1[i] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                j += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_even_used = 0\n        last_odd_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1:\n                if nums1[i] == 0:\n                    while even <= last_even_used or even <= last_odd_used:\n                        even += 2\n                    last_even_used = even\n                    even += 2\n                else:\n                    while odd <= last_even_used or odd <= last_odd_used:\n                        odd += 2\n                    last_odd_used = odd\n                    odd += 2\n                i += 1\n            \n            if j < n2:\n                if nums2[j] == 0:\n                    while even <= last_even_used or even <= last_odd_used:\n                        even += 2\n                    last_even_used = even\n                    even += 2\n                else:\n                    while odd <= last_even_used or odd <= last_odd_used:\n                        odd += 2\n                    last_odd_used = odd\n                    odd += 2\n                j += 1\n        \n        return max(last_even_used, last_odd_used)",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1  # Starting even and odd numbers\n        \n        def get_next_even():\n            nonlocal even\n            current = even\n            even += 2\n            return current\n        \n        def get_next_odd():\n            nonlocal odd\n            current = odd\n            odd += 2\n            return current\n        \n        i, j = 0, 0\n        last_used = -1\n        \n        while i < n1 or j < n2:\n            if i < n1 and j < n2:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    e1, e2 = get_next_even(), get_next_even()\n                    o1, o2 = get_next_odd(), get_next_odd()\n                    if max(e1, o2) < max(o1, e2):\n                        last_used = max(e1, o2)\n                    else:\n                        last_used = max(o1, e2)\n                    i += 1\n                    j += 1\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    e1, e2 = get_next_even(), get_next_even()\n                    o1, o2 = get_next_odd(), get_next_odd()\n                    if max(e1, o2) < max(o1, e2):\n                        last_used = max(e1, o2)\n                    else:\n                        last_used = max(o1, e2)\n                    i += 1\n                    j += 1\n                elif nums1[i] == 0 and nums2[j] == 1:\n                    e1 = get_next_even()\n                    o2 = get_next_odd()\n                    last_used = max(e1, o2)\n                    i += 1\n                    j += 1\n                elif nums1[i] == 1 and nums2[j] == 0:\n                    o1 = get_next_odd()\n                    e2 = get_next_even()\n                    last_used = max(o1, e2)\n                    i += 1\n                    j += 1\n            elif i < n1:\n                if nums1[i] == 0:\n                    last_used = get_next_even()\n                else:\n                    last_used = get_next_odd()\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used = get_next_even()\n                else:\n                    last_used = get_next_odd()\n                j += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1  # Starting even and odd numbers\n        \n        def get_next_even():\n            nonlocal even\n            current = even\n            even += 2\n            return current\n        \n        def get_next_odd():\n            nonlocal odd\n            current = odd\n            odd += 2\n            return current\n        \n        i, j = 0, 0\n        last_used = -1\n        last_even_used1, last_odd_used1 = 0, 0\n        last_even_used2, last_odd_used2 = 0, 0\n        \n        while i < n1 or j < n2:\n            if i < n1:\n                if nums1[i] == 0:\n                    next_even = get_next_even()\n                    while next_even <= last_even_used1 or next_even <= last_odd_used1:\n                        next_even = get_next_even()\n                    last_even_used1 = next_even\n                    last_used = max(last_used, next_even)\n                else:\n                    next_odd = get_next_odd()\n                    while next_odd <= last_even_used1 or next_odd <= last_odd_used1:\n                        next_odd = get_next_odd()\n                    last_odd_used1 = next_odd\n                    last_used = max(last_used, next_odd)\n            \n            if j < n2:\n                if nums2[j] == 0:\n                    next_even = get_next_even()\n                    while next_even <= last_even_used2 or next_even <= last_odd_used2:\n                        next_even = get_next_even()\n                    last_even_used2 = next_even\n                    last_used = max(last_used, next_even)\n                else:\n                    next_odd = get_next_odd()\n                    while next_odd <= last_even_used2 or next_odd <= last_odd_used2:\n                        next_odd = get_next_odd()\n                    last_odd_used2 = next_odd\n                    last_used = max(last_used, next_odd)\n            \n            i += 1 if i < n1 else 0\n            j += 1 if j < n2 else 0\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1  # Starting even and odd numbers\n        \n        def get_next_even():\n            nonlocal even\n            current = even\n            even += 2\n            return current\n        \n        def get_next_odd():\n            nonlocal odd\n            current = odd\n            odd += 2\n            return current\n        \n        i, j = 0, 0\n        last_used_1, last_used_2 = -1, -1\n        \n        while i < n1 or j < n2:\n            if i < n1:\n                if nums1[i] == 0:\n                    while get_next_even() <= last_used_1 or get_next_even() <= last_used_2:\n                        get_next_even()\n                    last_used_1 = get_next_even()\n                else:\n                    while get_next_odd() <= last_used_1 or get_next_odd() <= last_used_2:\n                        get_next_odd()\n                    last_used_1 = get_next_odd()\n                i += 1\n            \n            if j < n2:\n                if nums2[j] == 0:\n                    while get_next_even() <= last_used_1 or get_next_even() <= last_used_2:\n                        get_next_even()\n                    last_used_2 = get_next_even()\n                else:\n                    while get_next_odd() <= last_used_1 or get_next_odd() <= last_used_2:\n                        get_next_odd()\n                    last_used_2 = get_next_odd()\n                j += 1\n        \n        return max(last_used_1, last_used_2)",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1  # Starting even and odd numbers\n        \n        def get_next_even():\n            nonlocal even\n            current = even\n            even += 2\n            return current\n        \n        def get_next_odd():\n            nonlocal odd\n            current = odd\n            odd += 2\n            return current\n        \n        i, j = 0, 0\n        last_used = -1\n        \n        while i < n1 or j < n2:\n            if i < n1 and j < n2:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    e1 = get_next_even()\n                    e2 = get_next_even()\n                    last_used = max(e1, e2)\n                    i += 1\n                    j += 1\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    o1 = get_next_odd()\n                    o2 = get_next_odd()\n                    last_used = max(o1, o2)\n                    i += 1\n                    j += 1\n                elif nums1[i] == 0 and nums2[j] == 1:\n                    e1 = get_next_even()\n                    o2 = get_next_odd()\n                    last_used = max(e1, o2)\n                    i += 1\n                    j += 1\n                elif nums1[i] == 1 and nums2[j] == 0:\n                    o1 = get_next_odd()\n                    e2 = get_next_even()\n                    last_used = max(o1, e2)\n                    i += 1\n                    j += 1\n            elif i < n1:\n                if nums1[i] == 0:\n                    e1 = get_next_even()\n                    last_used = max(last_used, e1)\n                else:\n                    o1 = get_next_odd()\n                    last_used = max(last_used, o1)\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    e2 = get_next_even()\n                    last_used = max(last_used, e2)\n                else:\n                    o2 = get_next_odd()\n                    last_used = max(last_used, o2)\n                j += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1  # Start with the smallest even and odd numbers\n        \n        def get_next_even():\n            nonlocal even\n            current = even\n            even += 2\n            return current\n        \n        def get_next_odd():\n            nonlocal odd\n            current = odd\n            odd += 2\n            return current\n        \n        i, j = 0, 0\n        last_used = -1\n        \n        while i < n1 or j < n2:\n            if i < n1 and j < n2:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    e1, e2 = get_next_even(), get_next_even()\n                    o1, o2 = get_next_odd(), get_next_odd()\n                    if max(e1, o2) < max(o1, e2):\n                        last_used = max(e1, o2)\n                        get_next_even()  # Consume the extra even number\n                    else:\n                        last_used = max(o1, e2)\n                        get_next_odd()   # Consume the extra odd number\n                    i += 1\n                    j += 1\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    e1, e2 = get_next_even(), get_next_even()\n                    o1, o2 = get_next_odd(), get_next_odd()\n                    if max(e1, o2) < max(o1, e2):\n                        last_used = max(e1, o2)\n                        get_next_even()  # Consume the extra even number\n                    else:\n                        last_used = max(o1, e2)\n                        get_next_odd()   # Consume the extra odd number\n                    i += 1\n                    j += 1\n                elif nums1[i] == 0 and nums2[j] == 1:\n                    e = get_next_even()\n                    o = get_next_odd()\n                    last_used = max(e, o)\n                    i += 1\n                    j += 1\n                elif nums1[i] == 1 and nums2[j] == 0:\n                    e = get_next_even()\n                    o = get_next_odd()\n                    last_used = max(e, o)\n                    i += 1\n                    j += 1\n            elif i < n1:\n                if nums1[i] == 0:\n                    last_used = get_next_even()\n                else:\n                    last_used = get_next_odd()\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used = get_next_even()\n                else:\n                    last_used = get_next_odd()\n                j += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1  # Start with the smallest even and odd numbers\n        \n        def get_next_even():\n            nonlocal even\n            current = even\n            even += 2\n            return current\n        \n        def get_next_odd():\n            nonlocal odd\n            current = odd\n            odd += 2\n            return current\n        \n        i, j = 0, 0\n        last_used_1, last_used_2 = -1, -1\n        \n        while i < n1 or j < n2:\n            if i < n1 and j < n2:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    e1 = get_next_even()\n                    e2 = get_next_even()\n                    last_used_1 = e1 if e1 > last_used_1 else get_next_even()\n                    last_used_2 = e2 if e2 > last_used_2 else get_next_even()\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    o1 = get_next_odd()\n                    o2 = get_next_odd()\n                    last_used_1 = o1 if o1 > last_used_1 else get_next_odd()\n                    last_used_2 = o2 if o2 > last_used_2 else get_next_odd()\n                elif nums1[i] == 0 and nums2[j] == 1:\n                    e = get_next_even()\n                    o = get_next_odd()\n                    last_used_1 = e if e > last_used_1 else get_next_even()\n                    last_used_2 = o if o > last_used_2 else get_next_odd()\n                elif nums1[i] == 1 and nums2[j] == 0:\n                    e = get_next_even()\n                    o = get_next_odd()\n                    last_used_1 = o if o > last_used_1 else get_next_odd()\n                    last_used_2 = e if e > last_used_2 else get_next_even()\n                i += 1\n                j += 1\n            elif i < n1:\n                if nums1[i] == 0:\n                    last_used_1 = get_next_even() if get_next_even() > last_used_1 else get_next_even()\n                else:\n                    last_used_1 = get_next_odd() if get_next_odd() > last_used_1 else get_next_odd()\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used_2 = get_next_even() if get_next_even() > last_used_2 else get_next_even()\n                else:\n                    last_used_2 = get_next_odd() if get_next_odd() > last_used_2 else get_next_odd()\n                j += 1\n        \n        return max(last_used_1, last_used_2)",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1  # Start with the smallest even and odd numbers\n        \n        def get_next_even():\n            nonlocal even\n            current = even\n            even += 2\n            return current\n        \n        def get_next_odd():\n            nonlocal odd\n            current = odd\n            odd += 2\n            return current\n        \n        i, j = 0, 0\n        last_used = -1\n        \n        while i < n1 or j < n2:\n            if i < n1 and j < n2:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    e1 = get_next_even()\n                    e2 = get_next_even()\n                    last_used = max(e1, e2)\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    o1 = get_next_odd()\n                    o2 = get_next_odd()\n                    last_used = max(o1, o2)\n                elif nums1[i] == 0 and nums2[j] == 1:\n                    e = get_next_even()\n                    o = get_next_odd()\n                    last_used = max(e, o)\n                elif nums1[i] == 1 and nums2[j] == 0:\n                    e = get_next_even()\n                    o = get_next_odd()\n                    last_used = max(e, o)\n                i += 1\n                j += 1\n            elif i < n1:\n                if nums1[i] == 0:\n                    last_used = get_next_even()\n                else:\n                    last_used = get_next_odd()\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used = get_next_even()\n                else:\n                    last_used = get_next_odd()\n                j += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1  # Start with the smallest even and odd numbers\n        \n        def get_next_even():\n            nonlocal even\n            current = even\n            even += 2\n            return current\n        \n        def get_next_odd():\n            nonlocal odd\n            current = odd\n            odd += 2\n            return current\n        \n        i, j = 0, 0\n        last_used_1, last_used_2 = -1, -1\n        \n        while i < n1 or j < n2:\n            if i < n1:\n                if nums1[i] == 0:\n                    next_even = get_next_even()\n                    while next_even <= last_used_1:\n                        next_even = get_next_even()\n                    last_used_1 = next_even\n                else:\n                    next_odd = get_next_odd()\n                    while next_odd <= last_used_1:\n                        next_odd = get_next_odd()\n                    last_used_1 = next_odd\n                i += 1\n            \n            if j < n2:\n                if nums2[j] == 0:\n                    next_even = get_next_even()\n                    while next_even <= last_used_2:\n                        next_even = get_next_even()\n                    last_used_2 = next_even\n                else:\n                    next_odd = get_next_odd()\n                    while next_odd <= last_used_2:\n                        next_odd = get_next_odd()\n                    last_used_2 = next_odd\n                j += 1\n        \n        return max(last_used_1, last_used_2)",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        @lru_cache(None)\n        def dp(i, j, last1, last2):\n            if i == len(nums1) and j == len(nums2):\n                return 0\n            \n            res = inf\n            \n            if i < len(nums1):\n                if nums1[i] == 0:\n                    next_even = last1 + 2 if last1 % 2 == 0 else last1 + 1\n                    res = min(res, max(next_even, dp(i + 1, j, next_even, last2)))\n                else:\n                    next_odd = last1 + 1 if last1 % 2 == 0 else last1 + 2\n                    res = min(res, max(next_odd, dp(i + 1, j, next_odd, last2)))\n            \n            if j < len(nums2):\n                if nums2[j] == 0:\n                    next_even = last2 + 2 if last2 % 2 == 0 else last2 + 1\n                    res = min(res, max(next_even, dp(i, j + 1, last1, next_even)))\n                else:\n                    next_odd = last2 + 1 if last2 % 2 == 0 else last2 + 2\n                    res = min(res, max(next_odd, dp(i, j + 1, last1, next_odd)))\n            \n            return res\n        \n        return dp(0, 0, 0, 0)",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Initialize counters for the next even and odd numbers\n        next_even = 2\n        next_odd = 1\n        \n        # Initialize pointers for both arrays\n        i, j = 0, 0\n        last_used = 0\n        \n        # Process both arrays until we reach the end of one of them\n        while i < len(nums1) or j < len(nums2):\n            if i < len(nums1) and (j >= len(nums2) or (nums1[i] == 0 and next_even > last_used) or (nums1[i] == 1 and next_odd > last_used)):\n                # Assign the smallest possible number to nums1[i]\n                if nums1[i] == 0:\n                    last_used = next_even\n                    next_even += 2\n                else:\n                    last_used = next_odd\n                    next_odd += 2\n                i += 1\n            elif j < len(nums2):\n                # Assign the smallest possible number to nums2[j]\n                if nums2[j] == 0:\n                    last_used = next_even\n                    next_even += 2\n                else:\n                    last_used = next_odd\n                    next_odd += 2\n                j += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Initialize counters for the next even and odd numbers\n        next_even = 2\n        next_odd = 1\n        \n        # Initialize the last used numbers for both arrays\n        last_used_1 = 0\n        last_used_2 = 0\n        \n        # Process both arrays\n        for num in nums1 + nums2:\n            if num == 0:\n                # Find the next available even number that is greater than the last used in either array\n                while next_even <= last_used_1 or next_even <= last_used_2:\n                    next_even += 2\n                last_used_1 = next_even if last_used_1 < next_even else last_used_1\n                last_used_2 = next_even if last_used_2 < next_even else last_used_2\n                next_even += 2\n            else:\n                # Find the next available odd number that is greater than the last used in either array\n                while next_odd <= last_used_1 or next_odd <= last_used_2:\n                    next_odd += 2\n                last_used_1 = next_odd if last_used_1 < next_odd else last_used_1\n                last_used_2 = next_odd if last_used_2 < next_odd else last_used_2\n                next_odd += 2\n        \n        # The result is the maximum of the last used numbers in both arrays\n        return max(last_used_1, last_used_2)",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Initialize counters for the next even and odd numbers\n        next_even = 2\n        next_odd = 1\n        \n        # Initialize the last used numbers for both arrays\n        last_used_1 = 0\n        last_used_2 = 0\n        \n        # Process both arrays\n        for num in nums1 + nums2:\n            if num == 0:\n                # Choose the smallest available even number greater than the last used in either array\n                while next_even <= max(last_used_1, last_used_2):\n                    next_even += 2\n                last_used = next_even\n                next_even += 2\n            else:\n                # Choose the smallest available odd number greater than the last used in either array\n                while next_odd <= max(last_used_1, last_used_2):\n                    next_odd += 2\n                last_used = next_odd\n                next_odd += 2\n            \n            # Update the last used number for the respective array\n            if num in nums1:\n                last_used_1 = last_used\n            else:\n                last_used_2 = last_used\n        \n        return max(last_used_1, last_used_2)",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Initialize counters for the next even and odd numbers\n        next_even = 2\n        next_odd = 1\n        \n        # Initialize pointers for both arrays\n        i, j = 0, 0\n        last_used = 0\n        \n        # Process both arrays until we reach the end of one of them\n        while i < len(nums1) or j < len(nums2):\n            if i < len(nums1):\n                if nums1[i] == 0:\n                    # Find the next available even number greater than the last used number\n                    while next_even <= last_used:\n                        next_even += 2\n                else:\n                    # Find the next available odd number greater than the last used number\n                    while next_odd <= last_used:\n                        next_odd += 2\n            \n            if j < len(nums2):\n                if nums2[j] == 0:\n                    # Find the next available even number greater than the last used number\n                    while next_even <= last_used:\n                        next_even += 2\n                else:\n                    # Find the next available odd number greater than the last used number\n                    while next_odd <= last_used:\n                        next_odd += 2\n            \n            # Choose the smallest valid number between the next even and odd numbers\n            if i < len(nums1) and j < len(nums2):\n                if (nums1[i] == 0 and nums2[j] == 0) or (nums1[i] == 1 and nums2[j] == 1):\n                    last_used = min(next_even, next_odd)\n                elif nums1[i] == 0:\n                    last_used = next_even\n                else:\n                    last_used = next_odd\n            elif i < len(nums1):\n                if nums1[i] == 0:\n                    last_used = next_even\n                else:\n                    last_used = next_odd\n            elif j < len(nums2):\n                if nums2[j] == 0:\n                    last_used = next_even\n                else:\n                    last_used = next_odd\n            \n            # Increment the respective pointer\n            if i < len(nums1):\n                if nums1[i] == 0:\n                    next_even += 2\n                else:\n                    next_odd += 2\n                i += 1\n            if j < len(nums2):\n                if nums2[j] == 0:\n                    next_even += 2\n                else:\n                    next_odd += 2\n                j += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Initialize counters for even and odd numbers\n        even_counter = 2\n        odd_counter = 1\n        \n        # Merge both lists with markers to differentiate origin\n        merged = [(x, 'A') for x in nums1] + [(y, 'B') for y in nums2]\n        merged.sort(key=lambda x: (x[0], x[1]))  # Sort by value, then by origin\n        \n        last_used = 0\n        \n        for num, origin in merged:\n            if num == 0:\n                # Assign the smallest available even number\n                if even_counter > last_used:\n                    last_used = even_counter\n                even_counter += 2\n            else:\n                # Assign the smallest available odd number\n                if odd_counter > last_used:\n                    last_used = odd_counter\n                odd_counter += 2\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Initialize counters for even and odd numbers\n        even_counter = 2\n        odd_counter = 1\n        \n        # Helper function to get the next available number\n        def get_next_number(is_odd):\n            nonlocal even_counter, odd_counter\n            if is_odd:\n                current = odd_counter\n                odd_counter += 2\n            else:\n                current = even_counter\n                even_counter += 2\n            return current\n        \n        # Process nums1\n        last_used_1 = 0\n        for num in nums1:\n            if num == 0:\n                # Assign the smallest available even number\n                current = get_next_number(False)\n                while current <= last_used_1:\n                    current = get_next_number(False)\n                last_used_1 = current\n            else:\n                # Assign the smallest available odd number\n                current = get_next_number(True)\n                while current <= last_used_1:\n                    current = get_next_number(True)\n                last_used_1 = current\n        \n        # Process nums2\n        last_used_2 = 0\n        for num in nums2:\n            if num == 0:\n                # Assign the smallest available even number\n                current = get_next_number(False)\n                while current <= last_used_2:\n                    current = get_next_number(False)\n                last_used_2 = current\n            else:\n                # Assign the smallest available odd number\n                current = get_next_number(True)\n                while current <= last_used_2:\n                    current = get_next_number(True)\n                last_used_2 = current\n        \n        # The result is the maximum of the last used numbers in both arrays\n        return max(last_used_1, last_used_2)",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Initialize counters for even and odd numbers\n        even_counter = 2\n        odd_counter = 1\n        \n        # Function to process each array\n        def process_array(nums, even_counter, odd_counter):\n            last_even = 0\n            last_odd = 0\n            for num in nums:\n                if num == 0:\n                    # Find the next available even number greater than the last used even number\n                    while even_counter <= last_even:\n                        even_counter += 2\n                    last_even = even_counter\n                    even_counter += 2\n                else:\n                    # Find the next available odd number greater than the last used odd number\n                    while odd_counter <= last_odd:\n                        odd_counter += 2\n                    last_odd = odd_counter\n                    odd_counter += 2\n            return max(last_even, last_odd), even_counter, odd_counter\n        \n        # Process both arrays\n        last_used1, even_counter, odd_counter = process_array(nums1, even_counter, odd_counter)\n        last_used2, _, _ = process_array(nums2, even_counter, odd_counter)\n        \n        return max(last_used1, last_used2)",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Initialize counters for even and odd numbers\n        even_counter = 2\n        odd_counter = 1\n        \n        # Helper function to replace 0s and 1s in a single array\n        def replace_and_get_max(nums):\n            nonlocal even_counter, odd_counter\n            last_used = 0\n            for num in nums:\n                if num == 0:\n                    # Find the next available even number greater than last_used\n                    while even_counter <= last_used:\n                        even_counter += 2\n                    last_used = even_counter\n                    even_counter += 2\n                else:\n                    # Find the next available odd number greater than last_used\n                    while odd_counter <= last_used:\n                        odd_counter += 2\n                    last_used = odd_counter\n                    odd_counter += 2\n            return last_used\n        \n        # Get the maximum values after replacements for both arrays\n        max1 = replace_and_get_max(nums1)\n        max2 = replace_and_get_max(nums2)\n        \n        # Return the overall maximum value\n        return max(max1, max2)",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        next_even, next_odd = 2, 1\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and j < n2:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    # Both need an even number\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                    next_odd += 2\n                    i += 1\n                    j += 1\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    # Both need an odd number\n                    last_used = max(next_odd, last_used)\n                    next_even += 2\n                    next_odd += 2\n                    i += 1\n                    j += 1\n                elif nums1[i] == 0:\n                    # nums1 needs an even number\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                    i += 1\n                else:\n                    # nums2 needs an even number\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                    j += 1\n            elif i < n1:\n                if nums1[i] == 0:\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                else:\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                i += 1\n            else:\n                if nums2[j] == 0:\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                else:\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                j += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        next_even, next_odd = 2, 1\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and j < n2:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    # Both need an even number\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    # Both need an odd number\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                elif nums1[i] == 0:\n                    # nums1 needs an even number\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                else:\n                    # nums2 needs an even number\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                \n                # Move to the next element in both arrays\n                i += 1\n                j += 1\n            elif i < n1:\n                if nums1[i] == 0:\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                else:\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                i += 1\n            else:\n                if nums2[j] == 0:\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                else:\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                j += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        next_even, next_odd = 2, 1\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and j < n2:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    # Both need an even number\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    # Both need an odd number\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                elif nums1[i] == 0:\n                    # nums1 needs an even number\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                else:\n                    # nums2 needs an even number\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                \n                # Ensure the next number is greater than the last used\n                if next_even <= last_used:\n                    next_even = last_used + 2 if last_used % 2 == 0 else last_used + 1\n                if next_odd <= last_used:\n                    next_odd = last_used + 2 if last_used % 2 == 1 else last_used + 1\n                \n                i += 1\n                j += 1\n            elif i < n1:\n                if nums1[i] == 0:\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                else:\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                \n                # Ensure the next number is greater than the last used\n                if next_even <= last_used:\n                    next_even = last_used + 2 if last_used % 2 == 0 else last_used + 1\n                if next_odd <= last_used:\n                    next_odd = last_used + 2 if last_used % 2 == 1 else last_used + 1\n                \n                i += 1\n            else:\n                if nums2[j] == 0:\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                else:\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                \n                # Ensure the next number is greater than the last used\n                if next_even <= last_used:\n                    next_even = last_used + 2 if last_used % 2 == 0 else last_used + 1\n                if next_odd <= last_used:\n                    next_odd = last_used + 2 if last_used % 2 == 1 else last_used + 1\n                \n                j += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        next_even1, next_odd1 = 2, 1\n        next_even2, next_odd2 = 2, 1\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1:\n                if nums1[i] == 0:\n                    # Assign the smallest available even number to nums1\n                    while next_even1 <= last_used:\n                        next_even1 += 2\n                    last_used = max(next_even1, last_used)\n                    next_even1 += 2\n                else:\n                    # Assign the smallest available odd number to nums1\n                    while next_odd1 <= last_used:\n                        next_odd1 += 2\n                    last_used = max(next_odd1, last_used)\n                    next_odd1 += 2\n                i += 1\n            \n            if j < n2:\n                if nums2[j] == 0:\n                    # Assign the smallest available even number to nums2\n                    while next_even2 <= last_used:\n                        next_even2 += 2\n                    last_used = max(next_even2, last_used)\n                    next_even2 += 2\n                else:\n                    # Assign the smallest available odd number to nums2\n                    while next_odd2 <= last_used:\n                        next_odd2 += 2\n                    last_used = max(next_odd2, last_used)\n                    next_odd2 += 2\n                j += 1\n        \n        return last_used",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        dp = [[inf] * 2 for _ in range(max(n1, n2) + 1)]\n        dp[0][0] = dp[0][1] = 0\n        \n        even, odd = 2, 1\n        \n        for i in range(1, max(n1, n2) + 1):\n            num1 = nums1[i-1] if i <= n1 else -1\n            num2 = nums2[i-1] if i <= n2 else -1\n            \n            if num1 == 0 or num1 == -1:\n                dp[i][0] = min(dp[i][0], even)\n                if num2 != 1:\n                    dp[i][1] = min(dp[i][1], even + 1)\n            \n            if num1 == 1 or num1 == -1:\n                dp[i][1] = min(dp[i][1], odd)\n                if num2 != 0:\n                    dp[i][0] = min(dp[i][0], odd + 1)\n            \n            if num2 == 0 or num2 == -1:\n                dp[i][0] = min(dp[i][0], even)\n                if num1 != 1:\n                    dp[i][1] = min(dp[i][1], even + 1)\n            \n            if num2 == 1 or num2 == -1:\n                dp[i][1] = min(dp[i][1], odd)\n                if num1 != 0:\n                    dp[i][0] = min(dp[i][0], odd + 1)\n            \n            even += 2\n            odd += 2\n        \n        return min(dp[n1][0], dp[n1][1], dp[n2][0], dp[n2][1])",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used_even, last_used_odd = 0, 0\n        \n        while i < len(nums1) or j < len(nums2):\n            if i < len(nums1) and j < len(nums2):\n                if nums1[i] == 0 and nums2[j] == 0:\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n                elif nums1[i] == 0 and nums2[j] == 1:\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n                elif nums1[i] == 1 and nums2[j] == 0:\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n            elif i < len(nums1):\n                if nums1[i] == 0:\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                else:\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n            elif j < len(nums2):\n                if nums2[j] == 0:\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                else:\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n            i += 1\n            j += 1\n        \n        return max(last_used_even, last_used_odd)",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used_even, last_used_odd = 0, 0\n        \n        while i < len(nums1) or j < len(nums2):\n            if i < len(nums1) and j < len(nums2):\n                if nums1[i] == 0 and nums2[j] == 0:\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n                elif nums1[i] == 0 and nums2[j] == 1:\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n                elif nums1[i] == 1 and nums2[j] == 0:\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n            elif i < len(nums1):\n                if nums1[i] == 0:\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                else:\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n            elif j < len(nums2):\n                if nums2[j] == 0:\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                else:\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n            \n            if i < len(nums1):\n                if nums1[i] == 0:\n                    nums1[i] = last_used_even\n                else:\n                    nums1[i] = last_used_odd\n                i += 1\n            \n            if j < len(nums2):\n                if nums2[j] == 0:\n                    nums2[j] = last_used_even\n                else:\n                    nums2[j] = last_used_odd\n                j += 1\n        \n        return max(last_used_even, last_used_odd)",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used = 0\n        \n        while i < len(nums1) or j < len(nums2):\n            if i < len(nums1):\n                if nums1[i] == 0:\n                    while even <= last_used:\n                        even += 2\n                    nums1[i] = even\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    nums1[i] = odd\n                    last_used = odd\n                    odd += 2\n                i += 1\n            \n            if j < len(nums2):\n                if nums2[j] == 0:\n                    while even <= last_used:\n                        even += 2\n                    nums2[j] = even\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    nums2[j] = odd\n                    last_used = odd\n                    odd += 2\n                j += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used_even, last_used_odd = 0, 0\n        \n        while i < len(nums1) or j < len(nums2):\n            if i < len(nums1):\n                if nums1[i] == 0:\n                    while even <= last_used_even:\n                        even += 2\n                    last_used_even = even\n                    even += 2\n                else:\n                    while odd <= last_used_odd:\n                        odd += 2\n                    last_used_odd = odd\n                    odd += 2\n            \n            if j < len(nums2):\n                if nums2[j] == 0:\n                    while even <= last_used_even:\n                        even += 2\n                    last_used_even = even\n                    even += 2\n                else:\n                    while odd <= last_used_odd:\n                        odd += 2\n                    last_used_odd = odd\n                    odd += 2\n            \n            i += 1\n            j += 1\n        \n        return max(last_used_even - 2, last_used_odd - 2)",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        even, odd = 2, 1\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or nums1[i] < nums2[j]):\n                if nums1[i] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2 and (i >= n1 or nums2[j] < nums1[i]):\n                if nums2[j] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                j += 1\n            else:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                else:\n                    while even <= last_used:\n                        even += 2\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = max(even, odd)\n                    even += 2\n                    odd += 2\n                i += 1\n                j += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        even, odd = 2, 1\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or nums1[i] < nums2[j]):\n                if nums1[i] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2 and (i >= n1 or nums2[j] < nums1[i]):\n                if nums2[j] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                j += 1\n            else:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                else:\n                    while even <= last_used:\n                        even += 2\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = max(even, odd)\n                    even += 2\n                    odd += 2\n                i += 1\n                j += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        even, odd = 2, 1\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or nums1[i] < nums2[j]):\n                if nums1[i] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2 and (i >= n1 or nums2[j] < nums1[i]):\n                if nums2[j] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                j += 1\n            else:\n                # Both positions need to be filled\n                next_even = even\n                next_odd = odd\n                \n                while next_even <= last_used:\n                    next_even += 2\n                while next_odd <= last_used:\n                    next_odd += 2\n                \n                if nums1[i] == 0 and nums2[j] == 0:\n                    last_used = next_even\n                    even += 2\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    last_used = next_odd\n                    odd += 2\n                else:\n                    last_used = min(next_even, next_odd)\n                    if last_used == next_even:\n                        even += 2\n                    else:\n                        odd += 2\n                \n                i += 1\n                j += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        even, odd = 2, 1\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or nums1[i] < nums2[j]):\n                if nums1[i] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2 and (i >= n1 or nums2[j] < nums1[i]):\n                if nums2[j] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                j += 1\n            else:\n                # Both arrays have elements to be replaced\n                next_even = even\n                next_odd = odd\n                \n                while next_even <= last_used:\n                    next_even += 2\n                while next_odd <= last_used:\n                    next_odd += 2\n                \n                if nums1[i] == 0 and nums2[j] == 0:\n                    last_used = next_even\n                    even = next_even + 2\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    last_used = next_odd\n                    odd = next_odd + 2\n                else:\n                    last_used = max(next_even, next_odd)\n                    even = next_even + 2\n                    odd = next_odd + 2\n                \n                i += 1\n                j += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or (nums1[i] == 0 and even < odd) or (nums1[i] == 1 and odd < even)):\n                if nums1[i] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                j += 1\n            \n            # Ensure the last used number is valid for both arrays\n            if i < n1:\n                if nums1[i] == 0 and last_used % 2 == 1:\n                    last_used += 1\n                elif nums1[i] == 1 and last_used % 2 == 0:\n                    last_used += 1\n            if j < n2:\n                if nums2[j] == 0 and last_used % 2 == 1:\n                    last_used += 1\n                elif nums2[j] == 1 and last_used % 2 == 0:\n                    last_used += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or (nums1[i] == 0 and even < odd) or (nums1[i] == 1 and odd < even)):\n                if nums1[i] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                j += 1\n            \n            # Ensure the last used number is valid for both arrays\n            if i < n1:\n                if nums1[i] == 0 and last_used % 2 == 1:\n                    last_used = even\n                    even += 2\n                elif nums1[i] == 1 and last_used % 2 == 0:\n                    last_used = odd\n                    odd += 2\n            if j < n2:\n                if nums2[j] == 0 and last_used % 2 == 1:\n                    last_used = even\n                    even += 2\n                elif nums2[j] == 1 and last_used % 2 == 0:\n                    last_used = odd\n                    odd += 2\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1\n        i, j = 0, 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or (nums1[i] == 0 and even < odd) or (nums1[i] == 1 and odd < even)):\n                if nums1[i] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                j += 1\n        \n        return last_used",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or (nums1[i] == 0 and even < odd) or (nums1[i] == 1 and odd < even)):\n                if nums1[i] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                j += 1\n            \n            # Ensure the last used number is valid for both arrays\n            if i < n1:\n                if nums1[i] == 0 and last_used % 2 == 1:\n                    last_used = even\n                    even += 2\n                elif nums1[i] == 1 and last_used % 2 == 0:\n                    last_used = odd\n                    odd += 2\n            if j < n2:\n                if nums2[j] == 0 and last_used % 2 == 1:\n                    last_used = even\n                    even += 2\n                elif nums2[j] == 1 and last_used % 2 == 0:\n                    last_used = odd\n                    odd += 2\n        \n        return last_used"
+  ],
+  "total_candidates": 39,
+  "nodes_explored": 39,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        \n        @lru_cache(None)\n        def dp(i, j, prev):\n            if i == n1 and j == n2:\n                return 0\n            \n            res = inf\n            \n            if i < n1:\n                if nums1[i] == 0:\n                    for x in range(prev + 1, 1001, 2):\n                        res = min(res, max(x, dp(i + 1, j, x)))\n                else:\n                    for x in range(prev + 1, 1001, 2):\n                        res = min(res, max(x, dp(i + 1, j, x)))\n            \n            if j < n2:\n                if nums2[j] == 0:\n                    for x in range(prev + 1, 1001, 2):\n                        res = min(res, max(x, dp(i, j + 1, x)))\n                else:\n                    for x in range(prev + 2, 1001, 2):\n                        res = min(res, max(x, dp(i, j + 1, x)))\n            \n            return res\n        \n        return dp(0, 0, -1)",
+      "solution_hash": "b4cb093de583e954ab0f41beff62ba057a197ce69fff9e3b09c34695d5dff2b1",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmph073gykz.py\", line 239, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmph073gykz.py\", line 114, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n",
+        "execution_time": 0.9453790187835693
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or (nums1[i] == 0 and even < odd) or (nums1[i] == 1 and even >= odd)):\n                if nums1[i] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                j += 1\n        \n        return last_used",
+          "solution_hash": "549f3a708c701fef49effb44d6556c19a9e5a0a1be366e1ef7468f84b5911fe2",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp4fafowb4.py\", line 237, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmp4fafowb4.py\", line 115, in check\n    assert candidate(nums1 = [1, 0, 1, 0],nums2 = [0, 1, 0, 1]) == 8\nAssertionError\n",
+            "execution_time": 0.0641028881072998
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_2",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1:\n                if nums1[i] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                i += 1\n            \n            if j < n2:\n                if nums2[j] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                j += 1\n        \n        return last_used",
+              "solution_hash": "d44f789503734003f8a9169228b2b470ff3217a8d3c53c64f9f9cf2c70dd6f18",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpf8_4lts1.py\", line 246, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpf8_4lts1.py\", line 121, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n",
+                "execution_time": 0.06418418884277344
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_3",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or (nums1[i] == 0 and even > last_used) or (nums1[i] == 1 and odd > last_used)):\n                if nums1[i] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                j += 1\n        \n        return last_used",
+              "solution_hash": "b192b81caa438afd4ee25bb68eaaa7a48c0341ae9ff0fc78420dd0bd2382ccb6",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpr0aqsssf.py\", line 237, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpr0aqsssf.py\", line 112, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n",
+                "execution_time": 0.06286191940307617
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_even_used = 0\n        last_odd_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1:\n                if nums1[i] == 0:\n                    while even <= last_even_used or even <= last_odd_used:\n                        even += 2\n                    last_even_used = even\n                    even += 2\n                else:\n                    while odd <= last_even_used or odd <= last_odd_used:\n                        odd += 2\n                    last_odd_used = odd\n                    odd += 2\n                i += 1\n            \n            if j < n2:\n                if nums2[j] == 0:\n                    while even <= last_even_used or even <= last_odd_used:\n                        even += 2\n                    last_even_used = even\n                    even += 2\n                else:\n                    while odd <= last_even_used or odd <= last_odd_used:\n                        odd += 2\n                    last_odd_used = odd\n                    odd += 2\n                j += 1\n        \n        return max(last_even_used, last_odd_used)",
+              "solution_hash": "b5780696d19646521f7c7847db29a304306b6b2600264c84894cab6b25f3e870",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpk6v1mjm1.py\", line 247, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpk6v1mjm1.py\", line 122, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n",
+                "execution_time": 0.06274652481079102
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_5",
+          "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1  # Starting even and odd numbers\n        \n        def get_next_even():\n            nonlocal even\n            current = even\n            even += 2\n            return current\n        \n        def get_next_odd():\n            nonlocal odd\n            current = odd\n            odd += 2\n            return current\n        \n        i, j = 0, 0\n        last_used = -1\n        \n        while i < n1 or j < n2:\n            if i < n1 and j < n2:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    e1, e2 = get_next_even(), get_next_even()\n                    o1, o2 = get_next_odd(), get_next_odd()\n                    if max(e1, o2) < max(o1, e2):\n                        last_used = max(e1, o2)\n                    else:\n                        last_used = max(o1, e2)\n                    i += 1\n                    j += 1\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    e1, e2 = get_next_even(), get_next_even()\n                    o1, o2 = get_next_odd(), get_next_odd()\n                    if max(e1, o2) < max(o1, e2):\n                        last_used = max(e1, o2)\n                    else:\n                        last_used = max(o1, e2)\n                    i += 1\n                    j += 1\n                elif nums1[i] == 0 and nums2[j] == 1:\n                    e1 = get_next_even()\n                    o2 = get_next_odd()\n                    last_used = max(e1, o2)\n                    i += 1\n                    j += 1\n                elif nums1[i] == 1 and nums2[j] == 0:\n                    o1 = get_next_odd()\n                    e2 = get_next_even()\n                    last_used = max(o1, e2)\n                    i += 1\n                    j += 1\n            elif i < n1:\n                if nums1[i] == 0:\n                    last_used = get_next_even()\n                else:\n                    last_used = get_next_odd()\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used = get_next_even()\n                else:\n                    last_used = get_next_odd()\n                j += 1\n        \n        return last_used",
+          "solution_hash": "396b5c1e840b56b9dde80039820e55e5d46ab8c08e2b174063b7caf16020efe3",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpjdyui45f.py\", line 277, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpjdyui45f.py\", line 159, in check\n    assert candidate(nums1 = [0, 0],nums2 = [0, 0]) == 8\nAssertionError\n",
+            "execution_time": 0.06270861625671387
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_6",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1  # Starting even and odd numbers\n        \n        def get_next_even():\n            nonlocal even\n            current = even\n            even += 2\n            return current\n        \n        def get_next_odd():\n            nonlocal odd\n            current = odd\n            odd += 2\n            return current\n        \n        i, j = 0, 0\n        last_used = -1\n        last_even_used1, last_odd_used1 = 0, 0\n        last_even_used2, last_odd_used2 = 0, 0\n        \n        while i < n1 or j < n2:\n            if i < n1:\n                if nums1[i] == 0:\n                    next_even = get_next_even()\n                    while next_even <= last_even_used1 or next_even <= last_odd_used1:\n                        next_even = get_next_even()\n                    last_even_used1 = next_even\n                    last_used = max(last_used, next_even)\n                else:\n                    next_odd = get_next_odd()\n                    while next_odd <= last_even_used1 or next_odd <= last_odd_used1:\n                        next_odd = get_next_odd()\n                    last_odd_used1 = next_odd\n                    last_used = max(last_used, next_odd)\n            \n            if j < n2:\n                if nums2[j] == 0:\n                    next_even = get_next_even()\n                    while next_even <= last_even_used2 or next_even <= last_odd_used2:\n                        next_even = get_next_even()\n                    last_even_used2 = next_even\n                    last_used = max(last_used, next_even)\n                else:\n                    next_odd = get_next_odd()\n                    while next_odd <= last_even_used2 or next_odd <= last_odd_used2:\n                        next_odd = get_next_odd()\n                    last_odd_used2 = next_odd\n                    last_used = max(last_used, next_odd)\n            \n            i += 1 if i < n1 else 0\n            j += 1 if j < n2 else 0\n        \n        return last_used",
+              "solution_hash": "6c00f297aefb8d9930244b9bdd750dc7c0051fe252838f82e8aecba9acd3c663",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmprp13pm3n.py\", line 266, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmprp13pm3n.py\", line 150, in check\n    assert candidate(nums1 = [],nums2 = []) == 0\nAssertionError\n",
+                "execution_time": 0.06342625617980957
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_7",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1  # Starting even and odd numbers\n        \n        def get_next_even():\n            nonlocal even\n            current = even\n            even += 2\n            return current\n        \n        def get_next_odd():\n            nonlocal odd\n            current = odd\n            odd += 2\n            return current\n        \n        i, j = 0, 0\n        last_used_1, last_used_2 = -1, -1\n        \n        while i < n1 or j < n2:\n            if i < n1:\n                if nums1[i] == 0:\n                    while get_next_even() <= last_used_1 or get_next_even() <= last_used_2:\n                        get_next_even()\n                    last_used_1 = get_next_even()\n                else:\n                    while get_next_odd() <= last_used_1 or get_next_odd() <= last_used_2:\n                        get_next_odd()\n                    last_used_1 = get_next_odd()\n                i += 1\n            \n            if j < n2:\n                if nums2[j] == 0:\n                    while get_next_even() <= last_used_1 or get_next_even() <= last_used_2:\n                        get_next_even()\n                    last_used_2 = get_next_even()\n                else:\n                    while get_next_odd() <= last_used_1 or get_next_odd() <= last_used_2:\n                        get_next_odd()\n                    last_used_2 = get_next_odd()\n                j += 1\n        \n        return max(last_used_1, last_used_2)",
+              "solution_hash": "d96ee62f9266c3173709ed440d4658fcd1a6e8fd9375010b58c0a6d87462adae",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmppizf1l6j.py\", line 255, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmppizf1l6j.py\", line 130, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n",
+                "execution_time": 0.06563544273376465
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1  # Starting even and odd numbers\n        \n        def get_next_even():\n            nonlocal even\n            current = even\n            even += 2\n            return current\n        \n        def get_next_odd():\n            nonlocal odd\n            current = odd\n            odd += 2\n            return current\n        \n        i, j = 0, 0\n        last_used = -1\n        \n        while i < n1 or j < n2:\n            if i < n1 and j < n2:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    e1 = get_next_even()\n                    e2 = get_next_even()\n                    last_used = max(e1, e2)\n                    i += 1\n                    j += 1\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    o1 = get_next_odd()\n                    o2 = get_next_odd()\n                    last_used = max(o1, o2)\n                    i += 1\n                    j += 1\n                elif nums1[i] == 0 and nums2[j] == 1:\n                    e1 = get_next_even()\n                    o2 = get_next_odd()\n                    last_used = max(e1, o2)\n                    i += 1\n                    j += 1\n                elif nums1[i] == 1 and nums2[j] == 0:\n                    o1 = get_next_odd()\n                    e2 = get_next_even()\n                    last_used = max(o1, e2)\n                    i += 1\n                    j += 1\n            elif i < n1:\n                if nums1[i] == 0:\n                    e1 = get_next_even()\n                    last_used = max(last_used, e1)\n                else:\n                    o1 = get_next_odd()\n                    last_used = max(last_used, o1)\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    e2 = get_next_even()\n                    last_used = max(last_used, e2)\n                else:\n                    o2 = get_next_odd()\n                    last_used = max(last_used, o2)\n                j += 1\n        \n        return last_used",
+              "solution_hash": "b9a1dcb0e3ca1ea5fbb252598c77d06d5a04b66457d47ce79dcf2c65cb11b609",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpw67ahtoz.py\", line 275, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpw67ahtoz.py\", line 159, in check\n    assert candidate(nums1 = [],nums2 = []) == 0\nAssertionError\n",
+                "execution_time": 0.06212306022644043
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_9",
+          "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1  # Start with the smallest even and odd numbers\n        \n        def get_next_even():\n            nonlocal even\n            current = even\n            even += 2\n            return current\n        \n        def get_next_odd():\n            nonlocal odd\n            current = odd\n            odd += 2\n            return current\n        \n        i, j = 0, 0\n        last_used = -1\n        \n        while i < n1 or j < n2:\n            if i < n1 and j < n2:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    e1, e2 = get_next_even(), get_next_even()\n                    o1, o2 = get_next_odd(), get_next_odd()\n                    if max(e1, o2) < max(o1, e2):\n                        last_used = max(e1, o2)\n                        get_next_even()  # Consume the extra even number\n                    else:\n                        last_used = max(o1, e2)\n                        get_next_odd()   # Consume the extra odd number\n                    i += 1\n                    j += 1\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    e1, e2 = get_next_even(), get_next_even()\n                    o1, o2 = get_next_odd(), get_next_odd()\n                    if max(e1, o2) < max(o1, e2):\n                        last_used = max(e1, o2)\n                        get_next_even()  # Consume the extra even number\n                    else:\n                        last_used = max(o1, e2)\n                        get_next_odd()   # Consume the extra odd number\n                    i += 1\n                    j += 1\n                elif nums1[i] == 0 and nums2[j] == 1:\n                    e = get_next_even()\n                    o = get_next_odd()\n                    last_used = max(e, o)\n                    i += 1\n                    j += 1\n                elif nums1[i] == 1 and nums2[j] == 0:\n                    e = get_next_even()\n                    o = get_next_odd()\n                    last_used = max(e, o)\n                    i += 1\n                    j += 1\n            elif i < n1:\n                if nums1[i] == 0:\n                    last_used = get_next_even()\n                else:\n                    last_used = get_next_odd()\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used = get_next_even()\n                else:\n                    last_used = get_next_odd()\n                j += 1\n        \n        return last_used",
+          "solution_hash": "4c3b7684b757e86ce4685acf0dc8a8fc20a0b66666ef11ffa7637e628313f8a9",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpht6ts4k3.py\", line 281, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpht6ts4k3.py\", line 160, in check\n    assert candidate(nums1 = [1, 1],nums2 = [1, 1]) == 7\nAssertionError\n",
+            "execution_time": 0.06311726570129395
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_10",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1  # Start with the smallest even and odd numbers\n        \n        def get_next_even():\n            nonlocal even\n            current = even\n            even += 2\n            return current\n        \n        def get_next_odd():\n            nonlocal odd\n            current = odd\n            odd += 2\n            return current\n        \n        i, j = 0, 0\n        last_used_1, last_used_2 = -1, -1\n        \n        while i < n1 or j < n2:\n            if i < n1 and j < n2:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    e1 = get_next_even()\n                    e2 = get_next_even()\n                    last_used_1 = e1 if e1 > last_used_1 else get_next_even()\n                    last_used_2 = e2 if e2 > last_used_2 else get_next_even()\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    o1 = get_next_odd()\n                    o2 = get_next_odd()\n                    last_used_1 = o1 if o1 > last_used_1 else get_next_odd()\n                    last_used_2 = o2 if o2 > last_used_2 else get_next_odd()\n                elif nums1[i] == 0 and nums2[j] == 1:\n                    e = get_next_even()\n                    o = get_next_odd()\n                    last_used_1 = e if e > last_used_1 else get_next_even()\n                    last_used_2 = o if o > last_used_2 else get_next_odd()\n                elif nums1[i] == 1 and nums2[j] == 0:\n                    e = get_next_even()\n                    o = get_next_odd()\n                    last_used_1 = o if o > last_used_1 else get_next_odd()\n                    last_used_2 = e if e > last_used_2 else get_next_even()\n                i += 1\n                j += 1\n            elif i < n1:\n                if nums1[i] == 0:\n                    last_used_1 = get_next_even() if get_next_even() > last_used_1 else get_next_even()\n                else:\n                    last_used_1 = get_next_odd() if get_next_odd() > last_used_1 else get_next_odd()\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used_2 = get_next_even() if get_next_even() > last_used_2 else get_next_even()\n                else:\n                    last_used_2 = get_next_odd() if get_next_odd() > last_used_2 else get_next_odd()\n                j += 1\n        \n        return max(last_used_1, last_used_2)",
+              "solution_hash": "48bbd49079bc211533bf64807ab47613dd603ab8a84f7dd6bafd463548dd2725",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpffq5iqgt.py\", line 269, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpffq5iqgt.py\", line 146, in check\n    assert candidate(nums1 = [],nums2 = [0, 0, 0, 0]) == 8\nAssertionError\n",
+                "execution_time": 0.06348109245300293
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_11",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1  # Start with the smallest even and odd numbers\n        \n        def get_next_even():\n            nonlocal even\n            current = even\n            even += 2\n            return current\n        \n        def get_next_odd():\n            nonlocal odd\n            current = odd\n            odd += 2\n            return current\n        \n        i, j = 0, 0\n        last_used = -1\n        \n        while i < n1 or j < n2:\n            if i < n1 and j < n2:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    e1 = get_next_even()\n                    e2 = get_next_even()\n                    last_used = max(e1, e2)\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    o1 = get_next_odd()\n                    o2 = get_next_odd()\n                    last_used = max(o1, o2)\n                elif nums1[i] == 0 and nums2[j] == 1:\n                    e = get_next_even()\n                    o = get_next_odd()\n                    last_used = max(e, o)\n                elif nums1[i] == 1 and nums2[j] == 0:\n                    e = get_next_even()\n                    o = get_next_odd()\n                    last_used = max(e, o)\n                i += 1\n                j += 1\n            elif i < n1:\n                if nums1[i] == 0:\n                    last_used = get_next_even()\n                else:\n                    last_used = get_next_odd()\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used = get_next_even()\n                else:\n                    last_used = get_next_odd()\n                j += 1\n        \n        return last_used",
+              "solution_hash": "2d911aa2060c66e4fc3efe611c8f9cab0040a66a96b9bed2a61fa56427751e56",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpm2nfbxcf.py\", line 265, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpm2nfbxcf.py\", line 149, in check\n    assert candidate(nums1 = [],nums2 = []) == 0\nAssertionError\n",
+                "execution_time": 0.0634758472442627
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_12",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1  # Start with the smallest even and odd numbers\n        \n        def get_next_even():\n            nonlocal even\n            current = even\n            even += 2\n            return current\n        \n        def get_next_odd():\n            nonlocal odd\n            current = odd\n            odd += 2\n            return current\n        \n        i, j = 0, 0\n        last_used_1, last_used_2 = -1, -1\n        \n        while i < n1 or j < n2:\n            if i < n1:\n                if nums1[i] == 0:\n                    next_even = get_next_even()\n                    while next_even <= last_used_1:\n                        next_even = get_next_even()\n                    last_used_1 = next_even\n                else:\n                    next_odd = get_next_odd()\n                    while next_odd <= last_used_1:\n                        next_odd = get_next_odd()\n                    last_used_1 = next_odd\n                i += 1\n            \n            if j < n2:\n                if nums2[j] == 0:\n                    next_even = get_next_even()\n                    while next_even <= last_used_2:\n                        next_even = get_next_even()\n                    last_used_2 = next_even\n                else:\n                    next_odd = get_next_odd()\n                    while next_odd <= last_used_2:\n                        next_odd = get_next_odd()\n                    last_used_2 = next_odd\n                j += 1\n        \n        return max(last_used_1, last_used_2)",
+              "solution_hash": "ebc96600e296cdf7d5ce8a5f16436fd95a67ac51c1a78ae464eab111074e3af0",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp5ebfjfzz.py\", line 259, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmp5ebfjfzz.py\", line 143, in check\n    assert candidate(nums1 = [],nums2 = []) == 0\nAssertionError\n",
+                "execution_time": 0.06522202491760254
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        @lru_cache(None)\n        def dp(i, j, last1, last2):\n            if i == len(nums1) and j == len(nums2):\n                return 0\n            \n            res = inf\n            \n            if i < len(nums1):\n                if nums1[i] == 0:\n                    next_even = last1 + 2 if last1 % 2 == 0 else last1 + 1\n                    res = min(res, max(next_even, dp(i + 1, j, next_even, last2)))\n                else:\n                    next_odd = last1 + 1 if last1 % 2 == 0 else last1 + 2\n                    res = min(res, max(next_odd, dp(i + 1, j, next_odd, last2)))\n            \n            if j < len(nums2):\n                if nums2[j] == 0:\n                    next_even = last2 + 2 if last2 % 2 == 0 else last2 + 1\n                    res = min(res, max(next_even, dp(i, j + 1, last1, next_even)))\n                else:\n                    next_odd = last2 + 1 if last2 % 2 == 0 else last2 + 2\n                    res = min(res, max(next_odd, dp(i, j + 1, last1, next_odd)))\n            \n            return res\n        \n        return dp(0, 0, 0, 0)",
+      "solution_hash": "c58f965ba0124c848a4e9d503341f05f071bc75a9012137d3fe9c8adc813f7d9",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpgfnb6aal.py\", line 237, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpgfnb6aal.py\", line 115, in check\n    assert candidate(nums1 = [1, 0, 1, 0],nums2 = [0, 1, 0, 1]) == 8\nAssertionError\n",
+        "execution_time": 0.061998844146728516
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_14",
+          "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Initialize counters for the next even and odd numbers\n        next_even = 2\n        next_odd = 1\n        \n        # Initialize pointers for both arrays\n        i, j = 0, 0\n        last_used = 0\n        \n        # Process both arrays until we reach the end of one of them\n        while i < len(nums1) or j < len(nums2):\n            if i < len(nums1) and (j >= len(nums2) or (nums1[i] == 0 and next_even > last_used) or (nums1[i] == 1 and next_odd > last_used)):\n                # Assign the smallest possible number to nums1[i]\n                if nums1[i] == 0:\n                    last_used = next_even\n                    next_even += 2\n                else:\n                    last_used = next_odd\n                    next_odd += 2\n                i += 1\n            elif j < len(nums2):\n                # Assign the smallest possible number to nums2[j]\n                if nums2[j] == 0:\n                    last_used = next_even\n                    next_even += 2\n                else:\n                    last_used = next_odd\n                    next_odd += 2\n                j += 1\n        \n        return last_used",
+          "solution_hash": "4dde93d307713d3afbe46af4faa3269df20b3077b2a14a9e651fe49a8aaf6f8f",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpx2q351tf.py\", line 243, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpx2q351tf.py\", line 118, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n",
+            "execution_time": 0.06324934959411621
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_15",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Initialize counters for the next even and odd numbers\n        next_even = 2\n        next_odd = 1\n        \n        # Initialize the last used numbers for both arrays\n        last_used_1 = 0\n        last_used_2 = 0\n        \n        # Process both arrays\n        for num in nums1 + nums2:\n            if num == 0:\n                # Find the next available even number that is greater than the last used in either array\n                while next_even <= last_used_1 or next_even <= last_used_2:\n                    next_even += 2\n                last_used_1 = next_even if last_used_1 < next_even else last_used_1\n                last_used_2 = next_even if last_used_2 < next_even else last_used_2\n                next_even += 2\n            else:\n                # Find the next available odd number that is greater than the last used in either array\n                while next_odd <= last_used_1 or next_odd <= last_used_2:\n                    next_odd += 2\n                last_used_1 = next_odd if last_used_1 < next_odd else last_used_1\n                last_used_2 = next_odd if last_used_2 < next_odd else last_used_2\n                next_odd += 2\n        \n        # The result is the maximum of the last used numbers in both arrays\n        return max(last_used_1, last_used_2)",
+              "solution_hash": "03d21bd8591307a16898d39058b1748b9c4c00d32cef05125bb60ae10ef3ce58",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmplyzkv3w2.py\", line 240, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmplyzkv3w2.py\", line 115, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n",
+                "execution_time": 0.06274700164794922
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_16",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Initialize counters for the next even and odd numbers\n        next_even = 2\n        next_odd = 1\n        \n        # Initialize the last used numbers for both arrays\n        last_used_1 = 0\n        last_used_2 = 0\n        \n        # Process both arrays\n        for num in nums1 + nums2:\n            if num == 0:\n                # Choose the smallest available even number greater than the last used in either array\n                while next_even <= max(last_used_1, last_used_2):\n                    next_even += 2\n                last_used = next_even\n                next_even += 2\n            else:\n                # Choose the smallest available odd number greater than the last used in either array\n                while next_odd <= max(last_used_1, last_used_2):\n                    next_odd += 2\n                last_used = next_odd\n                next_odd += 2\n            \n            # Update the last used number for the respective array\n            if num in nums1:\n                last_used_1 = last_used\n            else:\n                last_used_2 = last_used\n        \n        return max(last_used_1, last_used_2)",
+              "solution_hash": "222c2d2b58e1e1241137771cebdff4cd873c5a2de03bdefd0488011a2537ee8e",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp5qfa229v.py\", line 243, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmp5qfa229v.py\", line 118, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n",
+                "execution_time": 0.06169390678405762
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_17",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Initialize counters for the next even and odd numbers\n        next_even = 2\n        next_odd = 1\n        \n        # Initialize pointers for both arrays\n        i, j = 0, 0\n        last_used = 0\n        \n        # Process both arrays until we reach the end of one of them\n        while i < len(nums1) or j < len(nums2):\n            if i < len(nums1):\n                if nums1[i] == 0:\n                    # Find the next available even number greater than the last used number\n                    while next_even <= last_used:\n                        next_even += 2\n                else:\n                    # Find the next available odd number greater than the last used number\n                    while next_odd <= last_used:\n                        next_odd += 2\n            \n            if j < len(nums2):\n                if nums2[j] == 0:\n                    # Find the next available even number greater than the last used number\n                    while next_even <= last_used:\n                        next_even += 2\n                else:\n                    # Find the next available odd number greater than the last used number\n                    while next_odd <= last_used:\n                        next_odd += 2\n            \n            # Choose the smallest valid number between the next even and odd numbers\n            if i < len(nums1) and j < len(nums2):\n                if (nums1[i] == 0 and nums2[j] == 0) or (nums1[i] == 1 and nums2[j] == 1):\n                    last_used = min(next_even, next_odd)\n                elif nums1[i] == 0:\n                    last_used = next_even\n                else:\n                    last_used = next_odd\n            elif i < len(nums1):\n                if nums1[i] == 0:\n                    last_used = next_even\n                else:\n                    last_used = next_odd\n            elif j < len(nums2):\n                if nums2[j] == 0:\n                    last_used = next_even\n                else:\n                    last_used = next_odd\n            \n            # Increment the respective pointer\n            if i < len(nums1):\n                if nums1[i] == 0:\n                    next_even += 2\n                else:\n                    next_odd += 2\n                i += 1\n            if j < len(nums2):\n                if nums2[j] == 0:\n                    next_even += 2\n                else:\n                    next_odd += 2\n                j += 1\n        \n        return last_used",
+              "solution_hash": "90b04bbdebb28e5de3033b10c77895a11aa6bae888344bc2522b616f2d44b9b0",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpv0t1ltl8.py\", line 277, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpv0t1ltl8.py\", line 153, in check\n    assert candidate(nums1 = [1],nums2 = [0]) == 2\nAssertionError\n",
+                "execution_time": 0.06256341934204102
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_18",
+          "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Initialize counters for even and odd numbers\n        even_counter = 2\n        odd_counter = 1\n        \n        # Merge both lists with markers to differentiate origin\n        merged = [(x, 'A') for x in nums1] + [(y, 'B') for y in nums2]\n        merged.sort(key=lambda x: (x[0], x[1]))  # Sort by value, then by origin\n        \n        last_used = 0\n        \n        for num, origin in merged:\n            if num == 0:\n                # Assign the smallest available even number\n                if even_counter > last_used:\n                    last_used = even_counter\n                even_counter += 2\n            else:\n                # Assign the smallest available odd number\n                if odd_counter > last_used:\n                    last_used = odd_counter\n                odd_counter += 2\n        \n        return last_used",
+          "solution_hash": "d4187b2c9f4d4ef274100b3b5d600385e8453a001165b1c4064185944551ffc7",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpcfd7aalg.py\", line 236, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpcfd7aalg.py\", line 125, in check\n    assert candidate(nums1 = [0, 1, 0, 1],nums2 = [1, 0, 0, 1]) == 9\nAssertionError\n",
+            "execution_time": 0.0622406005859375
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_19",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Initialize counters for even and odd numbers\n        even_counter = 2\n        odd_counter = 1\n        \n        # Helper function to get the next available number\n        def get_next_number(is_odd):\n            nonlocal even_counter, odd_counter\n            if is_odd:\n                current = odd_counter\n                odd_counter += 2\n            else:\n                current = even_counter\n                even_counter += 2\n            return current\n        \n        # Process nums1\n        last_used_1 = 0\n        for num in nums1:\n            if num == 0:\n                # Assign the smallest available even number\n                current = get_next_number(False)\n                while current <= last_used_1:\n                    current = get_next_number(False)\n                last_used_1 = current\n            else:\n                # Assign the smallest available odd number\n                current = get_next_number(True)\n                while current <= last_used_1:\n                    current = get_next_number(True)\n                last_used_1 = current\n        \n        # Process nums2\n        last_used_2 = 0\n        for num in nums2:\n            if num == 0:\n                # Assign the smallest available even number\n                current = get_next_number(False)\n                while current <= last_used_2:\n                    current = get_next_number(False)\n                last_used_2 = current\n            else:\n                # Assign the smallest available odd number\n                current = get_next_number(True)\n                while current <= last_used_2:\n                    current = get_next_number(True)\n                last_used_2 = current\n        \n        # The result is the maximum of the last used numbers in both arrays\n        return max(last_used_1, last_used_2)",
+              "solution_hash": "8d9ed61743983f6bc901b9a86575b552c50b7b1cd3a54cebb1edae23e94111fb",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp9zgntc3f.py\", line 262, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmp9zgntc3f.py\", line 140, in check\n    assert candidate(nums1 = [1, 0, 1, 0],nums2 = [0, 1, 0, 1]) == 8\nAssertionError\n",
+                "execution_time": 0.06388306617736816
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_20",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Initialize counters for even and odd numbers\n        even_counter = 2\n        odd_counter = 1\n        \n        # Function to process each array\n        def process_array(nums, even_counter, odd_counter):\n            last_even = 0\n            last_odd = 0\n            for num in nums:\n                if num == 0:\n                    # Find the next available even number greater than the last used even number\n                    while even_counter <= last_even:\n                        even_counter += 2\n                    last_even = even_counter\n                    even_counter += 2\n                else:\n                    # Find the next available odd number greater than the last used odd number\n                    while odd_counter <= last_odd:\n                        odd_counter += 2\n                    last_odd = odd_counter\n                    odd_counter += 2\n            return max(last_even, last_odd), even_counter, odd_counter\n        \n        # Process both arrays\n        last_used1, even_counter, odd_counter = process_array(nums1, even_counter, odd_counter)\n        last_used2, _, _ = process_array(nums2, even_counter, odd_counter)\n        \n        return max(last_used1, last_used2)",
+              "solution_hash": "c39cd9c3c793afcb7894ef0201ff847ba424d15d4f2b3df9f7b6fd8e12a65920",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpxj8kghox.py\", line 241, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpxj8kghox.py\", line 130, in check\n    assert candidate(nums1 = [0, 1, 0, 1],nums2 = [1, 0, 0, 1]) == 9\nAssertionError\n",
+                "execution_time": 0.061734914779663086
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_21",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Initialize counters for even and odd numbers\n        even_counter = 2\n        odd_counter = 1\n        \n        # Helper function to replace 0s and 1s in a single array\n        def replace_and_get_max(nums):\n            nonlocal even_counter, odd_counter\n            last_used = 0\n            for num in nums:\n                if num == 0:\n                    # Find the next available even number greater than last_used\n                    while even_counter <= last_used:\n                        even_counter += 2\n                    last_used = even_counter\n                    even_counter += 2\n                else:\n                    # Find the next available odd number greater than last_used\n                    while odd_counter <= last_used:\n                        odd_counter += 2\n                    last_used = odd_counter\n                    odd_counter += 2\n            return last_used\n        \n        # Get the maximum values after replacements for both arrays\n        max1 = replace_and_get_max(nums1)\n        max2 = replace_and_get_max(nums2)\n        \n        # Return the overall maximum value\n        return max(max1, max2)",
+              "solution_hash": "dd003ca5b4f6c7ff6275222728a0864897dd26e44338019f52622f875fae1b8a",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp2s2xrnvk.py\", line 242, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmp2s2xrnvk.py\", line 120, in check\n    assert candidate(nums1 = [1, 0, 1, 0],nums2 = [0, 1, 0, 1]) == 8\nAssertionError\n",
+                "execution_time": 0.061254024505615234
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_22",
+          "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        next_even, next_odd = 2, 1\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and j < n2:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    # Both need an even number\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                    next_odd += 2\n                    i += 1\n                    j += 1\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    # Both need an odd number\n                    last_used = max(next_odd, last_used)\n                    next_even += 2\n                    next_odd += 2\n                    i += 1\n                    j += 1\n                elif nums1[i] == 0:\n                    # nums1 needs an even number\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                    i += 1\n                else:\n                    # nums2 needs an even number\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                    j += 1\n            elif i < n1:\n                if nums1[i] == 0:\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                else:\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                i += 1\n            else:\n                if nums2[j] == 0:\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                else:\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                j += 1\n        \n        return last_used",
+          "solution_hash": "376b688599aff5be57e20d427c3d38f4c7cf670e50fa571531bcd94d173770c8",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpeue7f8u0.py\", line 262, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpeue7f8u0.py\", line 140, in check\n    assert candidate(nums1 = [1, 0, 1, 0],nums2 = [0, 1, 0, 1]) == 8\nAssertionError\n",
+            "execution_time": 0.06129622459411621
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_23",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        next_even, next_odd = 2, 1\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and j < n2:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    # Both need an even number\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    # Both need an odd number\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                elif nums1[i] == 0:\n                    # nums1 needs an even number\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                else:\n                    # nums2 needs an even number\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                \n                # Move to the next element in both arrays\n                i += 1\n                j += 1\n            elif i < n1:\n                if nums1[i] == 0:\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                else:\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                i += 1\n            else:\n                if nums2[j] == 0:\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                else:\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                j += 1\n        \n        return last_used",
+              "solution_hash": "5928bef865a7bd0fb8a25f545a6b17bbe7d656c95451dc6711df725f74e74bc0",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpu2kjh_4l.py\", line 258, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpu2kjh_4l.py\", line 134, in check\n    assert candidate(nums1 = [1],nums2 = [0]) == 2\nAssertionError\n",
+                "execution_time": 0.06304812431335449
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_24",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        next_even, next_odd = 2, 1\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and j < n2:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    # Both need an even number\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    # Both need an odd number\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                elif nums1[i] == 0:\n                    # nums1 needs an even number\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                else:\n                    # nums2 needs an even number\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                \n                # Ensure the next number is greater than the last used\n                if next_even <= last_used:\n                    next_even = last_used + 2 if last_used % 2 == 0 else last_used + 1\n                if next_odd <= last_used:\n                    next_odd = last_used + 2 if last_used % 2 == 1 else last_used + 1\n                \n                i += 1\n                j += 1\n            elif i < n1:\n                if nums1[i] == 0:\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                else:\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                \n                # Ensure the next number is greater than the last used\n                if next_even <= last_used:\n                    next_even = last_used + 2 if last_used % 2 == 0 else last_used + 1\n                if next_odd <= last_used:\n                    next_odd = last_used + 2 if last_used % 2 == 1 else last_used + 1\n                \n                i += 1\n            else:\n                if nums2[j] == 0:\n                    last_used = max(next_even, last_used)\n                    next_even += 2\n                else:\n                    last_used = max(next_odd, last_used)\n                    next_odd += 2\n                \n                # Ensure the next number is greater than the last used\n                if next_even <= last_used:\n                    next_even = last_used + 2 if last_used % 2 == 0 else last_used + 1\n                if next_odd <= last_used:\n                    next_odd = last_used + 2 if last_used % 2 == 1 else last_used + 1\n                \n                j += 1\n        \n        return last_used",
+              "solution_hash": "5a9d7e220c70807d62a308c0dce4259da3291eb04a260a49e55e8219ff8212a3",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpkt_npw6w.py\", line 277, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpkt_npw6w.py\", line 153, in check\n    assert candidate(nums1 = [1],nums2 = [0]) == 2\nAssertionError\n",
+                "execution_time": 0.06272506713867188
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_25",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        next_even1, next_odd1 = 2, 1\n        next_even2, next_odd2 = 2, 1\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1:\n                if nums1[i] == 0:\n                    # Assign the smallest available even number to nums1\n                    while next_even1 <= last_used:\n                        next_even1 += 2\n                    last_used = max(next_even1, last_used)\n                    next_even1 += 2\n                else:\n                    # Assign the smallest available odd number to nums1\n                    while next_odd1 <= last_used:\n                        next_odd1 += 2\n                    last_used = max(next_odd1, last_used)\n                    next_odd1 += 2\n                i += 1\n            \n            if j < n2:\n                if nums2[j] == 0:\n                    # Assign the smallest available even number to nums2\n                    while next_even2 <= last_used:\n                        next_even2 += 2\n                    last_used = max(next_even2, last_used)\n                    next_even2 += 2\n                else:\n                    # Assign the smallest available odd number to nums2\n                    while next_odd2 <= last_used:\n                        next_odd2 += 2\n                    last_used = max(next_odd2, last_used)\n                    next_odd2 += 2\n                j += 1\n        \n        return last_used",
+              "solution_hash": "d80b2f08c688e795e200345a9cb84ba5caf2b5c348580a82df0303cbc9de9de9",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpwqfp3yqu.py\", line 251, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpwqfp3yqu.py\", line 126, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n",
+                "execution_time": 0.06242179870605469
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        dp = [[inf] * 2 for _ in range(max(n1, n2) + 1)]\n        dp[0][0] = dp[0][1] = 0\n        \n        even, odd = 2, 1\n        \n        for i in range(1, max(n1, n2) + 1):\n            num1 = nums1[i-1] if i <= n1 else -1\n            num2 = nums2[i-1] if i <= n2 else -1\n            \n            if num1 == 0 or num1 == -1:\n                dp[i][0] = min(dp[i][0], even)\n                if num2 != 1:\n                    dp[i][1] = min(dp[i][1], even + 1)\n            \n            if num1 == 1 or num1 == -1:\n                dp[i][1] = min(dp[i][1], odd)\n                if num2 != 0:\n                    dp[i][0] = min(dp[i][0], odd + 1)\n            \n            if num2 == 0 or num2 == -1:\n                dp[i][0] = min(dp[i][0], even)\n                if num1 != 1:\n                    dp[i][1] = min(dp[i][1], even + 1)\n            \n            if num2 == 1 or num2 == -1:\n                dp[i][1] = min(dp[i][1], odd)\n                if num1 != 0:\n                    dp[i][0] = min(dp[i][0], odd + 1)\n            \n            even += 2\n            odd += 2\n        \n        return min(dp[n1][0], dp[n1][1], dp[n2][0], dp[n2][1])",
+      "solution_hash": "32d454e3809cde5871e1005dd405c5d705b4cf64b1fcc0d60dcc45d7fec901fe",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpqym5yhbl.py\", line 245, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpqym5yhbl.py\", line 120, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n",
+        "execution_time": 0.06218671798706055
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_27",
+          "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used_even, last_used_odd = 0, 0\n        \n        while i < len(nums1) or j < len(nums2):\n            if i < len(nums1) and j < len(nums2):\n                if nums1[i] == 0 and nums2[j] == 0:\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n                elif nums1[i] == 0 and nums2[j] == 1:\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n                elif nums1[i] == 1 and nums2[j] == 0:\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n            elif i < len(nums1):\n                if nums1[i] == 0:\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                else:\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n            elif j < len(nums2):\n                if nums2[j] == 0:\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                else:\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n            i += 1\n            j += 1\n        \n        return max(last_used_even, last_used_odd)",
+          "solution_hash": "ca56e8fb984f41c119e6539f094e6b182811368d659551ef963aa0825b13dedc",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpto9due8r.py\", line 269, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpto9due8r.py\", line 158, in check\n    assert candidate(nums1 = [0, 1, 0, 1],nums2 = [1, 0, 0, 1]) == 9\nAssertionError\n",
+            "execution_time": 0.06454586982727051
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_28",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used_even, last_used_odd = 0, 0\n        \n        while i < len(nums1) or j < len(nums2):\n            if i < len(nums1) and j < len(nums2):\n                if nums1[i] == 0 and nums2[j] == 0:\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n                elif nums1[i] == 0 and nums2[j] == 1:\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n                elif nums1[i] == 1 and nums2[j] == 0:\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n            elif i < len(nums1):\n                if nums1[i] == 0:\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                else:\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n            elif j < len(nums2):\n                if nums2[j] == 0:\n                    if even > last_used_even:\n                        last_used_even = even\n                        even += 2\n                else:\n                    if odd > last_used_odd:\n                        last_used_odd = odd\n                        odd += 2\n            \n            if i < len(nums1):\n                if nums1[i] == 0:\n                    nums1[i] = last_used_even\n                else:\n                    nums1[i] = last_used_odd\n                i += 1\n            \n            if j < len(nums2):\n                if nums2[j] == 0:\n                    nums2[j] = last_used_even\n                else:\n                    nums2[j] = last_used_odd\n                j += 1\n        \n        return max(last_used_even, last_used_odd)",
+              "solution_hash": "01419059ce0f54568b1d8ed9fbe08e1c6f69442dcd603db65c4e4890195fbf85",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpm01go92x.py\", line 281, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpm01go92x.py\", line 170, in check\n    assert candidate(nums1 = [0, 1, 0, 1],nums2 = [1, 0, 0, 1]) == 9\nAssertionError\n",
+                "execution_time": 0.06434988975524902
+              },
+              "depth": 2,
+              "parent_id": "1_27",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_29",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used = 0\n        \n        while i < len(nums1) or j < len(nums2):\n            if i < len(nums1):\n                if nums1[i] == 0:\n                    while even <= last_used:\n                        even += 2\n                    nums1[i] = even\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    nums1[i] = odd\n                    last_used = odd\n                    odd += 2\n                i += 1\n            \n            if j < len(nums2):\n                if nums2[j] == 0:\n                    while even <= last_used:\n                        even += 2\n                    nums2[j] = even\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    nums2[j] = odd\n                    last_used = odd\n                    odd += 2\n                j += 1\n        \n        return last_used",
+              "solution_hash": "bf4af7ecce87d09386b4df3d1df3d87e41ea256149f85a6033ab85585ab73376",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp6dprvd82.py\", line 249, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmp6dprvd82.py\", line 124, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n",
+                "execution_time": 0.06241416931152344
+              },
+              "depth": 2,
+              "parent_id": "1_27",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_30",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used_even, last_used_odd = 0, 0\n        \n        while i < len(nums1) or j < len(nums2):\n            if i < len(nums1):\n                if nums1[i] == 0:\n                    while even <= last_used_even:\n                        even += 2\n                    last_used_even = even\n                    even += 2\n                else:\n                    while odd <= last_used_odd:\n                        odd += 2\n                    last_used_odd = odd\n                    odd += 2\n            \n            if j < len(nums2):\n                if nums2[j] == 0:\n                    while even <= last_used_even:\n                        even += 2\n                    last_used_even = even\n                    even += 2\n                else:\n                    while odd <= last_used_odd:\n                        odd += 2\n                    last_used_odd = odd\n                    odd += 2\n            \n            i += 1\n            j += 1\n        \n        return max(last_used_even - 2, last_used_odd - 2)",
+              "solution_hash": "492c48b8544327c0c0c7dd62c14b44b1a7484ec9e7890d24ef53dd06188ee60c",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpsrdmulgn.py\", line 246, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpsrdmulgn.py\", line 121, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n",
+                "execution_time": 0.06262850761413574
+              },
+              "depth": 2,
+              "parent_id": "1_27",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_31",
+          "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        even, odd = 2, 1\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or nums1[i] < nums2[j]):\n                if nums1[i] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2 and (i >= n1 or nums2[j] < nums1[i]):\n                if nums2[j] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                j += 1\n            else:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                else:\n                    while even <= last_used:\n                        even += 2\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = max(even, odd)\n                    even += 2\n                    odd += 2\n                i += 1\n                j += 1\n        \n        return last_used",
+          "solution_hash": "0f0aa64b4411f59a042ea0c1663f1fbf3ea1eefa73203435eeb88260044be82c",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpk6gpz1xb.py\", line 266, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpk6gpz1xb.py\", line 141, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n",
+            "execution_time": 0.06277322769165039
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_32",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        even, odd = 2, 1\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or nums1[i] < nums2[j]):\n                if nums1[i] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2 and (i >= n1 or nums2[j] < nums1[i]):\n                if nums2[j] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                j += 1\n            else:\n                if nums1[i] == 0 and nums2[j] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                else:\n                    while even <= last_used:\n                        even += 2\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = max(even, odd)\n                    even += 2\n                    odd += 2\n                i += 1\n                j += 1\n        \n        return last_used",
+              "solution_hash": "0f0aa64b4411f59a042ea0c1663f1fbf3ea1eefa73203435eeb88260044be82c",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpk6gpz1xb.py\", line 266, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpk6gpz1xb.py\", line 141, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n",
+                "execution_time": 0.06277322769165039
+              },
+              "depth": 2,
+              "parent_id": "1_31",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_33",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        even, odd = 2, 1\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or nums1[i] < nums2[j]):\n                if nums1[i] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2 and (i >= n1 or nums2[j] < nums1[i]):\n                if nums2[j] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                j += 1\n            else:\n                # Both positions need to be filled\n                next_even = even\n                next_odd = odd\n                \n                while next_even <= last_used:\n                    next_even += 2\n                while next_odd <= last_used:\n                    next_odd += 2\n                \n                if nums1[i] == 0 and nums2[j] == 0:\n                    last_used = next_even\n                    even += 2\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    last_used = next_odd\n                    odd += 2\n                else:\n                    last_used = min(next_even, next_odd)\n                    if last_used == next_even:\n                        even += 2\n                    else:\n                        odd += 2\n                \n                i += 1\n                j += 1\n        \n        return last_used",
+              "solution_hash": "cdcd17759dfca7833d38a43c47a56754f7a74bd66d8137cbf03cfdd97dba1253",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmps4qk_b1d.py\", line 270, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmps4qk_b1d.py\", line 145, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n",
+                "execution_time": 0.06441617012023926
+              },
+              "depth": 2,
+              "parent_id": "1_31",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_34",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        even, odd = 2, 1\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or nums1[i] < nums2[j]):\n                if nums1[i] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2 and (i >= n1 or nums2[j] < nums1[i]):\n                if nums2[j] == 0:\n                    while even <= last_used:\n                        even += 2\n                    last_used = even\n                    even += 2\n                else:\n                    while odd <= last_used:\n                        odd += 2\n                    last_used = odd\n                    odd += 2\n                j += 1\n            else:\n                # Both arrays have elements to be replaced\n                next_even = even\n                next_odd = odd\n                \n                while next_even <= last_used:\n                    next_even += 2\n                while next_odd <= last_used:\n                    next_odd += 2\n                \n                if nums1[i] == 0 and nums2[j] == 0:\n                    last_used = next_even\n                    even = next_even + 2\n                elif nums1[i] == 1 and nums2[j] == 1:\n                    last_used = next_odd\n                    odd = next_odd + 2\n                else:\n                    last_used = max(next_even, next_odd)\n                    even = next_even + 2\n                    odd = next_odd + 2\n                \n                i += 1\n                j += 1\n        \n        return last_used",
+              "solution_hash": "42d6fa5a9cc2eb987e8eab69846bbda08e964311c585fac993cb4fb1c6e3dae3",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpztuu6wiz.py\", line 268, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpztuu6wiz.py\", line 143, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n",
+                "execution_time": 0.07791781425476074
+              },
+              "depth": 2,
+              "parent_id": "1_31",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_35",
+          "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or (nums1[i] == 0 and even < odd) or (nums1[i] == 1 and odd < even)):\n                if nums1[i] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                j += 1\n            \n            # Ensure the last used number is valid for both arrays\n            if i < n1:\n                if nums1[i] == 0 and last_used % 2 == 1:\n                    last_used += 1\n                elif nums1[i] == 1 and last_used % 2 == 0:\n                    last_used += 1\n            if j < n2:\n                if nums2[j] == 0 and last_used % 2 == 1:\n                    last_used += 1\n                elif nums2[j] == 1 and last_used % 2 == 0:\n                    last_used += 1\n        \n        return last_used",
+          "solution_hash": "1d37d2ee69e3f1770e5f9cf99b89e6a01fdccb9cf116f7ac2336fad33edd99d0",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp8gs2bcf7.py\", line 249, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmp8gs2bcf7.py\", line 127, in check\n    assert candidate(nums1 = [1, 0, 1, 0],nums2 = [0, 1, 0, 1]) == 8\nAssertionError\n",
+            "execution_time": 0.06302094459533691
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_36",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or (nums1[i] == 0 and even < odd) or (nums1[i] == 1 and odd < even)):\n                if nums1[i] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                j += 1\n            \n            # Ensure the last used number is valid for both arrays\n            if i < n1:\n                if nums1[i] == 0 and last_used % 2 == 1:\n                    last_used = even\n                    even += 2\n                elif nums1[i] == 1 and last_used % 2 == 0:\n                    last_used = odd\n                    odd += 2\n            if j < n2:\n                if nums2[j] == 0 and last_used % 2 == 1:\n                    last_used = even\n                    even += 2\n                elif nums2[j] == 1 and last_used % 2 == 0:\n                    last_used = odd\n                    odd += 2\n        \n        return last_used",
+              "solution_hash": "f647f5e7b373d0d247aa546c9ad040cfacb74f18c223195a9ccb0eebd6017c73",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpec_9oyxa.py\", line 253, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpec_9oyxa.py\", line 128, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n",
+                "execution_time": 0.06457781791687012
+              },
+              "depth": 2,
+              "parent_id": "1_35",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_37",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1\n        i, j = 0, 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or (nums1[i] == 0 and even < odd) or (nums1[i] == 1 and odd < even)):\n                if nums1[i] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                j += 1\n        \n        return last_used",
+              "solution_hash": "d7406417a328fa408e6ac2715c45b993e8cd65952bb78c58c69fc925cb2d55d6",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp4zhm9wl3.py\", line 236, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmp4zhm9wl3.py\", line 114, in check\n    assert candidate(nums1 = [1, 0, 1, 0],nums2 = [0, 1, 0, 1]) == 8\nAssertionError\n",
+                "execution_time": 0.06114506721496582
+              },
+              "depth": 2,
+              "parent_id": "1_35",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_38",
+              "solution": "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        n1, n2 = len(nums1), len(nums2)\n        even, odd = 2, 1\n        i, j = 0, 0\n        last_used = 0\n        \n        while i < n1 or j < n2:\n            if i < n1 and (j >= n2 or (nums1[i] == 0 and even < odd) or (nums1[i] == 1 and odd < even)):\n                if nums1[i] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                i += 1\n            elif j < n2:\n                if nums2[j] == 0:\n                    last_used = even\n                    even += 2\n                else:\n                    last_used = odd\n                    odd += 2\n                j += 1\n            \n            # Ensure the last used number is valid for both arrays\n            if i < n1:\n                if nums1[i] == 0 and last_used % 2 == 1:\n                    last_used = even\n                    even += 2\n                elif nums1[i] == 1 and last_used % 2 == 0:\n                    last_used = odd\n                    odd += 2\n            if j < n2:\n                if nums2[j] == 0 and last_used % 2 == 1:\n                    last_used = even\n                    even += 2\n                elif nums2[j] == 1 and last_used % 2 == 0:\n                    last_used = odd\n                    odd += 2\n        \n        return last_used",
+              "solution_hash": "f647f5e7b373d0d247aa546c9ad040cfacb74f18c223195a9ccb0eebd6017c73",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpec_9oyxa.py\", line 253, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21419950/tmpec_9oyxa.py\", line 128, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n",
+                "execution_time": 0.06457781791687012
+              },
+              "depth": 2,
+              "parent_id": "1_35",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 39,
+    "candidates_generated": 39,
+    "tests_passed": 0,
+    "tests_failed": 39,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 1132.657223701477,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.025000000000000022,
+      "pass@3": 0.07499999999999996,
+      "pass@5": 0.125,
+      "pass@10": 0.25
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 26
+          }
+        ],
+        [
+          27,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 27
+          }
+        ],
+        [
+          28,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 28
+          }
+        ],
+        [
+          29,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 29
+          }
+        ],
+        [
+          30,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 30
+          }
+        ],
+        [
+          31,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 31
+          }
+        ],
+        [
+          32,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 32
+          }
+        ],
+        [
+          33,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 33
+          }
+        ],
+        [
+          34,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 34
+          }
+        ],
+        [
+          35,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 35
+          }
+        ],
+        [
+          36,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 36
+          }
+        ],
+        [
+          37,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 37
+          }
+        ],
+        [
+          38,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 38
+          }
+        ],
+        [
+          39,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 39
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 40,
+    "test_cases": 1
+  }
+}
