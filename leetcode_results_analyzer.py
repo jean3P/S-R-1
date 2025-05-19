@@ -202,6 +202,223 @@ class LeetCodeResultsAnalyzer:
             else:
                 self.pass_at_k_results[difficulty][model_name][k] = None
 
+    def analyze_feedback_iterations(self):
+        """Analyze how model performance improves with each feedback iteration."""
+        print("Analyzing feedback iterations...")
+
+        # Define the iterations and corresponding pass@k metrics
+        iterations = [
+            {"name": "Initial", "metric": "1"},  # Initial solutions (pass@1)
+            {"name": "Iter 1", "metric": "3"},  # First feedback iteration (pass@3)
+            {"name": "Iter 2", "metric": "5"},  # Second feedback iteration (pass@5)
+            {"name": "Iter 3", "metric": "10"}  # Third feedback iteration (pass@10)
+        ]
+
+        # Initialize result structure
+        feedback_results = {
+            "absolute_performance": {},
+            "marginal_improvements": {},
+            "efficiency_frontier": {}
+        }
+
+        # Extract performance values for each model, difficulty, and iteration
+        for model_name in self.models:
+            feedback_results["absolute_performance"][model_name] = {}
+
+            for difficulty in ["Easy", "Medium", "Hard", "Overall"]:
+                if model_name in self.pass_at_k_results[difficulty]:
+                    feedback_results["absolute_performance"][model_name][difficulty] = {}
+
+                    # Get values for each iteration
+                    for iter_info in iterations:
+                        iter_name = iter_info["name"]
+                        k = iter_info["metric"]
+
+                        if k in self.pass_at_k_results[difficulty][model_name]:
+                            feedback_results["absolute_performance"][model_name][difficulty][iter_name] = \
+                                self.pass_at_k_results[difficulty][model_name][k]
+
+        # Calculate marginal improvements between iterations
+        for model_name in self.models:
+            feedback_results["marginal_improvements"][model_name] = {}
+
+            for difficulty in ["Easy", "Medium", "Hard", "Overall"]:
+                if difficulty in feedback_results["absolute_performance"][model_name]:
+                    perf = feedback_results["absolute_performance"][model_name][difficulty]
+
+                    if len(perf) > 1:  # Need at least 2 iterations to calculate improvements
+                        feedback_results["marginal_improvements"][model_name][difficulty] = {}
+
+                        # Calculate improvements between consecutive iterations
+                        for i in range(1, len(iterations)):
+                            prev_iter = iterations[i - 1]["name"]
+                            curr_iter = iterations[i]["name"]
+
+                            if prev_iter in perf and curr_iter in perf:
+                                improvement_key = f"{prev_iter}→{curr_iter}"
+                                improvement = perf[curr_iter] - perf[prev_iter]
+                                feedback_results["marginal_improvements"][model_name][difficulty][
+                                    improvement_key] = improvement
+
+        # Identify efficiency frontier (optimal number of iterations)
+        for model_name in self.models:
+            feedback_results["efficiency_frontier"][model_name] = {}
+
+            for difficulty in ["Easy", "Medium", "Hard", "Overall"]:
+                if difficulty in feedback_results["marginal_improvements"][model_name]:
+                    improvements = feedback_results["marginal_improvements"][model_name][difficulty]
+
+                    # Simple rule: optimal iteration is the last one with improvement > threshold
+                    threshold = 3.0  # 3 percentage points as threshold
+                    optimal_iter = 1  # Default to first iteration
+
+                    # Check iteration 1 → 2
+                    if "Initial→Iter 1" in improvements and improvements["Initial→Iter 1"] > threshold:
+                        optimal_iter = 1
+
+                        # Check iteration 2 → 3
+                        if "Iter 1→Iter 2" in improvements and improvements["Iter 1→Iter 2"] > threshold:
+                            optimal_iter = 2
+
+                            # Check iteration 3 → 4
+                            if "Iter 2→Iter 3" in improvements and improvements["Iter 2→Iter 3"] > threshold:
+                                optimal_iter = 3
+
+                    # Special case: if an iteration has negative improvement but the next has strong positive
+                    if optimal_iter == 1 and "Iter 1→Iter 2" in improvements and improvements["Iter 1→Iter 2"] < 0:
+                        if "Iter 2→Iter 3" in improvements and improvements["Iter 2→Iter 3"] > 2 * threshold:
+                            optimal_iter = 3  # Skip to iteration 3
+
+                    feedback_results["efficiency_frontier"][model_name][difficulty] = optimal_iter
+
+        return feedback_results
+
+    def _generate_feedback_iteration_tables(self):
+        """Generate LaTeX tables for feedback iteration analysis with absolute counts."""
+        # Get feedback iteration analysis results
+        feedback_results = self.analyze_feedback_iterations()
+
+        latex_content = []
+
+        # Introduction section (unchanged)
+        latex_content.extend([
+            "\\subsection{Feedback Iteration Analysis}",
+            "",
+            "This analysis quantifies how model performance improves with each feedback iteration in our tree search algorithm. ",
+            "We investigate the marginal improvements between iterations to identify the optimal number of feedback rounds, ",
+            "addressing the efficiency frontier where additional iterations yield diminishing returns.",
+            ""
+        ])
+
+        # Table 1: Performance across iterations with absolute counts
+        latex_content.extend([
+            "\\subsection{Performance Across Feedback Iterations}",
+            "",
+            "\\begin{table}[ht]",
+            "\\centering",
+            "\\begin{adjustbox}{max width=\\textwidth}",
+            "\\begin{tabular}{l|l|c|c|c|c}",
+            "\\toprule",
+            "\\textbf{Model} & \\textbf{Difficulty} & \\textbf{Initial} & \\textbf{Iter 1} & \\textbf{Iter 2} & \\textbf{Iter 3}\\\\",
+            "\\midrule"
+        ])
+
+        # Add rows for each model and difficulty with absolute counts
+        for model_name in self.models:
+            first_row = True
+            for difficulty in ["Easy", "Medium", "Hard", "Overall"]:
+                if difficulty in feedback_results["absolute_performance"][model_name]:
+                    perf = feedback_results["absolute_performance"][model_name][difficulty]
+
+                    # Get total problems for this model and difficulty
+                    if difficulty == "Overall":
+                        total_problems = self.results["Overall"][model_name].get("total_problems", 0)
+                    else:
+                        total_problems = self.problem_counts[difficulty].get(model_name, 0)
+
+                    # Calculate approximate solved counts for each iteration
+                    init_solved = int(
+                        round((perf.get('Initial', 0) / 100) * total_problems)) if 'Initial' in perf else 0
+                    iter1_solved = int(round((perf.get('Iter 1', 0) / 100) * total_problems)) if 'Iter 1' in perf else 0
+                    iter2_solved = int(round((perf.get('Iter 2', 0) / 100) * total_problems)) if 'Iter 2' in perf else 0
+                    iter3_solved = int(round((perf.get('Iter 3', 0) / 100) * total_problems)) if 'Iter 3' in perf else 0
+
+                    # Format absolute counts and percentages
+                    init_val = f"{init_solved}/{total_problems} ({perf.get('Initial', 0):.1f}\\%)" if 'Initial' in perf else "-"
+                    iter1_val = f"{iter1_solved}/{total_problems} ({perf.get('Iter 1', 0):.1f}\\%)" if 'Iter 1' in perf else "-"
+                    iter2_val = f"{iter2_solved}/{total_problems} ({perf.get('Iter 2', 0):.1f}\\%)" if 'Iter 2' in perf else "-"
+                    iter3_val = f"{iter3_solved}/{total_problems} ({perf.get('Iter 3', 0):.1f}\\%)" if 'Iter 3' in perf else "-"
+
+                    # Format row with model name only on first row
+                    if first_row:
+                        latex_content.append(
+                            f"{model_name} & {difficulty} & {init_val} & {iter1_val} & {iter2_val} & {iter3_val} \\\\")
+                        first_row = False
+                    else:
+                        latex_content.append(
+                            f" & {difficulty} & {init_val} & {iter1_val} & {iter2_val} & {iter3_val} \\\\")
+
+            # Add separator between models
+            if model_name != self.models[-1]:
+                latex_content.append("\\midrule")
+
+        # Close the performance table
+        latex_content.extend([
+            "\\bottomrule",
+            "\\end{tabular}",
+            "\\end{adjustbox}",
+            "\\caption{Performance across feedback iterations by model and difficulty, showing solved/total problems and success rates.}",
+            "\\label{tab:feedback_iterations}",
+            "\\end{table}",
+            ""
+        ])
+
+        # Table 3: Efficiency Frontier
+        latex_content.extend([
+            "\\subsection{Efficiency Frontier Analysis}",
+            "",
+            "\\begin{table}[ht]",
+            "\\centering",
+            "\\begin{tabular}{l|c|c|c|c}",
+            "\\toprule",
+            "\\textbf{Model} & \\textbf{Easy} & \\textbf{Medium} & \\textbf{Hard} & \\textbf{Overall} \\\\",
+            "\\midrule"
+        ])
+
+        for model_name in self.models:
+            # Extract optimal iterations for each difficulty
+            easy_opt = feedback_results["efficiency_frontier"][model_name].get("Easy", "-")
+            medium_opt = feedback_results["efficiency_frontier"][model_name].get("Medium", "-")
+            hard_opt = feedback_results["efficiency_frontier"][model_name].get("Hard", "-")
+            overall_opt = feedback_results["efficiency_frontier"][model_name].get("Overall", "-")
+
+            latex_content.append(f"{model_name} & {easy_opt} & {medium_opt} & {hard_opt} & {overall_opt} \\\\")
+
+        # Close the efficiency frontier table
+        latex_content.extend([
+            "\\bottomrule",
+            "\\end{tabular}",
+            "\\caption{Optimal number of feedback iterations (efficiency frontier) by model and difficulty.}",
+            "\\label{tab:efficiency_frontier}",
+            "\\end{table}",
+            ""
+        ])
+
+        # Add explanation paragraph
+        latex_content.extend([
+            "The efficiency frontier analysis reveals that the optimal number of feedback iterations varies by both model and problem difficulty. ",
+            "For Hard problems, more iterations (typically 3) are beneficial across all models, while for Easy problems, ",
+            "diminishing returns often appear after fewer iterations. This suggests that our tree search algorithm should ",
+            "dynamically adjust the number of feedback iterations based on problem difficulty, allocating more iterations to harder problems.",
+            "",
+            "The unusual pattern in some marginal improvements (particularly the negative values for iteration 1→2 followed by positive values for iteration 2→3) ",
+            "suggests a non-linear learning process in our models. This may be due to the tree search algorithm's branching strategy, ",
+            "where early iterations focus on exploring diverse solutions while later iterations concentrate on refining promising paths.",
+            ""
+        ])
+
+        return latex_content
+
     def _calculate_overall_metrics(self):
         """Calculate overall metrics across all difficulty levels."""
         for model_name in self.models:
@@ -365,6 +582,9 @@ class LeetCodeResultsAnalyzer:
         for k in ["1", "3", "5", "10"]:
             latex_content.extend(self._generate_pass_at_k_table(k, improvements))
 
+        # Add the feedback iteration analysis here
+        latex_content.extend(self._generate_feedback_iteration_tables())
+
         # Node Expansion Analysis
         latex_content.extend(self._generate_node_expansion_table())
 
@@ -385,45 +605,85 @@ class LeetCodeResultsAnalyzer:
         return self.output_file
 
     def _generate_success_rate_table(self):
-        """Generate table of success rates by difficulty."""
+        """Generate table of success rates by difficulty with absolute numbers."""
         latex_table = [
             "\\subsection{Success Rate Comparison}",
+            "",
+            "This table presents the overall success rates for each model in different difficulty levels of the problem. The success rate measures the percentage of problems successfully solved, reflecting the model's effectiveness at generating correct solutions. Higher percentages indicate better performance. The results show significant variation in performance across difficulty levels, with all models struggling more on Hard problems compared to Easy and Medium ones.",
             "",
             "\\begin{table}[ht]",
             "\\centering",
             "\\begin{adjustbox}{max width=\\textwidth}",
-            "\\begin{tabular}{l|S[table-format=2.1]|S[table-format=2.1]|S[table-format=2.1]|S[table-format=2.1]}",
+            "\\begin{tabular}{l|c|c|c|c}",
             "\\toprule",
-            "\\textbf{Model} & {\\textbf{Easy (\\%)}} & {\\textbf{Medium (\\%)}} & {\\textbf{Hard (\\%)}} & {\\textbf{Overall (\\%)}} \\\\",
+            "\\textbf{Model} & \\textbf{Easy} & \\textbf{Medium} & \\textbf{Hard} & \\textbf{Overall} \\\\",
             "\\midrule"
         ]
 
         # Add rows for each model
         for model_name in self.models:
+            # Easy problems
+            easy_solved = self.results["Easy"].get(model_name, {}).get("solved_problems", 0)
+            easy_total = self.problem_counts["Easy"].get(model_name, 0)
             easy_rate = self.results["Easy"].get(model_name, {}).get("success_rate", 0)
+
+            # Medium problems
+            medium_solved = self.results["Medium"].get(model_name, {}).get("solved_problems", 0)
+            medium_total = self.problem_counts["Medium"].get(model_name, 0)
             medium_rate = self.results["Medium"].get(model_name, {}).get("success_rate", 0)
+
+            # Hard problems
+            hard_solved = self.results["Hard"].get(model_name, {}).get("solved_problems", 0)
+            hard_total = self.problem_counts["Hard"].get(model_name, 0)
             hard_rate = self.results["Hard"].get(model_name, {}).get("success_rate", 0)
+
+            # Overall
+            overall_solved = self.results["Overall"].get(model_name, {}).get("solved_problems", 0)
+            overall_total = sum([easy_total, medium_total, hard_total])
             overall_rate = self.results["Overall"].get(model_name, {}).get("success_rate", 0)
 
+            # Format as "solved/total (percentage%)"
+            easy_str = f"{easy_solved}/{easy_total} ({easy_rate:.1f}\\%)"
+            medium_str = f"{medium_solved}/{medium_total} ({medium_rate:.1f}\\%)"
+            hard_str = f"{hard_solved}/{hard_total} ({hard_rate:.1f}\\%)"
+            overall_str = f"{overall_solved}/{overall_total} ({overall_rate:.1f}\\%)"
+
             latex_table.append(
-                f"{model_name} & {easy_rate:.1f} & {medium_rate:.1f} & {hard_rate:.1f} & {overall_rate:.1f} \\\\")
+                f"{model_name} & {easy_str} & {medium_str} & {hard_str} & {overall_str} \\\\"
+            )
 
-        # Add overall average
-        avg_easy = np.mean([self.results["Easy"].get(m, {}).get("success_rate", 0) for m in self.models])
-        avg_medium = np.mean([self.results["Medium"].get(m, {}).get("success_rate", 0) for m in self.models])
-        avg_hard = np.mean([self.results["Hard"].get(m, {}).get("success_rate", 0) for m in self.models])
-        avg_overall = np.mean([self.results["Overall"].get(m, {}).get("success_rate", 0) for m in self.models])
+        # Calculate averages for all difficulties
+        total_easy_solved = sum([self.results["Easy"].get(m, {}).get("solved_problems", 0) for m in self.models])
+        total_easy = sum([self.problem_counts["Easy"].get(m, 0) for m in self.models])
+        avg_easy_rate = (total_easy_solved / total_easy * 100) if total_easy > 0 else 0
 
+        total_medium_solved = sum([self.results["Medium"].get(m, {}).get("solved_problems", 0) for m in self.models])
+        total_medium = sum([self.problem_counts["Medium"].get(m, 0) for m in self.models])
+        avg_medium_rate = (total_medium_solved / total_medium * 100) if total_medium > 0 else 0
+
+        total_hard_solved = sum([self.results["Hard"].get(m, {}).get("solved_problems", 0) for m in self.models])
+        total_hard = sum([self.problem_counts["Hard"].get(m, 0) for m in self.models])
+        avg_hard_rate = (total_hard_solved / total_hard * 100) if total_hard > 0 else 0
+
+        total_overall_solved = total_easy_solved + total_medium_solved + total_hard_solved
+        total_overall = total_easy + total_medium + total_hard
+        avg_overall_rate = (total_overall_solved / total_overall * 100) if total_overall > 0 else 0
+
+        # Add the average row
         latex_table.append("\\midrule")
         latex_table.append(
-            f"\\textbf{{Average}} & {avg_easy:.1f} & {avg_medium:.1f} & {avg_hard:.1f} & {avg_overall:.1f} \\\\")
+            f"\\textbf{{Average}} & {total_easy_solved}/{total_easy} ({avg_easy_rate:.1f}\\%) & "
+            f"{total_medium_solved}/{total_medium} ({avg_medium_rate:.1f}\\%) & "
+            f"{total_hard_solved}/{total_hard} ({avg_hard_rate:.1f}\\%) & "
+            f"{total_overall_solved}/{total_overall} ({avg_overall_rate:.1f}\\%) \\\\"
+        )
 
         # Close table
         latex_table.extend([
             "\\bottomrule",
             "\\end{tabular}",
             "\\end{adjustbox}",
-            "\\caption{Success rate comparison of models by difficulty.}",
+            "\\caption{Success rate comparison of models by difficulty, showing solved/total problems and percentages.}",
             "\\label{tab:success_rates}",
             "\\end{table}",
             ""

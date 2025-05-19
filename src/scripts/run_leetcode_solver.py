@@ -128,11 +128,25 @@ def parse_args():
         default=3,
         help="Number of solutions to generate per failed solution (k parameter)"
     )
-    parser.add_argument(
+    iteration_group = parser.add_mutually_exclusive_group()
+    iteration_group.add_argument(
         "--max-depth",
         type=int,
         default=3,
-        help="Maximum depth of the solution tree"
+        help="Maximum depth of the solution tree (for fixed iteration approach)"
+    )
+    iteration_group.add_argument(
+        "--adaptive",
+        action="store_true",
+        help="Use adaptive iteration: continue until solution found or consecutive failures"
+    )
+
+    # Add argument for consecutive failures threshold
+    parser.add_argument(
+        "--consecutive-failures",
+        type=int,
+        default=3,
+        help="Number of consecutive failures before abandoning a branch (used with --adaptive)"
     )
     parser.add_argument(
         "--early-stopping",

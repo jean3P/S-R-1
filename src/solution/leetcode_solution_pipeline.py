@@ -1,3 +1,4 @@
+import inspect
 import logging
 import time
 import hashlib
@@ -41,6 +42,10 @@ class LeetCodeSolutionPipeline:
         self.branch_factor = config.get("leetcode", {}).get("branch_factor", 3)  # k parameter from professor
         self.max_depth = config.get("leetcode", {}).get("max_depth", 3)
         self.early_stopping = config.get("leetcode", {}).get("early_stopping", True)
+
+        # Add adaptive parameters
+        self.adaptive_mode = config.get("leetcode", {}).get("adaptive_mode", False)
+        self.consecutive_failures_threshold = config.get("leetcode", {}).get("consecutive_failures", 3)
 
         # Cache for tested solutions
         self.solution_cache = {}
@@ -165,7 +170,7 @@ class LeetCodeSolutionPipeline:
                 solution_tree.append(solution_node)
 
                 # Check if we found a solution during branching
-                if self.early_stopping and self._check_tree_for_solution(solution_node):
+                if self.early_stopping and self._check_tree_for_solution(solution_node, all_solutions):
                     logger.info("Solution found during branching, stopping early")
                     break
 
@@ -237,7 +242,8 @@ class LeetCodeSolutionPipeline:
             problem_data: Dict[str, Any],
             all_solutions: List[Dict[str, Any]],
             stats: Dict[str, Any],
-            depth: int
+            depth: int,
+            failure_counts: Dict[str, int] = None
     ) -> bool:
         """
         Generate new solutions from a failed solution using tree branching.
@@ -248,17 +254,32 @@ class LeetCodeSolutionPipeline:
             all_solutions: List to append all generated solutions
             stats: Statistics dictionary to update
             depth: Current depth in the tree
+            failure_counts: Dictionary tracking consecutive failures per branch (for adaptive mode)
 
         Returns:
             bool: True if a passing solution was found in this branch
         """
-        if depth >= self.max_depth:
+        # Initialize failure counts dictionary if this is the first call
+        if self.adaptive_mode and failure_counts is None:
+            failure_counts = {}
+
+        parent_id = parent_node["node_id"]
+
+        # FIXED MODE: Check max depth limit
+        if not self.adaptive_mode and depth >= self.max_depth:
             logger.debug(f"Max depth {self.max_depth} reached, stopping branching")
             return False
 
-        logger.info(f"Branching from failed solution {parent_node['node_id']} at depth {depth}")
+        # ADAPTIVE MODE: Check consecutive failures threshold
+        if self.adaptive_mode:
+            current_failures = failure_counts.get(parent_id, 0)
+            if current_failures >= self.consecutive_failures_threshold:
+                logger.info(f"Stopping branch {parent_id} after {current_failures} consecutive failures")
+                return False
 
-        # Generate k new solutions based on the failure
+        logger.info(f"Branching from failed solution {parent_id} at depth {depth}")
+
+        # Generate improved candidates based on the failure
         improved_candidates = self._generate_improved_candidates_for_node(
             problem_data,
             parent_node,
@@ -266,15 +287,14 @@ class LeetCodeSolutionPipeline:
         )
 
         solution_found = False
+        any_improvement = False  # Track if any child improved over parent (for adaptive mode)
 
         for i, candidate in enumerate(improved_candidates):
             stats["candidates_generated"] += 1
             stats["nodes_explored"] += 1
 
-            # Evaluate immediately
+            # Calculate hash and check cache
             candidate_hash = self._calculate_solution_hash(candidate)
-
-            # Check cache first
             if candidate_hash in self.solution_cache:
                 test_result = self.solution_cache[candidate_hash]
                 logger.debug(f"Using cached result for solution hash {candidate_hash[:8]}")
@@ -282,48 +302,99 @@ class LeetCodeSolutionPipeline:
                 test_result = self._test_solution(problem_data, candidate)
                 self.solution_cache[candidate_hash] = test_result
 
+            # Create child node
             child_node = {
                 "node_id": f"{depth}_{len(all_solutions)}",
                 "solution": candidate,
                 "solution_hash": candidate_hash,
                 "test_result": test_result,
                 "depth": depth,
-                "parent_id": parent_node["node_id"],
+                "parent_id": parent_id,
                 "children": [],
                 "passed": test_result.get("status") == "pass"
             }
 
-            parent_node["children"].append(child_node)
+            # Add to parent and solution list
+            parent_node["children"].append(child_node["node_id"])
             all_solutions.append(child_node)
 
-            # Update statistics
+            # Process test result
             if test_result.get("status") == "pass":
+                # Solution passed
                 stats["tests_passed"] += 1
                 solution_found = True
+                any_improvement = True
                 logger.info(f"Solution found at node {child_node['node_id']} (depth {depth})")
 
-                # Early stopping - don't branch further from passing solutions
+                # For adaptive mode, reset failure count for this branch
+                if self.adaptive_mode:
+                    failure_counts[parent_id] = 0
+
+                # Early stopping: don't branch further from passing solutions
                 if self.early_stopping:
                     continue
+
             elif test_result.get("status") == "fail":
+                # Solution failed
                 stats["tests_failed"] += 1
+
+                # For adaptive mode, track failures
+                if self.adaptive_mode:
+                    # Check if this solution is "better" than parent (e.g., passes more tests)
+                    parent_result = parent_node.get("test_result", {})
+                    parent_failed_tests = len(parent_result.get("failed_tests", []))
+                    child_failed_tests = len(test_result.get("failed_tests", []))
+
+                    if child_failed_tests < parent_failed_tests:
+                        # Child is better than parent, reset failure count
+                        failure_counts[parent_id] = 0
+                        any_improvement = True
+                    else:
+                        # Child is not better, increment failure count
+                        failure_counts[parent_id] = failure_counts.get(parent_id, 0) + 1
+
+                    # Set child's initial failure count
+                    failure_counts[child_node["node_id"]] = 0
+
             else:
+                # Error in testing
                 stats["test_errors"] += 1
+                if self.adaptive_mode:
+                    # Count errors as failures for adaptive mode
+                    failure_counts[parent_id] = failure_counts.get(parent_id, 0) + 1
+                    failure_counts[child_node["node_id"]] = 0
 
-            # Continue branching if failed and we haven't found a solution yet
-            if test_result.get("status") != "pass" and (not solution_found or not self.early_stopping):
-                child_found = self._branch_from_failure(
-                    child_node,
-                    problem_data,
-                    all_solutions,
-                    stats,
-                    depth + 1
-                )
-                solution_found = solution_found or child_found
+            # Decide whether to branch further from this child
+            should_branch = (
+                    test_result.get("status") != "pass" and  # Not already solved
+                    (not solution_found or not self.early_stopping)  # Not stopping early or solution not found yet
+            )
 
-                # If early stopping and we found a solution deeper in the tree, stop
-                if self.early_stopping and child_found:
+            if should_branch:
+                # FIXED MODE: branch if not at max depth yet
+                if not self.adaptive_mode and depth < self.max_depth - 1:
+                    child_success = self._branch_from_failure(
+                        child_node, problem_data, all_solutions, stats, depth + 1
+                    )
+                    solution_found = solution_found or child_success
+
+                # ADAPTIVE MODE: branch if failures are below threshold
+                elif self.adaptive_mode and failure_counts.get(child_node["node_id"],
+                                                               0) < self.consecutive_failures_threshold:
+                    child_success = self._branch_from_failure(
+                        child_node, problem_data, all_solutions, stats, depth + 1, failure_counts
+                    )
+                    solution_found = solution_found or child_success
+                    any_improvement = any_improvement or child_success
+
+                # If found solution in deeper branch and using early stopping, break
+                if solution_found and self.early_stopping:
                     break
+
+        # In adaptive mode - if we've made some improvements but haven't found a solution,
+        # reset the failure counter to give this branch more chances
+        if self.adaptive_mode and any_improvement and not solution_found:
+            failure_counts[parent_id] = 0
 
         return solution_found
 
@@ -435,30 +506,49 @@ class LeetCodeSolutionPipeline:
 
         return prompt
 
-    def _check_tree_for_solution(self, node: Dict[str, Any]) -> bool:
+    def _check_tree_for_solution(self, node: Dict[str, Any], all_solutions: List[Dict[str, Any]] = None) -> bool:
         """
         Recursively check if any node in the tree has a passing solution.
+
+        Args:
+            node: The current node to check
+            all_solutions: List of all solution nodes (used for ID lookups)
+
+        Returns:
+            True if a passing solution is found, False otherwise
         """
         if node["passed"]:
             return True
 
-        for child in node.get("children", []):
-            if self._check_tree_for_solution(child):
+        # If this is the first call, extract all_solutions from the node's context
+        if all_solutions is None:
+            # We need to get the all_solutions list from the calling context
+            # This is only necessary for the initial call to maintain backward compatibility
+            frame = inspect.currentframe().f_back
+            all_solutions = frame.f_locals.get('all_solutions', [])
+
+        # Check each child node by ID
+        for child_id in node.get("children", []):
+            # Find the child node by ID
+            child_node = next((n for n in all_solutions if n["node_id"] == child_id), None)
+            if child_node and self._check_tree_for_solution(child_node, all_solutions):
                 return True
 
         return False
 
     def _calculate_tree_depth(self, solution_tree: List[Dict[str, Any]]) -> int:
-        """
-        Calculate the maximum depth of the solution tree.
-        """
+        """Calculate the maximum depth of the solution tree."""
         max_depth = 0
 
         def traverse(node, depth=0):
             nonlocal max_depth
             max_depth = max(max_depth, depth)
-            for child in node.get("children", []):
-                traverse(child, depth + 1)
+
+            # Get all children by looking up their IDs
+            for child_id in node.get("children", []):
+                child_node = next((n for n in solution_tree if n["node_id"] == child_id), None)
+                if child_node:
+                    traverse(child_node, depth + 1)
 
         for root_node in solution_tree:
             traverse(root_node)
