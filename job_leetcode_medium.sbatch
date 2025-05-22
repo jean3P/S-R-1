@@ -1,6 +1,6 @@
 #!/bin/bash
 ###############################################################################
-#  UBELIX – LeetCode Easy Problems (10 per model)
+#  UBELIX – LeetCode Medium Problems (10 per model)
 ###############################################################################
 #SBATCH --job-name=leetcode-medium-h100
 #SBATCH --partition=gpu-invest
@@ -525,14 +525,14 @@ leetcode:
   initial_solutions: $INITIAL_K
   branch_factor: $BRANCH_FACTOR
   max_depth: $MAX_DEPTH
-  early_stopping: false
+  early_stopping: true
 
 evaluation:
   use_code_eval: true
   code_eval:
     k_values: [1, 3, 5, 10]
     num_workers: 4
-    timeout: 3.0
+    timeout: 10.0
 EOF
 
 # Run LeetCode solver for each model and EASY difficulty only
@@ -568,6 +568,7 @@ PY
             --disable-quantization \
             --disable-flash-attention \
             --use-code-eval \
+            --early-stopping \
             "${ARGS[@]}"
 
         echo -e "\n=== Finished $DIFFICULTY problems for $MODEL: $(date) ==="

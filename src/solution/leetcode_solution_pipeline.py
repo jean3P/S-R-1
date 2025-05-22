@@ -8,6 +8,7 @@ from typing import Dict, Any, List
 import torch
 import gc
 
+from ..utils.solution_diversity_analyzer import SolutionDiversityAnalyzer
 from ..models import create_model
 from ..utils.leetcode_test_runner import LeetCodeTestRunner
 from ..evaluation.code_evaluator import CodeEvaluator
@@ -110,7 +111,23 @@ class LeetCodeSolutionPipeline:
             "tests_failed": 0,
             "test_errors": 0,
             "execution_times": [],
-            "tree_depth": 0
+            "tree_depth": 0,
+            "termination_reasons": {
+                "depth_limit": 0,
+                "adaptive_threshold": 0,
+                "import_failures": 0,
+                "early_stopping": 0,
+                "iteration_limit": 0
+            },
+            "solution_diversity": {
+                "unique_solutions": 0,
+                "similarity_score": 0.0,
+                "solution_lengths": {"min": 0, "max": 0, "avg": 0.0}
+            },
+            "test_case_analysis": {
+                "hardest_cases": {},  # Test cases with highest failure rates
+                "first_failing_tests": {}  # Which tests fail first most often
+            }
         }
 
         try:
@@ -125,6 +142,9 @@ class LeetCodeSolutionPipeline:
                 candidate_hash = self._calculate_solution_hash(candidate)
                 test_result = self._test_solution(problem_data, candidate)
 
+                if "execution_time" in test_result:
+                    stats["execution_times"].append(test_result["execution_time"])
+
                 solution_node = {
                     "node_id": f"0_{i}",
                     "solution": candidate,
@@ -135,6 +155,27 @@ class LeetCodeSolutionPipeline:
                     "children": [],
                     "passed": test_result.get("status") == "pass"
                 }
+
+                # After testing an initial solution:
+                if "failed_tests" in test_result and test_result["failed_tests"]:
+                    # Track failing tests
+                    if test_result["failed_tests"]:
+                        # Get first failing test (usually the most critical one)
+                        first_test = test_result["failed_tests"][0]
+                        # Create a stable string representation of the input
+                        first_test_key = str(first_test.get("input", "unknown"))
+
+                        # Track first failing test
+                        if first_test_key not in stats["test_case_analysis"]["first_failing_tests"]:
+                            stats["test_case_analysis"]["first_failing_tests"][first_test_key] = 0
+                        stats["test_case_analysis"]["first_failing_tests"][first_test_key] += 1
+
+                        # Track all failing tests
+                        for test in test_result["failed_tests"]:
+                            test_key = str(test.get("input", "unknown"))
+                            if test_key not in stats["test_case_analysis"]["hardest_cases"]:
+                                stats["test_case_analysis"]["hardest_cases"][test_key] = 0
+                            stats["test_case_analysis"]["hardest_cases"][test_key] += 1
 
                 all_solutions.append(solution_node)
 
@@ -171,8 +212,17 @@ class LeetCodeSolutionPipeline:
 
                 # Check if we found a solution during branching
                 if self.early_stopping and self._check_tree_for_solution(solution_node, all_solutions):
-                    logger.info("Solution found during branching, stopping early")
+                    passing_solutions = [n for n in all_solutions if n.get("passed", False)]
+                    if passing_solutions:
+                        logger.info(
+                            f"Solution found during branching (node {passing_solutions[0]['node_id']}), stopping early")
+                    else:
+                        logger.warning("Early stopping triggered but no passing solution found - this is a bug!")
+                        # Continue anyway since early stopping was requested
                     break
+
+            if not solution_found:
+                stats["termination_reasons"]["iteration_limit"] += 1
 
             # Collect all solutions for final evaluation
             final_solutions = [s for s in all_solutions if s["passed"]]
@@ -208,6 +258,108 @@ class LeetCodeSolutionPipeline:
                 solution_codes
             )
 
+        if code_eval_results and "pass_at_k" in code_eval_results:
+            logger.info("Adding code_eval depth correlation analysis")
+
+            # Group solutions by depth
+            solutions_by_depth = {}
+            for node in all_solutions:
+                depth = node.get("depth", 0)
+                if depth not in solutions_by_depth:
+                    solutions_by_depth[depth] = []
+                solutions_by_depth[depth].append(node)
+
+            # Calculate statistics for all solutions
+            all_depths = [node.get("depth", 0) for node in all_solutions]
+
+            depth_stats = {
+                "min_depth": min(all_depths) if all_depths else 0,
+                "max_depth": max(all_depths) if all_depths else 0,
+                "avg_depth": sum(all_depths) / len(all_depths) if all_depths else 0,
+                "solutions_per_depth": {depth: len(nodes) for depth, nodes in solutions_by_depth.items()},
+                "passing_solutions_per_depth": {
+                    depth: sum(1 for node in nodes if node.get("passed", False))
+                    for depth, nodes in solutions_by_depth.items()
+                }
+            }
+
+            # Add to stats (not result["stats"])
+            stats["code_eval_metrics"] = {
+                "depth_statistics": depth_stats,
+                "pass_at_k": code_eval_results["pass_at_k"],
+                "solutions_evaluated": code_eval_results.get("solutions_evaluated", len(all_solutions))
+            }
+
+            # Add success rate by depth if we have passing solutions
+            if final_solutions:
+                passing_depths = [node.get("depth", 0) for node in final_solutions]
+                stats["code_eval_metrics"]["passing_solution_depths"] = {
+                    "min": min(passing_depths) if passing_depths else 0,
+                    "max": max(passing_depths) if passing_depths else 0,
+                    "avg": sum(passing_depths) / len(passing_depths) if passing_depths else 0
+                }
+
+        stats["summary"] = {}
+
+        # 1. Basic efficiency metrics
+        total_candidates = stats["candidates_generated"] or 1  # Avoid division by zero
+        total_explored = stats["nodes_explored"] or 1  # Avoid division by zero
+
+        stats["summary"]["efficiency"] = {
+            "solving_rate": stats["tests_passed"] / total_candidates,
+            "branch_success_rate": len([s for s in all_solutions if s["passed"]]) / total_explored
+        }
+
+        # 2. Error recovery metrics - only if we have feedback impact data
+        if "feedback_impact" in stats and "error_types" in stats["feedback_impact"]:
+            error_types = stats["feedback_impact"]["error_types"]
+
+            # Calculate total attempts and improvements
+            total_attempts = 0
+            total_improvements = 0
+
+            for error_type, data in error_types.items():
+                total_attempts += data.get("attempts", 0)
+                total_improvements += data.get("improvements", 0)
+
+            # Calculate recovery rate
+            recovery_rate = total_improvements / total_attempts if total_attempts > 0 else 0
+
+            # Add to summary
+            stats["summary"]["error_recovery"] = {
+                "total_attempts": total_attempts,
+                "total_improvements": total_improvements,
+                "recovery_rate": recovery_rate
+            }
+
+            # Get top 5 most common errors
+            if error_types:
+                top_errors = sorted(
+                    [(et, data["attempts"]) for et, data in error_types.items()],
+                    key=lambda x: x[1],
+                    reverse=True
+                )[:5]
+
+                stats["summary"]["top_errors"] = top_errors
+        # 3. Termination reasons summary
+        if stats["test_case_analysis"]["hardest_cases"]:
+            # Get top 5 hardest test cases
+            top_hardest = sorted(
+                stats["test_case_analysis"]["hardest_cases"].items(),
+                key=lambda x: x[1],
+                reverse=True
+            )[:5]
+
+            # Add to summary if not already there
+            if "summary" not in stats:
+                stats["summary"] = {}
+
+            stats["summary"]["hardest_test_cases"] = top_hardest
+
+        # 4. Termination reasons summary
+        if "termination_reasons" in stats:
+            stats["summary"]["termination_reasons"] = stats["termination_reasons"]
+
         # Prepare final result
         total_time = time.time() - start_time
 
@@ -231,6 +383,10 @@ class LeetCodeSolutionPipeline:
         if code_eval_results:
             result["code_eval_results"] = code_eval_results
 
+        # Calculate solution diversity
+        diversity_metrics = self._measure_solution_diversity(all_solutions)
+        result["stats"]["solution_diversity"] = diversity_metrics
+
         # Save result to file
         self._save_results(problem_data["problem_id"], result)
 
@@ -243,7 +399,8 @@ class LeetCodeSolutionPipeline:
             all_solutions: List[Dict[str, Any]],
             stats: Dict[str, Any],
             depth: int,
-            failure_counts: Dict[str, int] = None
+            failure_counts: Dict[str, int] = None,
+            branch_import_failures: Dict[str, set] = None
     ) -> bool:
         """
         Generate new solutions from a failed solution using tree branching.
@@ -255,6 +412,7 @@ class LeetCodeSolutionPipeline:
             stats: Statistics dictionary to update
             depth: Current depth in the tree
             failure_counts: Dictionary tracking consecutive failures per branch (for adaptive mode)
+            branch_import_failures: Dictionary tracking import failures in this branch
 
         Returns:
             bool: True if a passing solution was found in this branch
@@ -263,18 +421,101 @@ class LeetCodeSolutionPipeline:
         if self.adaptive_mode and failure_counts is None:
             failure_counts = {}
 
+        # Initialize import failures tracking if this is the first call
+        if branch_import_failures is None:
+            branch_import_failures = {}
+
+        # Initialize feedback impact tracking if not present
+        if "feedback_impact" not in stats:
+            stats["feedback_impact"] = {
+                "depths": {},  # Improvement rates by depth
+                "error_types": {},  # Improvement rates by error type
+                "test_case_improvements": {},  # Tracks which test cases were fixed
+                "error_transitions": {}
+            }
+
         parent_id = parent_node["node_id"]
+
+        # Get parent error type for feedback tracking
+        parent_result = parent_node.get("test_result", {})
+        parent_error_type = self._categorize_error(parent_result.get("error_message", ""))
+        parent_failed_tests = len(parent_result.get("failed_tests", []))
+
+        # Initialize depth tracking if needed
+        if str(depth) not in stats["feedback_impact"]["depths"]:
+            stats["feedback_impact"]["depths"][str(depth)] = {
+                "attempts": 0,
+                "improvements": 0,
+                "solved": 0
+            }
+
+        # Track error type statistics
+        if parent_error_type:
+            if parent_error_type not in stats["feedback_impact"]["error_types"]:
+                stats["feedback_impact"]["error_types"][parent_error_type] = {
+                    "attempts": 0,
+                    "improvements": 0
+                }
+            stats["feedback_impact"]["error_types"][parent_error_type]["attempts"] += 1
+
+        # Check if the parent has import errors
+        if parent_node["test_result"].get("status") == "import_error":
+            # Get the list of imports that failed
+            parent_failed_imports = parent_node["test_result"].get("import_failures", [])
+
+            # Create a branch key for tracking import failures
+            branch_key = f"branch:{parent_id}"
+
+            # Initialize this branch's failures if needed
+            if branch_key not in branch_import_failures:
+                branch_import_failures[branch_key] = set()
+
+            # Check for repeated failures
+            repeated_failures = set(parent_failed_imports) & branch_import_failures[branch_key]
+
+            # If any imports have already failed in this branch, stop exploring
+            if repeated_failures:
+                logger.info(f"Stopping branch {parent_id} due to repeated import failures: {repeated_failures}")
+
+                # Track these failures in stats
+                if "import_terminated_branches" not in stats:
+                    stats["import_terminated_branches"] = 0
+                    stats["import_failures"] = set()
+
+                stats["import_terminated_branches"] += 1
+                stats["import_failures"].update(repeated_failures)
+
+                stats["termination_reasons"]["import_failures"] += 1
+                return False
+
+            # Add current failures to the tracking set
+            branch_import_failures[branch_key].update(parent_failed_imports)
 
         # FIXED MODE: Check max depth limit
         if not self.adaptive_mode and depth >= self.max_depth:
             logger.debug(f"Max depth {self.max_depth} reached, stopping branching")
+            stats["termination_reasons"]["depth_limit"] += 1
             return False
 
         # ADAPTIVE MODE: Check consecutive failures threshold
         if self.adaptive_mode:
             current_failures = failure_counts.get(parent_id, 0)
-            if current_failures >= self.consecutive_failures_threshold:
-                logger.info(f"Stopping branch {parent_id} after {current_failures} consecutive failures")
+            effective_threshold = max(1, self.consecutive_failures_threshold - depth // 3)
+            if current_failures >= effective_threshold:
+                # Add tracking for adaptive termination analysis
+                if "adaptive_stats" not in stats:
+                    stats["adaptive_stats"] = {
+                        "branches_terminated": 0,
+                        "termination_depths": [],
+                        "effective_thresholds": []
+                    }
+                stats["adaptive_stats"]["branches_terminated"] += 1
+                stats["adaptive_stats"]["termination_depths"].append(depth)
+                stats["adaptive_stats"]["effective_thresholds"].append(effective_threshold)
+
+                logger.info(
+                    f"Stopping branch {parent_id} at depth {depth} (effective threshold: {effective_threshold})")
+                stats["termination_reasons"]["adaptive_threshold"] += 1
                 return False
 
         logger.info(f"Branching from failed solution {parent_id} at depth {depth}")
@@ -289,6 +530,9 @@ class LeetCodeSolutionPipeline:
         solution_found = False
         any_improvement = False  # Track if any child improved over parent (for adaptive mode)
 
+        # Update depth attempt count at this point
+        stats["feedback_impact"]["depths"][str(depth)]["attempts"] += len(improved_candidates)
+
         for i, candidate in enumerate(improved_candidates):
             stats["candidates_generated"] += 1
             stats["nodes_explored"] += 1
@@ -302,6 +546,9 @@ class LeetCodeSolutionPipeline:
                 test_result = self._test_solution(problem_data, candidate)
                 self.solution_cache[candidate_hash] = test_result
 
+            if "execution_time" in test_result:
+                stats["execution_times"].append(test_result["execution_time"])
+
             # Create child node
             child_node = {
                 "node_id": f"{depth}_{len(all_solutions)}",
@@ -314,9 +561,41 @@ class LeetCodeSolutionPipeline:
                 "passed": test_result.get("status") == "pass"
             }
 
+            if "failed_tests" in test_result and test_result["failed_tests"]:
+                # Track failing tests
+                if test_result["failed_tests"]:
+                    # Get first failing test (usually the most critical one)
+                    first_test = test_result["failed_tests"][0]
+                    # Create a stable string representation of the input
+                    first_test_key = str(first_test.get("input", "unknown"))
+
+                    # Track first failing test
+                    if first_test_key not in stats["test_case_analysis"]["first_failing_tests"]:
+                        stats["test_case_analysis"]["first_failing_tests"][first_test_key] = 0
+                    stats["test_case_analysis"]["first_failing_tests"][first_test_key] += 1
+
+                    # Track all failing tests
+                    for test in test_result["failed_tests"]:
+                        test_key = str(test.get("input", "unknown"))
+                        if test_key not in stats["test_case_analysis"]["hardest_cases"]:
+                            stats["test_case_analysis"]["hardest_cases"][test_key] = 0
+                        stats["test_case_analysis"]["hardest_cases"][test_key] += 1
+
             # Add to parent and solution list
             parent_node["children"].append(child_node["node_id"])
             all_solutions.append(child_node)
+
+            # Track feedback effectiveness
+            child_error_type = self._categorize_error(test_result.get("error_message", ""))
+            child_failed_tests = len(test_result.get("failed_tests", []))
+
+            transition_key = f"{parent_error_type}->{child_error_type}"
+            if transition_key not in stats["feedback_impact"]["error_transitions"]:
+                stats["feedback_impact"]["error_transitions"][transition_key] = 0
+            stats["feedback_impact"]["error_transitions"][transition_key] += 1
+
+            # Check for improvement from parent to child
+            improved = False
 
             # Process test result
             if test_result.get("status") == "pass":
@@ -324,6 +603,15 @@ class LeetCodeSolutionPipeline:
                 stats["tests_passed"] += 1
                 solution_found = True
                 any_improvement = True
+                improved = True
+
+                # Record solution at this depth
+                stats["feedback_impact"]["depths"][str(depth)]["solved"] += 1
+
+                # Record error type improvement
+                if parent_error_type:
+                    stats["feedback_impact"]["error_types"][parent_error_type]["improvements"] += 1
+
                 logger.info(f"Solution found at node {child_node['node_id']} (depth {depth})")
 
                 # For adaptive mode, reset failure count for this branch
@@ -338,13 +626,16 @@ class LeetCodeSolutionPipeline:
                 # Solution failed
                 stats["tests_failed"] += 1
 
+                # Check for partial improvement (fewer failed tests)
+                if child_failed_tests < parent_failed_tests and parent_failed_tests > 0:
+                    improved = True
+                    stats["feedback_impact"]["depths"][str(depth)]["improvements"] += 1
+                    if parent_error_type:
+                        stats["feedback_impact"]["error_types"][parent_error_type]["improvements"] += 1
+
                 # For adaptive mode, track failures
                 if self.adaptive_mode:
                     # Check if this solution is "better" than parent (e.g., passes more tests)
-                    parent_result = parent_node.get("test_result", {})
-                    parent_failed_tests = len(parent_result.get("failed_tests", []))
-                    child_failed_tests = len(test_result.get("failed_tests", []))
-
                     if child_failed_tests < parent_failed_tests:
                         # Child is better than parent, reset failure count
                         failure_counts[parent_id] = 0
@@ -356,13 +647,67 @@ class LeetCodeSolutionPipeline:
                     # Set child's initial failure count
                     failure_counts[child_node["node_id"]] = 0
 
+            elif test_result.get("status") == "import_error":
+                # Import error occurred
+                stats["test_errors"] = stats.get("test_errors", 0) + 1
+                if "import_errors" not in stats:
+                    stats["import_errors"] = 0
+                stats["import_errors"] += 1
+
+                # If previous was also import error but this one has different imports,
+                # consider it partial improvement
+                if parent_result.get("status") == "import_error":
+                    parent_imports = set(parent_result.get("import_failures", []))
+                    child_imports = set(test_result.get("import_failures", []))
+                    if parent_imports and child_imports and len(child_imports) < len(parent_imports):
+                        improved = True
+                        stats["feedback_impact"]["depths"][str(depth)]["improvements"] += 1
+                        if parent_error_type:
+                            stats["feedback_impact"]["error_types"][parent_error_type]["improvements"] += 1
+
+                if self.adaptive_mode:
+                    # Count import errors as failures for adaptive mode
+                    failure_counts[parent_id] = failure_counts.get(parent_id, 0) + 1
+                    failure_counts[child_node["node_id"]] = 0
             else:
-                # Error in testing
-                stats["test_errors"] += 1
+                # Other error in testing
+                stats["test_errors"] = stats.get("test_errors", 0) + 1
                 if self.adaptive_mode:
                     # Count errors as failures for adaptive mode
                     failure_counts[parent_id] = failure_counts.get(parent_id, 0) + 1
                     failure_counts[child_node["node_id"]] = 0
+
+            # Update overall improvements tracking
+            if improved:
+                any_improvement = True
+
+                # Track test case improvements
+                if "failed_tests" in parent_result and "failed_tests" in test_result:
+                    # Track which specific test cases were fixed
+                    for parent_test in parent_result["failed_tests"]:
+                        # Get input signature as a string
+                        if isinstance(parent_test.get("input"), dict):
+                            test_key = str(sorted(parent_test["input"].items()))
+                        else:
+                            test_key = str(parent_test.get("input"))
+
+                        # Check if this test case was fixed
+                        fixed = True
+                        for child_test in test_result["failed_tests"]:
+                            if isinstance(child_test.get("input"), dict):
+                                child_key = str(sorted(child_test["input"].items()))
+                            else:
+                                child_key = str(child_test.get("input"))
+
+                            if child_key == test_key:
+                                fixed = False
+                                break
+
+                        if fixed and test_key:
+                            # This test case was fixed
+                            if test_key not in stats["feedback_impact"]["test_case_improvements"]:
+                                stats["feedback_impact"]["test_case_improvements"][test_key] = 0
+                            stats["feedback_impact"]["test_case_improvements"][test_key] += 1
 
             # Decide whether to branch further from this child
             should_branch = (
@@ -374,7 +719,8 @@ class LeetCodeSolutionPipeline:
                 # FIXED MODE: branch if not at max depth yet
                 if not self.adaptive_mode and depth < self.max_depth - 1:
                     child_success = self._branch_from_failure(
-                        child_node, problem_data, all_solutions, stats, depth + 1
+                        child_node, problem_data, all_solutions, stats, depth + 1,
+                        failure_counts, branch_import_failures
                     )
                     solution_found = solution_found or child_success
 
@@ -382,19 +728,26 @@ class LeetCodeSolutionPipeline:
                 elif self.adaptive_mode and failure_counts.get(child_node["node_id"],
                                                                0) < self.consecutive_failures_threshold:
                     child_success = self._branch_from_failure(
-                        child_node, problem_data, all_solutions, stats, depth + 1, failure_counts
+                        child_node, problem_data, all_solutions, stats, depth + 1,
+                        failure_counts, branch_import_failures
                     )
                     solution_found = solution_found or child_success
                     any_improvement = any_improvement or child_success
 
                 # If found solution in deeper branch and using early stopping, break
                 if solution_found and self.early_stopping:
+                    stats["termination_reasons"]["early_stopping"] += 1
                     break
 
         # In adaptive mode - if we've made some improvements but haven't found a solution,
         # reset the failure counter to give this branch more chances
         if self.adaptive_mode and any_improvement and not solution_found:
             failure_counts[parent_id] = 0
+            if "adaptive_events" not in stats:
+                stats["adaptive_events"] = {"branch_extensions": 0, "improvement_resets": 0}
+            stats["adaptive_events"]["improvement_resets"] += 1
+        if not solution_found and not self.early_stopping:
+            stats["termination_reasons"]["iteration_limit"] += 1
 
         return solution_found
 
@@ -517,22 +870,37 @@ class LeetCodeSolutionPipeline:
         Returns:
             True if a passing solution is found, False otherwise
         """
-        if node["passed"]:
+        # Double-check the passed status based on the actual test result
+        node_passed = False
+        if "test_result" in node:
+            test_status = node["test_result"].get("status", "")
+            node_passed = test_status == "pass"
+            # Update the node's passed flag if it's incorrect
+            if node_passed != node.get("passed", False):
+                logger.warning(f"Fixed inconsistent pass status for node {node.get('node_id', 'unknown')}")
+                node["passed"] = node_passed
+        else:
+            node_passed = node.get("passed", False)
+
+        if node_passed:
+            logger.debug(f"Found passing solution in node {node.get('node_id', 'unknown')}")
             return True
 
         # If this is the first call, extract all_solutions from the node's context
         if all_solutions is None:
-            # We need to get the all_solutions list from the calling context
-            # This is only necessary for the initial call to maintain backward compatibility
             frame = inspect.currentframe().f_back
             all_solutions = frame.f_locals.get('all_solutions', [])
+            if not all_solutions:
+                logger.warning("No solutions found in context when checking tree")
+                return False
 
         # Check each child node by ID
         for child_id in node.get("children", []):
             # Find the child node by ID
             child_node = next((n for n in all_solutions if n["node_id"] == child_id), None)
-            if child_node and self._check_tree_for_solution(child_node, all_solutions):
-                return True
+            if child_node:
+                if self._check_tree_for_solution(child_node, all_solutions):
+                    return True
 
         return False
 
@@ -925,31 +1293,46 @@ class LeetCodeSolutionPipeline:
     def _test_solution(self, problem_data: Dict[str, Any], solution: str) -> Dict[str, Any]:
         """
         Test a solution against the test cases.
-
         Args:
             problem_data: Problem data dictionary.
             solution: Solution code string.
-
         Returns:
             Dictionary with test results.
         """
         # Log the complete solution being tested
         logger.debug(f"TESTING SOLUTION:\n{solution}")
-
         # Log the test code
         logger.debug(f"TEST CODE:\n{problem_data.get('test', 'No test found')}")
-
         # Log the entry point
         logger.debug(f"ENTRY POINT: {problem_data.get('entry_point', 'No entry point found')}")
-
         # Fix any indentation issues in the solution code
         solution = self._fix_indentation(solution)
+        # Calculate a hash for solution caching
+        solution_hash = self._calculate_solution_hash(solution)
 
-        # Prepare combined test code with proper indentation
-        combined_code = self.test_runner.prepare_test_code(problem_data, solution)
+        # Check if we've already tested this exact solution
+        if solution_hash in self.solution_cache:
+            logger.debug(f"Using cached result for solution hash {solution_hash[:8]}")
+            return self.solution_cache[solution_hash]
 
-        # Run the test and log the result
-        result = self.test_runner.execute_test(combined_code)
+        # Run the test using the test runner (which handles environment management)
+        result = self.test_runner.run_tests(problem_data, solution)
+
+        # Check for import errors - mark as special import_error status
+        if result.get("status") == "import_error":
+            logger.warning(f"Solution cannot be tested due to import errors: {result.get('error_message')}")
+
+            # Track import failures in statistics
+            if "stats" not in self.solution_cache:
+                self.solution_cache["stats"] = {"import_failures": set()}
+
+            # Add to tracked import failures
+            for failed_import in result.get("import_failures", []):
+                self.solution_cache["stats"]["import_failures"].add(failed_import)
+
+        # Cache the result
+        self.solution_cache[solution_hash] = result
+
         logger.debug(f"TEST RESULT: {json.dumps(result, indent=2)}")
         return result
 
@@ -1031,6 +1414,61 @@ class LeetCodeSolutionPipeline:
         fixed_code = '\n'.join(fixed_lines)
         return fixed_code
 
+    def _measure_solution_diversity(self, all_solutions: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Measure diversity among generated solutions using the SolutionDiversityAnalyzer.
+
+        Args:
+            all_solutions: List of solution nodes with solution code and hashes
+
+        Returns:
+            Dictionary with diversity metrics
+        """
+        if not all_solutions:
+            return {
+                "unique_solutions": 0,
+                "similarity_score": 0.0,
+                "solution_lengths": {"min": 0, "max": 0, "avg": 0.0}
+            }
+
+        # Extract solution codes and hashes
+        solution_codes = [s["solution"] for s in all_solutions]
+        solution_hashes = [s["solution_hash"] for s in all_solutions]
+
+        # Initialize and use the diversity analyzer
+        try:
+            analyzer = SolutionDiversityAnalyzer()
+            diversity_metrics = analyzer.analyze_diversity(solution_codes, solution_hashes)
+
+            logger.info(f"Analyzed diversity across {len(solution_codes)} solutions: "
+                        f"similarity_score={diversity_metrics['similarity_score']:.2f}, "
+                        f"feature_diversity={diversity_metrics['feature_diversity']:.2f}")
+
+            return diversity_metrics
+        except Exception as e:
+            # Fallback to simple hash-based diversity if analyzer fails
+            logger.error(f"Error in diversity analysis: {str(e)}")
+
+            # Count unique solution hashes
+            unique_hashes = set(solution_hashes)
+
+            # Calculate solution length statistics
+            solution_lengths = [len(s["solution"]) for s in all_solutions]
+            min_length = min(solution_lengths) if solution_lengths else 0
+            max_length = max(solution_lengths) if solution_lengths else 0
+            avg_length = sum(solution_lengths) / len(solution_lengths) if solution_lengths else 0
+
+            return {
+                "unique_solutions": len(unique_hashes),
+                "unique_ratio": len(unique_hashes) / len(all_solutions) if all_solutions else 0.0,
+                "similarity_score": 0.0,  # Cannot calculate without analyzer
+                "solution_lengths": {
+                    "min": min_length,
+                    "max": max_length,
+                    "avg": avg_length
+                }
+            }
+
     def _save_results(self, problem_id: str, result: Dict[str, Any]) -> None:
         """
         Save the results to a file.
@@ -1092,3 +1530,51 @@ class LeetCodeSolutionPipeline:
             "round_evaluations": round_evaluations,
             "final_pass_at_k": round_evaluations[-1]["pass_at_k"] if round_evaluations else {}
         }
+
+    def _categorize_error(self, error_message):
+        """
+        Categorize error messages to track feedback effectiveness.
+
+        Args:
+            error_message: The error message string from test results
+
+        Returns:
+            String representing the error category
+        """
+        if not error_message:
+            return "unknown"
+
+        # Import related errors
+        if "ModuleNotFoundError" in error_message or "ImportError" in error_message:
+            return "import_error"
+        elif "No module named" in error_message:
+            return "missing_module"
+
+        # Common assertion and runtime errors
+        elif "AssertionError" in error_message:
+            return "assertion_failure"
+        elif "IndexError" in error_message:
+            return "index_error"
+        elif "TypeError" in error_message:
+            return "type_error"
+        elif "ValueError" in error_message:
+            return "value_error"
+        elif "KeyError" in error_message:
+            return "key_error"
+        elif "AttributeError" in error_message:
+            return "attribute_error"
+        elif "ZeroDivisionError" in error_message:
+            return "zero_division_error"
+        elif "NameError" in error_message:
+            return "name_error"
+        elif "SyntaxError" in error_message:
+            return "syntax_error"
+        elif "RecursionError" in error_message or "maximum recursion depth" in error_message:
+            return "recursion_error"
+        elif "MemoryError" in error_message or "out of memory" in error_message:
+            return "memory_error"
+        elif "RuntimeError" in error_message:
+            return "runtime_error"
+        # Catch-all for other errors
+        else:
+            return "other_error"

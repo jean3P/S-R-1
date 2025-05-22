@@ -1,0 +1,455 @@
+{
+  "problem_id": "count-almost-equal-pairs-i",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "unsolved",
+  "best_solution": "from itertools import combinations\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def generate_swaps(n):\n            s = list(str(n))\n            variations = set()\n            variations.add(n)\n            for i in range(len(s)):\n                for j in range(i+1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    variations.add(int(''.join(s)))\n                    s[i], s[j] = s[j], s[i]  # Swap back\n            return variations\n        \n        variation_map = defaultdict(set)\n        for num in nums:\n            variation_map[num] = generate_swaps(num)\n        \n        total = 0\n        for i in range(len(nums)):\n            for j in range(i+1, len(nums)):\n                num_i = nums[i]\n                num_j = nums[j]\n                if num_j in variation_map[num_i] or num_i in variation_map[num_j]:\n                    total += 1\n        return total",
+  "passed_solutions": [
+    "from itertools import combinations\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def generate_swaps(n):\n            s = list(str(n))\n            variations = set()\n            variations.add(n)\n            for i in range(len(s)):\n                for j in range(i+1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    variations.add(int(''.join(s)))\n                    s[i], s[j] = s[j], s[i]  # Swap back\n            return variations\n        \n        variation_map = defaultdict(set)\n        for num in nums:\n            variation_map[num] = generate_swaps(num)\n        \n        total = 0\n        for i in range(len(nums)):\n            for j in range(i+1, len(nums)):\n                num_i = nums[i]\n                num_j = nums[j]\n                if num_j in variation_map[num_i] or num_i in variation_map[num_j]:\n                    total += 1\n        return total"
+  ],
+  "all_solutions": [
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        count_map = defaultdict(int)\n        result = 0\n        \n        for num in nums:\n            s = str(num)\n            variations = set()\n            # Generate all possible variations by swapping any two digits\n            for i in range(len(s)):\n                for j in range(i+1, len(s)):\n                    # Swap i and j\n                    swapped = list(s)\n                    swapped[i], swapped[j] = swapped[j], swapped[i]\n                    variations.add(''.join(swapped))\n            # Also include the original number as a variation (no swap)\n            variations.add(s)\n            \n            # Check how many of these variations are already in the map\n            for var in variations:\n                result += count_map.get(var, 0)\n            \n            # Update the count_map with the current number's variations\n            for var in variations:\n                count_map[var] += 1\n        \n        return result",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def get_variations(n: int) -> set:\n            s = str(n)\n            variations = {s}\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    swapped = list(s)\n                    swapped[i], swapped[j] = swapped[j], swapped[i]\n                    variations.add(''.join(swapped))\n            return variations\n        \n        count = 0\n        for i in range(len(nums)):\n            for j in range(i + 1, len(nums)):\n                x = nums[i]\n                y = nums[j]\n                x_var = get_variations(x)\n                if str(y) in x_var:\n                    count += 1\n                    continue\n                y_var = get_variations(y)\n                if str(x) in y_var:\n                    count += 1\n        return count",
+    "from typing import List\nfrom itertools import permutations\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def get_permutations(n: int) -> set:\n            s = str(n)\n            perms = set()\n            for p in permutations(s):\n                perms.add(''.join(p))\n            return perms\n        \n        perm_map = {}\n        for num in nums:\n            perms = get_permutations(num)\n            for p in perms:\n                if p in perm_map:\n                    perm_map[p] += 1\n                else:\n                    perm_map[p] = 1\n        \n        count = 0\n        for key in perm_map:\n            freq = perm_map[key]\n            count += freq * (freq - 1) // 2\n        \n        return count",
+    "from typing import List\nimport itertools\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def get_permutations(n: int) -> set:\n            s = str(n)\n            perms = set()\n            for p in itertools.permutations(s):\n                perm_str = ''.join(p)\n                perms.add(perm_str)\n            return perms\n        \n        count = 0\n        for i in range(len(nums)):\n            for j in range(i + 1, len(nums)):\n                x = nums[i]\n                y = nums[j]\n                x_perms = get_permutations(x)\n                y_perms = get_permutations(y)\n                if x_perms & y_perms:\n                    count += 1\n        return count",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def get_key(n: int) -> str:\n            s = str(n)\n            return ''.join(sorted(s))\n        \n        count = 0\n        freq = {}\n        for num in nums:\n            key = get_key(num)\n            if key in freq:\n                count += freq[key]\n            freq[key] = freq.get(key, 0) + 1\n        \n        return count",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        count_map = defaultdict(int)\n        result = 0\n        \n        for num in nums:\n            s = str(num)\n            variations = set()\n            # Generate all possible variations by swapping any two digits\n            for i in range(len(s)):\n                for j in range(i+1, len(s)):\n                    swapped = list(s)\n                    swapped[i], swapped[j] = swapped[j], swapped[i]\n                    variations.add(''.join(swapped))\n            # Include the original number as a variation (no swap)\n            variations.add(s)\n            \n            # Check how many of these variations are already in the map\n            for var in variations:\n                result += count_map.get(var, 0)\n            \n            # Update the count_map with the current number's variations\n            for var in variations:\n                count_map[var] += 1\n        \n        return result",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        count_map = defaultdict(int)\n        result = 0\n        \n        for num in nums:\n            s = str(num)\n            variations = set()\n            # Generate all possible variations by swapping any two digits\n            for i in range(len(s)):\n                for j in range(i+1, len(s)):\n                    swapped = list(s)\n                    swapped[i], swapped[j] = swapped[j], swapped[i]\n                    variations.add(''.join(swapped))\n            # Include the original number as a variation (no swap)\n            variations.add(s)\n            \n            # Check how many of these variations are already in the map\n            for var in variations:\n                result += count_map.get(var, 0)\n            \n            # Update the count_map with the current number's variations\n            for var in variations:\n                count_map[var] += 1\n        \n        return result",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        count_map = defaultdict(int)\n        result = 0\n        \n        for num in nums:\n            s = str(num)\n            variations = set()\n            variations.add(s)  # Include the original number\n            \n            # Generate all possible variations by swapping any two digits\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    swapped = list(s)\n                    swapped[i], swapped[j] = swapped[j], swapped[i]\n                    variations.add(''.join(swapped))\n            \n            # Count how many of these variations are already in the map\n            for var in variations:\n                result += count_map.get(var, 0)\n            \n            # Update the count_map with the current number's variations\n            for var in variations:\n                count_map[var] += 1\n        \n        return result",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        count_map = defaultdict(int)\n        result = 0\n        \n        for num in nums:\n            s = str(num)\n            variations = set()\n            # Generate all possible variations by swapping any two digits\n            for i in range(len(s)):\n                for j in range(i+1, len(s)):\n                    swapped = list(s)\n                    swapped[i], swapped[j] = swapped[j], swapped[i]\n                    variations.add(''.join(swapped))\n            # Include the original number as a variation (no swap)\n            variations.add(s)\n            \n            # Check how many of these variations are already in the map\n            for var in variations:\n                result += count_map.get(var, 0)\n            \n            # Update the count_map with the current number's variations\n            for var in variations:\n                count_map[var] += 1\n        \n        return result",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        variation_counts = defaultdict(int)\n        result = 0\n        \n        for num in nums:\n            s = str(num)\n            variations = set()\n            # Generate all possible variations by swapping any two digits\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    swapped = list(s)\n                    swapped[i], swapped[j] = swapped[j], swapped[i]\n                    variations.add(''.join(swapped))\n            # Include the original number as a variation\n            variations.add(s)\n            \n            # Check how many of these variations are already in variation_counts\n            for var in variations:\n                result += variation_counts[var]\n            \n            # Update variation_counts with the current number's variations\n            for var in variations:\n                variation_counts[var] += 1\n        \n        return result",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        variation_counts = defaultdict(int)\n        result = 0\n        \n        for num in nums:\n            s = str(num)\n            variations = set()\n            # Generate all possible variations by swapping any two digits\n            for i in range(len(s)):\n                for j in range(i + 1, len(s)):\n                    swapped = list(s)\n                    swapped[i], swapped[j] = swapped[j], swapped[i]\n                    variations.add(''.join(swapped))\n            # Include the original number as a variation\n            variations.add(s)\n            \n            # Count how many previous variations match any of the current variations\n            count = 0\n            for var in variations:\n                count += variation_counts.get(var, 0)\n            result += count\n            \n            # Update variation_counts with the current number's variations\n            for var in variations:\n                variation_counts[var] += 1\n        \n        return result",
+    "from typing import List\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_transform(x: int, y: int) -> bool:\n            x_str = str(x)\n            y_str = str(y)\n            # If lengths are different, can't transform\n            if len(x_str) != len(y_str):\n                return False\n            # Convert to sorted tuples to check if they are anagrams\n            x_sorted = tuple(sorted(x_str))\n            y_sorted = tuple(sorted(y_str))\n            return x_sorted == y_sorted\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_transform(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        groups = defaultdict(int)\n        result = 0\n        \n        for num in nums:\n            key = tuple(sorted(str(num)))\n            result += groups[key]\n            groups[key] += 1\n        \n        return result",
+    "from itertools import permutations\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        count_map = defaultdict(int)\n        for num in nums:\n            s = str(num)\n            perms = set(permutations(s))\n            for p in perms:\n                key = tuple(sorted(p))\n                count_map[key] += 1\n        total = 0\n        for c in count_map.values():\n            if c >= 2:\n                total += c * (c - 1) // 2\n        return total",
+    "from itertools import combinations\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_swap_to_equal(a, b):\n            a_str = str(a)\n            b_str = str(b)\n            if len(a_str) != len(b_str):\n                return False\n            diff = []\n            for i in range(len(a_str)):\n                if a_str[i] != b_str[i]:\n                    diff.append(i)\n                    if len(diff) > 2:\n                        return False\n            if len(diff) == 0:\n                return True\n            if len(diff) == 1:\n                return False\n            # Check if swapping the two differing digits in a makes it equal to b\n            i, j = diff\n            if a_str[i] == b_str[j] and a_str[j] == b_str[i]:\n                return True\n            return False\n        \n        count = 0\n        for i in range(len(nums)):\n            for j in range(i+1, len(nums)):\n                if can_swap_to_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "from itertools import permutations\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: list[int]) -> int:\n        def get_permutations(n):\n            s = str(n)\n            perms = set()\n            for p in permutations(s):\n                perms.add(''.join(p))\n            return perms\n        \n        count = 0\n        perm_counts = defaultdict(int)\n        for num in nums:\n            perms = get_permutations(num)\n            for p in perms:\n                count += perm_counts.get(p, 0)\n            for p in perms:\n                perm_counts[p] += 1\n        return count",
+    "from itertools import combinations\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: list[int]) -> int:\n        # Create a dictionary to store the count of each sorted tuple of digits\n        digit_counts = defaultdict(int)\n        \n        for num in nums:\n            # Convert the number to a sorted tuple of its digits\n            key = tuple(sorted(str(num)))\n            digit_counts[key] += 1\n        \n        # Calculate the number of valid pairs\n        count = 0\n        for freq in digit_counts.values():\n            # For each group of numbers with the same digit composition, calculate combinations\n            count += freq * (freq - 1) // 2\n        \n        return count",
+    "from itertools import permutations\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: list[int]) -> int:\n        def get_permutations(num):\n            s = str(num)\n            perms = set()\n            for p in permutations(s):\n                perms.add(''.join(p))\n            return perms\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i+1, n):\n                a = str(nums[i])\n                b = str(nums[j])\n                if len(a) != len(b):\n                    continue\n                # Check if any permutation of a matches any permutation of b\n                perms_a = get_permutations(nums[i])\n                perms_b = get_permutations(nums[j])\n                if perms_a & perms_b:\n                    count +=1\n        return count",
+    "from itertools import combinations\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def generate_swaps(n):\n            s = list(str(n))\n            swapped = set()\n            swapped.add(n)\n            for i in range(len(s)):\n                for j in range(i+1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped_num = int(''.join(s))\n                    swapped.add(swapped_num)\n                    s[i], s[j] = s[j], s[i]  # Swap back\n            return swapped\n        \n        count_map = defaultdict(int)\n        for num in nums:\n            swaps = generate_swaps(num)\n            for s in swaps:\n                count_map[s] += 1\n        \n        total = 0\n        for c in count_map.values():\n            if c >= 2:\n                total += c * (c - 1) // 2\n        return total",
+    "from itertools import combinations\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def is_almost_equal(x, y):\n            x_str = str(x)\n            y_str = str(y)\n            if len(x_str) != len(y_str):\n                return False\n            diff = []\n            for a, b in zip(x_str, y_str):\n                if a != b:\n                    diff.append((a, b))\n            if len(diff) == 0:\n                return True\n            if len(diff) == 2:\n                return diff[0] == (diff[1][1], diff[1][0])\n            return False\n        \n        count = 0\n        for i, j in combinations(range(len(nums)), 2):\n            if is_almost_equal(nums[i], nums[j]):\n                count += 1\n        return count",
+    "from itertools import combinations\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def generate_swaps(n):\n            s = list(str(n))\n            variations = set()\n            variations.add(n)\n            for i in range(len(s)):\n                for j in range(i+1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    variations.add(int(''.join(s)))\n                    s[i], s[j] = s[j], s[i]  # Swap back\n            return variations\n        \n        variation_map = defaultdict(set)\n        for num in nums:\n            variation_map[num] = generate_swaps(num)\n        \n        total = 0\n        for i in range(len(nums)):\n            for j in range(i+1, len(nums)):\n                num_i = nums[i]\n                num_j = nums[j]\n                if num_j in variation_map[num_i] or num_i in variation_map[num_j]:\n                    total += 1\n        return total",
+    "from itertools import combinations\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def generate_swaps(n):\n            s = list(str(n))\n            swapped = set()\n            swapped.add(n)\n            for i in range(len(s)):\n                for j in range(i+1, len(s)):\n                    s[i], s[j] = s[j], s[i]\n                    swapped_num = int(''.join(s))\n                    swapped.add(swapped_num)\n                    s[i], s[j] = s[j], s[i]  # Swap back\n            return swapped\n        \n        count = 0\n        for i in range(len(nums)):\n            current = nums[i]\n            swaps = generate_swaps(current)\n            for j in range(i+1, len(nums)):\n                other = nums[j]\n                if other in swaps:\n                    count +=1\n        return count"
+  ],
+  "total_candidates": 22,
+  "nodes_explored": 22,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "from typing import List\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        count_map = defaultdict(int)\n        result = 0\n        \n        for num in nums:\n            s = str(num)\n            variations = set()\n            # Generate all possible variations by swapping any two digits\n            for i in range(len(s)):\n                for j in range(i+1, len(s)):\n                    # Swap i and j\n                    swapped = list(s)\n                    swapped[i], swapped[j] = swapped[j], swapped[i]\n                    variations.add(''.join(swapped))\n            # Also include the original number as a variation (no swap)\n            variations.add(s)\n            \n            # Check how many of these variations are already in the map\n            for var in variations:\n                result += count_map.get(var, 0)\n            \n            # Update the count_map with the current number's variations\n            for var in variations:\n                count_map[var] += 1\n        \n        return result",
+      "solution_hash": "1be049dff708690cfcd643bec15763851b70c3823a3c2072118c4c19939a769e",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21926554/tmp07jwva57.py\", line 241, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21926554/tmp07jwva57.py\", line 115, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926554/tmp07jwva57.py` failed. (See above for error)\n",
+        "execution_time": 14.101861953735352,
+        "failed_tests": [
+          {
+            "input": "nums = [101, 110, 111, 1001, 1100]",
+            "expected": "5",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/21926554/tmp07jwva57.py\", line 241, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21926554/tmp07jwva57.py\", line 115, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926554/tmp07jwva57.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5",
+        "1_9"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "from itertools import permutations\nfrom collections import defaultdict\n\nclass Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        count_map = defaultdict(int)\n        for num in nums:\n            s = str(num)\n            perms = set(permutations(s))\n            for p in perms:\n                key = tuple(sorted(p))\n                count_map[key] += 1\n        total = 0\n        for c in count_map.values():\n            if c >= 2:\n                total += c * (c - 1) // 2\n        return total",
+      "solution_hash": "3ed48b8a637516d6bc69fa5edea0a8b45214920113dc9f3bd714e848a7bc9c30",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21926554/tmpx2ikf4fd.py\", line 228, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21926554/tmpx2ikf4fd.py\", line 102, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926554/tmpx2ikf4fd.py` failed. (See above for error)\n",
+        "execution_time": 13.626913070678711,
+        "failed_tests": [
+          {
+            "input": "nums = [101, 110, 111, 1001, 1100]",
+            "expected": "5",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/21926554/tmpx2ikf4fd.py\", line 228, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/21926554/tmpx2ikf4fd.py\", line 102, in check\n    assert candidate(nums = [101, 110, 111, 1001, 1100]) == 5\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926554/tmpx2ikf4fd.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_14",
+        "1_18"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 22,
+    "candidates_generated": 22,
+    "tests_passed": 1,
+    "tests_failed": 21,
+    "test_errors": 0,
+    "execution_times": [
+      14.101861953735352,
+      14.034820795059204,
+      13.606080770492554,
+      13.595032453536987,
+      13.590056896209717,
+      14.101861953735352,
+      14.101861953735352,
+      14.124538660049438,
+      14.101861953735352,
+      13.628952026367188,
+      13.643066883087158,
+      14.000205516815186,
+      13.64217209815979,
+      13.626913070678711,
+      13.942676782608032,
+      13.994389533996582,
+      13.606444120407104,
+      13.610357522964478,
+      13.640222549438477,
+      14.189688920974731,
+      13.647483587265015,
+      13.686975955963135
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 1,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 19,
+      "unique_ratio": 0.8636363636363636,
+      "similarity_score": 0.0,
+      "solution_lengths": {
+        "min": 349,
+        "max": 1116,
+        "avg": 834.3181818181819
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "nums = [101, 110, 111, 1001, 1100]": 21
+      },
+      "first_failing_tests": {
+        "nums = [101, 110, 111, 1001, 1100]": 21
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 6,
+          "improvements": 0,
+          "solved": 0
+        },
+        "2": {
+          "attempts": 15,
+          "improvements": 0,
+          "solved": 1
+        }
+      },
+      "error_types": {
+        "assertion_failure": {
+          "attempts": 7,
+          "improvements": 1
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "assertion_failure->assertion_failure": 19,
+        "assertion_failure->unknown": 1
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.5909090909090908,
+        "solutions_per_depth": {
+          "0": 2,
+          "1": 5,
+          "2": 15
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 0,
+          "2": 1
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.08695652173913038,
+        "pass@3": 0.2490118577075099,
+        "pass@5": 0.39525691699604737,
+        "pass@10": 0.691699604743083
+      },
+      "solutions_evaluated": 23,
+      "passing_solution_depths": {
+        "min": 2,
+        "max": 2,
+        "avg": 2.0
+      }
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.045454545454545456,
+        "branch_success_rate": 0.045454545454545456
+      },
+      "error_recovery": {
+        "total_attempts": 7,
+        "total_improvements": 1,
+        "recovery_rate": 0.14285714285714285
+      },
+      "top_errors": [
+        [
+          "assertion_failure",
+          7
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "nums = [101, 110, 111, 1001, 1100]",
+          21
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 1,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 1433.5743730068207,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.08695652173913038,
+      "pass@3": 0.2490118577075099,
+      "pass@5": 0.39525691699604737,
+      "pass@10": 0.691699604743083
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 22
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 23,
+    "test_cases": 1
+  }
+}

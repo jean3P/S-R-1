@@ -10,11 +10,11 @@ JOB1=$(sbatch job_leetcode_easy.sbatch | awk '{print $4}')
 echo "Submitted Easy job: $JOB1"
 
 # Submit Medium problems after Easy completes
-JOB2=$(sbatch --dependency=afterok:$JOB1 job_leetcode_medium.sbatch | awk '{print $4}')
+JOB2=$(sbatch job_leetcode_medium.sbatch | awk '{print $4}')
 echo "Submitted Medium job: $JOB2 (depends on $JOB1)"
 
 # Submit Hard problems after Medium completes
-JOB3=$(sbatch --dependency=afterok:$JOB2 job_leetcode_hard.sbatch | awk '{print $4}')
+JOB3=$(sbatch job_leetcode_hard.sbatch | awk '{print $4}')
 echo "Submitted Hard job: $JOB3 (depends on $JOB2)"
 
 echo "All jobs submitted successfully!"
