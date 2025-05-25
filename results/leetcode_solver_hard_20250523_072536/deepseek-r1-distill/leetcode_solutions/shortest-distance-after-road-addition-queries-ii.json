@@ -1,0 +1,678 @@
+{
+  "problem_id": "shortest-distance-after-road-addition-queries-ii",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "from bisect import bisect_right\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_min = n - 1  # initial path length is n-1\n        res.append(current_min)\n        for u, v in queries:\n            # Find the earliest interval that starts after u\n            idx = bisect_right(intervals, u, key=lambda x: x[0]) - 1\n            if idx >= 0:\n                start = intervals[idx][0]\n                if start <= u:\n                    # We can extend the interval\n                    new_start = start\n                    new_end = max(intervals[idx][1], v)\n                    # Remove the old interval\n                    del intervals[idx]\n                    # Insert the new interval\n                    insert_pos = bisect_right(intervals, new_start, key=lambda x: x[0])\n                    intervals.insert(insert_pos, (new_start, new_end))\n                    # Update the current_min if this new interval covers more\n                    if new_end >= n - 1:\n                        current_min = min(current_min, new_start + (n - 1 - new_end) + 1)\n                    else:\n                        current_min = min(current_min, new_start + 1 + (n - 1 - new_end))\n            else:\n                # No overlapping interval, add the new one\n                insert_pos = bisect_right(intervals, u, key=lambda x: x[0])\n                intervals.insert(insert_pos, (u, v))\n                # Check if this new interval helps\n                if v >= n - 1:\n                    current_min = min(current_min, u + 1)\n                else:\n                    current_min = min(current_min, u + 1 + (n - 1 - v))\n            res.append(current_min)\n        return res",
+    "from bisect import bisect_left\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_min = n - 1  # initial path length is n-1\n        res.append(current_min)\n        for u, v in queries:\n            # Find the first interval where start > u\n            left = 0\n            right = len(intervals)\n            while left < right:\n                mid = (left + right) // 2\n                if intervals[mid][0] > u:\n                    right = mid\n                else:\n                    left = mid + 1\n            idx = left - 1\n            \n            # Check if we can merge with previous intervals\n            new_start = u\n            new_end = v\n            if idx >= 0 and intervals[idx][1] >= u:\n                # Merge with the previous interval\n                new_start = intervals[idx][0]\n                new_end = max(intervals[idx][1], v)\n                # Remove the previous interval\n                del intervals[idx]\n                # Now, check if we can merge with the next interval\n                if idx < len(intervals) and intervals[idx][0] <= new_end:\n                    new_end = max(new_end, intervals[idx][1])\n                    del intervals[idx]\n            \n            # Insert the new interval\n            insert_pos = bisect_left(intervals, (new_start, new_end))\n            intervals.insert(insert_pos, (new_start, new_end))\n            \n            # Update the current_min\n            if new_end >= n - 1:\n                current_min = min(current_min, new_start + 1)\n            else:\n                current_min = min(current_min, new_start + 1 + (n - 1 - new_end))\n            \n            res.append(current_min)\n        return res",
+    "from bisect import bisect_left\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_min = n - 1  # initial path length is n-1\n        res.append(current_min)\n        for u, v in queries:\n            # Find the first interval where start > u\n            left = 0\n            right = len(intervals)\n            while left < right:\n                mid = (left + right) // 2\n                if intervals[mid][0] > u:\n                    right = mid\n                else:\n                    left = mid + 1\n            idx = left - 1\n            \n            # Check if we can merge with previous intervals\n            new_start = u\n            new_end = v\n            if idx >= 0 and intervals[idx][1] >= u:\n                # Merge with the previous interval\n                new_start = intervals[idx][0]\n                new_end = max(intervals[idx][1], v)\n                # Remove the previous interval\n                del intervals[idx]\n                # Now, check if we can merge with the next interval\n                if idx < len(intervals) and intervals[idx][0] <= new_end:\n                    new_end = max(new_end, intervals[idx][1])\n                    del intervals[idx]\n            \n            # Insert the new interval\n            insert_pos = bisect_left(intervals, (new_start, new_end))\n            intervals.insert(insert_pos, (new_start, new_end))\n            \n            # Update the current_min\n            if new_end >= n - 1:\n                current_min = min(current_min, new_start + 1)\n            else:\n                current_min = min(current_min, new_start + 1 + (n - 1 - new_end))\n            \n            res.append(current_min)\n        return res",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        from collections import deque\n\n        # Initialize the earliest reachable from start and latest reachable from end\n        earliest = [i for i in range(n)]\n        latest = [i for i in range(n)]\n        res = []\n        current_min = n - 1  # initial path length\n\n        # Preprocess the initial roads\n        for i in range(n-1):\n            if earliest[i+1] > earliest[i] + 1:\n                earliest[i+1] = earliest[i] + 1\n\n        # Process each query\n        for u, v in queries:\n            # Update earliest from start\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Propagate the update forward\n                for i in range(v+1, n):\n                    if earliest[i] > earliest[i-1] + 1:\n                        earliest[i] = earliest[i-1] + 1\n                    else:\n                        break\n\n            # Update latest from end\n            if latest[v] - 1 > latest[u]:\n                latest[u] = latest[v] - 1\n                # Propagate the update backward\n                for i in range(v-1, -1, -1):\n                    if latest[i] < latest[i+1] - 1:\n                        latest[i] = latest[i+1] - 1\n                    else:\n                        break\n\n            # Calculate the new possible minimum\n            new_min = min(current_min, earliest[n-1], latest[0] + (n-1 - latest[0]))\n            res.append(new_min)\n            current_min = new_min\n\n        return res",
+    "from bisect import bisect_left\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_min = n - 1  # initial path length is n-1\n        res.append(current_min)\n        for u, v in queries:\n            # Find the position to insert the new interval\n            left = bisect_left(intervals, (u, v))\n            # Check overlapping intervals\n            start = u\n            end = v\n            # Merge with previous intervals if necessary\n            while left > 0 and intervals[left-1][1] >= start:\n                start = intervals[left-1][0]\n                end = max(end, intervals[left-1][1])\n                del intervals[left-1]\n                left -= 1\n            # Merge with next intervals if necessary\n            while left < len(intervals) and intervals[left][0] <= end:\n                end = max(end, intervals[left][1])\n                del intervals[left]\n            # Insert the new merged interval\n            intervals.insert(left, (start, end))\n            # Calculate the new possible minimum\n            if end >= n - 1:\n                new_min = start + 1\n            else:\n                new_min = start + 1 + (n - 1 - end)\n            # Update current_min\n            current_min = min(current_min, new_min)\n            res.append(current_min)\n        return res",
+    "from bisect import bisect_right, bisect_left\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_min = n - 1  # initial path length is n-1\n        res.append(current_min)\n        for u, v in queries:\n            # Find the first interval where start > u\n            starts = [interval[0] for interval in intervals]\n            idx = bisect_right(starts, u) - 1\n            # Check if there's an interval ending after u\n            if idx >= 0 and intervals[idx][1] >= u:\n                # Merge with this interval\n                new_start = intervals[idx][0]\n                new_end = max(intervals[idx][1], v)\n                # Remove the old interval\n                del intervals[idx]\n                # Find the position to insert the new interval\n                insert_pos = bisect_left(starts, new_start)\n                intervals.insert(insert_pos, (new_start, new_end))\n                # Update the current_min\n                if new_end >= n - 1:\n                    current_min = min(current_min, new_start + 1)\n                else:\n                    current_min = min(current_min, new_start + 1 + (n - 1 - new_end))\n            else:\n                # No overlapping interval, add the new one\n                # Find the position to insert\n                insert_pos = bisect_left(starts, u)\n                intervals.insert(insert_pos, (u, v))\n                # Update the current_min\n                if v >= n - 1:\n                    current_min = min(current_min, u + 1)\n                else:\n                    current_min = min(current_min, u + 1 + (n - 1 - v))\n            # After adding, check if any further merging is needed\n            # Merge overlapping intervals\n            i = 0\n            while i < len(intervals) - 1:\n                current = intervals[i]\n                next_interval = intervals[i+1]\n                if current[1] >= next_interval[0]:\n                    # Merge them\n                    merged_start = current[0]\n                    merged_end = max(current[1], next_interval[1])\n                    intervals.pop(i)\n                    intervals.pop(i)\n                    intervals.insert(i, (merged_start, merged_end))\n                    # Update current_min\n                    if merged_end >= n - 1:\n                        current_min = min(current_min, merged_start + 1)\n                    else:\n                        current_min = min(current_min, merged_start + 1 + (n - 1 - merged_end))\n                else:\n                    i += 1\n            res.append(current_min)\n        return res",
+    "from bisect import bisect_left, bisect_right\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_min = n - 1  # initial path length\n        res.append(current_min)\n        for u, v in queries:\n            # Find the position to insert the new interval\n            insert_pos = bisect_left(intervals, (u,)) if intervals else 0\n            # Check if the new interval can be merged with existing ones\n            # Check left neighbor\n            if insert_pos > 0 and intervals[insert_pos - 1][1] >= u:\n                # Merge with left\n                new_start = intervals[insert_pos - 1][0]\n                new_end = max(intervals[insert_pos - 1][1], v)\n                del intervals[insert_pos - 1]\n                insert_pos -= 1\n            else:\n                new_start = u\n                new_end = v\n            # Check right neighbor\n            if insert_pos < len(intervals) and new_end >= intervals[insert_pos][0]:\n                # Merge with right\n                new_end = max(new_end, intervals[insert_pos][1])\n                del intervals[insert_pos]\n            # Insert the new interval\n            intervals.insert(insert_pos, (new_start, new_end))\n            # Now, check if any further merging is needed\n            # Iterate through intervals to merge any overlapping ones\n            i = 0\n            while i < len(intervals) - 1:\n                current = intervals[i]\n                next_int = intervals[i + 1]\n                if current[1] >= next_int[0]:\n                    # Merge them\n                    merged_start = current[0]\n                    merged_end = max(current[1], next_int[1])\n                    intervals.pop(i)\n                    intervals.pop(i)\n                    intervals.insert(i, (merged_start, merged_end))\n                else:\n                    i += 1\n            # Calculate the new current_min\n            min_path = n - 1\n            for start, end in intervals:\n                if end >= n - 1:\n                    candidate = start + 1\n                else:\n                    candidate = start + 1 + (n - 1 - end)\n                if candidate < min_path:\n                    min_path = candidate\n            current_min = min(current_min, min_path)\n            res.append(current_min)\n        return res",
+    "from bisect import bisect_left, bisect_right\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_min = n - 1  # initial path length is n-1\n        res.append(current_min)\n        for u, v in queries:\n            # Find the position to insert the new interval\n            starts = [interval[0] for interval in intervals]\n            insert_pos = bisect_left(starts, u)\n            # Check if the new interval can be merged with existing ones\n            # Check left neighbor\n            if insert_pos > 0 and intervals[insert_pos - 1][1] >= u:\n                # Merge with left\n                new_start = intervals[insert_pos - 1][0]\n                new_end = max(intervals[insert_pos - 1][1], v)\n                del intervals[insert_pos - 1]\n                insert_pos -= 1\n            else:\n                new_start = u\n                new_end = v\n            # Check right neighbor\n            while insert_pos < len(intervals) and new_end >= intervals[insert_pos][0]:\n                new_end = max(new_end, intervals[insert_pos][1])\n                del intervals[insert_pos]\n            # Insert the new interval\n            intervals.insert(insert_pos, (new_start, new_end))\n            # Update the current_min\n            min_path = current_min\n            # Find the earliest start and the furthest end\n            earliest_start = intervals[0][0]\n            furthest_end = intervals[-1][1]\n            if furthest_end >= n - 1:\n                min_path = min(min_path, earliest_start + 1)\n            else:\n                min_path = min(min_path, earliest_start + 1 + (n - 1 - furthest_end))\n            # Also, check if any interval can provide a shorter path\n            for interval in intervals:\n                s, e = interval\n                if e >= n - 1:\n                    candidate = s + 1\n                else:\n                    candidate = s + 1 + (n - 1 - e)\n                if candidate < min_path:\n                    min_path = candidate\n            current_min = min(current_min, min_path)\n            res.append(current_min)\n        return res",
+    "from bisect import bisect_left, bisect_right\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_min = n - 1\n        res.append(current_min)\n        for u, v in queries:\n            # Find the position to insert the new interval\n            insert_pos = bisect_left([interval[0] for interval in intervals], u)\n            # Check if it can be merged with previous intervals\n            merged = False\n            while insert_pos > 0 and intervals[insert_pos - 1][1] >= u:\n                # Merge with the previous interval\n                prev_start, prev_end = intervals[insert_pos - 1]\n                new_start = prev_start\n                new_end = max(prev_end, v)\n                intervals.pop(insert_pos - 1)\n                insert_pos -= 1\n                v = new_end\n                merged = True\n            # Check if it can be merged with the next interval\n            while insert_pos < len(intervals) and intervals[insert_pos][0] <= v:\n                # Merge with the next interval\n                next_start, next_end = intervals[insert_pos]\n                new_end = max(v, next_end)\n                intervals.pop(insert_pos)\n                v = new_end\n                merged = True\n            # Insert the new interval\n            intervals.insert(insert_pos, (u, v))\n            # Calculate the new current_min\n            if v >= n - 1:\n                candidate = u + 1\n            else:\n                candidate = u + 1 + (n - 1 - v)\n            if candidate < current_min:\n                current_min = candidate\n            res.append(current_min)\n        return res",
+    "from bisect import bisect_left\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_min = n - 1  # initial path length is n-1\n        res.append(current_min)\n        for u, v in queries:\n            new_start = u\n            new_end = v\n            # Find the position where new_start would be inserted\n            pos = bisect_left(intervals, (new_start, 0), key=lambda x: x[0])\n            # Check intervals before pos to see if they can be merged\n            to_merge = []\n            i = pos - 1\n            while i >= 0:\n                s, e = intervals[i]\n                if e >= new_start:\n                    to_merge.append(intervals[i])\n                    new_start = min(new_start, s)\n                    new_end = max(new_end, e)\n                    i -= 1\n                else:\n                    break\n            # Check intervals at and after pos\n            i = pos\n            while i < len(intervals):\n                s, e = intervals[i]\n                if s <= new_end:\n                    to_merge.append(intervals[i])\n                    new_start = min(new_start, s)\n                    new_end = max(new_end, e)\n                    i += 1\n                else:\n                    break\n            # Remove all intervals in to_merge\n            for interval in to_merge:\n                intervals.remove(interval)\n            # Insert the new merged interval\n            insert_pos = bisect_left(intervals, (new_start, 0), key=lambda x: x[0])\n            intervals.insert(insert_pos, (new_start, new_end))\n            # Calculate the new candidate for current_min\n            if new_end >= n - 1:\n                candidate = new_start + 1\n            else:\n                candidate = new_start + 1 + (n - 1 - new_end)\n            current_min = min(current_min, candidate)\n            res.append(current_min)\n        return res",
+    "from bisect import bisect_left, insort\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_min = n - 1  # initial path length is n-1\n        res.append(current_min)\n        for u, v in queries:\n            new_start = u\n            new_end = v\n            # Find the position where new_start would be inserted\n            # Using a custom key by comparing the start of intervals\n            left = 0\n            right = len(intervals)\n            while left < right:\n                mid = (left + right) // 2\n                if intervals[mid][0] < new_start:\n                    left = mid + 1\n                else:\n                    right = mid\n            pos = left\n            # Check intervals before pos to see if they can be merged\n            to_merge = []\n            i = pos - 1\n            while i >= 0:\n                s, e = intervals[i]\n                if e >= new_start:\n                    to_merge.append(intervals[i])\n                    new_start = min(new_start, s)\n                    new_end = max(new_end, e)\n                    i -= 1\n                else:\n                    break\n            # Check intervals at and after pos\n            i = pos\n            while i < len(intervals):\n                s, e = intervals[i]\n                if s <= new_end:\n                    to_merge.append(intervals[i])\n                    new_start = min(new_start, s)\n                    new_end = max(new_end, e)\n                    i += 1\n                else:\n                    break\n            # Remove all intervals in to_merge\n            for interval in to_merge:\n                intervals.remove(interval)\n            # Insert the new merged interval\n            insort(intervals, (new_start, new_end))\n            # Calculate the new candidate for current_min\n            if new_end >= n - 1:\n                candidate = new_start + 1\n            else:\n                candidate = new_start + 1 + (n - 1 - new_end)\n            if candidate < current_min:\n                current_min = candidate\n            res.append(current_min)\n        return res",
+    "from bisect import bisect_left\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_min = n - 1  # initial path length is n-1\n        res.append(current_min)\n        for u, v in queries:\n            new_start = u\n            new_end = v\n            # Find the position where new_start would be inserted\n            pos = bisect_left(intervals, (new_start, 0))\n            # Check intervals before pos to see if they can be merged\n            to_merge = []\n            i = pos - 1\n            while i >= 0:\n                s, e = intervals[i]\n                if e >= new_start:\n                    to_merge.append(intervals[i])\n                    new_start = min(new_start, s)\n                    new_end = max(new_end, e)\n                    i -= 1\n                else:\n                    break\n            # Check intervals at and after pos\n            i = pos\n            while i < len(intervals):\n                s, e = intervals[i]\n                if s <= new_end:\n                    to_merge.append(intervals[i])\n                    new_start = min(new_start, s)\n                    new_end = max(new_end, e)\n                    i += 1\n                else:\n                    break\n            # Remove all intervals in to_merge\n            for interval in to_merge:\n                intervals.remove(interval)\n            # Insert the new merged interval\n            insert_pos = bisect_left(intervals, (new_start, 0))\n            intervals.insert(insert_pos, (new_start, new_end))\n            # Calculate the new candidate for current_min\n            if new_end >= n - 1:\n                candidate = new_start + 1\n            else:\n                candidate = new_start + 1 + (n - 1 - new_end)\n            if candidate < current_min:\n                current_min = candidate\n            res.append(current_min)\n        return res",
+    "from bisect import bisect_left, bisect_right\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_min = n - 1  # initial path length is n-1\n        res.append(current_min)\n        for u, v in queries:\n            new_start = u\n            new_end = v\n            # Find the position where new_start would be inserted\n            pos = bisect_left(intervals, (new_start, 0))\n            # Check intervals before pos to see if they can be merged\n            to_merge = []\n            i = pos - 1\n            while i >= 0:\n                s, e = intervals[i]\n                if e >= new_start:\n                    to_merge.append(intervals[i])\n                    new_start = min(new_start, s)\n                    new_end = max(new_end, e)\n                    i -= 1\n                else:\n                    break\n            # Check intervals at and after pos\n            i = pos\n            while i < len(intervals):\n                s, e = intervals[i]\n                if s <= new_end:\n                    to_merge.append(intervals[i])\n                    new_start = min(new_start, s)\n                    new_end = max(new_end, e)\n                    i += 1\n                else:\n                    break\n            # Remove all intervals in to_merge\n            for interval in to_merge:\n                intervals.remove(interval)\n            # Insert the new merged interval\n            insert_pos = bisect_left(intervals, (new_start, 0))\n            intervals.insert(insert_pos, (new_start, new_end))\n            # Calculate the new candidate for current_min\n            if new_end >= n - 1:\n                candidate = new_start + 1\n            else:\n                # Find the next interval that starts after new_end\n                next_pos = bisect_left(intervals, (new_end + 1, 0))\n                if next_pos < len(intervals):\n                    next_s, next_e = intervals[next_pos]\n                    candidate = new_start + 1 + (next_e - new_end)\n                else:\n                    # No further intervals, so the path is new_start + 1 + (n-1 - new_end)\n                    candidate = new_start + 1 + (n - 1 - new_end)\n            current_min = min(current_min, candidate)\n            res.append(current_min)\n        return res",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        dist = list(range(n))\n        res = []\n        for u, v in queries:\n            if dist[u] + 1 < dist[v]:\n                dist[v] = dist[u] + 1\n                i = v + 1\n                while i < n and dist[i] > dist[i-1] + 1:\n                    dist[i] = dist[i-1] + 1\n                    i += 1\n            res.append(dist[-1])\n        return res",
+    "import heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        adj = [[] for _ in range(n)]\n        for i in range(n-1):\n            adj[i].append(i+1)\n        \n        dist = [float('inf')] * n\n        dist[0] = 0\n        heap = []\n        heapq.heappush(heap, (0, 0))\n        \n        res = []\n        for u, v in queries:\n            adj[u].append(v)\n            if dist[u] + 1 < dist[v]:\n                dist[v] = dist[u] + 1\n                heapq.heappush(heap, (dist[v], v))\n            \n            # Process the heap to update distances\n            while heap:\n                current_dist, current_node = heapq.heappop(heap)\n                if current_dist > dist[current_node]:\n                    continue\n                for neighbor in adj[current_node]:\n                    if dist[current_node] + 1 < dist[neighbor]:\n                        dist[neighbor] = dist[current_node] + 1\n                        heapq.heappush(heap, (dist[neighbor], neighbor))\n            \n            res.append(dist[n-1])\n        \n        return res",
+    "import heapq\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        adj = [[] for _ in range(n)]\n        for i in range(n-1):\n            adj[i].append(i+1)\n        \n        dist = [float('inf')] * n\n        dist[0] = 0\n        heap = []\n        heapq.heappush(heap, (0, 0))\n        \n        res = []\n        for u, v in queries:\n            adj[u].append(v)\n            if dist[u] + 1 < dist[v]:\n                dist[v] = dist[u] + 1\n                heapq.heappush(heap, (dist[v], v))\n            \n            # Process the heap to update distances\n            while heap:\n                current_dist, current_node = heapq.heappop(heap)\n                if current_dist > dist[current_node]:\n                    continue\n                for neighbor in adj[current_node]:\n                    if dist[current_node] + 1 < dist[neighbor]:\n                        dist[neighbor] = dist[current_node] + 1\n                        heapq.heappush(heap, (dist[neighbor], neighbor))\n            \n            res.append(dist[n-1])\n        \n        return res",
+    "import heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        adj = [[] for _ in range(n)]\n        for i in range(n-1):\n            adj[i].append(i+1)\n        \n        dist = [float('inf')] * n\n        dist[0] = 0\n        heap = []\n        heapq.heappush(heap, (0, 0))\n        \n        res = []\n        for u, v in queries:\n            adj[u].append(v)\n            if dist[u] + 1 < dist[v]:\n                dist[v] = dist[u] + 1\n                heapq.heappush(heap, (dist[v], v))\n            \n            # Process the heap to update distances\n            while heap:\n                current_dist, current_node = heapq.heappop(heap)\n                if current_dist > dist[current_node]:\n                    continue\n                for neighbor in adj[current_node]:\n                    if dist[current_node] + 1 < dist[neighbor]:\n                        dist[neighbor] = dist[current_node] + 1\n                        heapq.heappush(heap, (dist[neighbor], neighbor))\n            \n            res.append(dist[n-1])\n        \n        return res",
+    "import heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        adj = [[] for _ in range(n)]\n        for i in range(n-1):\n            adj[i].append(i+1)\n        \n        dist = [float('inf')] * n\n        dist[0] = 0\n        heap = []\n        heapq.heappush(heap, (0, 0))\n        \n        res = []\n        for u, v in queries:\n            adj[u].append(v)\n            if dist[u] + 1 < dist[v]:\n                dist[v] = dist[u] + 1\n                heapq.heappush(heap, (dist[v], v))\n            \n            # Process the heap to update distances\n            while heap:\n                current_dist, current_node = heapq.heappop(heap)\n                if current_dist > dist[current_node]:\n                    continue\n                for neighbor in adj[current_node]:\n                    if dist[current_node] + 1 < dist[neighbor]:\n                        dist[neighbor] = dist[current_node] + 1\n                        heapq.heappush(heap, (dist[neighbor], neighbor))\n            \n            res.append(dist[n-1])\n        \n        return res",
+    "import sys\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        dist = list(range(n))\n        res = []\n        for u, v in queries:\n            if dist[u] + 1 < dist[v]:\n                dist[v] = dist[u] + 1\n                # Propagate forward\n                i = v + 1\n                while i < n and dist[i] > dist[i-1] + 1:\n                    dist[i] = dist[i-1] + 1\n                    i += 1\n                # Propagate backward to check if u's distance can be improved\n                q = deque()\n                q.append(u)\n                visited = set()\n                visited.add(u)\n                while q:\n                    node = q.popleft()\n                    for neighbor in [node - 1]:\n                        if neighbor >= 0 and neighbor not in visited:\n                            if dist[neighbor] > dist[node] + 1:\n                                dist[neighbor] = dist[node] + 1\n                                visited.add(neighbor)\n                                q.append(neighbor)\n            res.append(dist[-1])\n        return res",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        adj = [[] for _ in range(n)]\n        for i in range(n-1):\n            adj[i].append(i+1)\n        \n        res = []\n        dist = [float('inf')] * n\n        dist[0] = 0\n        \n        for u, v in queries:\n            adj[u].append(v)\n            queue = deque()\n            queue.append(0)\n            visited = [False] * n\n            visited[0] = True\n            \n            while queue:\n                current = queue.popleft()\n                for neighbor in adj[current]:\n                    if dist[neighbor] > dist[current] + 1:\n                        dist[neighbor] = dist[current] + 1\n                        if not visited[neighbor]:\n                            visited[neighbor] = True\n                            queue.append(neighbor)\n            res.append(dist[n-1])\n        \n        return res",
+    "import sys\nimport heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        adj = [[] for _ in range(n)]\n        for i in range(n-1):\n            adj[i].append(i+1)\n        res = []\n        dist = [float('inf')] * n\n        dist[0] = 0\n        heap = []\n        heapq.heappush(heap, (0, 0))\n        for u, v in queries:\n            adj[u].append(v)\n            # Dijkstra's algorithm after each addition\n            dist = [float('inf')] * n\n            dist[0] = 0\n            heap = []\n            heapq.heappush(heap, (0, 0))\n            while heap:\n                d, node = heapq.heappop(heap)\n                if d > dist[node]:\n                    continue\n                for neighbor in adj[node]:\n                    if dist[neighbor] > d + 1:\n                        dist[neighbor] = d + 1\n                        heapq.heappush(heap, (dist[neighbor], neighbor))\n            res.append(dist[n-1])\n        return res",
+    "from collections import deque\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        dist = list(range(n))\n        res = []\n        for u, v in queries:\n            if dist[u] + 1 < dist[v]:\n                dist[v] = dist[u] + 1\n                # Propagate forward\n                i = v + 1\n                while i < n and dist[i] > dist[i-1] + 1:\n                    dist[i] = dist[i-1] + 1\n                    i += 1\n                # Propagate backward\n                q = deque()\n                q.append(u)\n                visited = set()\n                visited.add(u)\n                while q:\n                    node = q.popleft()\n                    for neighbor in [node - 1]:\n                        if neighbor >= 0 and neighbor not in visited:\n                            if dist[neighbor] > dist[node] + 1:\n                                dist[neighbor] = dist[node] + 1\n                                visited.add(neighbor)\n                                q.append(neighbor)\n            res.append(dist[-1])\n        return res",
+    "import heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        dist = list(range(n))\n        res = []\n        heap = []\n        for u, v in queries:\n            if dist[u] + 1 < dist[v]:\n                dist[v] = dist[u] + 1\n                heapq.heappush(heap, (dist[v], v))\n            # Propagate the changes forward\n            while heap:\n                d, node = heapq.heappop(heap)\n                if d > dist[node]:\n                    continue\n                if node + 1 < n and dist[node] + 1 < dist[node + 1]:\n                    dist[node + 1] = dist[node] + 1\n                    heapq.heappush(heap, (dist[node + 1], node + 1))\n            res.append(dist[-1])\n        return res",
+    "from collections import deque\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        dist = list(range(n))\n        res = []\n        for u, v in queries:\n            if dist[u] + 1 < dist[v]:\n                dist[v] = dist[u] + 1\n                queue = deque()\n                queue.append(v)\n                while queue:\n                    node = queue.popleft()\n                    if node + 1 < n and dist[node] + 1 < dist[node + 1]:\n                        dist[node + 1] = dist[node] + 1\n                        queue.append(node + 1)\n            res.append(dist[-1])\n        return res",
+    "import heapq\nfrom collections import defaultdict\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        dist = list(range(n))\n        res = []\n        heap = []\n        for u, v in queries:\n            if dist[u] + 1 < dist[v]:\n                dist[v] = dist[u] + 1\n                heapq.heappush(heap, (dist[v], v))\n            # Propagate the changes forward\n            while heap:\n                d, node = heapq.heappop(heap)\n                if d > dist[node]:\n                    continue\n                if node + 1 < n and dist[node] + 1 < dist[node + 1]:\n                    dist[node + 1] = dist[node] + 1\n                    heapq.heappush(heap, (dist[node + 1], node + 1))\n            res.append(dist[-1])\n        return res",
+    "from collections import deque\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        dist = list(range(n))\n        res = []\n        for u, v in queries:\n            if dist[u] + 1 < dist[v]:\n                dist[v] = dist[u] + 1\n                queue = deque()\n                queue.append(v)\n                while queue:\n                    node = queue.popleft()\n                    if node + 1 < n and dist[node] + 1 < dist[node + 1]:\n                        dist[node + 1] = dist[node] + 1\n                        queue.append(node + 1)\n            res.append(dist[-1])\n        return res",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        res = []\n        earliest = 0\n        latest = n - 1\n        current_min = n - 1  # initial path length\n        res.append(current_min)\n        \n        for u, v in queries:\n            if u <= earliest and v >= latest:\n                current_min = min(current_min, (earliest - 0) + (n - 1 - latest) + 1)\n                earliest = min(earliest, u)\n                latest = max(latest, v)\n            elif u <= earliest:\n                earliest = min(earliest, u)\n                current_min = min(current_min, (earliest - 0) + (n - 1 - latest) + 1)\n            elif v >= latest:\n                latest = max(latest, v)\n                current_min = min(current_min, (earliest - 0) + (n - 1 - latest) + 1)\n            else:\n                if v - u + 1 < current_min:\n                    current_min = v - u + 1\n            res.append(current_min)\n        \n        return res",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        res = []\n        earliest = 0\n        latest = n - 1\n        current_min = n - 1  # initial path length\n        res.append(current_min)\n        \n        for u, v in queries:\n            # Check if this new edge provides a direct shortcut\n            if v - u + 1 < current_min:\n                current_min = v - u + 1\n            \n            # Update earliest and latest\n            if u < earliest:\n                earliest = u\n            if v > latest:\n                latest = v\n            \n            # Calculate the potential new path length\n            potential = (earliest - 0) + (n - 1 - latest) + 1\n            if potential < current_min:\n                current_min = potential\n            \n            res.append(current_min)\n        \n        return res",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        res = []\n        earliest = 0\n        latest = n - 1\n        current_min = n - 1  # initial path length\n        \n        for u, v in queries:\n            # Update earliest and latest\n            if u < earliest:\n                earliest = u\n            if v > latest:\n                latest = v\n            \n            # Calculate the potential new path length\n            potential = earliest + (n - 1 - latest) + 1\n            if potential < current_min:\n                current_min = potential\n            \n            # Check if the new edge itself provides a shorter path\n            if (v - u + 1) < current_min:\n                current_min = v - u + 1\n            \n            res.append(current_min)\n        \n        return res",
+    "import heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        adj = [[] for _ in range(n)]\n        for i in range(n-1):\n            adj[i].append(i+1)\n        \n        res = []\n        dist = [float('inf')] * n\n        dist[0] = 0\n        heap = []\n        heapq.heappush(heap, (0, 0))\n        \n        for u, v in queries:\n            adj[u].append(v)\n            new_dist = [float('inf')] * n\n            new_dist[0] = 0\n            heap = []\n            heapq.heappush(heap, (0, 0))\n            while heap:\n                d, node = heapq.heappop(heap)\n                if d > new_dist[node]:\n                    continue\n                for neighbor in adj[node]:\n                    if new_dist[neighbor] > d + 1:\n                        new_dist[neighbor] = d + 1\n                        heapq.heappush(heap, (new_dist[neighbor], neighbor))\n            dist = new_dist\n            res.append(dist[n-1])\n        \n        return res",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        res = []\n        earliest = 0\n        latest = n - 1\n        current_min = n - 1  # initial path length\n        \n        for u, v in queries:\n            # Update earliest and latest\n            if u < earliest:\n                earliest = u\n            if v > latest:\n                latest = v\n            \n            # Calculate the potential new path length\n            potential = (earliest - 0) + (n - 1 - latest) + 1\n            if (v - u + 1) < current_min:\n                current_min = v - u + 1\n            if potential < current_min:\n                current_min = potential\n            \n            res.append(current_min)\n        \n        return res",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        res = []\n        earliest = 0\n        latest = n - 1\n        current_min = n - 1  # initial path length\n        res.append(current_min)\n        \n        for u, v in queries:\n            # Check if the new road provides a direct shortcut\n            new_shortcut = v - u + 1\n            if new_shortcut < current_min:\n                current_min = new_shortcut\n            \n            # Update earliest and latest\n            if u < earliest:\n                earliest = u\n                # Check if this new earliest can connect to latest\n                possible = (earliest - 0) + (n - 1 - latest) + 1\n                if possible < current_min:\n                    current_min = possible\n            if v > latest:\n                latest = v\n                # Check if earliest can connect to this new latest\n                possible = (earliest - 0) + (n - 1 - latest) + 1\n                if possible < current_min:\n                    current_min = possible\n            \n            # Check if the new road can bridge between existing earliest and latest\n            possible_bridge = (earliest - 0) + (v - u + 1) + (n - 1 - latest)\n            if possible_bridge < current_min:\n                current_min = possible_bridge\n            \n            res.append(current_min)\n        \n        return res",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        res = []\n        earliest = 0\n        latest = n - 1\n        current_min = n - 1  # initial path length\n        res.append(current_min)\n        \n        for u, v in queries:\n            # Check if the new road provides a direct shortcut\n            new_shortcut = v - u + 1\n            if new_shortcut < current_min:\n                current_min = new_shortcut\n            \n            # Update earliest and latest\n            if u < earliest:\n                earliest = u\n                # Check if this new earliest can connect to latest\n                possible = (earliest - 0) + (n - 1 - latest) + 1\n                if possible < current_min:\n                    current_min = possible\n            if v > latest:\n                latest = v\n                # Check if earliest can connect to this new latest\n                possible = (earliest - 0) + (n - 1 - latest) + 1\n                if possible < current_min:\n                    current_min = possible\n            \n            # Check if the new road can bridge between existing earliest and latest\n            possible_bridge = (earliest - 0) + (v - u + 1) + (n - 1 - latest)\n            if possible_bridge < current_min:\n                current_min = possible_bridge\n            \n            res.append(current_min)\n        \n        return res",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        res = []\n        earliest = 0\n        latest = n - 1\n        current_min = n - 1  # initial path length\n        res.append(current_min)\n        \n        for u, v in queries:\n            # Check if the new road provides a direct shortcut\n            new_shortcut = v - u + 1\n            if new_shortcut < current_min:\n                current_min = new_shortcut\n            \n            # Update earliest and latest\n            if u < earliest:\n                earliest = u\n                # Check if this new earliest can connect to latest\n                possible = (earliest - 0) + (n - 1 - latest) + 1\n                if possible < current_min:\n                    current_min = possible\n            if v > latest:\n                latest = v\n                # Check if earliest can connect to this new latest\n                possible = (earliest - 0) + (n - 1 - latest) + 1\n                if possible < current_min:\n                    current_min = possible\n            \n            # Check if the new road can bridge between existing earliest and latest\n            possible_bridge = (earliest - 0) + (v - u + 1) + (n - 1 - latest)\n            if possible_bridge < current_min:\n                current_min = possible_bridge\n            \n            res.append(current_min)\n        \n        return res",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        res = []\n        earliest = 0\n        latest = n - 1\n        current_min = n - 1  # initial path length\n        res.append(current_min)\n        \n        for u, v in queries:\n            # Check if the new road provides a direct shortcut\n            new_shortcut = v - u + 1\n            if new_shortcut < current_min:\n                current_min = new_shortcut\n            \n            # Update earliest and latest\n            if u < earliest:\n                earliest = u\n                # Check if this new earliest can connect to latest\n                possible = (earliest - 0) + (n - 1 - latest) + 1\n                if possible < current_min:\n                    current_min = possible\n            if v > latest:\n                latest = v\n                # Check if earliest can connect to this new latest\n                possible = (earliest - 0) + (n - 1 - latest) + 1\n                if possible < current_min:\n                    current_min = possible\n            \n            # Check if the new road can bridge between existing earliest and latest\n            possible_bridge = (earliest - 0) + (v - u + 1) + (n - 1 - latest)\n            if possible_bridge < current_min:\n                current_min = possible_bridge\n            \n            res.append(current_min)\n        \n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        res = []\n        earliest = 0\n        latest = n - 1\n        current_min = n - 1  # initial path length\n        res.append(current_min)\n        \n        for u, v in queries:\n            if u <= earliest and v >= latest:\n                # This road covers the entire path, so the minimal is 1\n                current_min = 1\n                earliest = u\n                latest = v\n            elif u <= earliest:\n                # Update earliest and check if new path is shorter\n                earliest = min(earliest, u)\n                possible_min = (earliest - 0) + (n - 1 - latest) + 1\n                current_min = min(current_min, possible_min)\n            elif v >= latest:\n                # Update latest and check if new path is shorter\n                latest = max(latest, v)\n                possible_min = (earliest - 0) + (n - 1 - latest) + 1\n                current_min = min(current_min, possible_min)\n            else:\n                # Check if this road provides a shortcut\n                possible_min = (earliest - 0) + (v - u) + (n - 1 - latest) + 1\n                current_min = min(current_min, possible_min)\n                # Also check if this road alone is shorter\n                current_min = min(current_min, v - u + 1)\n            res.append(current_min)\n        \n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        res = []\n        earliest = 0\n        latest = n - 1\n        current_min = n - 1  # initial path length\n        res.append(current_min)\n        \n        for u, v in queries:\n            if u <= earliest and v >= latest:\n                # This road covers the entire path, so the minimal is 1\n                current_min = 1\n                earliest = u\n                latest = v\n            elif u <= earliest:\n                # Update earliest and check if new path is shorter\n                earliest = min(earliest, u)\n                possible_min = (earliest - 0) + (n - 1 - latest) + 1\n                current_min = min(current_min, possible_min)\n            elif v >= latest:\n                # Update latest and check if new path is shorter\n                latest = max(latest, v)\n                possible_min = (earliest - 0) + (n - 1 - latest) + 1\n                current_min = min(current_min, possible_min)\n            else:\n                # Check if this road provides a shortcut\n                possible_min = (earliest - 0) + (v - u) + (n - 1 - latest) + 1\n                current_min = min(current_min, possible_min)\n                # Also check if this road alone is shorter\n                current_min = min(current_min, v - u + 1)\n            res.append(current_min)\n        \n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_min = n - 1\n        res.append(current_min)\n        \n        for u, v in queries:\n            new_intervals = []\n            added = False\n            for interval in intervals:\n                a, b = interval\n                if v <= a:\n                    new_intervals.append((u, b))\n                    added = True\n                elif u >= b:\n                    new_intervals.append((a, v))\n                    added = True\n                elif u <= a and v >= b:\n                    new_intervals.append((u, v))\n                    added = True\n                else:\n                    new_intervals.append(interval)\n            if not added:\n                new_intervals.append((u, v))\n            intervals = new_intervals\n            min_path = n - 1\n            for a, b in intervals:\n                path = (a - 0) + (v - u) + (n - 1 - b) + 1\n                if path < min_path:\n                    min_path = path\n            res.append(min_path)\n        \n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        res = []\n        earliest = 0\n        latest = n - 1\n        current_min = n - 1  # initial path length\n        res.append(current_min)\n        \n        for u, v in queries:\n            if u <= earliest and v >= latest:\n                # This road covers the entire path, so the minimal is 1\n                current_min = 1\n                earliest = u\n                latest = v\n            elif u <= earliest:\n                # Update earliest and check if new path is shorter\n                earliest = min(earliest, u)\n                possible_min = (earliest - 0) + (n - 1 - latest) + 1\n                current_min = min(current_min, possible_min)\n            elif v >= latest:\n                # Update latest and check if new path is shorter\n                latest = max(latest, v)\n                possible_min = (earliest - 0) + (n - 1 - latest) + 1\n                current_min = min(current_min, possible_min)\n            else:\n                # Check if this road provides a shortcut\n                possible_min = (earliest - 0) + (v - u) + (n - 1 - latest) + 1\n                current_min = min(current_min, possible_min)\n                # Also check if this road alone is shorter\n                current_min = min(current_min, v - u + 1)\n            res.append(current_min)\n        \n        return res"
+  ],
+  "total_candidates": 39,
+  "nodes_explored": 39,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "from bisect import bisect_right\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_min = n - 1  # initial path length is n-1\n        res.append(current_min)\n        for u, v in queries:\n            # Find the earliest interval that starts after u\n            idx = bisect_right(intervals, u, key=lambda x: x[0]) - 1\n            if idx >= 0:\n                start = intervals[idx][0]\n                if start <= u:\n                    # We can extend the interval\n                    new_start = start\n                    new_end = max(intervals[idx][1], v)\n                    # Remove the old interval\n                    del intervals[idx]\n                    # Insert the new interval\n                    insert_pos = bisect_right(intervals, new_start, key=lambda x: x[0])\n                    intervals.insert(insert_pos, (new_start, new_end))\n                    # Update the current_min if this new interval covers more\n                    if new_end >= n - 1:\n                        current_min = min(current_min, new_start + (n - 1 - new_end) + 1)\n                    else:\n                        current_min = min(current_min, new_start + 1 + (n - 1 - new_end))\n            else:\n                # No overlapping interval, add the new one\n                insert_pos = bisect_right(intervals, u, key=lambda x: x[0])\n                intervals.insert(insert_pos, (u, v))\n                # Check if this new interval helps\n                if v >= n - 1:\n                    current_min = min(current_min, u + 1)\n                else:\n                    current_min = min(current_min, u + 1 + (n - 1 - v))\n            res.append(current_min)\n        return res",
+      "solution_hash": "fdee5b441f4f67bf7462e5c83b4b0ed8190427c7e282de6d01954e95b1d68d36",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmpzhsoa18d.py\", line 163, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21926555/tmpzhsoa18d.py\", line 122, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\n  File \"/scratch/local/21926555/tmpzhsoa18d.py\", line 91, in shortestDistanceAfterQueries\n    idx = bisect_right(intervals, u, key=lambda x: x[0]) - 1\nTypeError: 'key' is an invalid keyword argument for bisect_right()\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpzhsoa18d.py` failed. (See above for error)\n",
+        "execution_time": 15.441797018051147,
+        "failed_tests": [
+          {
+            "input": "n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]",
+            "expected": "[4, 3, 3, 1]",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmpzhsoa18d.py\", line 163, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21926555/tmpzhsoa18d.py\", line 122, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\n  File \"/scratch/local/21926555/tmpzhsoa18d.py\", line 91, in shortestDistanceAfterQueries\n    idx = bisect_right(intervals, u, key=lambda x: x[0]) - 1\nTypeError: 'key' is an invalid keyword argument for bisect_right()\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpzhsoa18d.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5",
+        "1_9"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        dist = list(range(n))\n        res = []\n        for u, v in queries:\n            if dist[u] + 1 < dist[v]:\n                dist[v] = dist[u] + 1\n                i = v + 1\n                while i < n and dist[i] > dist[i-1] + 1:\n                    dist[i] = dist[i-1] + 1\n                    i += 1\n            res.append(dist[-1])\n        return res",
+      "solution_hash": "53a5bd64ab75240f22279b81d42a93125ba810c393cdf84a53e8ace21db95df7",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmpm3vrozwj.py\", line 138, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21926555/tmpm3vrozwj.py\", line 97, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpm3vrozwj.py` failed. (See above for error)\n",
+        "execution_time": 13.57526707649231,
+        "failed_tests": [
+          {
+            "input": "n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]",
+            "expected": "[4, 3, 3, 1]",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmpm3vrozwj.py\", line 138, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21926555/tmpm3vrozwj.py\", line 97, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpm3vrozwj.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_14",
+        "1_18",
+        "1_22"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        res = []\n        earliest = 0\n        latest = n - 1\n        current_min = n - 1  # initial path length\n        res.append(current_min)\n        \n        for u, v in queries:\n            if u <= earliest and v >= latest:\n                current_min = min(current_min, (earliest - 0) + (n - 1 - latest) + 1)\n                earliest = min(earliest, u)\n                latest = max(latest, v)\n            elif u <= earliest:\n                earliest = min(earliest, u)\n                current_min = min(current_min, (earliest - 0) + (n - 1 - latest) + 1)\n            elif v >= latest:\n                latest = max(latest, v)\n                current_min = min(current_min, (earliest - 0) + (n - 1 - latest) + 1)\n            else:\n                if v - u + 1 < current_min:\n                    current_min = v - u + 1\n            res.append(current_min)\n        \n        return res",
+      "solution_hash": "eddf016a3a64e052f2627f0424e9b4e69c27c4fd3fe49e8eec6f3952232e3440",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmpzeyz22hx.py\", line 150, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21926555/tmpzeyz22hx.py\", line 109, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpzeyz22hx.py` failed. (See above for error)\n",
+        "execution_time": 13.642055749893188,
+        "failed_tests": [
+          {
+            "input": "n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]",
+            "expected": "[4, 3, 3, 1]",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmpzeyz22hx.py\", line 150, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21926555/tmpzeyz22hx.py\", line 109, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpzeyz22hx.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_27",
+        "1_31",
+        "1_35"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 39,
+    "candidates_generated": 39,
+    "tests_passed": 0,
+    "tests_failed": 39,
+    "test_errors": 0,
+    "execution_times": [
+      15.441797018051147,
+      14.823686122894287,
+      14.823686122894287,
+      14.623920679092407,
+      13.655432939529419,
+      13.665178298950195,
+      14.680532217025757,
+      13.638909578323364,
+      13.461647510528564,
+      13.509058713912964,
+      14.469527959823608,
+      13.650094747543335,
+      13.651651620864868,
+      13.57526707649231,
+      14.441249132156372,
+      14.43935227394104,
+      14.441249132156372,
+      14.441249132156372,
+      14.69500732421875,
+      14.318791151046753,
+      14.712534666061401,
+      13.59132432937622,
+      13.564661502838135,
+      14.814594030380249,
+      13.553851127624512,
+      14.814594030380249,
+      13.642055749893188,
+      14.486801862716675,
+      14.644564151763916,
+      13.581226825714111,
+      13.578131437301636,
+      13.563963174819946,
+      13.563963174819946,
+      13.563963174819946,
+      13.563963174819946,
+      13.857332706451416,
+      13.857332706451416,
+      15.090778589248657,
+      13.857332706451416
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 30,
+      "unique_ratio": 0.7692307692307693,
+      "similarity_score": 0.0,
+      "solution_lengths": {
+        "min": 464,
+        "max": 2672,
+        "avg": 1373.5897435897436
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]": 33,
+        "n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]": 6
+      },
+      "first_failing_tests": {
+        "n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]": 33,
+        "n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]": 6
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 9,
+          "improvements": 0,
+          "solved": 0
+        },
+        "2": {
+          "attempts": 27,
+          "improvements": 0,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "type_error": {
+          "attempts": 2,
+          "improvements": 0
+        },
+        "assertion_failure": {
+          "attempts": 10,
+          "improvements": 0
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "type_error->assertion_failure": 5,
+        "assertion_failure->assertion_failure": 30,
+        "type_error->type_error": 1
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.6153846153846154,
+        "solutions_per_depth": {
+          "0": 3,
+          "1": 9,
+          "2": 27
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 0,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.025000000000000022,
+        "pass@3": 0.07499999999999996,
+        "pass@5": 0.125,
+        "pass@10": 0.25
+      },
+      "solutions_evaluated": 40
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.0,
+        "branch_success_rate": 0.0
+      },
+      "error_recovery": {
+        "total_attempts": 12,
+        "total_improvements": 0,
+        "recovery_rate": 0.0
+      },
+      "top_errors": [
+        [
+          "assertion_failure",
+          10
+        ],
+        [
+          "type_error",
+          2
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]",
+          33
+        ],
+        [
+          "n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]",
+          6
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 3718.4167201519012,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.025000000000000022,
+      "pass@3": 0.07499999999999996,
+      "pass@5": 0.125,
+      "pass@10": 0.25
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: 'key' is an invalid keyword argument for bisect_right()",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: 'key' is an invalid keyword argument for bisect_left()",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 26
+          }
+        ],
+        [
+          27,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 27
+          }
+        ],
+        [
+          28,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 28
+          }
+        ],
+        [
+          29,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 29
+          }
+        ],
+        [
+          30,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 30
+          }
+        ],
+        [
+          31,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 31
+          }
+        ],
+        [
+          32,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 32
+          }
+        ],
+        [
+          33,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 33
+          }
+        ],
+        [
+          34,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 34
+          }
+        ],
+        [
+          35,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 35
+          }
+        ],
+        [
+          36,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 36
+          }
+        ],
+        [
+          37,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 37
+          }
+        ],
+        [
+          38,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 38
+          }
+        ],
+        [
+          39,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 39
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 40,
+    "test_cases": 1
+  }
+}

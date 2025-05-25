@@ -1,0 +1,344 @@
+{
+  "problem_id": "count-substrings-that-satisfy-k-constraint-ii",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": "from typing import List\n\nclass Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        def count_substrings(l, r):\n            if l > r:\n                return 0\n            total = 0\n            zero_count = 0\n            one_count = 0\n            left = l\n            for right in range(l, r + 1):\n                if s[right] == '0':\n                    zero_count += 1\n                else:\n                    one_count += 1\n                while zero_count > k and one_count > k:\n                    if s[left] == '0':\n                        zero_count -= 1\n                    else:\n                        one_count -= 1\n                    left += 1\n                total += right - left + 1\n            return total\n        \n        answer = []\n        for query in queries:\n            l, r = query\n            answer.append(count_substrings(l, r))\n        return answer",
+  "passed_solutions": [
+    "from typing import List\n\nclass Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        def count_substrings(l, r):\n            if l > r:\n                return 0\n            total = 0\n            zero_count = 0\n            one_count = 0\n            left = l\n            for right in range(l, r + 1):\n                if s[right] == '0':\n                    zero_count += 1\n                else:\n                    one_count += 1\n                while zero_count > k and one_count > k:\n                    if s[left] == '0':\n                        zero_count -= 1\n                    else:\n                        one_count -= 1\n                    left += 1\n                total += right - left + 1\n            return total\n        \n        answer = []\n        for query in queries:\n            l, r = query\n            answer.append(count_substrings(l, r))\n        return answer",
+    "from typing import List\n\nclass Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        def count_substrings(l, r):\n            if l > r:\n                return 0\n            total = 0\n            zero_count = 0\n            one_count = 0\n            left = l\n            for right in range(l, r + 1):\n                if s[right] == '0':\n                    zero_count += 1\n                else:\n                    one_count += 1\n                while zero_count > k and one_count > k:\n                    if s[left] == '0':\n                        zero_count -= 1\n                    else:\n                        one_count -= 1\n                    left += 1\n                total += right - left + 1\n            return total\n        \n        answer = []\n        for query in queries:\n            l, r = query\n            answer.append(count_substrings(l, r))\n        return answer"
+  ],
+  "all_solutions": [
+    "from typing import List\n\nclass Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix_zeros = [0] * (n + 1)\n        prefix_ones = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix_zeros[i+1] = prefix_zeros[i] + (1 if s[i] == '0' else 0)\n            prefix_ones[i+1] = prefix_ones[i] + (1 if s[i] == '1' else 0)\n        \n        def count_substrings_with_at_most_k_chars(l, r, k, prefix):\n            count = 0\n            for start in range(l, r + 1):\n                left = start\n                right = r + 1\n                while left < right:\n                    mid = (left + right) // 2\n                    if prefix[mid + 1] - prefix[start] <= k:\n                        left = mid + 1\n                    else:\n                        right = mid\n                count += left - start\n            return count\n        \n        answer = []\n        for query in queries:\n            l, r = query\n            total_substrings = (r - l + 1) * (r - l + 2) // 2\n            substrings_with_zeros = count_substrings_with_at_most_k_chars(l, r, k, prefix_zeros)\n            substrings_with_ones = count_substrings_with_at_most_k_chars(l, r, k, prefix_ones)\n            substrings_with_both = 0  # This would be calculated similarly if needed\n            \n            # Using inclusion-exclusion principle\n            valid_substrings = substrings_with_zeros + substrings_with_ones - substrings_with_both\n            answer.append(valid_substrings)\n        \n        return answer",
+    "from typing import List\n\n        class Solution:\n            def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n                n = len(s)\n                prefix_zeros = [0] * (n + 1)\n                prefix_ones = [0] * (n + 1)\n                \n                for i in range(n):\n                    prefix_zeros[i+1] = prefix_zeros[i] + (1 if s[i] == '0' else 0)\n                    prefix_ones[i+1] = prefix_ones[i] + (1 if s[i] == '1' else 0)\n                \n                def count_substrings_with_at_most_k(l, r, k, prefix):\n                    count = 0\n                    left = l\n                    zero_count = 0\n                    for right in range(l, r + 1):\n                        zero_count += prefix[right + 1] - prefix[right]\n                        while zero_count > k:\n                            zero_count -= prefix[left] - prefix[left - 1]\n                            left += 1\n                        count += right - left + 1\n                    return count\n                \n                answer = []\n                for query in queries:\n                    l, r = query\n                    total_substrings = (r - l + 1) * (r - l + 2) // 2\n                    substrings_with_zeros = count_substrings_with_at_most_k(l, r, k, prefix_zeros)\n                    substrings_with_ones = count_substrings_with_at_most_k(l, r, k, prefix_ones)\n                    substrings_with_both = count_substrings_with_at_most_k(l, r, k, prefix_zeros) + count_substrings_with_at_most_k(l, r, k, prefix_ones) - total_substrings\n                    valid_substrings = substrings_with_zeros + substrings_with_ones - substrings_with_both\n                    answer.append(valid_substrings)\n                return answer",
+    "from typing import List\n\nclass Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix_zeros = [0] * (n + 1)\n        prefix_ones = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix_zeros[i+1] = prefix_zeros[i] + (1 if s[i] == '0' else 0)\n            prefix_ones[i+1] = prefix_ones[i] + (1 if s[i] == '1' else 0)\n        \n        def count_substrings_with_at_most_k(l, r, k, prefix):\n            count = 0\n            left = l\n            sum_count = 0\n            for right in range(l, r + 1):\n                sum_count += prefix[right + 1] - prefix[right]\n                while sum_count > k:\n                    sum_count -= prefix[left] - prefix[left - 1]\n                    left += 1\n                count += right - left + 1\n            return count\n        \n        answer = []\n        for query in queries:\n            l, r = query\n            total_substrings = (r - l + 1) * (r - l + 2) // 2\n            substrings_with_zeros = count_substrings_with_at_most_k(l, r, k, prefix_zeros)\n            substrings_with_ones = count_substrings_with_at_most_k(l, r, k, prefix_ones)\n            # Use inclusion-exclusion principle to avoid double-counting\n            substrings_with_both = substrings_with_zeros + substrings_with_ones - total_substrings\n            valid_substrings = substrings_with_zeros + substrings_with_ones - substrings_with_both\n            answer.append(valid_substrings)\n        return answer",
+    "from typing import List\n\nclass Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix_zeros = [0] * (n + 1)\n        prefix_ones = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix_zeros[i+1] = prefix_zeros[i] + (1 if s[i] == '0' else 0)\n            prefix_ones[i+1] = prefix_ones[i] + (1 if s[i] == '1' else 0)\n        \n        def count_substrings_with_at_most_k(l, r, k, prefix):\n            count = 0\n            left = l\n            sum = 0\n            for right in range(l, r + 1):\n                sum += prefix[right + 1] - prefix[right]\n                while sum > k:\n                    sum -= prefix[left] - prefix[left - 1]\n                    left += 1\n                count += right - left + 1\n            return count\n        \n        answer = []\n        for query in queries:\n            l, r = query\n            total_substrings = (r - l + 1) * (r - l + 2) // 2\n            substrings_with_zeros = count_substrings_with_at_most_k(l, r, k, prefix_zeros)\n            substrings_with_ones = count_substrings_with_at_most_k(l, r, k, prefix_ones)\n            substrings_with_both = substrings_with_zeros + substrings_with_ones - total_substrings\n            valid_substrings = substrings_with_zeros + substrings_with_ones - substrings_with_both\n            answer.append(valid_substrings)\n        return answer",
+    "from typing import List\n\n        class Solution:\n            def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n                n = len(s)\n                prefix_zeros = [0] * (n + 1)\n                prefix_ones = [0] * (n + 1)\n                \n                for i in range(n):\n                    prefix_zeros[i+1] = prefix_zeros[i] + (1 if s[i] == '0' else 0)\n                    prefix_ones[i+1] = prefix_ones[i] + (1 if s[i] == '1' else 0)\n                \n                def count_substrings_with_at_most_k(l, r, k, prefix):\n                    count = 0\n                    left = l\n                    sum = 0\n                    for right in range(l, r + 1):\n                        sum += prefix[right + 1] - prefix[right]\n                        while sum > k:\n                            sum -= prefix[left] - prefix[left - 1]\n                            left += 1\n                        count += right - left + 1\n                    return count\n                \n                answer = []\n                for query in queries:\n                    l, r = query\n                    total_substrings = (r - l + 1) * (r - l + 2) // 2\n                    substrings_with_zeros = count_substrings_with_at_most_k(l, r, k, prefix_zeros)\n                    substrings_with_ones = count_substrings_with_at_most_k(l, r, k, prefix_ones)\n                    substrings_with_both = count_substrings_with_at_most_k(l, r, k, prefix_zeros) + count_substrings_with_at_most_k(l, r, k, prefix_ones) - total_substrings\n                    valid_substrings = substrings_with_zeros + substrings_with_ones - substrings_with_both\n                    answer.append(valid_substrings)\n                return answer",
+    "from typing import List\n\nclass Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix_zeros = [0] * (n + 1)\n        prefix_ones = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix_zeros[i+1] = prefix_zeros[i] + (1 if s[i] == '0' else 0)\n            prefix_ones[i+1] = prefix_ones[i] + (1 if s[i] == '1' else 0)\n        \n        def count_substrings_with_at_most_k(l, r, k, prefix):\n            count = 0\n            right = l\n            left_zeros = 0\n            for right in range(l, r + 1):\n                left_zeros = max(left_zeros, prefix[right + 1] - prefix[l])\n                if left_zeros > k:\n                    break\n                count += right - l + 1\n            return count\n        \n        answer = []\n        for query in queries:\n            l, r = query\n            total_substrings = (r - l + 1) * (r - l + 2) // 2\n            substrings_with_at_most_k_zeros = count_substrings_with_at_most_k(l, r, k, prefix_zeros)\n            substrings_with_at_most_k_ones = count_substrings_with_at_most_k(l, r, k, prefix_ones)\n            substrings_with_more_than_k_zeros_and_more_than_k_ones = total_substrings - substrings_with_at_most_k_zeros - substrings_with_at_most_k_ones + count_substrings_with_at_most_k(l, r, k, prefix_zeros) + count_substrings_with_at_most_k(l, r, k, prefix_ones) - total_substrings\n            valid_substrings = substrings_with_at_most_k_zeros + substrings_with_at_most_k_ones - substrings_with_more_than_k_zeros_and_more_than_k_ones\n            answer.append(valid_substrings)\n        \n        return answer",
+    "from typing import List\n\nclass Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix_zeros = [0] * (n + 1)\n        prefix_ones = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix_zeros[i+1] = prefix_zeros[i] + (1 if s[i] == '0' else 0)\n            prefix_ones[i+1] = prefix_ones[i] + (1 if s[i] == '1' else 0)\n        \n        def count_substrings_with_at_most_k(l, r, k, prefix):\n            count = 0\n            left = l\n            zeros = 0\n            for right in range(l, r + 1):\n                zeros = prefix[right + 1] - prefix[l]\n                while zeros > k:\n                    left += 1\n                    zeros = prefix[right + 1] - prefix[left]\n                count += right - left + 1\n            return count\n        \n        answer = []\n        for query in queries:\n            l, r = query\n            total_substrings = (r - l + 1) * (r - l + 2) // 2\n            substrings_with_at_most_k_zeros = count_substrings_with_at_most_k(l, r, k, prefix_zeros)\n            substrings_with_at_most_k_ones = count_substrings_with_at_most_k(l, r, k, prefix_ones)\n            substrings_with_at_most_k_zeros_and_ones = count_substrings_with_at_most_k(l, r, k, prefix_zeros) + count_substrings_with_at_most_k(l, r, k, prefix_ones) - total_substrings\n            valid_substrings = substrings_with_at_most_k_zeros + substrings_with_at_most_k_ones - substrings_with_at_most_k_zeros_and_ones\n            answer.append(valid_substrings)\n        \n        return answer",
+    "from typing import List\n\n        class Solution:\n            def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n                n = len(s)\n                prefix_zeros = [0] * (n + 1)\n                prefix_ones = [0] * (n + 1)\n                \n                for i in range(n):\n                    prefix_zeros[i+1] = prefix_zeros[i] + (1 if s[i] == '0' else 0)\n                    prefix_ones[i+1] = prefix_ones[i] + (1 if s[i] == '1' else 0)\n                \n                def count_substrings_with_more_than_k(l, r, k, prefix):\n                    count = 0\n                    for length in range(1, r - l + 2):\n                        for start in range(l, r - length + 2):\n                            end = start + length - 1\n                            count += 1 if prefix[end + 1] - prefix[start] > k else 0\n                    return count\n                \n                answer = []\n                for query in queries:\n                    l, r = query\n                    total_substrings = (r - l + 1) * (r - l + 2) // 2\n                    substrings_with_more_than_k_zeros = count_substrings_with_more_than_k(l, r, k, prefix_zeros)\n                    substrings_with_more_than_k_ones = count_substrings_with_more_than_k(l, r, k, prefix_ones)\n                    substrings_with_more_than_k_zeros_and_more_than_k_ones = 0\n                    for length in range(1, r - l + 2):\n                        for start in range(l, r - length + 2):\n                            end = start + length - 1\n                            zeros = prefix_zeros[end + 1] - prefix_zeros[start]\n                            ones = prefix_ones[end + 1] - prefix_ones[start]\n                            if zeros > k and ones > k:\n                                substrings_with_more_than_k_zeros_and_more_than_k_ones += 1\n                    valid_substrings = total_substrings - substrings_with_more_than_k_zeros - substrings_with_more_than_k_ones + substrings_with_more_than_k_zeros_and_more_than_k_ones\n                    answer.append(valid_substrings)\n                \n                return answer",
+    "from typing import List\n\nclass Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix_zeros = [0] * (n + 1)\n        prefix_ones = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix_zeros[i+1] = prefix_zeros[i] + (1 if s[i] == '0' else 0)\n            prefix_ones[i+1] = prefix_ones[i] + (1 if s[i] == '1' else 0)\n        \n        def count_substrings_with_at_most_k(l, r, k, prefix):\n            count = 0\n            for start in range(l, r + 1):\n                left = start\n                right = r\n                while left <= right:\n                    mid = (left + right) // 2\n                    substr_count = prefix[mid + 1] - prefix[start]\n                    if substr_count <= k:\n                        left = mid + 1\n                    else:\n                        right = mid - 1\n                count += left - start\n            return count\n        \n        answer = []\n        for query in queries:\n            l, r = query\n            total_substrings = (r - l + 1) * (r - l + 2) // 2\n            substrings_with_at_most_k_zeros = count_substrings_with_at_most_k(l, r, k, prefix_zeros)\n            substrings_with_at_most_k_ones = count_substrings_with_at_most_k(l, r, k, prefix_ones)\n            # Calculate substrings with more than k zeros and more than k ones\n            substrings_with_more_than_k_zeros = total_substrings - substrings_with_at_most_k_zeros\n            substrings_with_more_than_k_ones = total_substrings - substrings_with_at_most_k_ones\n            # Substrings with more than k zeros and more than k ones are those\n            # that are counted in both substrings_with_more_than_k_zeros and\n            # substrings_with_more_than_k_ones\n            # However, we need to find the intersection of these two sets.\n            # This can be computed as:\n            # total_substrings - substrings_with_at_most_k_zeros - substrings_with_at_most_k_ones + substrings_with_at_most_k_zeros_and_ones\n            # But since we don't have substrings_with_at_most_k_zeros_and_ones directly,\n            # we need to adjust our approach.\n            # Instead, we can calculate the substrings that have at most k zeros or at most k ones\n            # which is substrings_with_at_most_k_zeros + substrings_with_at_most_k_ones - substrings_with_at_most_k_zeros_and_ones\n            # But we don't have substrings_with_at_most_k_zeros_and_ones.\n            # To find the valid substrings, it's easier to calculate:\n            # substrings_with_at_most_k_zeros + substrings_with_at_most_k_ones - substrings_with_at_most_k_zeros_and_at_most_k_ones\n            # substrings_with_at_most_k_zeros_and_at_most_k_ones can be calculated using inclusion-exclusion.\n            # However, a simpler way is to calculate the total substrings and subtract the substrings that violate both constraints.\n            # Substrings that violate both constraints are those with more than k zeros and more than k ones.\n            # So, valid substrings = total_substrings - substrings_with_more_than_k_zeros_and_more_than_k_ones\n            # To find substrings_with_more_than_k_zeros_and_more_than_k_ones, we can iterate over all possible substrings,\n            # but that would be inefficient.\n            # Instead, we can use the principle that:\n            # substrings_with_more_than_k_zeros_and_more_than_k_ones = substrings_with_more_than_k_zeros + substrings_with_more_than_k_ones - substrings_with_more_than_k_zeros_or_more_than_k_ones\n            # And substrings_with_more_than_k_zeros_or_more_than_k_ones = total_substrings - substrings_with_at_most_k_zeros_and_at_most_k_ones\n            # This is getting too complicated.\n            # A better approach is to calculate the number of substrings that have at most k zeros or at most k ones.\n            # This can be calculated as:\n            # substrings_with_at_most_k_zeros + substrings_with_at_most_k_ones - substrings_with_at_most_k_zeros_and_at_most_k_ones\n            # But substrings_with_at_most_k_zeros_and_at_most_k_ones is harder to compute directly.\n            # An alternative is to iterate over all possible substrings, but that's not efficient for large n.\n            # Given the constraints (n <= 1e5 and queries.length <= 1e5), we need a more efficient approach.\n            # Let's consider that for each query, we can precompute the number of substrings with at most k zeros and at most k ones separately,\n            # and then find a way to combine them without double-counting.\n            # We can use the inclusion-exclusion principle:\n            # Total valid substrings = substrings_with_at_most_k_zeros + substrings_with_at_most_k_ones - substrings_with_at_most_k_zeros_and_at_most_k_ones\n            # However, calculating substrings_with_at_most_k_zeros_and_at_most_k_ones directly is not straightforward.\n            # Instead, we can observe that the total number of substrings is (r - l + 1) * (r - l + 2) / 2\n            # Then, substrings that do not satisfy the k-constraint are those that have more than k zeros and more than k ones.\n            # So, valid_substrings = total_substrings - substrings_with_more_than_k_zeros_and_more_than_k_ones\n            # Now, we need to find substrings_with_more_than_k_zeros_and_more_than_k_ones.\n            # This is equal to substrings where the number of zeros > k and the number of ones > k.\n            # To find this, we can iterate over all possible starting indices and find the smallest ending index where the number of zeros exceeds k\n            # and the number of ones exceeds k.\n            # However, this approach may still be too slow for the given constraints.\n            # We need a better way to compute the number of substrings that have more than k zeros and more than k ones.\n            # Let's consider using sliding windows to find the number of substrings with at most k zeros and at most k ones.\n            # For each starting index, find the maximum ending index such that the substring has at most k zeros and at most k ones.\n            # Then, the number of such substrings is the sum of (ending_index - starting_index + 1) for each starting_index.\n            # However, this approach is similar to what we already have, but we need to find a way to compute the intersection efficiently.\n            # Given time constraints, let's try a different approach.\n            # We can precompute for each position the farthest we can go to the right while keeping the number of zeros <= k and ones <= k.\n            # Then, for each query, we can sum up these counts within the query range.\n            # But this might still be too slow for 1e5 queries.\n            # Another idea is to precompute prefix sums of the number of substrings that satisfy the constraints up to each index.\n            # Then, for each query, we can compute the number of valid substrings within the range by subtracting the prefix sums.\n            # This seems promising.\n            # Let's proceed with this approach.\n            # We'll precompute two prefix arrays:\n            # - prefix_zeros_count: prefix_zeros_count[i] is the number of substrings ending at i with at most k zeros.\n            # - prefix_ones_count: prefix_ones_count[i] is the number of substrings ending at i with at most k ones.\n            # Then, for each query [l, r], the number of substrings with at most k zeros is prefix_zeros_count[r] - prefix_zeros_count[l - 1]\n            # Similarly for ones.\n            # However, we still need to find the number of substrings with at most k zeros or at most k ones.\n            # Using inclusion-exclusion, this is:\n            # (prefix_zeros_count[r] - prefix_zeros_count[l - 1]) + (prefix_ones_count[r] - prefix_ones_count[l - 1]) - (intersection)\n            # The intersection term is the number of substrings with at most k zeros and at most k ones.\n            # Computing this intersection efficiently is challenging.\n            # An alternative is to compute the total number of substrings in the range and subtract the number of substrings that have more than k zeros and more than k ones.\n            # So, valid_substrings = total_substrings - substrings_with_more_than_k_zeros_and_more_than_k_ones\n            # Now, we need to find substrings_with_more_than_k_zeros_and_more_than_k_ones.\n            # This is equal to substrings where the number of zeros > k and the number of ones > k.\n            # To find this, we can use a sliding window approach for each query to count such substrings.\n            # But this would be inefficient for 1e5 queries.\n            # We need a better way.\n            # Let's consider precomputing the number of substrings ending at each position that have more than k zeros and more than k ones.\n            # Then, we can use prefix sums to answer the queries efficiently.\n            # Define:\n            # - bad_substrings[i]: number of substrings ending at i with more than k zeros and more than k ones.\n            # Then, for each query [l, r], the number of bad substrings is sum of bad_substrings[l..r].\n            # We can precompute the prefix sum of bad_substrings to answer queries quickly.\n            # Now, let's implement this approach.\n            # First, we need to compute for each position i, the number of substrings ending at i that have more than k zeros and more than k ones.\n            # We can use sliding windows to find, for each ending position i, the earliest starting position where the substring has more than k zeros and more than k ones.\n            # Then, the number of such substrings ending at i is (i - starting_position + 1).\n            # Similarly, we can compute this for zeros and ones separately and then find the intersection.\n            # This seems complex. Let's think differently.\n            # We can iterate over each position i from l to r in the query and for each i, find the smallest j such that the substring s[i..j] has more than k zeros and more than k ones.\n            # Then, the number of bad substrings ending at i is (j - i).\n            # However, this would be too slow for the given constraints.\n            # We need a more efficient way.\n            # Let's consider precomputing for each position i, the earliest position j where the substring s[i..j] has more than k zeros and more than k ones.\n            # Then, we can use these precomputed values to calculate the number of bad substrings for each query efficiently.\n            # This can be done using two pointers for zeros and ones separately, and then taking the maximum of the two j's.\n            # Wait, but we need both conditions to be satisfied simultaneously.\n            # This is tricky.\n            # Maybe we can use a two-pointer sliding window approach to find, for each starting index, the earliest ending index where both zeros and ones exceed k.\n            # Then, the number of bad substrings for that starting index is (n - j).\n            # Summing over all starting indices would give us the total number of bad substrings.\n            # However, this needs to be done efficiently for all queries.\n            # Given time constraints, let's try to implement this optimized approach.\n            # First, precompute the total number of substrings for each query, which is straightforward.\n            # Then, precompute the number of bad substrings for each query, i.e., substrings with more than k zeros and more than k ones.\n            # Finally, subtract the number of bad substrings from the total substrings to get the number of valid substrings.\n            # To compute the number of bad substrings efficiently, we can precompute for each starting index the earliest ending index where both zeros and ones exceed k.\n            # Then, for each query [l, r], sum the number of bad substrings starting from each l <= start <= r.\n            # To make this efficient, we can precompute a prefix sum of bad substrings up to each index.\n            # Then, for each query [l, r], the number of bad substrings is prefix_bad[r] - prefix_bad[l - 1].\n            # Now, let's proceed to implement this approach.\n            # First, we need to compute for each starting index, the number of bad substrings starting at that index.\n            # We can iterate through the string and for each starting index, find the smallest ending index where the substring has more than k zeros and more than k ones.\n            # Then, the number of bad substrings starting at start is (n - end).\n            # We can accumulate these counts in a prefix sum array.\n            # Then, for each query [l, r], the number of bad substrings is prefix_bad[r] - prefix_bad[l - 1].\n            # Finally, valid_substrings = total_substrings - (prefix_bad[r] - prefix_bad[l - 1])\n            # This should be efficient enough for the given constraints.\n            # Let's implement this logic.\n            n = len(s)\n            prefix_zeros = [0] * (n + 1)\n            prefix_ones = [0] * (n + 1)\n            for i in range(n):\n                prefix_zeros[i + 1] = prefix_zeros[i] + (1 if s[i] == '0' else 0)\n                prefix_ones[i + 1] = prefix_ones[i] + (1 if s[i] == '1' else 0)\n            \n            bad_substrings = [0] * (n + 1)\n            j_zeros = 0\n            j_ones = 0\n            count_zeros = 0\n            count_ones = 0\n            for i in range(n):\n                while j_zeros <= n and count_zeros <= k:\n                    j_zeros += 1\n                    if j_zeros <= n:\n                        count_zeros = prefix_zeros[j_zeros] - prefix_zeros[i]\n                while j_ones <= n and count_ones <= k:\n                    j_ones += 1\n                    if j_ones <= n:\n                        count_ones = prefix_ones[j_ones] - prefix_ones[i]\n                end = max(j_zeros, j_ones)\n                bad_substrings[i] = n - end + 1\n                # Move to the next starting index\n                if s[i] == '0':\n                    count_zeros -= 1\n                else:\n                    count_ones -= 1\n            # Precompute prefix sum of bad_substrings\n            prefix_bad = [0] * (n + 1)\n            for i in range(n):\n                prefix_bad[i + 1] = prefix_bad[i] + bad_substrings[i]\n            # Now, for each query [l, r], calculate the number of bad substrings\n            answer = []\n            for query in queries:\n                l, r = query\n                total_substrings = (r - l + 1) * (r - l + 2) // 2\n                bad = prefix_bad[r + 1] - prefix_bad[l]\n                valid_substrings = total_substrings - bad\n                answer.append(valid_substrings)\n            return answer",
+    "from typing import List\n\nclass Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix_zeros = [0] * (n + 1)\n        prefix_ones = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix_zeros[i+1] = prefix_zeros[i] + (1 if s[i] == '0' else 0)\n            prefix_ones[i+1] = prefix_ones[i] + (1 if s[i] == '1' else 0)\n        \n        def count_substrings_with_more_than_k_chars(l, r, k, prefix):\n            count = 0\n            for start in range(l, r + 1):\n                left = start\n                right = r + 1\n                while left < right:\n                    mid = (left + right) // 2\n                    if prefix[mid + 1] - prefix[start] > k:\n                        left = mid + 1\n                    else:\n                        right = mid\n                count += left - start\n            return count\n        \n        answer = []\n        for query in queries:\n            l, r = query\n            total_substrings = (r - l + 1) * (r - l + 2) // 2\n            substrings_with_more_than_k_zeros = count_substrings_with_more_than_k_chars(l, r, k, prefix_zeros)\n            substrings_with_more_than_k_ones = count_substrings_with_more_than_k_chars(l, r, k, prefix_ones)\n            # Substrings that have more than k zeros and more than k ones are counted twice, so we need to subtract them once\n            substrings_with_more_than_k_zeros_and_ones = 0\n            for start in range(l, r + 1):\n                zeros = prefix_zeros[r + 1] - prefix_zeros[start]\n                ones = prefix_ones[r + 1] - prefix_ones[start]\n                if zeros > k and ones > k:\n                    substrings_with_more_than_k_zeros_and_ones += 1\n            # Total invalid substrings are those with more than k zeros plus those with more than k ones minus those with both\n            invalid_substrings = substrings_with_more_than_k_zeros + substrings_with_more_than_k_ones - substrings_with_more_than_k_zeros_and_ones\n            valid_substrings = total_substrings - invalid_substrings\n            answer.append(valid_substrings)\n        \n        return answer",
+    "from typing import List\n\nclass Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        def count_substrings(l, r):\n            if l > r:\n                return 0\n            total = 0\n            zero_count = 0\n            one_count = 0\n            left = l\n            for right in range(l, r + 1):\n                if s[right] == '0':\n                    zero_count += 1\n                else:\n                    one_count += 1\n                while zero_count > k and one_count > k:\n                    if s[left] == '0':\n                        zero_count -= 1\n                    else:\n                        one_count -= 1\n                    left += 1\n                total += right - left + 1\n            return total\n        \n        answer = []\n        for query in queries:\n            l, r = query\n            answer.append(count_substrings(l, r))\n        return answer",
+    "from typing import List\n\nclass Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix_zeros = [0] * (n + 1)\n        prefix_ones = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix_zeros[i+1] = prefix_zeros[i] + (1 if s[i] == '0' else 0)\n            prefix_ones[i+1] = prefix_ones[i] + (1 if s[i] == '1' else 0)\n        \n        def count_substrings_with_at_most_k_chars(l, r, k, prefix):\n            count = 0\n            left = l\n            zeros = 0\n            for right in range(l, r + 1):\n                zeros += prefix[right + 1] - prefix[right]\n                while zeros > k:\n                    zeros -= prefix[left + 1] - prefix[left]\n                    left += 1\n                count += right - left + 1\n            return count\n        \n        answer = []\n        for query in queries:\n            l, r = query\n            total_substrings = (r - l + 1) * (r - l + 2) // 2\n            substrings_with_at_most_k_zeros = count_substrings_with_at_most_k_chars(l, r, k, prefix_zeros)\n            substrings_with_at_most_k_ones = count_substrings_with_at_most_k_chars(l, r, k, prefix_ones)\n            # Substrings that have at most k zeros and at most k ones are counted in both, so we need to subtract them once\n            substrings_with_at_most_k_zeros_and_ones = 0\n            left_zeros = l\n            left_ones = l\n            zeros_count = 0\n            ones_count = 0\n            for right in range(l, r + 1):\n                zeros_count += prefix_zeros[right + 1] - prefix_zeros[right]\n                ones_count += prefix_ones[right + 1] - prefix_ones[left_ones]\n                while zeros_count > k:\n                    zeros_count -= prefix_zeros[left_zeros + 1] - prefix_zeros[left_zeros]\n                    left_zeros += 1\n                while ones_count > k:\n                    ones_count -= prefix_ones[left_ones + 1] - prefix_ones[left_ones]\n                    left_ones += 1\n                # Find the maximum left position where both zeros and ones are <= k\n                left = max(left_zeros, left_ones)\n                substrings_with_at_most_k_zeros_and_ones += right - left + 1\n            # Total valid substrings are those with at most k zeros plus those with at most k ones minus those with both\n            valid_substrings = substrings_with_at_most_k_zeros + substrings_with_at_most_k_ones - substrings_with_at_most_k_zeros_and_ones\n            answer.append(valid_substrings)\n        \n        return answer",
+    "from typing import List\n\nclass Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        def count_substrings(l, r):\n            if l > r:\n                return 0\n            total = 0\n            zero_count = 0\n            one_count = 0\n            left = l\n            for right in range(l, r + 1):\n                if s[right] == '0':\n                    zero_count += 1\n                else:\n                    one_count += 1\n                while zero_count > k and one_count > k:\n                    if s[left] == '0':\n                        zero_count -= 1\n                    else:\n                        one_count -= 1\n                    left += 1\n                total += right - left + 1\n            return total\n        \n        answer = []\n        for query in queries:\n            l, r = query\n            answer.append(count_substrings(l, r))\n        return answer"
+  ],
+  "total_candidates": 13,
+  "nodes_explored": 13,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "from typing import List\n\nclass Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix_zeros = [0] * (n + 1)\n        prefix_ones = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix_zeros[i+1] = prefix_zeros[i] + (1 if s[i] == '0' else 0)\n            prefix_ones[i+1] = prefix_ones[i] + (1 if s[i] == '1' else 0)\n        \n        def count_substrings_with_at_most_k_chars(l, r, k, prefix):\n            count = 0\n            for start in range(l, r + 1):\n                left = start\n                right = r + 1\n                while left < right:\n                    mid = (left + right) // 2\n                    if prefix[mid + 1] - prefix[start] <= k:\n                        left = mid + 1\n                    else:\n                        right = mid\n                count += left - start\n            return count\n        \n        answer = []\n        for query in queries:\n            l, r = query\n            total_substrings = (r - l + 1) * (r - l + 2) // 2\n            substrings_with_zeros = count_substrings_with_at_most_k_chars(l, r, k, prefix_zeros)\n            substrings_with_ones = count_substrings_with_at_most_k_chars(l, r, k, prefix_ones)\n            substrings_with_both = 0  # This would be calculated similarly if needed\n            \n            # Using inclusion-exclusion principle\n            valid_substrings = substrings_with_zeros + substrings_with_ones - substrings_with_both\n            answer.append(valid_substrings)\n        \n        return answer",
+      "solution_hash": "5d18eeaf89815698127cf298554104ee01a0d4320ee797b132bf237e02149e0a",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmppq_lz3lv.py\", line 199, in <module>\n    check(Solution().countKConstraintSubstrings)\n  File \"/scratch/local/21926555/tmppq_lz3lv.py\", line 123, in check\n    assert candidate(s = \"010101\",k = 1,queries = [[0, 5], [1, 4], [2, 3]]) == [15, 9, 3]\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmppq_lz3lv.py` failed. (See above for error)\n",
+        "execution_time": 16.675922870635986,
+        "failed_tests": [
+          {
+            "input": "s = \"010101\",k = 1,queries = [[0, 5], [1, 4], [2, 3]]",
+            "expected": "[15, 9, 3]",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmppq_lz3lv.py\", line 199, in <module>\n    check(Solution().countKConstraintSubstrings)\n  File \"/scratch/local/21926555/tmppq_lz3lv.py\", line 123, in check\n    assert candidate(s = \"010101\",k = 1,queries = [[0, 5], [1, 4], [2, 3]]) == [15, 9, 3]\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmppq_lz3lv.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5",
+        "1_9"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 13,
+    "candidates_generated": 13,
+    "tests_passed": 2,
+    "tests_failed": 11,
+    "test_errors": 0,
+    "execution_times": [
+      16.675922870635986,
+      17.080480098724365,
+      16.304426431655884,
+      15.54260802268982,
+      15.794366836547852,
+      13.946884155273438,
+      18.684358596801758,
+      15.813556909561157,
+      15.32689619064331,
+      16.59918212890625,
+      14.011481761932373,
+      17.07839870452881,
+      14.011481761932373
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 1,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 12,
+      "unique_ratio": 0.9230769230769231,
+      "similarity_score": 0.0,
+      "solution_lengths": {
+        "min": 940,
+        "max": 14756,
+        "avg": 2677.6153846153848
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "s = \"010101\",k = 1,queries = [[0, 5], [1, 4], [2, 3]]": 8
+      },
+      "first_failing_tests": {
+        "s = \"010101\",k = 1,queries = [[0, 5], [1, 4], [2, 3]]": 8
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 3,
+          "improvements": 1,
+          "solved": 0
+        },
+        "2": {
+          "attempts": 9,
+          "improvements": 1,
+          "solved": 2
+        }
+      },
+      "error_types": {
+        "assertion_failure": {
+          "attempts": 3,
+          "improvements": 4
+        },
+        "other_error": {
+          "attempts": 1,
+          "improvements": 0
+        }
+      },
+      "test_case_improvements": {
+        "s = \"010101\",k = 1,queries = [[0, 5], [1, 4], [2, 3]]": 2
+      },
+      "error_transitions": {
+        "assertion_failure->other_error": 2,
+        "other_error->index_error": 2,
+        "other_error->other_error": 1,
+        "assertion_failure->assertion_failure": 5,
+        "assertion_failure->unknown": 2
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.6153846153846154,
+        "solutions_per_depth": {
+          "0": 1,
+          "1": 3,
+          "2": 9
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 0,
+          "2": 2
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.2142857142857143,
+        "pass@3": 0.5467032967032968,
+        "pass@5": 0.7692307692307693,
+        "pass@10": 0.989010989010989
+      },
+      "solutions_evaluated": 14,
+      "passing_solution_depths": {
+        "min": 2,
+        "max": 2,
+        "avg": 2.0
+      }
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.15384615384615385,
+        "branch_success_rate": 0.15384615384615385
+      },
+      "error_recovery": {
+        "total_attempts": 4,
+        "total_improvements": 4,
+        "recovery_rate": 1.0
+      },
+      "top_errors": [
+        [
+          "assertion_failure",
+          3
+        ],
+        [
+          "other_error",
+          1
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "s = \"010101\",k = 1,queries = [[0, 5], [1, 4], [2, 3]]",
+          8
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 1,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 1225.3633406162262,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.2142857142857143,
+      "pass@3": 0.5467032967032968,
+      "pass@5": 0.7692307692307693,
+      "pass@10": 0.989010989010989
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: list index out of range",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: list index out of range",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 13
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 14,
+    "test_cases": 1
+  }
+}

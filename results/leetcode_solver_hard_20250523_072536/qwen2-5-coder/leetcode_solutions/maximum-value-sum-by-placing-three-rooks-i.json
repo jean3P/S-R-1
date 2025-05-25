@@ -1,0 +1,642 @@
+{
+  "problem_id": "maximum-value-sum-by-placing-three-rooks-i",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        row_maxes = [[(0, 0)] * 3 for _ in range(m)]\n        col_maxes = [[(0, 0)] * 3 for _ in range(n)]\n        \n        for i in range(m):\n            for j in range(n):\n                val = board[i][j]\n                # Update row_maxes\n                row_maxes[i] = sorted(row_maxes[i] + [(val, j)], reverse=True)[:3]\n                # Update col_maxes\n                col_maxes[j] = sorted(col_maxes[j] + [(val, i)], reverse=True)[:3]\n        \n        max_sum = 0\n        \n        # Iterate over all possible placements of the first rook\n        for i in range(m):\n            for j in range(n):\n                val1 = board[i][j]\n                # Get the top 3 values in the current row excluding the current column\n                row_others = [(v, c) for v, c in row_maxes[i] if c != j][:2]\n                # Get the top 3 values in the current column excluding the current row\n                col_others = [(v, r) for v, r in col_maxes[j] if r != i][:2]\n                \n                # Check all combinations of the remaining two rooks\n                for (val2, col2) in row_others:\n                    for (val3, row3) in col_others:\n                        if col2 != j and col2 != col3 and row3 != i:\n                            max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        row_maxes = [[(0, 0)] * 3 for _ in range(m)]\n        col_maxes = [[(0, 0)] * 3 for _ in range(n)]\n        \n        for i in range(m):\n            for j in range(n):\n                val = board[i][j]\n                # Update row_maxes\n                row_maxes[i] = sorted(row_maxes[i] + [(val, j)], reverse=True)[:3]\n                # Update col_maxes\n                col_maxes[j] = sorted(col_maxes[j] + [(val, i)], reverse=True)[:3]\n        \n        max_sum = 0\n        \n        # Iterate over all possible placements of the first rook\n        for i in range(m):\n            for j in range(n):\n                val1 = board[i][j]\n                # Get the top 3 values in the current row excluding the current column\n                row_others = [(v, c) for v, c in row_maxes[i] if c != j][:2]\n                # Get the top 3 values in the current column excluding the current row\n                col_others = [(v, r) for v, r in col_maxes[j] if r != i][:2]\n                \n                # Check all combinations of the remaining two rooks\n                for (val2, col2) in row_others:\n                    for (val3, row3) in col_others:\n                        if col2 != j and row3 != i:\n                            max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Helper function to update the top 3 values\n        def update_top_three(top_three, val, index):\n            if val > top_three[0][0]:\n                top_three[2] = top_three[1]\n                top_three[1] = top_three[0]\n                top_three[0] = (val, index)\n            elif val > top_three[1][0]:\n                top_three[2] = top_three[1]\n                top_three[1] = (val, index)\n            elif val > top_three[2][0]:\n                top_three[2] = (val, index)\n        \n        # Precompute the top 3 values in each row and column\n        row_maxes = [[(0, 0), (0, 0), (0, 0)] for _ in range(m)]\n        col_maxes = [[(0, 0), (0, 0), (0, 0)] for _ in range(n)]\n        \n        for i in range(m):\n            for j in range(n):\n                val = board[i][j]\n                # Update row_maxes\n                update_top_three(row_maxes[i], val, j)\n                # Update col_maxes\n                update_top_three(col_maxes[j], val, i)\n        \n        max_sum = 0\n        \n        # Iterate over all possible placements of the first rook\n        for i in range(m):\n            for j in range(n):\n                val1 = board[i][j]\n                # Get the top 3 values in the current row excluding the current column\n                row_others = [(v, c) for v, c in row_maxes[i] if c != j][:2]\n                # Get the top 3 values in the current column excluding the current row\n                col_others = [(v, r) for v, r in col_maxes[j] if r != i][:2]\n                \n                # Check all combinations of the remaining two rooks\n                for (val2, col2) in row_others:\n                    for (val3, row3) in col_others:\n                        if col2 != j and row3 != i:\n                            max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        row_maxes = [[(0, 0)] * 3 for _ in range(m)]\n        col_maxes = [[(0, 0)] * 3 for _ in range(n)]\n        \n        for i in range(m):\n            for j in range(n):\n                val = board[i][j]\n                # Update row_maxes\n                if val > row_maxes[i][0][0]:\n                    row_maxes[i] = [(val, j)] + row_maxes[i][:2]\n                elif val > row_maxes[i][1][0]:\n                    row_maxes[i] = [row_maxes[i][0], (val, j), row_maxes[i][1]]\n                elif val > row_maxes[i][2][0]:\n                    row_maxes[i] = row_maxes[i][:2] + [(val, j)]\n                \n                # Update col_maxes\n                if val > col_maxes[j][0][0]:\n                    col_maxes[j] = [(val, i)] + col_maxes[j][:2]\n                elif val > col_maxes[j][1][0]:\n                    col_maxes[j] = [col_maxes[j][0], (val, i), col_maxes[j][1]]\n                elif val > col_maxes[j][2][0]:\n                    col_maxes[j] = col_maxes[j][:2] + [(val, i)]\n        \n        max_sum = 0\n        \n        # Iterate over all possible placements of the first rook\n        for i in range(m):\n            for j in range(n):\n                val1 = board[i][j]\n                # Get the top 3 values in the current row excluding the current column\n                row_others = [(v, c) for v, c in row_maxes[i] if c != j][:2]\n                # Get the top 3 values in the current column excluding the current row\n                col_others = [(v, r) for v, r in col_maxes[j] if r != i][:2]\n                \n                # Check all combinations of the remaining two rooks\n                for (val2, col2) in row_others:\n                    for (val3, row3) in col_others:\n                        if col2 != j and row3 != i:\n                            max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        row_maxes = [[(0, 0)] * 3 for _ in range(m)]\n        col_maxes = [[(0, 0)] * 3 for _ in range(n)]\n        \n        for i in range(m):\n            for j in range(n):\n                val = board[i][j]\n                # Update row_maxes\n                if val > row_maxes[i][2][0]:\n                    row_maxes[i][2] = (val, j)\n                    row_maxes[i].sort(reverse=True)\n                # Update col_maxes\n                if val > col_maxes[j][2][0]:\n                    col_maxes[j][2] = (val, i)\n                    col_maxes[j].sort(reverse=True)\n        \n        max_sum = 0\n        \n        # Iterate over all possible placements of the first rook\n        for i in range(m):\n            for j in range(n):\n                val1 = board[i][j]\n                # Get the top 3 values in the current row excluding the current column\n                row_others = [(v, c) for v, c in row_maxes[i] if c != j][:2]\n                # Get the top 3 values in the current column excluding the current row\n                col_others = [(v, r) for v, r in col_maxes[j] if r != i][:2]\n                \n                # Check all combinations of the remaining two rooks\n                for (val2, col2) in row_others:\n                    for (val3, row3) in col_others:\n                        if col2 != j and row3 != i:\n                            max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        row_maxes = [[(0, 0)] * 3 for _ in range(m)]\n        col_maxes = [[(0, 0)] * 3 for _ in range(n)]\n        \n        for i in range(m):\n            for j in range(n):\n                val = board[i][j]\n                # Update row_maxes\n                if val > row_maxes[i][2][0]:\n                    row_maxes[i][2] = (val, j)\n                    row_maxes[i].sort(reverse=True)\n                # Update col_maxes\n                if val > col_maxes[j][2][0]:\n                    col_maxes[j][2] = (val, i)\n                    col_maxes[j].sort(reverse=True)\n        \n        max_sum = 0\n        \n        # Iterate over all possible placements of the first rook\n        for i in range(m):\n            for j in range(n):\n                val1 = board[i][j]\n                # Get the top 3 values in the current row excluding the current column\n                row_others = [(v, c) for v, c in row_maxes[i] if c != j][:2]\n                # Get the top 3 values in the current column excluding the current row\n                col_others = [(v, r) for v, r in col_maxes[j] if r != i][:2]\n                \n                # Check all combinations of the remaining two rooks\n                for (val2, col2) in row_others:\n                    for (val3, row3) in col_others:\n                        if col2 != j and col2 != col3 and row3 != i:\n                            max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        row_maxes = [[(0, 0)] * 3 for _ in range(m)]\n        col_maxes = [[(0, 0)] * 3 for _ in range(n)]\n        \n        for i in range(m):\n            for j in range(n):\n                val = board[i][j]\n                # Update row_maxes\n                if val > row_maxes[i][2][0]:\n                    row_maxes[i][2] = (val, j)\n                    # Sort to maintain top 3 values\n                    row_maxes[i].sort(reverse=True, key=lambda x: x[0])\n                # Update col_maxes\n                if val > col_maxes[j][2][0]:\n                    col_maxes[j][2] = (val, i)\n                    # Sort to maintain top 3 values\n                    col_maxes[j].sort(reverse=True, key=lambda x: x[0])\n        \n        max_sum = 0\n        \n        # Iterate over all possible placements of the first rook\n        for i in range(m):\n            for j in range(n):\n                val1 = board[i][j]\n                # Get the top 3 values in the current row excluding the current column\n                row_others = [(v, c) for v, c in row_maxes[i] if c != j][:2]\n                # Get the top 3 values in the current column excluding the current row\n                col_others = [(v, r) for v, r in col_maxes[j] if r != i][:2]\n                \n                # Check all combinations of the remaining two rooks\n                for (val2, col2) in row_others:\n                    for (val3, row3) in col_others:\n                        if col2 != j and row3 != i:\n                            max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        row_maxes = [[(0, 0)] * 3 for _ in range(m)]\n        col_maxes = [[(0, 0)] * 3 for _ in range(n)]\n        \n        for i in range(m):\n            for j in range(n):\n                val = board[i][j]\n                # Update row_maxes\n                if val > row_maxes[i][2][0]:\n                    row_maxes[i][2] = (val, j)\n                    # Sort to maintain top 3 values\n                    row_maxes[i].sort(reverse=True, key=lambda x: x[0])\n                # Update col_maxes\n                if val > col_maxes[j][2][0]:\n                    col_maxes[j][2] = (val, i)\n                    # Sort to maintain top 3 values\n                    col_maxes[j].sort(reverse=True, key=lambda x: x[0])\n        \n        max_sum = 0\n        \n        # Iterate over all possible placements of the first rook\n        for i in range(m):\n            for j in range(n):\n                val1 = board[i][j]\n                # Get the top 3 values in the current row excluding the current column\n                row_others = [(v, c) for v, c in row_maxes[i] if c != j][:2]\n                # Get the top 3 values in the current column excluding the current row\n                col_others = [(v, r) for v, r in col_maxes[j] if r != i][:2]\n                \n                # Check all combinations of the remaining two rooks\n                for (val2, col2) in row_others:\n                    for (val3, row3) in col_others:\n                        if col2 != j and row3 != i:\n                            max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        row_maxes = [[(0, 0), (0, 0), (0, 0)] for _ in range(m)]\n        col_maxes = [[(0, 0), (0, 0), (0, 0)] for _ in range(n)]\n        \n        for i in range(m):\n            for j in range(n):\n                val = board[i][j]\n                # Update row_maxes\n                if val > row_maxes[i][2][0]:\n                    row_maxes[i][2] = (val, j)\n                    row_maxes[i].sort(reverse=True, key=lambda x: x[0])\n                # Update col_maxes\n                if val > col_maxes[j][2][0]:\n                    col_maxes[j][2] = (val, i)\n                    col_maxes[j].sort(reverse=True, key=lambda x: x[0])\n        \n        max_sum = 0\n        \n        # Iterate over all possible placements of the first rook\n        for i in range(m):\n            for j in range(n):\n                val1 = board[i][j]\n                # Get the top 3 values in the current row excluding the current column\n                row_others = [(v, c) for v, c in row_maxes[i] if c != j][:2]\n                # Get the top 3 values in the current column excluding the current row\n                col_others = [(v, r) for v, r in col_maxes[j] if r != i][:2]\n                \n                # Check all combinations of the remaining two rooks\n                for (val2, col2) in row_others:\n                    for (val3, row3) in col_others:\n                        if col2 != j and col2 != col3 and row3 != i:\n                            max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        row_maxes = [[(0, 0)] * 3 for _ in range(m)]\n        col_maxes = [[(0, 0)] * 3 for _ in range(n)]\n        \n        for i in range(m):\n            for j in range(n):\n                val = board[i][j]\n                # Update row_maxes\n                if val > row_maxes[i][0][0]:\n                    row_maxes[i] = [(val, j)] + row_maxes[i][:2]\n                elif val > row_maxes[i][1][0]:\n                    row_maxes[i] = [row_maxes[i][0], (val, j)] + row_maxes[i][1:2]\n                elif val > row_maxes[i][2][0]:\n                    row_maxes[i] = row_maxes[i][:2] + [(val, j)]\n                \n                # Update col_maxes\n                if val > col_maxes[j][0][0]:\n                    col_maxes[j] = [(val, i)] + col_maxes[j][:2]\n                elif val > col_maxes[j][1][0]:\n                    col_maxes[j] = [col_maxes[j][0], (val, i)] + col_maxes[j][1:2]\n                elif val > col_maxes[j][2][0]:\n                    col_maxes[j] = col_maxes[j][:2] + [(val, i)]\n        \n        max_sum = 0\n        \n        # Iterate over all possible placements of the first rook\n        for i in range(m):\n            for j in range(n):\n                val1 = board[i][j]\n                # Get the top 3 values in the current row excluding the current column\n                row_others = [(v, c) for v, c in row_maxes[i] if c != j][:2]\n                # Get the top 3 values in the current column excluding the current row\n                col_others = [(v, r) for v, r in col_maxes[j] if r != i][:2]\n                \n                # Check all combinations of the remaining two rooks\n                for (val2, col2) in row_others:\n                    for (val3, row3) in col_others:\n                        if col2 != j and col2 != col3 and row3 != i:\n                            max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        row_maxes = [[] for _ in range(m)]\n        col_maxes = [[] for _ in range(n)]\n        \n        for i in range(m):\n            for j in range(n):\n                val = board[i][j]\n                # Update row_maxes\n                row_maxes[i].append((val, j))\n                row_maxes[i].sort(reverse=True, key=lambda x: x[0])\n                if len(row_maxes[i]) > 3:\n                    row_maxes[i].pop()\n                \n                # Update col_maxes\n                col_maxes[j].append((val, i))\n                col_maxes[j].sort(reverse=True, key=lambda x: x[0])\n                if len(col_maxes[j]) > 3:\n                    col_maxes[j].pop()\n        \n        max_sum = 0\n        \n        # Iterate over all possible placements of the first rook\n        for i in range(m):\n            for j in range(n):\n                val1 = board[i][j]\n                # Get the top 3 values in the current row excluding the current column\n                row_others = [(v, c) for v, c in row_maxes[i] if c != j]\n                # Get the top 3 values in the current column excluding the current row\n                col_others = [(v, r) for v, r in col_maxes[j] if r != i]\n                \n                # Check all combinations of the remaining two rooks\n                for (val2, col2) in row_others:\n                    for (val3, row3) in col_others:\n                        if col2 != j and row3 != i:\n                            max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        row_maxes = [[(0, 0)] * 3 for _ in range(m)]\n        col_maxes = [[(0, 0)] * 3 for _ in range(n)]\n        \n        for i in range(m):\n            for j in range(n):\n                val = board[i][j]\n                # Update row_maxes\n                if val > row_maxes[i][0][0]:\n                    row_maxes[i] = [(val, j)] + row_maxes[i][:2]\n                elif val > row_maxes[i][1][0]:\n                    row_maxes[i] = [row_maxes[i][0], (val, j)] + row_maxes[i][1:2]\n                elif val > row_maxes[i][2][0]:\n                    row_maxes[i] = row_maxes[i][:2] + [(val, j)]\n                \n                # Update col_maxes\n                if val > col_maxes[j][0][0]:\n                    col_maxes[j] = [(val, i)] + col_maxes[j][:2]\n                elif val > col_maxes[j][1][0]:\n                    col_maxes[j] = [col_maxes[j][0], (val, i)] + col_maxes[j][1:2]\n                elif val > col_maxes[j][2][0]:\n                    col_maxes[j] = col_maxes[j][:2] + [(val, i)]\n        \n        max_sum = 0\n        \n        # Iterate over all possible placements of the first rook\n        for i in range(m):\n            for j in range(n):\n                val1 = board[i][j]\n                # Get the top 3 values in the current row excluding the current column\n                row_others = [(v, c) for v, c in row_maxes[i] if c != j][:2]\n                # Get the top 3 values in the current column excluding the current row\n                col_others = [(v, r) for v, r in col_maxes[j] if r != i][:2]\n                \n                # Check all combinations of the remaining two rooks\n                for (val2, col2) in row_others:\n                    for (val3, row3) in col_others:\n                        if col2 != j and col2 != col3 and row3 != i:\n                            max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        row_maxes = [[(0, 0)] * 3 for _ in range(m)]\n        col_maxes = [[(0, 0)] * 3 for _ in range(n)]\n        \n        for i in range(m):\n            for j in range(n):\n                val = board[i][j]\n                # Update row_maxes\n                if val > row_maxes[i][0][0]:\n                    row_maxes[i] = [(val, j)] + row_maxes[i][:2]\n                elif val > row_maxes[i][1][0]:\n                    row_maxes[i] = [row_maxes[i][0], (val, j)] + row_maxes[i][1:2]\n                elif val > row_maxes[i][2][0]:\n                    row_maxes[i] = row_maxes[i][:2] + [(val, j)]\n                \n                # Update col_maxes\n                if val > col_maxes[j][0][0]:\n                    col_maxes[j] = [(val, i)] + col_maxes[j][:2]\n                elif val > col_maxes[j][1][0]:\n                    col_maxes[j] = [col_maxes[j][0], (val, i)] + col_maxes[j][1:2]\n                elif val > col_maxes[j][2][0]:\n                    col_maxes[j] = col_maxes[j][:2] + [(val, i)]\n        \n        max_sum = 0\n        \n        # Iterate over all possible placements of the first rook\n        for i in range(m):\n            for j in range(n):\n                val1 = board[i][j]\n                # Get the top 3 values in the current row excluding the current column\n                row_others = [(v, c) for v, c in row_maxes[i] if c != j][:2]\n                # Get the top 3 values in the current column excluding the current row\n                col_others = [(v, r) for v, r in col_maxes[j] if r != i][:2]\n                \n                # Check all combinations of the remaining two rooks\n                for (val2, col2) in row_others:\n                    for (val3, row3) in col_others:\n                        if col2 != j and row3 != i and col2 != col3 and row3 != i:\n                            max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+    "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, get the top 3 values and their column indices\n        top_three_per_row = []\n        for row in board:\n            top_three = heapq.nlargest(3, enumerate(row), key=lambda x: x[1])\n            top_three_per_row.append(top_three)\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of top 3 values from different rows\n        for comb in itertools.combinations(range(m), 3):\n            row1, row2, row3 = comb\n            cols_used = set()\n            current_sum = 0\n            \n            # Check all combinations of columns for the selected rows\n            for col1, val1 in top_three_per_row[row1]:\n                if col1 in cols_used:\n                    continue\n                for col2, val2 in top_three_per_row[row2]:\n                    if col2 in cols_used or col2 == col1:\n                        continue\n                    for col3, val3 in top_three_per_row[row3]:\n                        if col3 in cols_used or col3 == col1 or col3 == col2:\n                            continue\n                        current_sum = val1 + val2 + val3\n                        max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values and their column indices for each row\n        top_three_per_row = []\n        for row in board:\n            top_three = heapq.nlargest(3, enumerate(row), key=lambda x: x[1])\n            top_three_per_row.append(top_three)\n        \n        # Precompute the top 3 values and their row indices for each column\n        top_three_per_col = [[] for _ in range(n)]\n        for col in range(n):\n            top_three = heapq.nlargest(3, ((row, board[row][col]) for row in range(m)), key=lambda x: x[1])\n            for row, val in top_three:\n                top_three_per_col[col].append((row, val))\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of top 3 values from different rows\n        for comb in [(r1, r2, r3) for r1 in range(m) for r2 in range(r1+1, m) for r3 in range(r2+1, m)]:\n            row1, row2, row3 = comb\n            cols_used = set()\n            current_sum = 0\n            \n            # Check all combinations of columns for the selected rows\n            for col1, val1 in top_three_per_row[row1]:\n                if col1 in cols_used:\n                    continue\n                for col2, val2 in top_three_per_row[row2]:\n                    if col2 in cols_used or col2 == col1:\n                        continue\n                    for col3, val3 in top_three_per_row[row3]:\n                        if col3 in cols_used or col3 == col1 or col3 == col2:\n                            continue\n                        # Ensure no two rooks are in the same column\n                        if any(col1 in [c for _, c in top_three_per_col[r]] for r in [row2, row3]):\n                            continue\n                        if any(col2 in [c for _, c in top_three_per_col[r]] for r in [row1, row3]):\n                            continue\n                        if any(col3 in [c for _, c in top_three_per_col[r]] for r in [row1, row2]):\n                            continue\n                        current_sum = val1 + val2 + val3\n                        max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of three rows\n        for r1 in range(m):\n            for r2 in range(r1 + 1, m):\n                for r3 in range(r2 + 1, m):\n                    # For each combination of rows, iterate over all combinations of three columns\n                    for c1 in range(n):\n                        for c2 in range(c1 + 1, n):\n                            for c3 in range(c2 + 1, n):\n                                # Calculate the sum of the values at the selected positions\n                                current_sum = board[r1][c1] + board[r2][c2] + board[r3][c3]\n                                # Update the maximum sum found\n                                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of three different rows\n        for r1 in range(m):\n            for r2 in range(r1 + 1, m):\n                for r3 in range(r2 + 1, m):\n                    # For each combination of rows, iterate over all combinations of three different columns\n                    for c1 in range(n):\n                        for c2 in range(c1 + 1, n):\n                            for c3 in range(c2 + 1, n):\n                                # Calculate the sum of the values at the selected positions\n                                current_sum = board[r1][c1] + board[r2][c2] + board[r3][c3]\n                                # Update the maximum sum found\n                                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values and their column indices for each row\n        top_three_per_row = []\n        for row in board:\n            top_three = sorted(enumerate(row), key=lambda x: -x[1])[:3]\n            top_three_per_row.append(top_three)\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of top 3 values from different rows\n        for r1 in range(m):\n            for r2 in range(r1 + 1, m):\n                for r3 in range(r2 + 1, m):\n                    cols_used = set()\n                    current_sum = 0\n                    \n                    # Check all combinations of columns for the selected rows\n                    for col1, val1 in top_three_per_row[r1]:\n                        if col1 in cols_used:\n                            continue\n                        for col2, val2 in top_three_per_row[r2]:\n                            if col2 in cols_used or col2 == col1:\n                                continue\n                            for col3, val3 in top_three_per_row[r3]:\n                                if col3 in cols_used or col3 == col1 or col3 == col2:\n                                    continue\n                                # Ensure no two rooks are in the same column\n                                current_sum = val1 + val2 + val3\n                                max_sum = max(max_sum, current_sum)\n                                \n                                # Add columns to the set of used columns\n                                cols_used.add(col1)\n                                cols_used.add(col2)\n                                cols_used.add(col3)\n        \n        return max_sum",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, get the top 3 values and their column indices\n        top_three_per_row = []\n        for row in board:\n            top_three = heapq.nlargest(3, enumerate(row), key=lambda x: x[1])\n            top_three_per_row.append(top_three)\n        \n        # For each column, get the top 3 values and their row indices\n        top_three_per_col = []\n        for col in range(n):\n            col_values = [(row, board[row][col]) for row in range(m)]\n            top_three = heapq.nlargest(3, col_values, key=lambda x: x[1])\n            top_three_per_col.append(top_three)\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of top 3 values from different rows\n        for r1, (c1, v1) in enumerate(top_three_per_row):\n            for r2, (c2, v2) in enumerate(top_three_per_row):\n                if r1 == r2:\n                    continue\n                for r3, (c3, v3) in enumerate(top_three_per_row):\n                    if r1 == r3 or r2 == r3:\n                        continue\n                    # Check if columns are unique\n                    if len({c1, c2, c3}) == 3:\n                        current_sum = v1 + v2 + v3\n                        max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and their column indices\n        top_three_per_row = []\n        for row in board:\n            indexed_row = list(enumerate(row))\n            indexed_row.sort(key=lambda x: -x[1])\n            top_three_per_row.append(indexed_row[:3])\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of 3 different rows\n        for r1 in range(m):\n            for r2 in range(r1 + 1, m):\n                for r3 in range(r2 + 1, m):\n                    # Try placing rooks in the top 3 columns of these rows\n                    for c1, v1 in top_three_per_row[r1]:\n                        for c2, v2 in top_three_per_row[r2]:\n                            if c2 == c1:\n                                continue\n                            for c3, v3 in top_three_per_row[r3]:\n                                if c3 == c1 or c3 == c2:\n                                    continue\n                                current_sum = v1 + v2 + v3\n                                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        max_sum = float('-inf')\n        \n        # Iterate over all possible ways to place the first rook\n        for i in range(m):\n            for j in range(n):\n                # Iterate over all possible ways to place the second rook\n                for k in range(j + 1, n):\n                    # Iterate over all possible ways to place the third rook\n                    for l in range(k + 1, n):\n                        current_sum = 0\n                        used_cols = set()\n                        \n                        # Place rooks in different rows and check column uniqueness\n                        for row in range(m):\n                            if len(used_cols) == 3:\n                                break\n                            if j not in used_cols and board[row][j] > 0:\n                                current_sum += board[row][j]\n                                used_cols.add(j)\n                            elif k not in used_cols and board[row][k] > 0:\n                                current_sum += board[row][k]\n                                used_cols.add(k)\n                            elif l not in used_cols and board[row][l] > 0:\n                                current_sum += board[row][l]\n                                used_cols.add(l)\n                        \n                        if len(used_cols) == 3:\n                            max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all possible positions for the first rook\n        for i in range(m):\n            for j in range(n):\n                # Iterate over all possible positions for the second rook\n                for k in range(m):\n                    if k == i:\n                        continue\n                    for l in range(n):\n                        if l == j:\n                            continue\n                        # Iterate over all possible positions for the third rook\n                        for p in range(m):\n                            if p == i or p == k:\n                                continue\n                            for q in range(n):\n                                if q == j or q == l:\n                                    continue\n                                # Calculate the sum for this configuration\n                                current_sum = board[i][j] + board[k][l] + board[p][q]\n                                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the sum of top 3 values in each row and column\n        row_sums = [sorted((val, j) for j, val in enumerate(row))[-3:] for row in board]\n        col_sums = [sorted((board[i][j], i) for i in range(m))[-3:] for j in range(n)]\n        \n        max_sum = float('-inf')\n        \n        # Try placing rooks in all combinations of rows\n        for r1, r2, r3 in self.combinations(m, 3):\n            used_cols = set()\n            current_sum = 0\n            \n            # Find the best column for each row\n            for row, r in zip([r1, r2, r3], row_sums):\n                for val, col in reversed(r):\n                    if col not in used_cols:\n                        used_cols.add(col)\n                        current_sum += val\n                        break\n            \n            # If we have used 3 unique columns, check if this is the max sum\n            if len(used_cols) == 3:\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum\n    \n    def combinations(self, n, k):\n        if k == 0:\n            yield ()\n        else:\n            for i in range(n):\n                for c in self.combinations(i, k - 1):\n                    yield (i,) + c",
+    "from typing import List\nfrom itertools import permutations\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the sum of top 3 values in each row and column\n        row_sums = [sorted((val, j) for j, val in enumerate(row), reverse=True)[:3] for row in board]\n        col_sums = [sorted((board[i][j], i) for i in range(m), reverse=True)[:3] for j in range(n)]\n        \n        max_sum = float('-inf')\n        \n        # Try placing rooks in all combinations of rows\n        for r1, r2, r3 in permutations(range(m), 3):\n            used_cols = set()\n            current_sum = 0\n            \n            # Find the best column for each row\n            for row in [(r1, row_sums[r1]), (r2, row_sums[r2]), (r3, row_sums[r3])]:\n                for val, col in row[1]:\n                    if col not in used_cols:\n                        used_cols.add(col)\n                        current_sum += val\n                        break\n            \n            # If we have used 3 unique columns, check if this is the max sum\n            if len(used_cols) == 3:\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\nfrom itertools import permutations\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the top 3 values in each row\n        row_top3 = []\n        for row in board:\n            row_top3.append(sorted([(val, j) for j, val in enumerate(row)], reverse=True)[:3])\n        \n        # Calculate the top 3 values in each column\n        col_top3 = []\n        for j in range(n):\n            col_top3.append(sorted([(board[i][j], i) for i in range(m)], reverse=True)[:3])\n        \n        max_sum = float('-inf')\n        \n        # Try placing rooks in all combinations of top 3 values from rows and columns\n        for r1, r2, r3 in permutations(range(m), 3):\n            used_cols = set()\n            current_sum = 0\n            \n            # Check if we can place rooks in unique columns\n            for row, r in zip([r1, r2, r3], row_top3):\n                placed = False\n                for val, col in r:\n                    if col not in used_cols:\n                        used_cols.add(col)\n                        current_sum += val\n                        placed = True\n                        break\n                if not placed:\n                    break\n            \n            # If we have used 3 unique columns, check if this is the max sum\n            if len(used_cols) == 3:\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\nfrom itertools import combinations\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Calculate the sum of top 3 values in each row and column\n        row_sums = [sorted((val, j) for j, val in enumerate(row), reverse=True)[:3] for row in board]\n        col_sums = [sorted((board[i][j], i) for i in range(m), reverse=True)[:3] for j in range(n)]\n        \n        max_sum = float('-inf')\n        \n        # Try placing rooks in all combinations of rows\n        for r1, r2, r3 in combinations(range(m), 3):\n            used_cols = set()\n            current_sum = 0\n            \n            # Find the best column for each row\n            for row in [row_sums[r1], row_sums[r2], row_sums[r3]]:\n                for val, col in row:\n                    if col not in used_cols:\n                        used_cols.add(col)\n                        current_sum += val\n                        break\n            \n            # If we have used 3 unique columns, check if this is the max sum\n            if len(used_cols) == 3:\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, find the top 3 values and their respective columns\n        row_maxes = []\n        for row in board:\n            max_values = heapq.nlargest(3, enumerate(row), key=lambda x: x[1])\n            row_maxes.append(max_values)\n        \n        max_sum = 0\n        \n        # Iterate over all combinations of top 3 values from each row\n        for comb in itertools.product(*row_maxes):\n            cols = set()\n            current_sum = 0\n            valid = True\n            \n            for col_index, value in comb:\n                if col_index in cols:\n                    valid = False\n                    break\n                cols.add(col_index)\n                current_sum += value\n            \n            if valid:\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, find the top 3 values and their respective columns\n        row_maxes = []\n        for row in board:\n            max_values = heapq.nlargest(3, enumerate(row), key=lambda x: x[1])\n            row_maxes.append(max_values)\n        \n        # For each column, find the top 3 values and their respective rows\n        col_maxes = [[] for _ in range(n)]\n        for r in range(m):\n            for c, value in row_maxes[r]:\n                heapq.heappush(col_maxes[c], (-value, r))\n                if len(col_maxes[c]) > 3:\n                    heapq.heappop(col_maxes[c])\n        \n        # Convert heaps to sorted lists for easier access\n        for c in range(n):\n            col_maxes[c] = sorted([-v for v, r in col_maxes[c]], reverse=True)\n        \n        max_sum = 0\n        \n        # Iterate over all combinations of top 3 values from each row\n        for comb in row_maxes:\n            for i in range(3):\n                r1, val1 = comb[i]\n                for j in range(3):\n                    r2, val2 = comb[j]\n                    if r1 == r2:\n                        continue\n                    for k in range(3):\n                        r3, val3 = comb[k]\n                        if r1 == r3 or r2 == r3:\n                            continue\n                        # Check column constraints\n                        c1, c2, c3 = sorted([r1, r2, r3])\n                        if len(set([col_maxes[c1][0], col_maxes[c2][0], col_maxes[c3][0]])) == 3:\n                            max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, find the top 3 values and their respective columns\n        row_maxes = []\n        for row in board:\n            max_values = sorted(enumerate(row), key=lambda x: x[1], reverse=True)[:3]\n            row_maxes.append(max_values)\n        \n        max_sum = 0\n        \n        # Iterate over all combinations of top 3 values from each row\n        for r1, c1, val1 in row_maxes[0]:\n            for r2, c2, val2 in row_maxes[1]:\n                if c1 == c2:\n                    continue\n                for r3, c3, val3 in row_maxes[2]:\n                    if c1 == c3 or c2 == c3:\n                        continue\n                    max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+    "from typing import List\nfrom itertools import permutations\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, find the top 3 values and their respective columns\n        row_maxes = []\n        for row in board:\n            max_values = sorted(enumerate(row), key=lambda x: x[1], reverse=True)[:3]\n            row_maxes.append(max_values)\n        \n        max_sum = 0\n        \n        # Iterate over all combinations of top 3 values from each row\n        for comb in permutations(range(m), 3):\n            r1, r2, r3 = comb\n            cols_used = set()\n            current_sum = 0\n            \n            for i, r in enumerate(comb):\n                for c, val in row_maxes[r]:\n                    if c not in cols_used:\n                        cols_used.add(c)\n                        current_sum += val\n                        break\n            \n            if len(cols_used) == 3:\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, find the top 3 values and their respective columns\n        row_maxes = []\n        for row in board:\n            max_values = sorted(enumerate(row), key=lambda x: x[1], reverse=True)[:3]\n            row_maxes.append(max_values)\n        \n        # For each column, find the top 3 values and their respective rows\n        col_maxes = [[] for _ in range(n)]\n        for r in range(m):\n            for c, value in row_maxes[r]:\n                col_maxes[c].append((value, r))\n        \n        # Sort the top 3 values in each column\n        for c in range(n):\n            col_maxes[c].sort(reverse=True, key=lambda x: x[0])\n            col_maxes[c] = col_maxes[c][:3]\n        \n        max_sum = 0\n        \n        # Iterate over all combinations of top 3 values from each row\n        for comb in row_maxes:\n            for i in range(3):\n                r1, val1 = comb[i]\n                c1 = [c for c, v in row_maxes[r1] if v == val1][0]\n                for j in range(3):\n                    r2, val2 = comb[j]\n                    c2 = [c for c, v in row_maxes[r2] if v == val2][0]\n                    if r1 == r2 or c1 == c2:\n                        continue\n                    for k in range(3):\n                        r3, val3 = comb[k]\n                        c3 = [c for c, v in row_maxes[r3] if v == val3][0]\n                        if r1 == r3 or r2 == r3 or c1 == c3 or c2 == c3:\n                            continue\n                        max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+    "from typing import List\nimport heapq\nimport itertools\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, find the top 3 values and their respective columns\n        row_maxes = []\n        for row in board:\n            max_values = heapq.nlargest(3, enumerate(row), key=lambda x: x[1])\n            row_maxes.append(max_values)\n        \n        max_sum = 0\n        \n        # Iterate over all combinations of top 3 values from each row\n        for comb in itertools.product(*row_maxes):\n            cols = set()\n            current_sum = 0\n            valid = True\n            \n            for col_index, value in comb:\n                if col_index in cols:\n                    valid = False\n                    break\n                cols.add(col_index)\n                current_sum += value\n            \n            if valid:\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\nimport itertools\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, find the top 3 values and their respective columns\n        row_maxes = []\n        for row in board:\n            max_values = sorted(enumerate(row), key=lambda x: x[1], reverse=True)[:3]\n            row_maxes.append(max_values)\n        \n        max_sum = 0\n        \n        # Iterate over all combinations of top 3 values from each row\n        for comb in itertools.product(*row_maxes):\n            cols = set()\n            current_sum = 0\n            valid = True\n            \n            for col_index, value in comb:\n                if col_index in cols:\n                    valid = False\n                    break\n                cols.add(col_index)\n                current_sum += value\n            \n            if valid:\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, find the top 3 values and their respective columns\n        row_maxes = []\n        for i in range(m):\n            row_values = [(val, j) for j, val in enumerate(board[i]) if val >= 0]\n            row_values.sort(reverse=True, key=lambda x: x[0])\n            row_maxes.append(row_values[:3])\n        \n        # For each column, find the top 3 values and their respective rows\n        col_maxes = [[] for _ in range(n)]\n        for j in range(n):\n            col_values = [(board[i][j], i) for i in range(m) if board[i][j] >= 0]\n            col_values.sort(reverse=True, key=lambda x: x[0])\n            for val, i in col_values[:3]:\n                col_maxes[j].append((val, i))\n        \n        max_sum = 0\n        \n        # Iterate over all combinations of top 3 values from each row\n        for r1_val, r1_col in row_maxes[0]:\n            for r2_val, r2_col in row_maxes[1]:\n                if r2_col == r1_col:\n                    continue\n                for r3_val, r3_col in row_maxes[2]:\n                    if r3_col == r1_col or r3_col == r2_col:\n                        continue\n                    \n                    # Check if the columns are unique\n                    cols_used = {r1_col, r2_col, r3_col}\n                    if len(cols_used) != 3:\n                        continue\n                    \n                    # Find the corresponding row indices for these columns\n                    r1_row, r2_row, r3_row = 0, 1, 2\n                    c1_found, c2_found, c3_found = False, False, False\n                    \n                    for val, row in col_maxes[r1_col]:\n                        if row == r1_row:\n                            c1_found = True\n                            break\n                    for val, row in col_maxes[r2_col]:\n                        if row == r2_row:\n                            c2_found = True\n                            break\n                    for val, row in col_maxes[r3_col]:\n                        if row == r3_row:\n                            c3_found = True\n                            break\n                    \n                    if c1_found and c2_found and c3_found:\n                        max_sum = max(max_sum, r1_val + r2_val + r3_val)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, sort the indices based on the cell values in descending order\n        sorted_indices = []\n        for row in board:\n            sorted_indices.append(sorted(range(n), key=lambda x: -row[x]))\n        \n        max_sum = 0\n        \n        # Try placing rooks in the top 3 positions of each row\n        for i in range(m):\n            for j in range(m):\n                for k in range(m):\n                    if i != j and j != k and i != k:\n                        cols = set()\n                        current_sum = 0\n                        \n                        for row_idx, col_idx in enumerate([sorted_indices[i][0], sorted_indices[j][1], sorted_indices[k][2]]):\n                            if col_idx in cols:\n                                break\n                            cols.add(col_idx)\n                            current_sum += board[row_idx][col_idx]\n                        else:\n                            max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\nimport heapq\nimport itertools\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, find the top 3 values and their respective columns\n        row_maxes = []\n        for row in board:\n            max_values = heapq.nlargest(3, enumerate(row), key=lambda x: x[1])\n            row_maxes.append(max_values)\n        \n        max_sum = 0\n        \n        # Iterate over all combinations of top 3 values from each row\n        for comb in itertools.product(*row_maxes):\n            cols = set()\n            current_sum = 0\n            valid = True\n            \n            for col_index, value in comb:\n                if col_index in cols:\n                    valid = False\n                    break\n                cols.add(col_index)\n                current_sum += value\n            \n            if valid:\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Sort each row by value in descending order and keep track of original indices\n        sorted_rows = []\n        for i, row in enumerate(board):\n            sorted_row = sorted((val, j) for j, val in enumerate(row))\n            sorted_rows.append(sorted_row[::-1])  # Reverse to have highest values first\n        \n        max_sum = 0\n        \n        # Try placing rooks in different configurations\n        for i in range(m):\n            for j in range(m):\n                if i == j:\n                    continue\n                for k in range(m):\n                    if i == k or j == k:\n                        continue\n                    \n                    # Use sets to track used columns\n                    used_cols = set()\n                    current_sum = 0\n                    valid = True\n                    \n                    for row_index, row in enumerate(sorted_rows):\n                        if row_index == i:\n                            for _, col in row:\n                                if col not in used_cols:\n                                    used_cols.add(col)\n                                    current_sum += board[row_index][col]\n                                    break\n                            else:\n                                valid = False\n                                break\n                        elif row_index == j:\n                            for _, col in row:\n                                if col not in used_cols:\n                                    used_cols.add(col)\n                                    current_sum += board[row_index][col]\n                                    break\n                            else:\n                                valid = False\n                                break\n                        elif row_index == k:\n                            for _, col in row:\n                                if col not in used_cols:\n                                    used_cols.add(col)\n                                    current_sum += board[row_index][col]\n                                    break\n                            else:\n                                valid = False\n                                break\n                    \n                    if valid:\n                        max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\nimport itertools\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, find the top 3 values and their respective columns\n        row_maxes = []\n        for row in board:\n            max_values = sorted(enumerate(row), key=lambda x: x[1], reverse=True)[:3]\n            row_maxes.append(max_values)\n        \n        max_sum = 0\n        \n        # Iterate over all combinations of top 3 values from each row\n        for comb in itertools.product(*row_maxes):\n            cols = set()\n            current_sum = 0\n            valid = True\n            \n            for col_index, value in comb:\n                if col_index in cols:\n                    valid = False\n                    break\n                cols.add(col_index)\n                current_sum += value\n            \n            if valid:\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Collect all values with their row and column indices\n        values = [(board[i][j], i, j) for i in range(m) for j in range(n)]\n        # Sort values in descending order\n        values.sort(reverse=True, key=lambda x: x[0])\n        \n        max_sum = 0\n        used_rows = set()\n        used_cols = set()\n        selected_rooks = []\n        \n        # Try to place up to 3 rooks\n        for value, row, col in values:\n            if len(selected_rooks) == 3:\n                break\n            if row not in used_rows and col not in used_cols:\n                selected_rooks.append(value)\n                used_rows.add(row)\n                used_cols.add(col)\n        \n        return sum(selected_rooks)"
+  ],
+  "total_candidates": 39,
+  "nodes_explored": 39,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Precompute the top 3 values in each row and column\n        row_maxes = [[(0, 0)] * 3 for _ in range(m)]\n        col_maxes = [[(0, 0)] * 3 for _ in range(n)]\n        \n        for i in range(m):\n            for j in range(n):\n                val = board[i][j]\n                # Update row_maxes\n                row_maxes[i] = sorted(row_maxes[i] + [(val, j)], reverse=True)[:3]\n                # Update col_maxes\n                col_maxes[j] = sorted(col_maxes[j] + [(val, i)], reverse=True)[:3]\n        \n        max_sum = 0\n        \n        # Iterate over all possible placements of the first rook\n        for i in range(m):\n            for j in range(n):\n                val1 = board[i][j]\n                # Get the top 3 values in the current row excluding the current column\n                row_others = [(v, c) for v, c in row_maxes[i] if c != j][:2]\n                # Get the top 3 values in the current column excluding the current row\n                col_others = [(v, r) for v, r in col_maxes[j] if r != i][:2]\n                \n                # Check all combinations of the remaining two rooks\n                for (val2, col2) in row_others:\n                    for (val3, row3) in col_others:\n                        if col2 != j and col2 != col3 and row3 != i:\n                            max_sum = max(max_sum, val1 + val2 + val3)\n        \n        return max_sum",
+      "solution_hash": "548142faafe53a774607a1bc0116ab4bab23bda7ea9f2761cf9541e335fa83a5",
+      "test_result": {
+        "status": "import_error",
+        "error_message": "Missing required module: sortedcontainers",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmpw0x1ugwk.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpw0x1ugwk.py` failed. (See above for error)\n",
+        "execution_time": 19.22781205177307,
+        "import_failures": [
+          "sortedcontainers"
+        ]
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5",
+        "1_9"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, get the top 3 values and their column indices\n        top_three_per_row = []\n        for row in board:\n            top_three = heapq.nlargest(3, enumerate(row), key=lambda x: x[1])\n            top_three_per_row.append(top_three)\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of top 3 values from different rows\n        for comb in itertools.combinations(range(m), 3):\n            row1, row2, row3 = comb\n            cols_used = set()\n            current_sum = 0\n            \n            # Check all combinations of columns for the selected rows\n            for col1, val1 in top_three_per_row[row1]:\n                if col1 in cols_used:\n                    continue\n                for col2, val2 in top_three_per_row[row2]:\n                    if col2 in cols_used or col2 == col1:\n                        continue\n                    for col3, val3 in top_three_per_row[row3]:\n                        if col3 in cols_used or col3 == col1 or col3 == col2:\n                            continue\n                        current_sum = val1 + val2 + val3\n                        max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+      "solution_hash": "48c77c3bfb200c344d44cff2dda76201e62df41d8e9fbab81f3061ea0bb6d98f",
+      "test_result": {
+        "status": "import_error",
+        "error_message": "Missing required module: sortedcontainers",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmpbc18ryc5.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpbc18ryc5.py` failed. (See above for error)\n",
+        "execution_time": 15.404806852340698,
+        "import_failures": [
+          "sortedcontainers"
+        ]
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_14",
+        "1_18",
+        "1_22"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # For each row, find the top 3 values and their respective columns\n        row_maxes = []\n        for row in board:\n            max_values = heapq.nlargest(3, enumerate(row), key=lambda x: x[1])\n            row_maxes.append(max_values)\n        \n        max_sum = 0\n        \n        # Iterate over all combinations of top 3 values from each row\n        for comb in itertools.product(*row_maxes):\n            cols = set()\n            current_sum = 0\n            valid = True\n            \n            for col_index, value in comb:\n                if col_index in cols:\n                    valid = False\n                    break\n                cols.add(col_index)\n                current_sum += value\n            \n            if valid:\n                max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+      "solution_hash": "aca36412530221df4726d8b5f6af515635b4d69c1384bfd4f86ce76ceba5c024",
+      "test_result": {
+        "status": "import_error",
+        "error_message": "Missing required module: sortedcontainers",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmpizft47id.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpizft47id.py` failed. (See above for error)\n",
+        "execution_time": 17.965158224105835,
+        "import_failures": [
+          "sortedcontainers"
+        ]
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_27",
+        "1_31",
+        "1_35"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 39,
+    "candidates_generated": 39,
+    "tests_passed": 0,
+    "tests_failed": 2,
+    "test_errors": 37,
+    "execution_times": [
+      19.22781205177307,
+      15.781785488128662,
+      18.3769371509552,
+      15.66685152053833,
+      16.174325704574585,
+      15.689569473266602,
+      15.94423770904541,
+      15.94423770904541,
+      15.050117492675781,
+      15.365843772888184,
+      16.587648153305054,
+      15.365843772888184,
+      15.652080059051514,
+      15.404806852340698,
+      17.768449783325195,
+      20.215707778930664,
+      20.215707778930664,
+      18.87028932571411,
+      16.07135534286499,
+      18.142513036727905,
+      18.38316249847412,
+      17.96508026123047,
+      16.795985221862793,
+      18.513556003570557,
+      18.479526042938232,
+      18.62338948249817,
+      17.965158224105835,
+      16.797160148620605,
+      16.259174823760986,
+      15.897141695022583,
+      15.46813154220581,
+      16.210154056549072,
+      18.297390699386597,
+      18.20387053489685,
+      17.72951889038086,
+      16.210154056549072,
+      18.599820137023926,
+      18.297390699386597,
+      15.016207933425903
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 34,
+      "unique_ratio": 0.8717948717948718,
+      "similarity_score": 0.0,
+      "solution_lengths": {
+        "min": 864,
+        "max": 2502,
+        "avg": 1517.6410256410256
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {},
+      "first_failing_tests": {}
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 9,
+          "improvements": 0,
+          "solved": 0
+        },
+        "2": {
+          "attempts": 27,
+          "improvements": 0,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "other_error": {
+          "attempts": 12,
+          "improvements": 0
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "other_error->other_error": 34,
+        "other_error->syntax_error": 2
+      }
+    },
+    "import_errors": 34,
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.6153846153846154,
+        "solutions_per_depth": {
+          "0": 3,
+          "1": 9,
+          "2": 27
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 0,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.0,
+        "pass@3": 0.0,
+        "pass@5": 0.0,
+        "pass@10": 0.0
+      },
+      "solutions_evaluated": 40
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.0,
+        "branch_success_rate": 0.0
+      },
+      "error_recovery": {
+        "total_attempts": 12,
+        "total_improvements": 0,
+        "recovery_rate": 0.0
+      },
+      "top_errors": [
+        [
+          "other_error",
+          12
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 1886.35928606987,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.0,
+      "pass@3": 0.0,
+      "pass@5": 0.0,
+      "pass@10": 0.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: Generator expression must be parenthesized (<string>, line 106)",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: Generator expression must be parenthesized (<string>, line 106)",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 26
+          }
+        ],
+        [
+          27,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 27
+          }
+        ],
+        [
+          28,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 28
+          }
+        ],
+        [
+          29,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 29
+          }
+        ],
+        [
+          30,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 30
+          }
+        ],
+        [
+          31,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 31
+          }
+        ],
+        [
+          32,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 32
+          }
+        ],
+        [
+          33,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 33
+          }
+        ],
+        [
+          34,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 34
+          }
+        ],
+        [
+          35,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 35
+          }
+        ],
+        [
+          36,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 36
+          }
+        ],
+        [
+          37,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 37
+          }
+        ],
+        [
+          38,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 38
+          }
+        ],
+        [
+          39,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 39
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 40,
+    "test_cases": 1
+  }
+}

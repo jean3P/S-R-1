@@ -1,0 +1,204 @@
+{
+  "problem_id": "final-array-state-after-k-multiplication-operations-ii",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": "import heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0 or k == 0:\n            return [num % MOD for num in nums]\n        \n        # Create a list of tuples (value, index)\n        elements = sorted([(nums[i], i) for i in range(n)], key=lambda x: x[0])\n        \n        counts = [0] * n\n        current_k = k\n        \n        for i in range(n):\n            val, idx = elements[i]\n            if current_k <= 0:\n                break\n            # Determine how many times this element can be multiplied\n            if i < n - 1:\n                next_val = elements[i + 1][0]\n                if val == 0:\n                    # If val is zero, multiplying won't change it, so all remaining k can be applied\n                    m = current_k\n                else:\n                    # Calculate maximum m where val * (multiplier)^m < next_val\n                    if multiplier == 1:\n                        m = 0\n                    else:\n                        # Using logarithms to find m\n                        # val * (multiplier)^m < next_val\n                        # m < log(next_val / val) / log(multiplier)\n                        # We need to find the maximum integer m where this holds\n                        # Also, m cannot exceed current_k\n                        ratio = next_val / val\n                        if ratio <= 1:\n                            m = 0\n                        else:\n                            m = int((ratio).bit_length() - 1)\n                            # Binary search to find the maximum m\n                            low, high = 0, current_k\n                            best = 0\n                            while low <= high:\n                                mid = (low + high) // 2\n                                product = val * (multiplier ** mid)\n                                if product < next_val:\n                                    best = mid\n                                    low = mid + 1\n                                else:\n                                    high = mid - 1\n                            m = best\n            else:\n                # No next element, can multiply all remaining k\n                m = current_k\n            \n            # Apply as much as possible\n            m = min(m, current_k)\n            counts[idx] += m\n            current_k -= m\n        \n        # Apply the multipliers to each element\n        for i in range(n):\n            nums[i] = nums[i] * (multiplier ** counts[i]) % MOD\n        \n        return nums",
+  "passed_solutions": [
+    "import heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        heap = []\n        for i, num in enumerate(nums):\n            heapq.heappush(heap, (num, i))\n        \n        while k > 0 and heap:\n            val, idx = heapq.heappop(heap)\n            next_val, next_idx = heapq.heappop(heap) if heap else (float('inf'), -1)\n            \n            if multiplier == 1:\n                steps = k\n            else:\n                if val == 0:\n                    steps = k\n                else:\n                    if next_val == 0:\n                        steps = 0\n                    else:\n                        if val >= next_val:\n                            steps = 0\n                        else:\n                            low, high, best = 1, k, 0\n                            while low <= high:\n                                mid = (low + high) // 2\n                                product = val * (multiplier ** mid)\n                                if product < next_val:\n                                    best = mid\n                                    low = mid + 1\n                                else:\n                                    high = mid - 1\n                            steps = best\n            \n            steps = min(steps, k)\n            nums[idx] = val * (multiplier ** steps)\n            k -= steps\n            heapq.heappush(heap, (nums[idx], idx))\n            if next_idx != -1:\n                heapq.heappush(heap, (next_val, next_idx))\n        \n        for i in range(len(nums)):\n            nums[i] %= MOD\n        \n        return nums",
+    "import heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0 or k == 0:\n            return [num % MOD for num in nums]\n        \n        # Create a list of tuples (value, index)\n        elements = sorted([(nums[i], i) for i in range(n)], key=lambda x: x[0])\n        \n        counts = [0] * n\n        current_k = k\n        \n        for i in range(n):\n            val, idx = elements[i]\n            if current_k <= 0:\n                break\n            # Determine how many times this element can be multiplied\n            if i < n - 1:\n                next_val = elements[i + 1][0]\n                if val == 0:\n                    # If val is zero, multiplying won't change it, so all remaining k can be applied\n                    m = current_k\n                else:\n                    # Calculate maximum m where val * (multiplier)^m < next_val\n                    if multiplier == 1:\n                        m = 0\n                    else:\n                        # Using logarithms to find m\n                        # val * (multiplier)^m < next_val\n                        # m < log(next_val / val) / log(multiplier)\n                        # We need to find the maximum integer m where this holds\n                        # Also, m cannot exceed current_k\n                        ratio = next_val / val\n                        if ratio <= 1:\n                            m = 0\n                        else:\n                            m = int((ratio).bit_length() - 1)\n                            # Binary search to find the maximum m\n                            low, high = 0, current_k\n                            best = 0\n                            while low <= high:\n                                mid = (low + high) // 2\n                                product = val * (multiplier ** mid)\n                                if product < next_val:\n                                    best = mid\n                                    low = mid + 1\n                                else:\n                                    high = mid - 1\n                            m = best\n            else:\n                # No next element, can multiply all remaining k\n                m = current_k\n            \n            # Apply as much as possible\n            m = min(m, current_k)\n            counts[idx] += m\n            current_k -= m\n        \n        # Apply the multipliers to each element\n        for i in range(n):\n            nums[i] = nums[i] * (multiplier ** counts[i]) % MOD\n        \n        return nums",
+    "import heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        heap = []\n        for i, num in enumerate(nums):\n            heapq.heappush(heap, (num, i))\n        \n        while k > 0 and heap:\n            val, idx = heapq.heappop(heap)\n            if multiplier == 1:\n                break  # No change, exit early\n            next_min = heap[0][0] if heap else float('inf')\n            max_ops = 0\n            if val < next_min:\n                low, high = 1, k\n                best = 0\n                while low <= high:\n                    mid = (low + high) // 2\n                    product = val * (multiplier ** mid)\n                    if product < next_min:\n                        best = mid\n                        low = mid + 1\n                    else:\n                        high = mid - 1\n                max_ops = best\n            else:\n                max_ops = 1\n            if max_ops == 0:\n                break\n            nums[idx] = val * (multiplier ** max_ops)\n            k -= max_ops\n            heapq.heappush(heap, (nums[idx], idx))\n        \n        for i in range(len(nums)):\n            nums[i] %= MOD\n        \n        return nums"
+  ],
+  "all_solutions": [
+    "import heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        heap = []\n        for i, num in enumerate(nums):\n            heapq.heappush(heap, (num, i))\n        \n        for _ in range(k):\n            if not heap:\n                break\n            val, idx = heapq.heappop(heap)\n            nums[idx] = val * multiplier\n            heapq.heappush(heap, (nums[idx], idx))\n        \n        for i in range(len(nums)):\n            nums[i] %= MOD\n        \n        return nums",
+    "import heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        heap = []\n        for i, num in enumerate(nums):\n            heapq.heappush(heap, (num, i))\n        \n        while k > 0 and heap:\n            val, idx = heapq.heappop(heap)\n            next_val, next_idx = heapq.heappop(heap) if heap else (float('inf'), -1)\n            \n            if multiplier == 1:\n                steps = k\n            else:\n                if val == 0:\n                    steps = k\n                else:\n                    if next_val == 0:\n                        steps = 0\n                    else:\n                        if val >= next_val:\n                            steps = 0\n                        else:\n                            low, high, best = 1, k, 0\n                            while low <= high:\n                                mid = (low + high) // 2\n                                product = val * (multiplier ** mid)\n                                if product < next_val:\n                                    best = mid\n                                    low = mid + 1\n                                else:\n                                    high = mid - 1\n                            steps = best\n            \n            steps = min(steps, k)\n            nums[idx] = val * (multiplier ** steps)\n            k -= steps\n            heapq.heappush(heap, (nums[idx], idx))\n            if next_idx != -1:\n                heapq.heappush(heap, (next_val, next_idx))\n        \n        for i in range(len(nums)):\n            nums[i] %= MOD\n        \n        return nums",
+    "import heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0 or k == 0:\n            return [num % MOD for num in nums]\n        \n        # Create a list of tuples (value, index)\n        elements = sorted([(nums[i], i) for i in range(n)], key=lambda x: x[0])\n        \n        counts = [0] * n\n        current_k = k\n        \n        for i in range(n):\n            val, idx = elements[i]\n            if current_k <= 0:\n                break\n            # Determine how many times this element can be multiplied\n            if i < n - 1:\n                next_val = elements[i + 1][0]\n                if val == 0:\n                    # If val is zero, multiplying won't change it, so all remaining k can be applied\n                    m = current_k\n                else:\n                    # Calculate maximum m where val * (multiplier)^m < next_val\n                    if multiplier == 1:\n                        m = 0\n                    else:\n                        # Using logarithms to find m\n                        # val * (multiplier)^m < next_val\n                        # m < log(next_val / val) / log(multiplier)\n                        # We need to find the maximum integer m where this holds\n                        # Also, m cannot exceed current_k\n                        ratio = next_val / val\n                        if ratio <= 1:\n                            m = 0\n                        else:\n                            m = int((ratio).bit_length() - 1)\n                            # Binary search to find the maximum m\n                            low, high = 0, current_k\n                            best = 0\n                            while low <= high:\n                                mid = (low + high) // 2\n                                product = val * (multiplier ** mid)\n                                if product < next_val:\n                                    best = mid\n                                    low = mid + 1\n                                else:\n                                    high = mid - 1\n                            m = best\n            else:\n                # No next element, can multiply all remaining k\n                m = current_k\n            \n            # Apply as much as possible\n            m = min(m, current_k)\n            counts[idx] += m\n            current_k -= m\n        \n        # Apply the multipliers to each element\n        for i in range(n):\n            nums[i] = nums[i] * (multiplier ** counts[i]) % MOD\n        \n        return nums",
+    "import heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        heap = []\n        for i, num in enumerate(nums):\n            heapq.heappush(heap, (num, i))\n        \n        while k > 0 and heap:\n            val, idx = heapq.heappop(heap)\n            if multiplier == 1:\n                break  # No change, exit early\n            next_min = heap[0][0] if heap else float('inf')\n            max_ops = 0\n            if val < next_min:\n                low, high = 1, k\n                best = 0\n                while low <= high:\n                    mid = (low + high) // 2\n                    product = val * (multiplier ** mid)\n                    if product < next_min:\n                        best = mid\n                        low = mid + 1\n                    else:\n                        high = mid - 1\n                max_ops = best\n            else:\n                max_ops = 1\n            if max_ops == 0:\n                break\n            nums[idx] = val * (multiplier ** max_ops)\n            k -= max_ops\n            heapq.heappush(heap, (nums[idx], idx))\n        \n        for i in range(len(nums)):\n            nums[i] %= MOD\n        \n        return nums"
+  ],
+  "total_candidates": 4,
+  "nodes_explored": 4,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "import heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        heap = []\n        for i, num in enumerate(nums):\n            heapq.heappush(heap, (num, i))\n        \n        for _ in range(k):\n            if not heap:\n                break\n            val, idx = heapq.heappop(heap)\n            nums[idx] = val * multiplier\n            heapq.heappush(heap, (nums[idx], idx))\n        \n        for i in range(len(nums)):\n            nums[i] %= MOD\n        \n        return nums",
+      "solution_hash": "9aa1eeb0f0bc1661b76575824923adc07f3343d15ebfeaec29aed680bcd9a1bf",
+      "test_result": {
+        "status": "timeout",
+        "error_message": "Test execution timed out after 10s",
+        "execution_time": 10
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_2",
+        "1_3"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 4,
+    "candidates_generated": 4,
+    "tests_passed": 3,
+    "tests_failed": 0,
+    "test_errors": 1,
+    "execution_times": [
+      10,
+      13.926981687545776,
+      13.497980833053589,
+      13.538328886032104
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 4,
+      "unique_ratio": 1.0,
+      "similarity_score": 0.0,
+      "solution_lengths": {
+        "min": 555,
+        "max": 2624,
+        "avg": 1519.5
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {},
+      "first_failing_tests": {}
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 3,
+          "improvements": 0,
+          "solved": 3
+        }
+      },
+      "error_types": {
+        "other_error": {
+          "attempts": 1,
+          "improvements": 3
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "other_error->unknown": 3
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 1,
+        "avg_depth": 0.75,
+        "solutions_per_depth": {
+          "0": 1,
+          "1": 3
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 3
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.8,
+        "pass@3": 1.0,
+        "pass@5": 1.0
+      },
+      "solutions_evaluated": 5,
+      "passing_solution_depths": {
+        "min": 1,
+        "max": 1,
+        "avg": 1.0
+      }
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.75,
+        "branch_success_rate": 0.75
+      },
+      "error_recovery": {
+        "total_attempts": 1,
+        "total_improvements": 3,
+        "recovery_rate": 3.0
+      },
+      "top_errors": [
+        [
+          "other_error",
+          1
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 403.97628140449524,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.8,
+      "pass@3": 1.0,
+      "pass@5": 1.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 4
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 5,
+    "test_cases": 1
+  }
+}
