@@ -1,0 +1,1074 @@
+{
+  "problem_id": "shortest-distance-after-road-addition-queries-ii",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u > max_reach:\n                res.append(n-1)\n                intervals.append((u, v))\n                continue\n            new_reach = v\n            i = 0\n            while i < len(intervals) and intervals[i][0] <= u:\n                if intervals[i][1] < new_reach:\n                    new_reach = intervals[i][1]\n                i += 1\n            while i < len(intervals) and intervals[i][0] <= new_reach:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                else:\n                    intervals.pop(i)\n            intervals.insert(i, (u, new_reach))\n            max_reach = max(max_reach, new_reach)\n            current_min = min(max_reach, n-1)\n            res.append(current_min if current_min >= n-1 else n-1)\n        return res",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u <= max_reach:\n                max_reach = max(max_reach, v)\n            res.append(min(max_reach, n-1))\n        return res",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = [i for i in range(n)]\n        res = []\n        for u, v in queries:\n            if earliest[u] < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                i = v + 1\n                while i < n and earliest[i] > earliest[i-1] + 1:\n                    earliest[i] = earliest[i-1] + 1\n                    i += 1\n            res.append(earliest[n-1])\n        return res",
+    "import sys\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = [sys.maxsize] * n\n        earliest[0] = 0\n        res = []\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                queue = deque()\n                queue.append(v)\n                while queue:\n                    current = queue.popleft()\n                    if current + 1 < n and earliest[current] + 1 < earliest[current + 1]:\n                        earliest[current + 1] = earliest[current] + 1\n                        queue.append(current + 1)\n            res.append(earliest[n-1])\n        return res",
+    "import sys\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        dist = [sys.maxsize] * n\n        dist[0] = 0\n        res = []\n        for u, v in queries:\n            if dist[u] + 1 < dist[v]:\n                dist[v] = dist[u] + 1\n                # Propagate the new distance forward\n                for i in range(v, n-1):\n                    if dist[i] + 1 < dist[i+1]:\n                        dist[i+1] = dist[i] + 1\n                    else:\n                        break\n            res.append(dist[n-1])\n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u > max_reach:\n                res.append(n-1)\n                intervals.append((u, v))\n                continue\n            new_reach = v\n            # Find the position to insert the new interval\n            i = 0\n            while i < len(intervals) and intervals[i][0] <= u:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                i += 1\n            # Now, check intervals that start after u but before new_reach\n            while i < len(intervals) and intervals[i][0] <= new_reach:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                else:\n                    intervals.pop(i)\n            # Insert the new interval\n            intervals.insert(i, (u, new_reach))\n            # Update max_reach\n            if new_reach > max_reach:\n                max_reach = new_reach\n            # The shortest path is the minimum between max_reach and n-1\n            res.append(min(max_reach, n-1))\n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u > max_reach:\n                res.append(n - 1)\n                intervals.append((u, v))\n                continue\n            new_reach = v\n            # Find the first interval where start > u\n            i = 0\n            while i < len(intervals) and intervals[i][0] <= u:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                i += 1\n            # Now, check intervals that start after u but before new_reach\n            while i < len(intervals) and intervals[i][0] <= new_reach:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                else:\n                    intervals.pop(i)\n            # Insert the new interval\n            intervals.insert(i, (u, new_reach))\n            # Update max_reach\n            if new_reach > max_reach:\n                max_reach = new_reach\n            # The shortest path is the minimum between max_reach and n-1\n            res.append(min(max_reach, n - 1))\n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u > max_reach:\n                res.append(n - 1)\n                intervals.append((u, v))\n                continue\n            new_reach = v\n            # Find the first interval where start > u\n            left, right = 0, len(intervals)\n            while left < right:\n                mid = (left + right) // 2\n                if intervals[mid][0] > u:\n                    right = mid\n                else:\n                    left = mid + 1\n            # Check all intervals before 'left' to see if they can be merged\n            i = left - 1\n            while i >= 0 and intervals[i][1] >= u:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                i -= 1\n            # Now, check intervals after 'i' that start <= new_reach\n            i = left\n            while i < len(intervals) and intervals[i][0] <= new_reach:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                else:\n                    intervals.pop(i)\n                i += 1\n            # Insert the new interval\n            intervals.insert(left, (u, new_reach))\n            # Update max_reach\n            if new_reach > max_reach:\n                max_reach = new_reach\n            # The shortest path is the minimum between max_reach and n-1\n            res.append(min(max_reach, n - 1))\n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u > max_reach:\n                res.append(n - 1)\n                intervals.append((u, v))\n                continue\n            new_reach = v\n            # Find the position to insert the new interval\n            i = 0\n            while i < len(intervals) and intervals[i][0] <= u:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                i += 1\n            # Now, check intervals that start after u but before new_reach\n            while i < len(intervals) and intervals[i][0] <= new_reach:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                else:\n                    intervals.pop(i)\n            # Insert the new interval\n            intervals.insert(i, (u, new_reach))\n            # Update max_reach\n            if new_reach > max_reach:\n                max_reach = new_reach\n            # The shortest path is the minimum between max_reach and n-1\n            res.append(min(max_reach, n-1))\n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u > max_reach:\n                res.append(n - 1)\n                intervals.append((u, v))\n                continue\n            new_reach = v\n            i = 0\n            while i < len(intervals) and intervals[i][0] <= u:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                i += 1\n            while i < len(intervals) and intervals[i][0] <= new_reach:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                else:\n                    intervals.pop(i)\n            intervals.insert(i, (u, new_reach))\n            if new_reach > max_reach:\n                max_reach = new_reach\n            res.append(min(max_reach, n-1))\n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u > max_reach:\n                res.append(n - 1)\n                intervals.append((u, v))\n                continue\n            new_reach = v\n            i = 0\n            while i < len(intervals) and intervals[i][0] <= u:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                i += 1\n            while i < len(intervals) and intervals[i][0] <= new_reach:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                else:\n                    intervals.pop(i)\n            intervals.insert(i, (u, new_reach))\n            if new_reach > max_reach:\n                max_reach = new_reach\n            res.append(min(max_reach, n-1))\n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u > max_reach:\n                res.append(n - 1)\n                intervals.append((u, v))\n                continue\n            new_reach = v\n            i = 0\n            while i < len(intervals) and intervals[i][0] <= u:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                i += 1\n            while i < len(intervals) and intervals[i][0] <= new_reach:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                else:\n                    intervals.pop(i)\n            intervals.insert(i, (u, new_reach))\n            if new_reach > max_reach:\n                max_reach = new_reach\n            res.append(min(max_reach, n-1))\n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u > max_reach:\n                res.append(n - 1)\n                intervals.append((u, v))\n                continue\n            new_reach = v\n            i = 0\n            while i < len(intervals) and intervals[i][0] <= u:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                i += 1\n            while i < len(intervals) and intervals[i][0] <= new_reach:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                else:\n                    intervals.pop(i)\n            intervals.insert(i, (u, new_reach))\n            if new_reach > max_reach:\n                max_reach = new_reach\n            res.append(min(max_reach, n-1))\n        return res",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = [i for i in range(n)]\n        res = []\n        current_min = n - 1  # initial path length is n-1\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Update all nodes beyond v if this creates a shorter path\n                for i in range(v + 1, n):\n                    if earliest[i] > earliest[i - 1] + 1:\n                        earliest[i] = earliest[i - 1] + 1\n                    else:\n                        break  # no further updates needed\n            res.append(current_min)\n        return res",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = list(range(n))\n        res = []\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Propagate the update forward\n                for i in range(v + 1, n):\n                    if earliest[i] > earliest[i - 1] + 1:\n                        earliest[i] = earliest[i - 1] + 1\n                    else:\n                        break  # No further updates needed\n            res.append(earliest[n-1])\n        return res",
+    "import heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = list(range(n))\n        res = []\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Use a priority queue to efficiently propagate updates\n                heap = []\n                heapq.heappush(heap, (earliest[v], v))\n                while heap:\n                    dist, node = heapq.heappop(heap)\n                    if dist > earliest[node]:\n                        continue\n                    if node + 1 < n and earliest[node + 1] > dist + 1:\n                        earliest[node + 1] = dist + 1\n                        heapq.heappush(heap, (earliest[node + 1], node + 1))\n            res.append(earliest[n-1])\n        return res",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = list(range(n))\n        res = []\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Propagate the update forward\n                i = v + 1\n                while i < n:\n                    if earliest[i] > earliest[i - 1] + 1:\n                        earliest[i] = earliest[i - 1] + 1\n                        i += 1\n                    else:\n                        break\n            res.append(earliest[n-1])\n        return res",
+    "import heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = list(range(n))\n        res = []\n        heap = []\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                heapq.heappush(heap, (earliest[v], v))\n            # Propagate updates using Dijkstra's algorithm\n            while heap:\n                dist, node = heapq.heappop(heap)\n                if dist > earliest[node]:\n                    continue\n                if node + 1 < n and earliest[node] + 1 < earliest[node + 1]:\n                    earliest[node + 1] = earliest[node] + 1\n                    heapq.heappush(heap, (earliest[node + 1], node + 1))\n            res.append(earliest[n-1])\n        return res",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = list(range(n))\n        res = []\n        current_min = n - 1  # initial path length is n-1\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Update all nodes beyond v if this creates a shorter path\n                i = v + 1\n                while i < n and earliest[i] > earliest[i-1] + 1:\n                    earliest[i] = earliest[i-1] + 1\n                    i += 1\n            res.append(current_min if earliest[-1] >= current_min else earliest[-1])\n            current_min = min(current_min, earliest[-1])\n        return res",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = list(range(n))\n        res = []\n        current_min = n - 1  # Initial shortest path is n-1\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Update all nodes beyond v if this creates a shorter path\n                i = v + 1\n                while i < n and earliest[i] > earliest[i-1] + 1:\n                    earliest[i] = earliest[i-1] + 1\n                    i += 1\n            # Update the current minimum and append to result\n            current_min = min(current_min, earliest[-1])\n            res.append(current_min)\n        return res",
+    "import heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = [float('inf')] * n\n        earliest[0] = 0\n        res = []\n        heap = []\n        heapq.heappush(heap, (0, 0))\n        \n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                heapq.heappush(heap, (earliest[v], v))\n            \n            # Update all nodes using Dijkstra's algorithm\n            while heap:\n                dist, node = heapq.heappop(heap)\n                if dist > earliest[node]:\n                    continue\n                if node + 1 < n and earliest[node + 1] > dist + 1:\n                    earliest[node + 1] = dist + 1\n                    heapq.heappush(heap, (earliest[node + 1], node + 1))\n            \n            res.append(earliest[n-1])\n        \n        return res",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = list(range(n))\n        res = []\n        current_min = n - 1  # initial path length is n-1\n        for u, v in queries:\n            # Check if the new edge provides a shorter path to v\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Propagate the update forward\n                i = v + 1\n                while i < n and earliest[i] > earliest[i-1] + 1:\n                    earliest[i] = earliest[i-1] + 1\n                    i += 1\n            # Also, check if any nodes before v can be updated\n            # This is necessary because adding a new edge might allow earlier nodes to have shorter paths\n            # For example, if u is 0 and v is 4, nodes after 4 might have been updated, but nodes before 4 might also benefit\n            # However, in this problem, since the initial edges are 0->1->2->...->n-1, and queries are added in a way that avoids certain overlaps,\n            # the main propagation is forward. But to be safe, we can also check backward.\n            # However, given the constraints, it's more efficient to only propagate forward.\n            res.append(current_min if earliest[-1] >= current_min else earliest[-1])\n            current_min = min(current_min, earliest[-1])\n        return res",
+    "import heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the adjacency list with the initial roads\n        adj = [[] for _ in range(n)]\n        for i in range(n-1):\n            adj[i].append(i+1)\n        \n        # Add each query's road to the adjacency list\n        for u, v in queries:\n            adj[u].append(v)\n        \n        # Dijkstra's algorithm to find the shortest path from 0 to n-1\n        # We'll run this after each query, but since the queries are processed incrementally,\n        # we need to find a way to update the distances efficiently.\n        # However, given the constraints, a straightforward approach may not be efficient enough.\n        # Instead, we can note that the initial shortest path is n-1, and each query can potentially\n        # provide a shortcut. We can track the earliest possible arrival at each node.\n        \n        # Let's use a priority queue where each element is (distance, node)\n        # We'll also keep track of the earliest known distance to each node\n        dist = [float('inf')] * n\n        dist[0] = 0\n        heap = []\n        heapq.heappush(heap, (0, 0))\n        \n        # To handle the dynamic addition of edges, we can process each query and update the distances\n        # However, this approach may not be efficient for large n and queries.\n        # Instead, we can precompute the earliest possible arrival times considering all queries.\n        \n        # Since the queries are added in a way that no two queries overlap in a certain way,\n        # we can process them in order and update the earliest array accordingly.\n        earliest = [i for i in range(n)]\n        res = []\n        current_min = n - 1\n        \n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Now, propagate this change to all nodes beyond v\n                for i in range(v + 1, n):\n                    if earliest[i] > earliest[i-1] + 1:\n                        earliest[i] = earliest[i-1] + 1\n                    else:\n                        break  # No need to proceed further as the path can't be improved\n            res.append(earliest[n-1])\n        \n        return res",
+    "import heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = list(range(n))\n        res = []\n        m = len(queries)\n        \n        # Process queries in reverse order to set up the earliest times\n        for i in range(m-1, -1, -1):\n            u, v = queries[i]\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n            # Propagate the change backward\n            for j in range(v-1, -1, -1):\n                if earliest[j] > earliest[j+1] + 1:\n                    earliest[j] = earliest[j+1] + 1\n                else:\n                    break\n        \n        # Now, process queries in forward order to compute the result\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n            # Propagate the change forward\n            for j in range(v, n-1):\n                if earliest[j+1] > earliest[j] + 1:\n                    earliest[j+1] = earliest[j] + 1\n                else:\n                    break\n            res.append(earliest[n-1])\n        \n        return res",
+    "import heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the earliest arrival times\n        earliest = list(range(n))\n        res = []\n        heap = []\n        heapq.heappush(heap, (0, 0))\n        \n        for u, v in queries:\n            # Check if the new edge provides a shorter path to v\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                heapq.heappush(heap, (earliest[v], v))\n            \n            # Process the heap to update earliest arrival times\n            while heap:\n                dist, node = heapq.heappop(heap)\n                if dist > earliest[node]:\n                    continue\n                if node == n - 1:\n                    break\n                next_node = node + 1\n                if next_node < n and dist + 1 < earliest[next_node]:\n                    earliest[next_node] = dist + 1\n                    heapq.heappush(heap, (earliest[next_node], next_node))\n            \n            res.append(earliest[n-1])\n        \n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = list(range(n))\n        res = []\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Update all nodes after v if possible\n                for i in range(v + 1, n):\n                    if earliest[i] > earliest[i - 1] + 1:\n                        earliest[i] = earliest[i - 1] + 1\n                    else:\n                        break  # No further improvement possible\n            res.append(earliest[n-1])\n        return res",
+    "This code correctly handles the merging of intervals and efficiently computes the shortest path after each query. It ensures that the intervals are non-overlapping and properly ordered, allowing for accurate calculation of the reachable cities and the corresponding shortest path length.\n</think>\n\nTo solve this problem, we need to determine the shortest path from city 0 to city n-1 after each addition of a new unidirectional road. Initially, there are roads from each city i to i+1, forming a linear path. Each query adds a new road, and we need to find the shortest path after each addition.\n\n### Approach\nThe key insight is to track the reachable intervals after each query. Each interval [a, b] represents that from city a, you can reach up to city b. By maintaining these intervals, we can efficiently determine the shortest path after each new road addition.\n\n1. **Track Reachable Intervals**: Maintain a list of intervals where each interval [a, b] represents that from city a, you can reach up to city b.\n2. **Merge Intervals**: For each new road (u, v), check if it can extend any existing interval. If u is within an existing interval, merge the intervals to form a new one that extends to v.\n3. **Compute Shortest Path**: After each query, determine the maximum reachable city. The shortest path is the minimum of the current path and the new possible path formed by the merged intervals.\n\n### Solution Code",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_max = 0\n        for u, v in queries:\n            new_interval = [u, v]\n            merged = False\n            for i in range(len(intervals)):\n                a, b = intervals[i]\n                if a <= u <= b:\n                    new_interval = [a, max(b, v)]\n                    intervals.pop(i)\n                    merged = True\n                    break\n            if not merged:\n                intervals.append(new_interval)\n            intervals.sort()\n            i = 0\n            while i < len(intervals) - 1:\n                a, b = intervals[i]\n                c, d = intervals[i+1]\n                if b >= c:\n                    intervals[i] = [a, max(b, d)]\n                    intervals.pop(i+1)\n                else:\n                    i += 1\n            max_reachable = current_max\n            for a, b in intervals:\n                if a <= current_max:\n                    max_reachable = max(max_reachable, b)\n            if max_reachable >= n-1:\n                res.append(1)\n            else:\n                res.append(max_reachable - current_max + 1)\n                current_max = max_reachable\n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        max_reachable = 0\n        for u, v in queries:\n            new_interval = (u, v)\n            merged = False\n            for i in range(len(intervals)):\n                a, b = intervals[i]\n                if a <= u <= b:\n                    new_interval = (a, max(b, v))\n                    intervals.pop(i)\n                    merged = True\n                    break\n            if not merged:\n                intervals.append(new_interval)\n            intervals.sort()\n            i = 0\n            while i < len(intervals) - 1:\n                a, b = intervals[i]\n                c, d = intervals[i+1]\n                if b >= c:\n                    intervals[i] = (a, max(b, d))\n                    intervals.pop(i+1)\n                else:\n                    i += 1\n            current_max = max_reachable\n            for a, b in intervals:\n                if a <= current_max:\n                    current_max = max(current_max, b)\n            if current_max >= n - 1:\n                res.append(1)\n            else:\n                res.append(current_max - max_reachable + 1)\n                max_reachable = current_max\n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_max = 0\n        for u, v in queries:\n            new_interval = [u, v]\n            merged = False\n            for i in range(len(intervals)):\n                a, b = intervals[i]\n                if a <= u <= b:\n                    new_interval = [a, max(b, v)]\n                    intervals.pop(i)\n                    merged = True\n                    break\n            if not merged:\n                intervals.append(new_interval)\n            intervals.sort()\n            i = 0\n            while i < len(intervals) - 1:\n                a, b = intervals[i]\n                c, d = intervals[i+1]\n                if b >= c:\n                    intervals[i] = [a, max(b, d)]\n                    intervals.pop(i+1)\n                else:\n                    i += 1\n            max_reachable = current_max\n            for a, b in intervals:\n                if a <= current_max:\n                    max_reachable = max(max_reachable, b)\n            if max_reachable >= n - 1:\n                res.append(1)\n            else:\n                res.append(max_reachable - current_max + 1)\n                current_max = max_reachable\n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        max_reachable = 0\n        for u, v in queries:\n            new_interval = (u, v)\n            merged = False\n            for i in range(len(intervals)):\n                a, b = intervals[i]\n                if a <= u <= b:\n                    new_interval = (a, max(b, v))\n                    intervals.pop(i)\n                    merged = True\n                    break\n            if not merged:\n                intervals.append(new_interval)\n            intervals.sort()\n            i = 0\n            while i < len(intervals) - 1:\n                a, b = intervals[i]\n                c, d = intervals[i+1]\n                if b >= c:\n                    intervals[i] = (a, max(b, d))\n                    intervals.pop(i+1)\n                else:\n                    i += 1\n            current_max = max_reachable\n            for a, b in intervals:\n                if a <= current_max:\n                    current_max = max(current_max, b)\n            if current_max >= n-1:\n                res.append(1)\n            else:\n                res.append(current_max - max_reachable + 1)\n                max_reachable = current_max\n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_max = 0\n        for u, v in queries:\n            new_interval = [u, v]\n            merged = False\n            for i in range(len(intervals)):\n                a, b = intervals[i]\n                if a <= u <= b:\n                    new_interval = [a, max(b, v)]\n                    intervals.pop(i)\n                    merged = True\n                    break\n            if not merged:\n                intervals.append(new_interval)\n                intervals.sort()\n            else:\n                intervals.append(new_interval)\n                intervals.sort()\n            intervals.sort()\n            i = 0\n            while i < len(intervals) - 1:\n                a, b = intervals[i]\n                c, d = intervals[i+1]\n                if b >= c:\n                    intervals.pop(i+1)\n                    intervals[i] = [a, max(b, d)]\n                else:\n                    i += 1\n            max_reachable = 0\n            for a, b in intervals:\n                if a <= max_reachable:\n                    max_reachable = max(max_reachable, b)\n            res.append(min(max_reachable, n-1))\n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        for u, v in queries:\n            new_interval = (u, v)\n            merged = False\n            # Find the position to insert\n            left, right = 0, len(intervals)\n            while left < right:\n                mid = (left + right) // 2\n                if intervals[mid][0] > u:\n                    right = mid\n                else:\n                    left = mid + 1\n            insert_pos = left\n            # Check if it can be merged with previous\n            if insert_pos > 0:\n                prev_a, prev_b = intervals[insert_pos-1]\n                if prev_b >= u:\n                    new_interval = (prev_a, max(prev_b, v))\n                    intervals.pop(insert_pos-1)\n                    insert_pos -= 1\n                    merged = True\n            # Check if it can be merged with next\n            while insert_pos < len(intervals):\n                next_a, next_b = intervals[insert_pos]\n                if new_interval[1] >= next_a:\n                    new_interval = (new_interval[0], max(new_interval[1], next_b))\n                    intervals.pop(insert_pos)\n                else:\n                    break\n            intervals.insert(insert_pos, new_interval)\n            # Calculate max reachable\n            max_reachable = 0\n            for a, b in intervals:\n                if a <= max_reachable:\n                    max_reachable = max(max_reachable, b)\n                else:\n                    break  # Since intervals are sorted, no need to check further\n            res.append(min(max_reachable, n-1))\n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        parent = list(range(n))\n        max_reachable = 0\n        res = []\n        \n        def find(u):\n            while parent[u] != u:\n                parent[u] = parent[parent[u]]  # Path compression\n                u = parent[u]\n            return u\n        \n        for u, v in queries:\n            root_u = find(u)\n            if root_u <= max_reachable:\n                parent[v] = root_u\n                if v > max_reachable:\n                    max_reachable = v\n            res.append(min(max_reachable, n-1))\n        \n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        for u, v in queries:\n            new_interval = (u, v)\n            merged = False\n            for i in range(len(intervals)):\n                a, b = intervals[i]\n                if a <= u <= b:\n                    new_interval = (a, max(b, v))\n                    intervals.pop(i)\n                    merged = True\n                    break\n            if not merged:\n                intervals.append(new_interval)\n            else:\n                intervals.append(new_interval)\n            intervals.sort()\n            i = 0\n            while i < len(intervals) - 1:\n                a, b = intervals[i]\n                c, d = intervals[i+1]\n                if b >= c:\n                    intervals.pop(i+1)\n                    intervals[i] = (a, max(b, d))\n                else:\n                    i += 1\n            max_reachable = 0\n            for a, b in intervals:\n                if a <= max_reachable:\n                    max_reachable = max(max_reachable, b)\n            res.append(min(max_reachable, n-1))\n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        max_reach = 0\n        for u, v in queries:\n            new_interval = [u, v]\n            merged = False\n            for i in range(len(intervals)):\n                a, b = intervals[i]\n                if a <= u <= b:\n                    new_interval = [a, max(b, v)]\n                    intervals.pop(i)\n                    merged = True\n                    break\n            if not merged:\n                intervals.append(new_interval)\n            intervals.sort()\n            i = 0\n            while i < len(intervals) - 1:\n                a, b = intervals[i]\n                c, d = intervals[i+1]\n                if b >= c:\n                    intervals[i] = [a, max(b, d)]\n                    intervals.pop(i+1)\n                else:\n                    i += 1\n            current_max = max_reach\n            for a, b in intervals:\n                if a <= max_reach:\n                    current_max = max(current_max, b)\n            max_reach = max(max_reach, current_max)\n            res.append(min(max_reach, n-1))\n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u <= max_reach:\n                max_reach = max(max_reach, v)\n            res.append(min(max_reach, n-1))\n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        parent = list(range(n))\n        max_reach = 0\n        res = []\n        \n        def find(u):\n            while parent[u] != u:\n                parent[u] = parent[parent[u]]  # Path compression\n                u = parent[u]\n            return u\n        \n        for u, v in queries:\n            if u > max_reach:\n                res.append(max_reach)\n                continue\n            root_u = find(u)\n            parent[root_u] = v\n            if v > max_reach:\n                max_reach = v\n            res.append(min(max_reach, n-1))\n        \n        return res",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u <= max_reach:\n                max_reach = max(max_reach, v)\n            res.append(min(max_reach, n-1))\n        return res"
+  ],
+  "total_candidates": 39,
+  "nodes_explored": 39,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u > max_reach:\n                res.append(n-1)\n                intervals.append((u, v))\n                continue\n            new_reach = v\n            i = 0\n            while i < len(intervals) and intervals[i][0] <= u:\n                if intervals[i][1] < new_reach:\n                    new_reach = intervals[i][1]\n                i += 1\n            while i < len(intervals) and intervals[i][0] <= new_reach:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                else:\n                    intervals.pop(i)\n            intervals.insert(i, (u, new_reach))\n            max_reach = max(max_reach, new_reach)\n            current_min = min(max_reach, n-1)\n            res.append(current_min if current_min >= n-1 else n-1)\n        return res",
+      "solution_hash": "97cae85e05f19349539b18caa4bdd924726a28c791ef6d9d0c57c4f274debf4c",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpqykm0bpd.py\", line 151, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpqykm0bpd.py\", line 110, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+        "execution_time": 0.06185007095336914
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u <= max_reach:\n                max_reach = max(max_reach, v)\n            res.append(min(max_reach, n-1))\n        return res",
+          "solution_hash": "d40b6f9f8fa1312a5eb28a8c1e9fa6f76dd43fc11febe0af753dc410d6d5f671",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmphtjsgj_h.py\", line 134, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmphtjsgj_h.py\", line 93, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+            "execution_time": 0.06305217742919922
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_2",
+              "solution": "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = [i for i in range(n)]\n        res = []\n        for u, v in queries:\n            if earliest[u] < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                i = v + 1\n                while i < n and earliest[i] > earliest[i-1] + 1:\n                    earliest[i] = earliest[i-1] + 1\n                    i += 1\n            res.append(earliest[n-1])\n        return res",
+              "solution_hash": "ceea799fd448a68835dba04e0ba6544c7307e28b0284000761b6bfe91f1d49a8",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmprgz9ewu_.py\", line 138, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmprgz9ewu_.py\", line 97, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.05969953536987305
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_3",
+              "solution": "import sys\nfrom collections import deque\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = [sys.maxsize] * n\n        earliest[0] = 0\n        res = []\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                queue = deque()\n                queue.append(v)\n                while queue:\n                    current = queue.popleft()\n                    if current + 1 < n and earliest[current] + 1 < earliest[current + 1]:\n                        earliest[current + 1] = earliest[current] + 1\n                        queue.append(current + 1)\n            res.append(earliest[n-1])\n        return res",
+              "solution_hash": "37fbc44bb89814e746ade15d3c70bad2320288bccd30e7e2b61f1097a5488174",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmppmgs4k29.py\", line 145, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmppmgs4k29.py\", line 104, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.06115365028381348
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "import sys\nfrom typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        dist = [sys.maxsize] * n\n        dist[0] = 0\n        res = []\n        for u, v in queries:\n            if dist[u] + 1 < dist[v]:\n                dist[v] = dist[u] + 1\n                # Propagate the new distance forward\n                for i in range(v, n-1):\n                    if dist[i] + 1 < dist[i+1]:\n                        dist[i+1] = dist[i] + 1\n                    else:\n                        break\n            res.append(dist[n-1])\n        return res",
+              "solution_hash": "73e0bf850fa3e1600f26f454f12ffb24295c9680a5c1360464365bf9b2bb33a4",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpclz73lqa.py\", line 144, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpclz73lqa.py\", line 103, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.061893463134765625
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_5",
+          "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u > max_reach:\n                res.append(n-1)\n                intervals.append((u, v))\n                continue\n            new_reach = v\n            # Find the position to insert the new interval\n            i = 0\n            while i < len(intervals) and intervals[i][0] <= u:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                i += 1\n            # Now, check intervals that start after u but before new_reach\n            while i < len(intervals) and intervals[i][0] <= new_reach:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                else:\n                    intervals.pop(i)\n            # Insert the new interval\n            intervals.insert(i, (u, new_reach))\n            # Update max_reach\n            if new_reach > max_reach:\n                max_reach = new_reach\n            # The shortest path is the minimum between max_reach and n-1\n            res.append(min(max_reach, n-1))\n        return res",
+          "solution_hash": "d2cb926358e70ce128c2a771f2338b3df865c6f5660728cea8de1369799d2f85",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmphtr_mcva.py\", line 158, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmphtr_mcva.py\", line 117, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+            "execution_time": 0.06520748138427734
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_6",
+              "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u > max_reach:\n                res.append(n - 1)\n                intervals.append((u, v))\n                continue\n            new_reach = v\n            # Find the first interval where start > u\n            i = 0\n            while i < len(intervals) and intervals[i][0] <= u:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                i += 1\n            # Now, check intervals that start after u but before new_reach\n            while i < len(intervals) and intervals[i][0] <= new_reach:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                else:\n                    intervals.pop(i)\n            # Insert the new interval\n            intervals.insert(i, (u, new_reach))\n            # Update max_reach\n            if new_reach > max_reach:\n                max_reach = new_reach\n            # The shortest path is the minimum between max_reach and n-1\n            res.append(min(max_reach, n - 1))\n        return res",
+              "solution_hash": "dcaf50ad3075642aecb39e0d4a3cf8dc1e1fca47de33d6c56a72970775a0e1df",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpabxoonjq.py\", line 158, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpabxoonjq.py\", line 117, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.06257271766662598
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_7",
+              "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u > max_reach:\n                res.append(n - 1)\n                intervals.append((u, v))\n                continue\n            new_reach = v\n            # Find the first interval where start > u\n            left, right = 0, len(intervals)\n            while left < right:\n                mid = (left + right) // 2\n                if intervals[mid][0] > u:\n                    right = mid\n                else:\n                    left = mid + 1\n            # Check all intervals before 'left' to see if they can be merged\n            i = left - 1\n            while i >= 0 and intervals[i][1] >= u:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                i -= 1\n            # Now, check intervals after 'i' that start <= new_reach\n            i = left\n            while i < len(intervals) and intervals[i][0] <= new_reach:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                else:\n                    intervals.pop(i)\n                i += 1\n            # Insert the new interval\n            intervals.insert(left, (u, new_reach))\n            # Update max_reach\n            if new_reach > max_reach:\n                max_reach = new_reach\n            # The shortest path is the minimum between max_reach and n-1\n            res.append(min(max_reach, n - 1))\n        return res",
+              "solution_hash": "6a5457555588c04d71e4c51cb76dfcf1d6a3e44b07c3aa82c94e9815b1db9b8c",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp5nxznemd.py\", line 168, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp5nxznemd.py\", line 127, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.060494184494018555
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u > max_reach:\n                res.append(n - 1)\n                intervals.append((u, v))\n                continue\n            new_reach = v\n            # Find the position to insert the new interval\n            i = 0\n            while i < len(intervals) and intervals[i][0] <= u:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                i += 1\n            # Now, check intervals that start after u but before new_reach\n            while i < len(intervals) and intervals[i][0] <= new_reach:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                else:\n                    intervals.pop(i)\n            # Insert the new interval\n            intervals.insert(i, (u, new_reach))\n            # Update max_reach\n            if new_reach > max_reach:\n                max_reach = new_reach\n            # The shortest path is the minimum between max_reach and n-1\n            res.append(min(max_reach, n-1))\n        return res",
+              "solution_hash": "164bc1f9f69593326505f36724d83a15d1d2564fcebc2169499e570293732d7d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp0u7uavwy.py\", line 158, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp0u7uavwy.py\", line 117, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.0601499080657959
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_9",
+          "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u > max_reach:\n                res.append(n - 1)\n                intervals.append((u, v))\n                continue\n            new_reach = v\n            i = 0\n            while i < len(intervals) and intervals[i][0] <= u:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                i += 1\n            while i < len(intervals) and intervals[i][0] <= new_reach:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                else:\n                    intervals.pop(i)\n            intervals.insert(i, (u, new_reach))\n            if new_reach > max_reach:\n                max_reach = new_reach\n            res.append(min(max_reach, n-1))\n        return res",
+          "solution_hash": "164bc1f9f69593326505f36724d83a15d1d2564fcebc2169499e570293732d7d",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp0u7uavwy.py\", line 158, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp0u7uavwy.py\", line 117, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+            "execution_time": 0.0601499080657959
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_10",
+              "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u > max_reach:\n                res.append(n - 1)\n                intervals.append((u, v))\n                continue\n            new_reach = v\n            i = 0\n            while i < len(intervals) and intervals[i][0] <= u:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                i += 1\n            while i < len(intervals) and intervals[i][0] <= new_reach:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                else:\n                    intervals.pop(i)\n            intervals.insert(i, (u, new_reach))\n            if new_reach > max_reach:\n                max_reach = new_reach\n            res.append(min(max_reach, n-1))\n        return res",
+              "solution_hash": "164bc1f9f69593326505f36724d83a15d1d2564fcebc2169499e570293732d7d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp0u7uavwy.py\", line 158, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp0u7uavwy.py\", line 117, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.0601499080657959
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_11",
+              "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u > max_reach:\n                res.append(n - 1)\n                intervals.append((u, v))\n                continue\n            new_reach = v\n            i = 0\n            while i < len(intervals) and intervals[i][0] <= u:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                i += 1\n            while i < len(intervals) and intervals[i][0] <= new_reach:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                else:\n                    intervals.pop(i)\n            intervals.insert(i, (u, new_reach))\n            if new_reach > max_reach:\n                max_reach = new_reach\n            res.append(min(max_reach, n-1))\n        return res",
+              "solution_hash": "164bc1f9f69593326505f36724d83a15d1d2564fcebc2169499e570293732d7d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp0u7uavwy.py\", line 158, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp0u7uavwy.py\", line 117, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.0601499080657959
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_12",
+              "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u > max_reach:\n                res.append(n - 1)\n                intervals.append((u, v))\n                continue\n            new_reach = v\n            i = 0\n            while i < len(intervals) and intervals[i][0] <= u:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                i += 1\n            while i < len(intervals) and intervals[i][0] <= new_reach:\n                if intervals[i][1] > new_reach:\n                    new_reach = intervals[i][1]\n                else:\n                    intervals.pop(i)\n            intervals.insert(i, (u, new_reach))\n            if new_reach > max_reach:\n                max_reach = new_reach\n            res.append(min(max_reach, n-1))\n        return res",
+              "solution_hash": "164bc1f9f69593326505f36724d83a15d1d2564fcebc2169499e570293732d7d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp0u7uavwy.py\", line 158, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp0u7uavwy.py\", line 117, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.0601499080657959
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = [i for i in range(n)]\n        res = []\n        current_min = n - 1  # initial path length is n-1\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Update all nodes beyond v if this creates a shorter path\n                for i in range(v + 1, n):\n                    if earliest[i] > earliest[i - 1] + 1:\n                        earliest[i] = earliest[i - 1] + 1\n                    else:\n                        break  # no further updates needed\n            res.append(current_min)\n        return res",
+      "solution_hash": "d01edae755f72e2ab7c7a094e3a92d903921fcc1aa620dacdac1cecf82390da4",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpimzdos0k.py\", line 141, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpimzdos0k.py\", line 100, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+        "execution_time": 0.06068849563598633
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_14",
+          "solution": "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = list(range(n))\n        res = []\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Propagate the update forward\n                for i in range(v + 1, n):\n                    if earliest[i] > earliest[i - 1] + 1:\n                        earliest[i] = earliest[i - 1] + 1\n                    else:\n                        break  # No further updates needed\n            res.append(earliest[n-1])\n        return res",
+          "solution_hash": "dce0b415ee05df612589bdd8fce6b168b352c23fce78b8d0ce409eb46cd59f9f",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp3g0i1trf.py\", line 140, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp3g0i1trf.py\", line 99, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+            "execution_time": 0.061824798583984375
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_15",
+              "solution": "import heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = list(range(n))\n        res = []\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Use a priority queue to efficiently propagate updates\n                heap = []\n                heapq.heappush(heap, (earliest[v], v))\n                while heap:\n                    dist, node = heapq.heappop(heap)\n                    if dist > earliest[node]:\n                        continue\n                    if node + 1 < n and earliest[node + 1] > dist + 1:\n                        earliest[node + 1] = dist + 1\n                        heapq.heappush(heap, (earliest[node + 1], node + 1))\n            res.append(earliest[n-1])\n        return res",
+              "solution_hash": "a30e10432fa6a5b2d95b620922569e1ac4396d463e98601e1d9e22d2b60aab15",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpms2in9vp.py\", line 146, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpms2in9vp.py\", line 105, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.06154370307922363
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_16",
+              "solution": "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = list(range(n))\n        res = []\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Propagate the update forward\n                i = v + 1\n                while i < n:\n                    if earliest[i] > earliest[i - 1] + 1:\n                        earliest[i] = earliest[i - 1] + 1\n                        i += 1\n                    else:\n                        break\n            res.append(earliest[n-1])\n        return res",
+              "solution_hash": "04d3112e20659e8957b90ca2be9b83e06f481536d3f0a617d00e03f4d5e3ad97",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpo6m98pf1.py\", line 142, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpo6m98pf1.py\", line 101, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.0612635612487793
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_17",
+              "solution": "import heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = list(range(n))\n        res = []\n        heap = []\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                heapq.heappush(heap, (earliest[v], v))\n            # Propagate updates using Dijkstra's algorithm\n            while heap:\n                dist, node = heapq.heappop(heap)\n                if dist > earliest[node]:\n                    continue\n                if node + 1 < n and earliest[node] + 1 < earliest[node + 1]:\n                    earliest[node + 1] = earliest[node] + 1\n                    heapq.heappush(heap, (earliest[node + 1], node + 1))\n            res.append(earliest[n-1])\n        return res",
+              "solution_hash": "70261dfe8f93e938f1808451e8c0d1ca0183f9f37626ffedc667f362a2b2a117",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpvw5rugl4.py\", line 146, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpvw5rugl4.py\", line 105, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.060167789459228516
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_18",
+          "solution": "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = list(range(n))\n        res = []\n        current_min = n - 1  # initial path length is n-1\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Update all nodes beyond v if this creates a shorter path\n                i = v + 1\n                while i < n and earliest[i] > earliest[i-1] + 1:\n                    earliest[i] = earliest[i-1] + 1\n                    i += 1\n            res.append(current_min if earliest[-1] >= current_min else earliest[-1])\n            current_min = min(current_min, earliest[-1])\n        return res",
+          "solution_hash": "2262b4fc668f26430b70b77ca367e3796e456fee7adfad9996c0099ed57ea615",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp3sqhqphc.py\", line 141, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp3sqhqphc.py\", line 100, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+            "execution_time": 0.06081867218017578
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_19",
+              "solution": "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = list(range(n))\n        res = []\n        current_min = n - 1  # Initial shortest path is n-1\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Update all nodes beyond v if this creates a shorter path\n                i = v + 1\n                while i < n and earliest[i] > earliest[i-1] + 1:\n                    earliest[i] = earliest[i-1] + 1\n                    i += 1\n            # Update the current minimum and append to result\n            current_min = min(current_min, earliest[-1])\n            res.append(current_min)\n        return res",
+              "solution_hash": "385d1c993e7f3e380479a40ef327603142c595a39f55b9a25e1640b962bad6cf",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpvq3cr475.py\", line 142, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpvq3cr475.py\", line 101, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.061571359634399414
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_20",
+              "solution": "import heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = [float('inf')] * n\n        earliest[0] = 0\n        res = []\n        heap = []\n        heapq.heappush(heap, (0, 0))\n        \n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                heapq.heappush(heap, (earliest[v], v))\n            \n            # Update all nodes using Dijkstra's algorithm\n            while heap:\n                dist, node = heapq.heappop(heap)\n                if dist > earliest[node]:\n                    continue\n                if node + 1 < n and earliest[node + 1] > dist + 1:\n                    earliest[node + 1] = dist + 1\n                    heapq.heappush(heap, (earliest[node + 1], node + 1))\n            \n            res.append(earliest[n-1])\n        \n        return res",
+              "solution_hash": "11949aa2b50a3eac2186254b927373c70e4c011d8bc9bbf9621a3ecaeb419573",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp0iiy8v8a.py\", line 152, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp0iiy8v8a.py\", line 111, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.06396746635437012
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_21",
+              "solution": "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = list(range(n))\n        res = []\n        current_min = n - 1  # initial path length is n-1\n        for u, v in queries:\n            # Check if the new edge provides a shorter path to v\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Propagate the update forward\n                i = v + 1\n                while i < n and earliest[i] > earliest[i-1] + 1:\n                    earliest[i] = earliest[i-1] + 1\n                    i += 1\n            # Also, check if any nodes before v can be updated\n            # This is necessary because adding a new edge might allow earlier nodes to have shorter paths\n            # For example, if u is 0 and v is 4, nodes after 4 might have been updated, but nodes before 4 might also benefit\n            # However, in this problem, since the initial edges are 0->1->2->...->n-1, and queries are added in a way that avoids certain overlaps,\n            # the main propagation is forward. But to be safe, we can also check backward.\n            # However, given the constraints, it's more efficient to only propagate forward.\n            res.append(current_min if earliest[-1] >= current_min else earliest[-1])\n            current_min = min(current_min, earliest[-1])\n        return res",
+              "solution_hash": "2262b4fc668f26430b70b77ca367e3796e456fee7adfad9996c0099ed57ea615",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp3sqhqphc.py\", line 141, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp3sqhqphc.py\", line 100, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.06081867218017578
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_22",
+          "solution": "import heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the adjacency list with the initial roads\n        adj = [[] for _ in range(n)]\n        for i in range(n-1):\n            adj[i].append(i+1)\n        \n        # Add each query's road to the adjacency list\n        for u, v in queries:\n            adj[u].append(v)\n        \n        # Dijkstra's algorithm to find the shortest path from 0 to n-1\n        # We'll run this after each query, but since the queries are processed incrementally,\n        # we need to find a way to update the distances efficiently.\n        # However, given the constraints, a straightforward approach may not be efficient enough.\n        # Instead, we can note that the initial shortest path is n-1, and each query can potentially\n        # provide a shortcut. We can track the earliest possible arrival at each node.\n        \n        # Let's use a priority queue where each element is (distance, node)\n        # We'll also keep track of the earliest known distance to each node\n        dist = [float('inf')] * n\n        dist[0] = 0\n        heap = []\n        heapq.heappush(heap, (0, 0))\n        \n        # To handle the dynamic addition of edges, we can process each query and update the distances\n        # However, this approach may not be efficient for large n and queries.\n        # Instead, we can precompute the earliest possible arrival times considering all queries.\n        \n        # Since the queries are added in a way that no two queries overlap in a certain way,\n        # we can process them in order and update the earliest array accordingly.\n        earliest = [i for i in range(n)]\n        res = []\n        current_min = n - 1\n        \n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Now, propagate this change to all nodes beyond v\n                for i in range(v + 1, n):\n                    if earliest[i] > earliest[i-1] + 1:\n                        earliest[i] = earliest[i-1] + 1\n                    else:\n                        break  # No need to proceed further as the path can't be improved\n            res.append(earliest[n-1])\n        \n        return res",
+          "solution_hash": "72c0c25e1f53b956326814ca8386a07fb0553aaba226194b78e0087d2e8a084d",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmph6lqse5r.py\", line 174, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmph6lqse5r.py\", line 133, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+            "execution_time": 0.06034278869628906
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_23",
+              "solution": "import heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = list(range(n))\n        res = []\n        m = len(queries)\n        \n        # Process queries in reverse order to set up the earliest times\n        for i in range(m-1, -1, -1):\n            u, v = queries[i]\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n            # Propagate the change backward\n            for j in range(v-1, -1, -1):\n                if earliest[j] > earliest[j+1] + 1:\n                    earliest[j] = earliest[j+1] + 1\n                else:\n                    break\n        \n        # Now, process queries in forward order to compute the result\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n            # Propagate the change forward\n            for j in range(v, n-1):\n                if earliest[j+1] > earliest[j] + 1:\n                    earliest[j+1] = earliest[j] + 1\n                else:\n                    break\n            res.append(earliest[n-1])\n        \n        return res",
+              "solution_hash": "04a84df3c0cc2064988de28d37c02660d6f84b24c2a16884716c7d37450cf348",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpjwdbk3lb.py\", line 158, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpjwdbk3lb.py\", line 117, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.0609736442565918
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_24",
+              "solution": "import heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the earliest arrival times\n        earliest = list(range(n))\n        res = []\n        heap = []\n        heapq.heappush(heap, (0, 0))\n        \n        for u, v in queries:\n            # Check if the new edge provides a shorter path to v\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                heapq.heappush(heap, (earliest[v], v))\n            \n            # Process the heap to update earliest arrival times\n            while heap:\n                dist, node = heapq.heappop(heap)\n                if dist > earliest[node]:\n                    continue\n                if node == n - 1:\n                    break\n                next_node = node + 1\n                if next_node < n and dist + 1 < earliest[next_node]:\n                    earliest[next_node] = dist + 1\n                    heapq.heappush(heap, (earliest[next_node], next_node))\n            \n            res.append(earliest[n-1])\n        \n        return res",
+              "solution_hash": "af46c43705a0985b699759937da82dcf22c7623d2024a596e31e9a0509bad75e",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpd_7snu6t.py\", line 156, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpd_7snu6t.py\", line 115, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.06029844284057617
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_25",
+              "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        earliest = list(range(n))\n        res = []\n        for u, v in queries:\n            if earliest[u] + 1 < earliest[v]:\n                earliest[v] = earliest[u] + 1\n                # Update all nodes after v if possible\n                for i in range(v + 1, n):\n                    if earliest[i] > earliest[i - 1] + 1:\n                        earliest[i] = earliest[i - 1] + 1\n                    else:\n                        break  # No further improvement possible\n            res.append(earliest[n-1])\n        return res",
+              "solution_hash": "542f4f0d8074270d426d792feef3e4dda79888d5a3c13c10ce34aa701bc0c798",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpspcko1v0.py\", line 142, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpspcko1v0.py\", line 101, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.059906005859375
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "This code correctly handles the merging of intervals and efficiently computes the shortest path after each query. It ensures that the intervals are non-overlapping and properly ordered, allowing for accurate calculation of the reachable cities and the corresponding shortest path length.\n</think>\n\nTo solve this problem, we need to determine the shortest path from city 0 to city n-1 after each addition of a new unidirectional road. Initially, there are roads from each city i to i+1, forming a linear path. Each query adds a new road, and we need to find the shortest path after each addition.\n\n### Approach\nThe key insight is to track the reachable intervals after each query. Each interval [a, b] represents that from city a, you can reach up to city b. By maintaining these intervals, we can efficiently determine the shortest path after each new road addition.\n\n1. **Track Reachable Intervals**: Maintain a list of intervals where each interval [a, b] represents that from city a, you can reach up to city b.\n2. **Merge Intervals**: For each new road (u, v), check if it can extend any existing interval. If u is within an existing interval, merge the intervals to form a new one that extends to v.\n3. **Compute Shortest Path**: After each query, determine the maximum reachable city. The shortest path is the minimum of the current path and the new possible path formed by the merged intervals.\n\n### Solution Code",
+      "solution_hash": "5ef13cc29e27c6fd20917ad7ab68ca977cd3a786616ce2038878f3011da51d17",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "  File \"/scratch/local/21419950/tmp1d6x86_e.py\", line 81\n    This code correctly handles the merging of intervals and efficiently computes the shortest path after each query. It ensures that the intervals are non-overlapping and properly ordered, allowing for accurate calculation of the reachable cities and the corresponding shortest path length.\n         ^\nSyntaxError: invalid syntax\n",
+        "execution_time": 0.04688143730163574
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_27",
+          "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_max = 0\n        for u, v in queries:\n            new_interval = [u, v]\n            merged = False\n            for i in range(len(intervals)):\n                a, b = intervals[i]\n                if a <= u <= b:\n                    new_interval = [a, max(b, v)]\n                    intervals.pop(i)\n                    merged = True\n                    break\n            if not merged:\n                intervals.append(new_interval)\n            intervals.sort()\n            i = 0\n            while i < len(intervals) - 1:\n                a, b = intervals[i]\n                c, d = intervals[i+1]\n                if b >= c:\n                    intervals[i] = [a, max(b, d)]\n                    intervals.pop(i+1)\n                else:\n                    i += 1\n            max_reachable = current_max\n            for a, b in intervals:\n                if a <= current_max:\n                    max_reachable = max(max_reachable, b)\n            if max_reachable >= n-1:\n                res.append(1)\n            else:\n                res.append(max_reachable - current_max + 1)\n                current_max = max_reachable\n        return res",
+          "solution_hash": "74bb66396bbf7dc831169eb1f276a12f8d39d2626e89f8bdcae700004e567d00",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmppbxt4axt.py\", line 164, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmppbxt4axt.py\", line 123, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+            "execution_time": 0.061640262603759766
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_28",
+              "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        max_reachable = 0\n        for u, v in queries:\n            new_interval = (u, v)\n            merged = False\n            for i in range(len(intervals)):\n                a, b = intervals[i]\n                if a <= u <= b:\n                    new_interval = (a, max(b, v))\n                    intervals.pop(i)\n                    merged = True\n                    break\n            if not merged:\n                intervals.append(new_interval)\n            intervals.sort()\n            i = 0\n            while i < len(intervals) - 1:\n                a, b = intervals[i]\n                c, d = intervals[i+1]\n                if b >= c:\n                    intervals[i] = (a, max(b, d))\n                    intervals.pop(i+1)\n                else:\n                    i += 1\n            current_max = max_reachable\n            for a, b in intervals:\n                if a <= current_max:\n                    current_max = max(current_max, b)\n            if current_max >= n - 1:\n                res.append(1)\n            else:\n                res.append(current_max - max_reachable + 1)\n                max_reachable = current_max\n        return res",
+              "solution_hash": "92dcd5b03057f933f0f6731be48e0db3236e0dc53a8cbe37f0d8b1b2841efa99",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpr3nlyq3r.py\", line 164, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpr3nlyq3r.py\", line 123, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.06183028221130371
+              },
+              "depth": 2,
+              "parent_id": "1_27",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_29",
+              "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_max = 0\n        for u, v in queries:\n            new_interval = [u, v]\n            merged = False\n            for i in range(len(intervals)):\n                a, b = intervals[i]\n                if a <= u <= b:\n                    new_interval = [a, max(b, v)]\n                    intervals.pop(i)\n                    merged = True\n                    break\n            if not merged:\n                intervals.append(new_interval)\n            intervals.sort()\n            i = 0\n            while i < len(intervals) - 1:\n                a, b = intervals[i]\n                c, d = intervals[i+1]\n                if b >= c:\n                    intervals[i] = [a, max(b, d)]\n                    intervals.pop(i+1)\n                else:\n                    i += 1\n            max_reachable = current_max\n            for a, b in intervals:\n                if a <= current_max:\n                    max_reachable = max(max_reachable, b)\n            if max_reachable >= n - 1:\n                res.append(1)\n            else:\n                res.append(max_reachable - current_max + 1)\n                current_max = max_reachable\n        return res",
+              "solution_hash": "2b3b82b410dbbc1cc5b59f5347ca7527ab352fc5d8f83dd5ac5db1447637876c",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpgh8xkghm.py\", line 164, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpgh8xkghm.py\", line 123, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.059918880462646484
+              },
+              "depth": 2,
+              "parent_id": "1_27",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_30",
+              "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        max_reachable = 0\n        for u, v in queries:\n            new_interval = (u, v)\n            merged = False\n            for i in range(len(intervals)):\n                a, b = intervals[i]\n                if a <= u <= b:\n                    new_interval = (a, max(b, v))\n                    intervals.pop(i)\n                    merged = True\n                    break\n            if not merged:\n                intervals.append(new_interval)\n            intervals.sort()\n            i = 0\n            while i < len(intervals) - 1:\n                a, b = intervals[i]\n                c, d = intervals[i+1]\n                if b >= c:\n                    intervals[i] = (a, max(b, d))\n                    intervals.pop(i+1)\n                else:\n                    i += 1\n            current_max = max_reachable\n            for a, b in intervals:\n                if a <= current_max:\n                    current_max = max(current_max, b)\n            if current_max >= n-1:\n                res.append(1)\n            else:\n                res.append(current_max - max_reachable + 1)\n                max_reachable = current_max\n        return res",
+              "solution_hash": "35d7ec7f888db373d954e7ca30ed70231b9126a182c5c92d4e6ec4492cf82d3c",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp1uj48orn.py\", line 164, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp1uj48orn.py\", line 123, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.060951948165893555
+              },
+              "depth": 2,
+              "parent_id": "1_27",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_31",
+          "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        current_max = 0\n        for u, v in queries:\n            new_interval = [u, v]\n            merged = False\n            for i in range(len(intervals)):\n                a, b = intervals[i]\n                if a <= u <= b:\n                    new_interval = [a, max(b, v)]\n                    intervals.pop(i)\n                    merged = True\n                    break\n            if not merged:\n                intervals.append(new_interval)\n                intervals.sort()\n            else:\n                intervals.append(new_interval)\n                intervals.sort()\n            intervals.sort()\n            i = 0\n            while i < len(intervals) - 1:\n                a, b = intervals[i]\n                c, d = intervals[i+1]\n                if b >= c:\n                    intervals.pop(i+1)\n                    intervals[i] = [a, max(b, d)]\n                else:\n                    i += 1\n            max_reachable = 0\n            for a, b in intervals:\n                if a <= max_reachable:\n                    max_reachable = max(max_reachable, b)\n            res.append(min(max_reachable, n-1))\n        return res",
+          "solution_hash": "13658f5ca533a693c816719cf804d4be978700ce3a0661bcfca5209faf1480ab",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpmre4sbza.py\", line 164, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpmre4sbza.py\", line 123, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+            "execution_time": 0.06011509895324707
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_32",
+              "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        for u, v in queries:\n            new_interval = (u, v)\n            merged = False\n            # Find the position to insert\n            left, right = 0, len(intervals)\n            while left < right:\n                mid = (left + right) // 2\n                if intervals[mid][0] > u:\n                    right = mid\n                else:\n                    left = mid + 1\n            insert_pos = left\n            # Check if it can be merged with previous\n            if insert_pos > 0:\n                prev_a, prev_b = intervals[insert_pos-1]\n                if prev_b >= u:\n                    new_interval = (prev_a, max(prev_b, v))\n                    intervals.pop(insert_pos-1)\n                    insert_pos -= 1\n                    merged = True\n            # Check if it can be merged with next\n            while insert_pos < len(intervals):\n                next_a, next_b = intervals[insert_pos]\n                if new_interval[1] >= next_a:\n                    new_interval = (new_interval[0], max(new_interval[1], next_b))\n                    intervals.pop(insert_pos)\n                else:\n                    break\n            intervals.insert(insert_pos, new_interval)\n            # Calculate max reachable\n            max_reachable = 0\n            for a, b in intervals:\n                if a <= max_reachable:\n                    max_reachable = max(max_reachable, b)\n                else:\n                    break  # Since intervals are sorted, no need to check further\n            res.append(min(max_reachable, n-1))\n        return res",
+              "solution_hash": "1fb019d6f472e2b9dcdee1c6a5979c72b1209b47fa0a03e1af2c171e60ec9eab",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp1gpo9s9x.py\", line 169, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp1gpo9s9x.py\", line 128, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.0622563362121582
+              },
+              "depth": 2,
+              "parent_id": "1_31",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_33",
+              "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        parent = list(range(n))\n        max_reachable = 0\n        res = []\n        \n        def find(u):\n            while parent[u] != u:\n                parent[u] = parent[parent[u]]  # Path compression\n                u = parent[u]\n            return u\n        \n        for u, v in queries:\n            root_u = find(u)\n            if root_u <= max_reachable:\n                parent[v] = root_u\n                if v > max_reachable:\n                    max_reachable = v\n            res.append(min(max_reachable, n-1))\n        \n        return res",
+              "solution_hash": "968649a73189619d9c6aba63cde0a1b907649e08dc4653617a52e32ce1e19161",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpipyqiosd.py\", line 148, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpipyqiosd.py\", line 107, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.06232643127441406
+              },
+              "depth": 2,
+              "parent_id": "1_31",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_34",
+              "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        for u, v in queries:\n            new_interval = (u, v)\n            merged = False\n            for i in range(len(intervals)):\n                a, b = intervals[i]\n                if a <= u <= b:\n                    new_interval = (a, max(b, v))\n                    intervals.pop(i)\n                    merged = True\n                    break\n            if not merged:\n                intervals.append(new_interval)\n            else:\n                intervals.append(new_interval)\n            intervals.sort()\n            i = 0\n            while i < len(intervals) - 1:\n                a, b = intervals[i]\n                c, d = intervals[i+1]\n                if b >= c:\n                    intervals.pop(i+1)\n                    intervals[i] = (a, max(b, d))\n                else:\n                    i += 1\n            max_reachable = 0\n            for a, b in intervals:\n                if a <= max_reachable:\n                    max_reachable = max(max_reachable, b)\n            res.append(min(max_reachable, n-1))\n        return res",
+              "solution_hash": "a1dcf32660dfabecd6f4009f3d93567856a612a83757274d04342c516262d6ee",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpf4_3o2_w.py\", line 161, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpf4_3o2_w.py\", line 120, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.0600123405456543
+              },
+              "depth": 2,
+              "parent_id": "1_31",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_35",
+          "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        intervals = []\n        res = []\n        max_reach = 0\n        for u, v in queries:\n            new_interval = [u, v]\n            merged = False\n            for i in range(len(intervals)):\n                a, b = intervals[i]\n                if a <= u <= b:\n                    new_interval = [a, max(b, v)]\n                    intervals.pop(i)\n                    merged = True\n                    break\n            if not merged:\n                intervals.append(new_interval)\n            intervals.sort()\n            i = 0\n            while i < len(intervals) - 1:\n                a, b = intervals[i]\n                c, d = intervals[i+1]\n                if b >= c:\n                    intervals[i] = [a, max(b, d)]\n                    intervals.pop(i+1)\n                else:\n                    i += 1\n            current_max = max_reach\n            for a, b in intervals:\n                if a <= max_reach:\n                    current_max = max(current_max, b)\n            max_reach = max(max_reach, current_max)\n            res.append(min(max_reach, n-1))\n        return res",
+          "solution_hash": "a7f79fd7f643e9b36169fe6955c360c7fec1f85450c7a865141a73de8b803ae2",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpsngsh54u.py\", line 161, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmpsngsh54u.py\", line 120, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+            "execution_time": 0.06416010856628418
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_36",
+              "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u <= max_reach:\n                max_reach = max(max_reach, v)\n            res.append(min(max_reach, n-1))\n        return res",
+              "solution_hash": "9dcc0ab7436e32c5f2206532537d49130e14c89f215c0349ca8cfac6ba843a94",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmppmjs7njh.py\", line 136, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmppmjs7njh.py\", line 95, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.07842016220092773
+              },
+              "depth": 2,
+              "parent_id": "1_35",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_37",
+              "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        parent = list(range(n))\n        max_reach = 0\n        res = []\n        \n        def find(u):\n            while parent[u] != u:\n                parent[u] = parent[parent[u]]  # Path compression\n                u = parent[u]\n            return u\n        \n        for u, v in queries:\n            if u > max_reach:\n                res.append(max_reach)\n                continue\n            root_u = find(u)\n            parent[root_u] = v\n            if v > max_reach:\n                max_reach = v\n            res.append(min(max_reach, n-1))\n        \n        return res",
+              "solution_hash": "ac83523c180806f84bd9dc8601a5f85436ce7acc01ca1ccd5846b093d4584b31",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp07fw80ua.py\", line 150, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmp07fw80ua.py\", line 109, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.05977916717529297
+              },
+              "depth": 2,
+              "parent_id": "1_35",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_38",
+              "solution": "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        max_reach = 0\n        res = []\n        for u, v in queries:\n            if u <= max_reach:\n                max_reach = max(max_reach, v)\n            res.append(min(max_reach, n-1))\n        return res",
+              "solution_hash": "9dcc0ab7436e32c5f2206532537d49130e14c89f215c0349ca8cfac6ba843a94",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmppmjs7njh.py\", line 136, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/21419950/tmppmjs7njh.py\", line 95, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n",
+                "execution_time": 0.07842016220092773
+              },
+              "depth": 2,
+              "parent_id": "1_35",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 39,
+    "candidates_generated": 39,
+    "tests_passed": 0,
+    "tests_failed": 39,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 2290.385529279709,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.025000000000000022,
+      "pass@3": 0.07499999999999996,
+      "pass@5": 0.125,
+      "pass@10": 0.25
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: invalid syntax (<string>, line 95)",
+            "completion_id": 26
+          }
+        ],
+        [
+          27,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 27
+          }
+        ],
+        [
+          28,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 28
+          }
+        ],
+        [
+          29,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 29
+          }
+        ],
+        [
+          30,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 30
+          }
+        ],
+        [
+          31,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 31
+          }
+        ],
+        [
+          32,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 32
+          }
+        ],
+        [
+          33,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 33
+          }
+        ],
+        [
+          34,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 34
+          }
+        ],
+        [
+          35,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 35
+          }
+        ],
+        [
+          36,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 36
+          }
+        ],
+        [
+          37,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 37
+          }
+        ],
+        [
+          38,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 38
+          }
+        ],
+        [
+          39,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 39
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 40,
+    "test_cases": 1
+  }
+}

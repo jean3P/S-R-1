@@ -1,0 +1,1074 @@
+{
+  "problem_id": "sum-of-consecutive-subarrays",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = nums[0]\n                current_sum = nums[0]\n                length = 1\n                diff = 0\n                for i in range(1, n):\n                    new_diff = nums[i] - nums[i-1]\n                    if new_diff == diff or diff == 0:\n                        length += 1\n                        current_sum += nums[i] * length\n                    else:\n                        total += current_sum % MOD\n                        length = 1\n                        current_sum = nums[i]\n                        diff = new_diff\n                total += current_sum % MOD\n                return total % MOD",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        total = 0\n        current_sum = 0\n        length = 0\n        prev_diff = None\n        \n        for i in range(n):\n            if i > 0:\n                current_diff = nums[i] - nums[i-1]\n                if prev_diff is None:\n                    prev_diff = current_diff\n                if current_diff != prev_diff and prev_diff is not None:\n                    # Difference changed, reset\n                    total += current_sum % MOD\n                    current_sum = nums[i-1]\n                    length = 1\n                    prev_diff = current_diff\n            current_sum += nums[i]\n            length += 1\n            if i == 0 or nums[i] - nums[i-1] == prev_diff:\n                current_sum += nums[i] * length\n            else:\n                total += current_sum % MOD\n                current_sum = nums[i]\n                length = 1\n                prev_diff = None if i < n-1 else nums[i] - nums[i-1]\n        total += current_sum % MOD\n        return total % MOD",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                i = 0\n                while i < n:\n                    current_sum = 0\n                    length = 1\n                    if i < n - 1:\n                        if nums[i+1] - nums[i] == 1:\n                            diff = 1\n                        elif nums[i+1] - nums[i] == -1:\n                            diff = -1\n                        else:\n                            diff = 0\n                    else:\n                        diff = 0\n                    start = i\n                    while i < n - 1 and nums[i+1] - nums[i] == diff:\n                        i += 1\n                        length += 1\n                    for j in range(start, start + length):\n                        current_sum += nums[j] * (length - (j - start))\n                    total = (total + current_sum) % MOD\n                    i += 1\n                return total",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                \n                total = 0\n                start = 0\n                diff = None\n                \n                for i in range(1, n):\n                    current_diff = nums[i] - nums[i-1]\n                    if diff is None:\n                        diff = current_diff\n                    if current_diff != diff:\n                        # End of a consecutive subarray segment\n                        length = i - start\n                        subarray_sum = sum(nums[start:start+length])\n                        total += (subarray_sum * length) % MOD\n                        # Start new segment\n                        start = i - 1\n                        diff = current_diff\n                # Handle the last segment\n                length = n - start\n                subarray_sum = sum(nums[start:start+length])\n                total += (subarray_sum * length) % MOD\n                \n                return total % MOD",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                i = 0\n                while i < n:\n                    j = i + 1\n                    if j < n:\n                        diff = nums[j] - nums[i]\n                        while j < n and nums[j] - nums[j-1] == diff:\n                            j += 1\n                        # Calculate sum of all subarrays in the current window\n                        window_length = j - i\n                        window_sum = sum(nums[i:j])\n                        # Number of subarrays in the window\n                        num_subarrays = (window_length * (window_length + 1)) // 2\n                        # Sum of all subarrays in the window\n                        total += (window_sum * window_length) - (diff * (window_length * (window_length - 1) * (2 * window_length - 1)) // 6)\n                        total %= MOD\n                    i = j\n                return total % MOD",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        total = 0\n        start = 0\n        diff = None\n        for i in range(1, n):\n            current_diff = nums[i] - nums[i-1]\n            if diff is None:\n                diff = current_diff\n            if current_diff != diff:\n                # Calculate sum for the subarray from start to i-1\n                length = i - start\n                total += self.arithmetic_sum(nums[start:i], MOD)\n                # Reset\n                start = i - 1\n                diff = current_diff\n        # Add the last subarray\n        length = n - start\n        total += self.arithmetic_sum(nums[start:n], MOD)\n        # Add individual elements\n        total += sum(nums) % MOD\n        return total % MOD\n    \n    def arithmetic_sum(self, arr, MOD):\n        if len(arr) < 2:\n            return 0\n        total = 0\n        start = arr[0]\n        end = arr[-1]\n        count = len(arr)\n        # Sum of arithmetic series: n/2 * (first_term + last_term)\n        total = (count * (start + end)) // 2\n        return total % MOD",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                start = 0\n                for i in range(1, n):\n                    if nums[i] - nums[i-1] not in [1, -1]:\n                        # Calculate sum for the subarray from start to i-1\n                        length = i - start\n                        total += self.arithmetic_sum(nums[start:i], MOD)\n                        # Reset\n                        start = i\n                # Add the last subarray\n                length = n - start\n                total += self.arithmetic_sum(nums[start:n], MOD)\n                return total % MOD\n            \n            def arithmetic_sum(self, arr, MOD):\n                if len(arr) < 2:\n                    return sum(arr) % MOD\n                total = 0\n                start = arr[0]\n                end = arr[-1]\n                count = len(arr)\n                # Sum of arithmetic series: n/2 * (first_term + last_term)\n                total = (count * (start + end)) // 2\n                return total % MOD",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                start = 0\n                for end in range(1, n):\n                    if nums[end] - nums[end-1] != nums[start+1] - nums[start]:\n                        # Calculate sum for the subarray from start to end-1\n                        length = end - start\n                        total += self.arithmetic_sum(nums[start:end], MOD)\n                        # Reset start to end-1\n                        start = end - 1\n                # Add the last subarray\n                length = n - start\n                total += self.arithmetic_sum(nums[start:n], MOD)\n                # Add individual elements\n                total += sum(nums) % MOD\n                return total % MOD\n            \n            def arithmetic_sum(self, arr, MOD):\n                if len(arr) < 2:\n                    return 0\n                total = 0\n                start = arr[0]\n                end = arr[-1]\n                count = len(arr)\n                # Sum of arithmetic series: n/2 * (first_term + last_term)\n                total = (count * (start + end)) // 2\n                return total % MOD",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        total = 0\n        i = 0\n        while i < n:\n            # Check for increasing sequence\n            j = i + 1\n            while j < n and nums[j] - nums[j-1] == 1:\n                j += 1\n            # Sum the arithmetic series from i to j-1\n            if j > i:\n                total += self.arithmetic_sum(nums[i:j], MOD)\n                total %= MOD\n            # Move to the next potential sequence\n            i = j\n        # Check for decreasing sequence\n        i = 0\n        while i < n:\n            j = i + 1\n            while j < n and nums[j] - nums[j-1] == -1:\n                j += 1\n            if j > i:\n                total += self.arithmetic_sum(nums[i:j], MOD)\n                total %= MOD\n            i = j\n        # Add individual elements as they are considered consecutive\n        total += sum(nums) % MOD\n        total %= MOD\n        return total\n    \n    def arithmetic_sum(self, arr, MOD):\n        if len(arr) < 2:\n            return 0\n        n = len(arr)\n        start = arr[0]\n        end = arr[-1]\n        # Sum of arithmetic series: n/2 * (first_term + last_term)\n        total = (n * (start + end)) // 2\n        return total % MOD",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                start = 0\n                diff = 0\n                first_diff = 0\n                for i in range(1, n):\n                    current_diff = nums[i] - nums[i-1]\n                    if i == 1:\n                        first_diff = current_diff\n                    if current_diff != first_diff:\n                        # Not consecutive, reset start and first_diff\n                        start = i - 1\n                        first_diff = 0\n                    else:\n                        # Still consecutive, calculate sum for the current window\n                        length = i - start + 1\n                        # Sum of all subarrays in the current window\n                        subarray_sum = self.sum_of_subarrays(nums, start, i)\n                        total = (total + subarray_sum) % MOD\n                # Add the last sequence if it's consecutive\n                if first_diff != 0:\n                    length = n - start\n                    subarray_sum = self.sum_of_subarrays(nums, start, n-1)\n                    total = (total + subarray_sum) % MOD\n                # Add individual elements as subarrays of length 1\n                for num in nums:\n                    total = (total + num) % MOD\n                return total % MOD\n            \n            def sum_of_subarrays(self, nums, start, end):\n                total = 0\n                for i in range(start, end + 1):\n                    # Number of subarrays including nums[i]\n                    left Ways = i - start + 1\n                    right Ways = end - i + 1\n                    subarrays_count = left Ways * right Ways\n                    total += nums[i] * subarrays_count\n                return total",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                start = 0\n                diff = 0\n                for i in range(1, n):\n                    current_diff = nums[i] - nums[i-1]\n                    if i == 1:\n                        diff = current_diff\n                    if current_diff != diff:\n                        # End of a consecutive sequence\n                        if diff == 1 or diff == -1:\n                            # Calculate sum of all subarrays in the sequence\n                            length = i - start\n                            total = (total + self.sum_of_subarrays(nums, start, i-1)) % MOD\n                        start = i - 1\n                        diff = current_diff\n                # Check the last sequence\n                if diff == 1 or diff == -1:\n                    length = n - start\n                    total = (total + self.sum_of_subarrays(nums, start, n-1)) % MOD\n                # Add individual elements as subarrays of length 1\n                for num in nums:\n                    total = (total + num) % MOD\n                return total % MOD\n            \n            def sum_of_subarrays(self, nums, start, end):\n                total = 0\n                for i in range(start, end + 1):\n                    # Number of subarrays including nums[i]\n                    left_ways = i - start + 1\n                    right_ways = end - i + 1\n                    subarrays_count = left_ways * right_ways\n                    total += nums[i] * subarrays_count\n                return total",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                start = 0\n                prev_diff = 0\n                for i in range(1, n):\n                    current_diff = nums[i] - nums[i-1]\n                    if i == 1:\n                        prev_diff = current_diff\n                    if current_diff != prev_diff and i != 1:\n                        # Not consecutive, calculate sum for the previous sequence\n                        length = i - start\n                        subarray_sum = self.calculate_subarray_sum(nums, start, i-1)\n                        total = (total + subarray_sum) % MOD\n                        # Reset start index\n                        start = i - 1\n                        prev_diff = current_diff\n                # Add the last sequence\n                length = n - start\n                subarray_sum = self.calculate_subarray_sum(nums, start, n-1)\n                total = (total + subarray_sum) % MOD\n                # Add individual elements as subarrays of length 1\n                for num in nums:\n                    total = (total + num) % MOD\n                return total % MOD\n            \n            def calculate_subarray_sum(self, nums, start, end):\n                total = 0\n                # Sum of all subarrays in the current window\n                # Using formula for sum of arithmetic series\n                for i in range(start, end + 1):\n                    left = i - start + 1\n                    right = end - i + 1\n                    subarrays_count = left * right\n                    total += (nums[i] * subarrays_count) % MOD\n                return total % MOD",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        total = 0\n        start = 0\n        diff = 0\n        for i in range(1, n):\n            current_diff = nums[i] - nums[i-1]\n            if i == 1:\n                diff = current_diff\n            if current_diff != diff:\n                # Not consecutive, calculate sum for the current window\n                length = i - start\n                if length > 1:\n                    subarray_sum = self.sum_of_consecutive_subarrays(nums, start, i-1, diff)\n                    total = (total + subarray_sum) % MOD\n                # Reset for the new sequence\n                start = i - 1\n                diff = current_diff\n        # Add the last sequence\n        length = n - start\n        if length > 1:\n            subarray_sum = self.sum_of_consecutive_subarrays(nums, start, n-1, diff)\n            total = (total + subarray_sum) % MOD\n        # Add individual elements as subarrays of length 1\n        for num in nums:\n            total = (total + num) % MOD\n        return total % MOD\n    \n    def sum_of_consecutive_subarrays(self, nums, start, end, diff):\n        total = 0\n        for i in range(start, end + 1):\n            left = i - start + 1\n            right = end - i + 1\n            subarrays_count = left * right\n            total += nums[i] * subarrays_count\n        return total",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        \n        i = 0\n        while i < n:\n            inc_count = 1\n            dec_count = 1\n            # Check increasing sequence\n            while i + 1 < n and nums[i + 1] - nums[i] == 1:\n                inc_count += 1\n                i += 1\n            # Check decreasing sequence\n            while i + 1 < n and nums[i + 1] - nums[i] == -1:\n                dec_count += 1\n                i += 1\n            # Move to the next different sequence\n            i += 1\n            \n            # Calculate sum for increasing sequence\n            if inc_count > 1:\n                # Sum of sums of all subarrays in the increasing sequence\n                total += self.sum_of_subarrays(nums[i - inc_count:i])\n                total %= MOD\n            # Calculate sum for decreasing sequence\n            if dec_count > 1:\n                # Sum of sums of all subarrays in the decreasing sequence\n                total += self.sum_of_subarrays(nums[i - dec_count:i])\n                total %= MOD\n            # Add the single element subarray if not part of any sequence\n            if inc_count == 1 and dec_count == 1:\n                total += nums[i - 1]\n                total %= MOD\n        \n        return total\n    \n    def sum_of_subarrays(self, subnums: List[int]) -> int:\n        total_sum = 0\n        n = len(subnums)\n        # Sum of sums of all subarrays is sum(subnums[j]*(j+1)*(n-j) for j in 0 to n-1)\n        for j in range(n):\n            total_sum += subnums[j] * (j + 1) * (n - j)\n            total_sum %= 10**9 + 7\n        return total_sum",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        if n == 0:\n            return 0\n        # Initialize sequence start and direction\n        start = 0\n        direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n        \n        for i in range(1, n):\n            diff = nums[i] - nums[i-1]\n            if direction == 0:\n                if diff == 1:\n                    direction = 1\n                elif diff == -1:\n                    direction = -1\n                else:\n                    # Single element or non-consecutive\n                    total += nums[i-1]\n            elif direction == 1 and diff == 1:\n                continue\n            elif direction == -1 and diff == -1:\n                continue\n            else:\n                # Sequence ends here\n                if direction == 1:\n                    total += self.sum_of_increasing_sequence(nums[start:i], MOD)\n                elif direction == -1:\n                    total += self.sum_of_decreasing_sequence(nums[start:i], MOD)\n                else:\n                    total += sum(nums[start:i]) % MOD\n                # Reset for new sequence\n                start = i - 1\n                if diff == 1:\n                    direction = 1\n                elif diff == -1:\n                    direction = -1\n                else:\n                    direction = 0\n                    total += nums[i]\n        # Handle the last sequence\n        if direction == 1:\n            total += self.sum_of_increasing_sequence(nums[start:i+1], MOD)\n        elif direction == -1:\n            total += self.sum_of_decreasing_sequence(nums[start:i+1], MOD)\n        else:\n            total += sum(nums[start:i+1]) % MOD\n        return total % MOD\n    \n    def sum_of_increasing_sequence(self, subnums: List[int], MOD: int) -> int:\n        total_sum = 0\n        n = len(subnums)\n        for j in range(n):\n            total_sum += subnums[j] * (j + 1) * (n - j)\n            total_sum %= MOD\n        return total_sum\n    \n    def sum_of_decreasing_sequence(self, subnums: List[int], MOD: int) -> int:\n        total_sum = 0\n        n = len(subnums)\n        for j in range(n):\n            total_sum += subnums[j] * (j + 1) * (n - j)\n            total_sum %= MOD\n        return total_sum",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                if n == 0:\n                    return 0\n                start = 0\n                direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n                \n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if direction == 0:\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            # Single element or non-consecutive\n                            total += nums[i-1]\n                    elif (direction == 1 and diff != 1) or (direction == -1 and diff != -1):\n                        # Sequence ends here\n                        if direction == 1:\n                            total += self.sum_of_increasing_sequence(nums[start:i], MOD)\n                        elif direction == -1:\n                            total += self.sum_of_decreasing_sequence(nums[start:i], MOD)\n                        else:\n                            total += sum(nums[start:i]) % MOD\n                        # Reset for new sequence\n                        start = i - 1\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            direction = 0\n                            total += nums[i]\n                # Handle the last sequence\n                if direction == 1:\n                    total += self.sum_of_increasing_sequence(nums[start:i+1], MOD)\n                elif direction == -1:\n                    total += self.sum_of_decreasing_sequence(nums[start:i+1], MOD)\n                else:\n                    total += sum(nums[start:i+1]) % MOD\n                return total % MOD\n            \n            def sum_of_increasing_sequence(self, subnums: List[int], MOD: int) -> int:\n                total_sum = 0\n                n = len(subnums)\n                for j in range(n):\n                    total_sum += subnums[j] * (j + 1) * (n - j)\n                    total_sum %= MOD\n                return total_sum\n            \n            def sum_of_decreasing_sequence(self, subnums: List[int], MOD: int) -> int:\n                total_sum = 0\n                n = len(subnums)\n                for j in range(n):\n                    total_sum += subnums[j] * (j + 1) * (n - j)\n                    total_sum %= MOD\n                return total_sum",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                if n == 0:\n                    return 0\n                \n                start = 0\n                direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n                \n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if direction == 0:\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            # Single element or non-consecutive\n                            total += nums[i-1]\n                    elif direction == 1 and diff == 1:\n                        continue\n                    elif direction == -1 and diff == -1:\n                        continue\n                    else:\n                        # Sequence ends here\n                        if direction == 1:\n                            total += self.sum_of_increasing_sequence(nums[start:i], MOD)\n                        elif direction == -1:\n                            total += self.sum_of_decreasing_sequence(nums[start:i], MOD)\n                        else:\n                            total += sum(nums[start:i]) % MOD\n                        # Reset for new sequence\n                        start = i - 1\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            direction = 0\n                            total += nums[i]\n                # Handle the last sequence\n                if direction == 1:\n                    total += self.sum_of_increasing_sequence(nums[start:i+1], MOD)\n                elif direction == -1:\n                    total += self.sum_of_decreasing_sequence(nums[start:i+1], MOD)\n                else:\n                    total += sum(nums[start:i+1]) % MOD\n                return total % MOD\n            \n            def sum_of_increasing_sequence(self, subnums: List[int], MOD: int) -> int:\n                total_sum = 0\n                n = len(subnums)\n                for j in range(n):\n                    total_sum += subnums[j] * (j + 1) * (n - j)\n                    total_sum %= MOD\n                return total_sum\n            \n            def sum_of_decreasing_sequence(self, subnums: List[int], MOD: int) -> int:\n                total_sum = 0\n                n = len(subnums)\n                for j in range(n):\n                    total_sum += subnums[j] * (j + 1) * (n - j)\n                    total_sum %= MOD\n                return total_sum",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        if n == 0:\n            return 0\n        start = 0\n        direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n        \n        for i in range(1, n):\n            diff = nums[i] - nums[i-1]\n            if direction == 0:\n                if diff == 1:\n                    direction = 1\n                elif diff == -1:\n                    direction = -1\n                else:\n                    # Single element or non-consecutive\n                    total += nums[i-1]\n            elif (direction == 1 and diff == 1) or (direction == -1 and diff == -1):\n                continue\n            else:\n                # Sequence ends here\n                if direction != 0:\n                    length = i - start\n                    sequence_sum = sum(nums[start:i])\n                    total += self.sum_of_subarrays(sequence_sum, length, MOD)\n                # Reset for new sequence\n                start = i - 1\n                if diff == 1:\n                    direction = 1\n                elif diff == -1:\n                    direction = -1\n                else:\n                    direction = 0\n                    total += nums[i]\n        # Handle the last sequence\n        if direction != 0:\n            length = n - start\n            sequence_sum = sum(nums[start:n])\n            total += self.sum_of_subarrays(sequence_sum, length, MOD)\n        else:\n            total += nums[-1]\n        return total % MOD\n    \n    def sum_of_subarrays(self, sequence_sum: int, length: int, MOD: int) -> int:\n        # Number of subarrays in a sequence of length 'length' is length * (length + 1) // 2\n        # Each element appears in (i + 1) * (n - i) subarrays where i is its position in the subarray\n        # But for simplicity, we can use the formula for the sum of sums of subarrays\n        # Which is sequence_sum * (length * (length + 1) // 2)\n        # However, in this specific problem, we need to sum the values of all subarrays,\n        # which is equivalent to summing up all possible subarrays' sums.\n        # Given that, the sum is sequence_sum * length * (length + 1) // 2\n        sum_subarrays = sequence_sum * length * (length + 1) // 2\n        return sum_subarrays % MOD",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        i = 0\n        while i < n:\n            j = i + 1\n            while j < n and (nums[j] - nums[j-1] == 1 or nums[j] - nums[j-1] == -1):\n                j += 1\n            # Sum of sums of all subarrays in the sequence from i to j-1\n            seq_sum = self.sum_of_subarrays(nums[i:j])\n            total = (total + seq_sum) % MOD\n            i = j\n        return total\n    \n    def sum_of_subarrays(self, subnums: List[int]) -> int:\n        total_sum = 0\n        n = len(subnums)\n        for j in range(n):\n            total_sum += subnums[j] * (j + 1) * (n - j)\n            total_sum %= 10**9 + 7\n        return total_sum",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        i = 0\n        while i < n:\n            # Determine the direction of the sequence\n            if i + 1 < n:\n                diff = nums[i + 1] - nums[i]\n                if diff != 1 and diff != -1:\n                    # Single element subarray\n                    total = (total + nums[i]) % MOD\n                    i += 1\n                    continue\n            else:\n                # Last element is a single subarray\n                total = (total + nums[i]) % MOD\n                break\n            \n            # Find the end of this consecutive sequence\n            j = i + 1\n            while j + 1 < n:\n                if nums[j + 1] - nums[j] != diff:\n                    break\n                j += 1\n            \n            # Calculate the sum of all subarrays in nums[i..j]\n            length = j - i + 1\n            # Sum of subarrays formula: sum(arr[k] * (k - start + 1) * (end - k))\n            sub_total = 0\n            for k in range(i, j + 1):\n                left = k - i + 1\n                right = j - k + 1\n                sub_total = (sub_total + nums[k] * left * right) % MOD\n            total = (total + sub_total) % MOD\n            # Move to the next potential start\n            i = j + 1\n        return total",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                i = 0\n                while i < n:\n                    j = i + 1\n                    if i < n - 1:\n                        diff = nums[i+1] - nums[i]\n                        while j < n - 1:\n                            if (nums[j+1] - nums[j]) != diff:\n                                break\n                            j += 1\n                        if (nums[j] - nums[j-1]) != diff:\n                            j -= 1\n                    seq = nums[i:j+1]\n                    seq_sum = sum(seq)\n                    len_seq = j - i + 1\n                    sum_of_subarrays = (len_seq * (len_seq + 1) // 2) * seq_sum % MOD\n                    total = (total + sum_of_subarrays) % MOD\n                    i = j + 1\n                return total",
+    "from typing import List\n\n        class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                if n == 0:\n                    return 0\n                # Initialize variables to track the sequence\n                start = 0\n                direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n                \n                for end in range(1, n + 1):\n                    if end < n:\n                        diff = nums[end] - nums[end - 1]\n                        if direction == 0:\n                            if diff == 1:\n                                direction = 1\n                            elif diff == -1:\n                                direction = -1\n                            else:\n                                # Not consecutive, handle the current sequence\n                                self.add_sequence_sum(nums, total, start, end - 1, direction, MOD)\n                                start = end\n                                direction = 0\n                        else:\n                            if (direction == 1 and diff != 1) or (direction == -1 and diff != -1):\n                                # Sequence breaks, handle the current sequence\n                                self.add_sequence_sum(nums, total, start, end - 1, direction, MOD)\n                                start = end\n                                direction = 0\n                    else:\n                        # End of array, handle the last sequence\n                        self.add_sequence_sum(nums, total, start, end - 1, direction, MOD)\n                \n                return total % MOD\n            \n            def add_sequence_sum(self, nums, total, start, end, direction, MOD):\n                if start > end:\n                    return\n                n = end - start + 1\n                # Calculate sum of all subarrays in the sequence\n                # Sum of subarrays = sum over j from 0 to n-1 of nums[start+j] * (j+1) * (n - j)\n                for j in range(n):\n                    total += nums[start + j] * (j + 1) * (n - j)\n                    total %= MOD",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                if n == 0:\n                    return 0\n                # Initialize with the first element\n                start = 0\n                prev_diff = 0\n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if diff != prev_diff and i - start > 1:\n                        # Sequence breaks, calculate sum for the previous sequence\n                        total += self.sum_of_subarrays(nums[start:i-1])\n                        total %= MOD\n                        # Reset start to the last two elements\n                        start = i - 1\n                    prev_diff = diff\n                # Add the last sequence\n                total += self.sum_of_subarrays(nums[start:n])\n                total %= MOD\n                return total\n\n            def sum_of_subarrays(self, subnums: List[int]) -> int:\n                total_sum = 0\n                n = len(subnums)\n                for j in range(n):\n                    total_sum += subnums[j] * (j + 1) * (n - j)\n                    total_sum %= 10**9 + 7\n                return total_sum",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        if n == 0:\n            return 0\n        start = 0\n        for i in range(1, n):\n            if nums[i] - nums[i-1] not in [1, -1]:\n                # Not consecutive, calculate sum for the previous sequence\n                total += self.sum_of_subarrays(nums[start:i])\n                total %= MOD\n                start = i\n        # Add the last sequence\n        total += self.sum_of_subarrays(nums[start:n])\n        total %= MOD\n        return total\n\n    def sum_of_subarrays(self, subnums: List[int]) -> int:\n        total_sum = 0\n        n = len(subnums)\n        for j in range(n):\n            total_sum += subnums[j] * (j + 1) * (n - j)\n            total_sum %= 10**9 + 7\n        return total_sum",
+    "from typing import List\n\n        class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                if n == 0:\n                    return 0\n                start = 0\n                for i in range(1, n):\n                    if i == 1 or nums[i] - nums[i-1] != diff:\n                        # Start of a new potential consecutive sequence\n                        if i - start > 1:\n                            # Calculate sum for the previous sequence\n                            total += self.sum_of_consecutive_subarrays(nums, start, i-1)\n                            total %= MOD\n                        # Set new difference\n                        diff = nums[i] - nums[i-1]\n                        start = i - 1\n                # Add the last sequence\n                total += self.sum_of_consecutive_subarrays(nums, start, n-1)\n                total %= MOD\n                return total\n\n            def sum_of_consecutive_subarrays(self, nums: List[int], start: int, end: int) -> int:\n                MOD = 10**9 + 7\n                total_sum = 0\n                n = end - start + 1\n                if n == 1:\n                    return nums[start]\n                diff = nums[start + 1] - nums[start]\n                for i in range(start, end + 1):\n                    len_sub = min(i - start + 1, end - i + 1)\n                    total_sum += nums[i] * len_sub\n                    total_sum %= MOD\n                return total_sum",
+    "from typing import List\n\n        class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                if n == 0:\n                    return 0\n                start = 0\n                for end in range(1, n):\n                    diff = nums[end] - nums[end - 1]\n                    if end == 1:\n                        prev_diff = diff\n                    elif diff != prev_diff or diff == 0:\n                        # End of a consecutive sequence\n                        total += self.sum_of_subarrays(nums, start, end - 1)\n                        total %= MOD\n                        start = end - 1\n                    prev_diff = diff\n                # Add the last sequence\n                total += self.sum_of_subarrays(nums, start, n - 1)\n                total %= MOD\n                return total\n\n            def sum_of_subarrays(self, nums: List[int], start: int, end: int) -> int:\n                MOD = 10**9 + 7\n                total_sum = 0\n                n = end - start + 1\n                for i in range(start, end + 1):\n                    total_sum += nums[i] * (i - start + 1) * (end - i + 1)\n                    total_sum %= MOD\n                return total_sum",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        total = nums[0]\n        current_sum = nums[0]\n        length = 1\n        diff = 0\n        for i in range(1, n):\n            if nums[i] - nums[i-1] == 1 or nums[i] - nums[i-1] == -1:\n                if nums[i] - nums[i-1] == diff or diff == 0:\n                    diff = nums[i] - nums[i-1]\n                    length += 1\n                    current_sum += nums[i] * length - sum(range(length))\n                else:\n                    # Direction changed, reset\n                    total = (total + current_sum) % MOD\n                    current_sum = sum(nums[i-1:i+1])\n                    length = 2\n                    diff = nums[i] - nums[i-1]\n            else:\n                total = (total + current_sum) % MOD\n                current_sum = nums[i]\n                length = 1\n                diff = 0\n        total = (total + current_sum) % MOD\n        return total",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        total = 0\n        start = 0\n        direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n        \n        for i in range(1, n):\n            diff = nums[i] - nums[i-1]\n            if direction == 0:\n                if diff == 1:\n                    direction = 1\n                elif diff == -1:\n                    direction = -1\n                else:\n                    # Not consecutive, sum the single element subarray\n                    total = (total + nums[i-1]) % MOD\n            elif direction == 1 and diff == 1:\n                continue\n            elif direction == -1 and diff == -1:\n                continue\n            else:\n                # Direction changed or not consecutive, calculate sum of subarray from start to i-1\n                len_sub = i - start\n                sub_sum = sum(nums[start:i])\n                total = (total + sub_sum) % MOD\n                # Reset start and direction\n                start = i-1\n                if diff == 1:\n                    direction = 1\n                elif diff == -1:\n                    direction = -1\n                else:\n                    # Not consecutive, sum the single element subarray\n                    total = (total + nums[i]) % MOD\n                    start = i\n                    direction = 0\n        # Add the last subarray\n        len_sub = n - start\n        sub_sum = sum(nums[start:n])\n        total = (total + sub_sum) % MOD\n        return total",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                \n                total = 0\n                current_sum = nums[0]\n                start = 0\n                direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n                \n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if direction == 0:\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            # Not consecutive, sum the single element subarray\n                            total = (total + nums[i-1]) % MOD\n                            current_sum = nums[i]\n                            start = i\n                    elif (direction == 1 and diff == 1) or (direction == -1 and diff == -1):\n                        # Continue the current direction\n                        current_sum += nums[i] * (i - start + 1)\n                    else:\n                        # Direction changed or not consecutive, calculate sum of subarray from start to i-1\n                        len_sub = i - start\n                        # Sum of arithmetic series for consecutive numbers\n                        if direction == 1:\n                            # Increasing: start to end\n                            total = (total + current_sum) % MOD\n                        elif direction == -1:\n                            # Decreasing: start to end\n                            total = (total + current_sum) % MOD\n                        # Reset start and direction\n                        start = i-1\n                        current_sum = nums[i-1] + nums[i]\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            # Not consecutive, sum the single element subarray\n                            total = (total + nums[i]) % MOD\n                            start = i\n                            direction = 0\n                # Add the last subarray\n                len_sub = n - start\n                if direction == 1:\n                    total = (total + current_sum) % MOD\n                elif direction == -1:\n                    total = (total + current_sum) % MOD\n                else:\n                    total = (total + sum(nums[start:n])) % MOD\n                return total",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        total = 0\n        start = 0\n        direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n        \n        for i in range(1, n):\n            diff = nums[i] - nums[i-1]\n            if direction == 0:\n                if diff == 1:\n                    direction = 1\n                elif diff == -1:\n                    direction = -1\n                else:\n                    # Not consecutive, sum the single element subarray\n                    total = (total + nums[i-1]) % MOD\n            elif direction == 1 and diff == 1:\n                continue\n            elif direction == -1 and diff == -1:\n                continue\n            else:\n                # Direction changed or not consecutive, calculate sum of subarray from start to i-1\n                sub_sum = sum(nums[start:i])\n                total = (total + sub_sum) % MOD\n                # Reset start and direction\n                start = i-1\n                if diff == 1:\n                    direction = 1\n                elif diff == -1:\n                    direction = -1\n                else:\n                    # Not consecutive, sum the single element subarray\n                    total = (total + nums[i]) % MOD\n                    start = i\n                    direction = 0\n        # Add the last subarray\n        sub_sum = sum(nums[start:n])\n        total = (total + sub_sum) % MOD\n        return total",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        total = 0\n        start = 0\n        end = 0\n        direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n        \n        while end < n:\n            if end == start:\n                total = (total + nums[start]) % MOD\n                end += 1\n                continue\n            diff = nums[end] - nums[end - 1]\n            if direction == 0:\n                direction = diff\n                end += 1\n                continue\n            if (direction == 1 and diff == 1) or (direction == -1 and diff == -1):\n                end += 1\n                continue\n            else:\n                # Sequence broken, calculate sum of all subarrays in the current sequence\n                len_seq = end - start\n                # Sum of all subarrays in the sequence\n                seq_sum = 0\n                for i in range(start, end):\n                    # Number of subarrays including nums[i]\n                    left Ways = i - start + 1\n                    right Ways = end - i\n                    subarrays Including nums[i] = left Ways * right Ways\n                    seq_sum = (seq_sum + subarrays Including nums[i] * nums[i]) % MOD\n                total = (total + seq_sum) % MOD\n                # Reset\n                start = end - 1\n                direction = 0\n        # Handle the last sequence\n        len_seq = end - start\n        seq_sum = 0\n        for i in range(start, end):\n            left Ways = i - start + 1\n            right Ways = end - i\n            subarrays Including nums[i] = left Ways * right Ways\n            seq_sum = (seq_sum + subarrays Including nums[i] * nums[i]) % MOD\n        total = (total + seq_sum) % MOD\n        return total",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                start = 0\n                direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if direction == 0:\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            # Single element or non-consecutive\n                            total = (total + nums[i-1]) % MOD\n                    elif (direction == 1 and diff != 1) or (direction == -1 and diff != -1):\n                        # Sequence breaks, calculate sum of subarrays from start to i-1\n                        length = i - start\n                        subarray_sum = sum(nums[start:i])\n                        # Number of subarrays: length * (length + 1) // 2\n                        total = (total + subarray_sum * length) % MOD\n                        # Reset\n                        start = i - 1\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            # Single element\n                            total = (total + nums[i]) % MOD\n                            direction = 0\n                            start = i\n                # Handle the last sequence\n                length = n - start\n                subarray_sum = sum(nums[start:])\n                total = (total + subarray_sum * length) % MOD\n                return total",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                start = 0\n                for i in range(1, n):\n                    if nums[i] - nums[i-1] != nums[start+1] - nums[start]:\n                        # Sequence breaks, calculate sum of all subarrays from start to i-1\n                        length = i - start\n                        # Sum of elements in the current consecutive sequence\n                        subarray_sum = sum(nums[start:i])\n                        # Number of subarrays: length * (length + 1) // 2\n                        total = (total + subarray_sum * length) % MOD\n                        start = i - 1\n                # Handle the last sequence\n                length = n - start\n                subarray_sum = sum(nums[start:])\n                total = (total + subarray_sum * length) % MOD\n                return total",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                start = 0\n                prev_diff = 0  # Initialize to handle the first element\n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if diff != prev_diff and i - start > 1:\n                        # Sequence breaks, calculate sum of all subarrays from start to i-1\n                        length = i - start\n                        # Sum of all subarrays in the window [start, i-1]\n                        subarray_sum = 0\n                        current_sum = 0\n                        for j in range(start, i):\n                            current_sum += nums[j]\n                            subarray_sum += current_sum\n                        total = (total + subarray_sum) % MOD\n                        # Reset\n                        start = i - 1\n                        prev_diff = diff\n                    elif i - start == 1:\n                        # Initial diff setup\n                        prev_diff = diff\n                    if diff == 0:\n                        # Single element or non-consecutive\n                        total = (total + nums[i]) % MOD\n                        start = i\n                # Handle the last sequence\n                length = n - start\n                if length > 1:\n                    subarray_sum = 0\n                    current_sum = 0\n                    for j in range(start, n):\n                        current_sum += nums[j]\n                        subarray_sum += current_sum\n                    total = (total + subarray_sum) % MOD\n                else:\n                    total = (total + nums[-1]) % MOD\n                return total",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                start = 0\n                direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if direction == 0:\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            # Single element\n                            total = (total + nums[i-1]) % MOD\n                            start = i\n                    elif (direction == 1 and diff != 1) or (direction == -1 and diff != -1):\n                        # Sequence breaks, calculate sum of subarrays from start to i-1\n                        length = i - start\n                        subarray_sum = sum(nums[start:i])\n                        # Number of subarrays: length * (length + 1) // 2\n                        total = (total + subarray_sum * length) % MOD\n                        # Reset\n                        start = i - 1\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            # Single element\n                            total = (total + nums[i]) % MOD\n                            direction = 0\n                            start = i\n                # Handle the last sequence\n                length = n - start\n                subarray_sum = sum(nums[start:])\n                total = (total + subarray_sum * length) % MOD\n                return total",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                current_sum = nums[0]\n                length = 1\n                prev_diff = 0  # Initialize to handle first element\n\n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if diff == 1 or diff == -1:\n                        if diff == prev_diff or prev_diff == 0:\n                            # Continue the same direction\n                            length += 1\n                            current_sum += nums[i] * length - sum(range(1, length+1))\n                        else:\n                            # Direction changed, reset\n                            total = (total + current_sum) % MOD\n                            current_sum = nums[i-1] + nums[i]\n                            length = 2\n                            prev_diff = diff\n                    else:\n                        # Not consecutive, reset\n                        total = (total + current_sum) % MOD\n                        current_sum = nums[i]\n                        length = 1\n                        prev_diff = 0\n                # Add the last subarray sum\n                total = (total + current_sum) % MOD\n                return total",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                i = 0\n                while i < n:\n                    if i == n - 1:\n                        total = (total + nums[i]) % MOD\n                        break\n                    diff = nums[i+1] - nums[i]\n                    if diff not in [1, -1]:\n                        total = (total + nums[i]) % MOD\n                        i += 1\n                        continue\n                    j = i + 1\n                    while j < n - 1 and nums[j+1] - nums[j] == diff:\n                        j += 1\n                    # Sum of arithmetic series from i to j\n                    length = j - i + 1\n                    start = nums[i]\n                    end = nums[j]\n                    subarray_sum = (start + end) * length // 2\n                    total = (total + subarray_sum) % MOD\n                    i = j + 1\n                return total",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                current_sum = nums[0]\n                length = 1\n                if n >= 2:\n                    if nums[1] - nums[0] == 1:\n                        direction = 1\n                    elif nums[1] - nums[0] == -1:\n                        direction = -1\n                    else:\n                        direction = 0\n                else:\n                    direction = 0\n                total += nums[0]\n                \n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if diff == direction or length == 1:\n                        if diff == direction:\n                            length += 1\n                        else:\n                            length = 2\n                            direction = diff\n                        current_sum = current_sum + nums[i] * length - sum(range(1, length+1))\n                        total = (total + current_sum) % MOD\n                    else:\n                        total = (total + nums[i]) % MOD\n                        current_sum = nums[i]\n                        length = 1\n                        if i + 1 < n:\n                            if nums[i+1] - nums[i] == 1:\n                                direction = 1\n                            elif nums[i+1] - nums[i] == -1:\n                                direction = -1\n                            else:\n                                direction = 0\n                return total",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                current_sum = nums[0]\n                length = 1\n                prev_diff = 0  # Initialize to handle first element\n\n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if diff == 1 or diff == -1:\n                        if i == 1 or diff == prev_diff:\n                            # Continue the same direction\n                            length += 1\n                            current_sum += nums[i] * length - sum(range(1, length+1))\n                        else:\n                            # Direction changed, reset\n                            total = (total + current_sum) % MOD\n                            current_sum = nums[i-1] + nums[i]\n                            length = 2\n                            prev_diff = diff\n                    else:\n                        # Not consecutive, reset\n                        total = (total + current_sum) % MOD\n                        current_sum = nums[i]\n                        length = 1\n                        prev_diff = 0\n                # Add the last subarray sum\n                total = (total + current_sum) % MOD\n                return total"
+  ],
+  "total_candidates": 39,
+  "nodes_explored": 39,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = nums[0]\n                current_sum = nums[0]\n                length = 1\n                diff = 0\n                for i in range(1, n):\n                    new_diff = nums[i] - nums[i-1]\n                    if new_diff == diff or diff == 0:\n                        length += 1\n                        current_sum += nums[i] * length\n                    else:\n                        total += current_sum % MOD\n                        length = 1\n                        current_sum = nums[i]\n                        diff = new_diff\n                total += current_sum % MOD\n                return total % MOD",
+      "solution_hash": "d6890ded73336fe0d7a4627d607a4da1ad6e4c1b750b79fb8671776aef8933a7",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpomdh8tja.py\", line 239, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpomdh8tja.py\", line 106, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+        "execution_time": 0.06777620315551758
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        total = 0\n        current_sum = 0\n        length = 0\n        prev_diff = None\n        \n        for i in range(n):\n            if i > 0:\n                current_diff = nums[i] - nums[i-1]\n                if prev_diff is None:\n                    prev_diff = current_diff\n                if current_diff != prev_diff and prev_diff is not None:\n                    # Difference changed, reset\n                    total += current_sum % MOD\n                    current_sum = nums[i-1]\n                    length = 1\n                    prev_diff = current_diff\n            current_sum += nums[i]\n            length += 1\n            if i == 0 or nums[i] - nums[i-1] == prev_diff:\n                current_sum += nums[i] * length\n            else:\n                total += current_sum % MOD\n                current_sum = nums[i]\n                length = 1\n                prev_diff = None if i < n-1 else nums[i] - nums[i-1]\n        total += current_sum % MOD\n        return total % MOD",
+          "solution_hash": "9ae04d759465234b4c395fe912923485c4617247038362cf7c41f512fd12d5b8",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpw14rnkp3.py\", line 250, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpw14rnkp3.py\", line 117, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+            "execution_time": 0.0668034553527832
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_2",
+              "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                i = 0\n                while i < n:\n                    current_sum = 0\n                    length = 1\n                    if i < n - 1:\n                        if nums[i+1] - nums[i] == 1:\n                            diff = 1\n                        elif nums[i+1] - nums[i] == -1:\n                            diff = -1\n                        else:\n                            diff = 0\n                    else:\n                        diff = 0\n                    start = i\n                    while i < n - 1 and nums[i+1] - nums[i] == diff:\n                        i += 1\n                        length += 1\n                    for j in range(start, start + length):\n                        current_sum += nums[j] * (length - (j - start))\n                    total = (total + current_sum) % MOD\n                    i += 1\n                return total",
+              "solution_hash": "36a3220dfb9d8d15b81f3764ea334884e788e262995bd48f5ce7b1e96724054d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpyfhr2fca.py\", line 246, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpyfhr2fca.py\", line 113, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.06689882278442383
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_3",
+              "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                \n                total = 0\n                start = 0\n                diff = None\n                \n                for i in range(1, n):\n                    current_diff = nums[i] - nums[i-1]\n                    if diff is None:\n                        diff = current_diff\n                    if current_diff != diff:\n                        # End of a consecutive subarray segment\n                        length = i - start\n                        subarray_sum = sum(nums[start:start+length])\n                        total += (subarray_sum * length) % MOD\n                        # Start new segment\n                        start = i - 1\n                        diff = current_diff\n                # Handle the last segment\n                length = n - start\n                subarray_sum = sum(nums[start:start+length])\n                total += (subarray_sum * length) % MOD\n                \n                return total % MOD",
+              "solution_hash": "eb8ac9953bb03b9e1e0fbee992c8ad2f6788b47aab7ddc15a1a0a2ce8b175044",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp_4hn8q0u.py\", line 246, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmp_4hn8q0u.py\", line 113, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.06648492813110352
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                i = 0\n                while i < n:\n                    j = i + 1\n                    if j < n:\n                        diff = nums[j] - nums[i]\n                        while j < n and nums[j] - nums[j-1] == diff:\n                            j += 1\n                        # Calculate sum of all subarrays in the current window\n                        window_length = j - i\n                        window_sum = sum(nums[i:j])\n                        # Number of subarrays in the window\n                        num_subarrays = (window_length * (window_length + 1)) // 2\n                        # Sum of all subarrays in the window\n                        total += (window_sum * window_length) - (diff * (window_length * (window_length - 1) * (2 * window_length - 1)) // 6)\n                        total %= MOD\n                    i = j\n                return total % MOD",
+              "solution_hash": "2080dfc86ca0e233769071ce42140132af33a8cbb214da154797974264e946bf",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpbm4lxdwq.py\", line 241, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpbm4lxdwq.py\", line 108, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.06618356704711914
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_5",
+          "solution": "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        total = 0\n        start = 0\n        diff = None\n        for i in range(1, n):\n            current_diff = nums[i] - nums[i-1]\n            if diff is None:\n                diff = current_diff\n            if current_diff != diff:\n                # Calculate sum for the subarray from start to i-1\n                length = i - start\n                total += self.arithmetic_sum(nums[start:i], MOD)\n                # Reset\n                start = i - 1\n                diff = current_diff\n        # Add the last subarray\n        length = n - start\n        total += self.arithmetic_sum(nums[start:n], MOD)\n        # Add individual elements\n        total += sum(nums) % MOD\n        return total % MOD\n    \n    def arithmetic_sum(self, arr, MOD):\n        if len(arr) < 2:\n            return 0\n        total = 0\n        start = arr[0]\n        end = arr[-1]\n        count = len(arr)\n        # Sum of arithmetic series: n/2 * (first_term + last_term)\n        total = (count * (start + end)) // 2\n        return total % MOD",
+          "solution_hash": "c85c24a5028458c98f032d10f0affd86947f4bda84ea41380c6c5dfa90ab9f00",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp9x0vojf4.py\", line 254, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmp9x0vojf4.py\", line 121, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+            "execution_time": 0.06851029396057129
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_6",
+              "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                start = 0\n                for i in range(1, n):\n                    if nums[i] - nums[i-1] not in [1, -1]:\n                        # Calculate sum for the subarray from start to i-1\n                        length = i - start\n                        total += self.arithmetic_sum(nums[start:i], MOD)\n                        # Reset\n                        start = i\n                # Add the last subarray\n                length = n - start\n                total += self.arithmetic_sum(nums[start:n], MOD)\n                return total % MOD\n            \n            def arithmetic_sum(self, arr, MOD):\n                if len(arr) < 2:\n                    return sum(arr) % MOD\n                total = 0\n                start = arr[0]\n                end = arr[-1]\n                count = len(arr)\n                # Sum of arithmetic series: n/2 * (first_term + last_term)\n                total = (count * (start + end)) // 2\n                return total % MOD",
+              "solution_hash": "3ecb00d90fdb03633bd9c67da306fb08274f82c1ab0b774729d4db788a45b9b1",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpwe0egz75.py\", line 247, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpwe0egz75.py\", line 114, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.06731176376342773
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_7",
+              "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                start = 0\n                for end in range(1, n):\n                    if nums[end] - nums[end-1] != nums[start+1] - nums[start]:\n                        # Calculate sum for the subarray from start to end-1\n                        length = end - start\n                        total += self.arithmetic_sum(nums[start:end], MOD)\n                        # Reset start to end-1\n                        start = end - 1\n                # Add the last subarray\n                length = n - start\n                total += self.arithmetic_sum(nums[start:n], MOD)\n                # Add individual elements\n                total += sum(nums) % MOD\n                return total % MOD\n            \n            def arithmetic_sum(self, arr, MOD):\n                if len(arr) < 2:\n                    return 0\n                total = 0\n                start = arr[0]\n                end = arr[-1]\n                count = len(arr)\n                # Sum of arithmetic series: n/2 * (first_term + last_term)\n                total = (count * (start + end)) // 2\n                return total % MOD",
+              "solution_hash": "791c65451de3a78edb285417437b6d024d7cbd016f4694ffc92cb65741c05ddd",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpz_0c8jr7.py\", line 249, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpz_0c8jr7.py\", line 116, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.06678485870361328
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        total = 0\n        i = 0\n        while i < n:\n            # Check for increasing sequence\n            j = i + 1\n            while j < n and nums[j] - nums[j-1] == 1:\n                j += 1\n            # Sum the arithmetic series from i to j-1\n            if j > i:\n                total += self.arithmetic_sum(nums[i:j], MOD)\n                total %= MOD\n            # Move to the next potential sequence\n            i = j\n        # Check for decreasing sequence\n        i = 0\n        while i < n:\n            j = i + 1\n            while j < n and nums[j] - nums[j-1] == -1:\n                j += 1\n            if j > i:\n                total += self.arithmetic_sum(nums[i:j], MOD)\n                total %= MOD\n            i = j\n        # Add individual elements as they are considered consecutive\n        total += sum(nums) % MOD\n        total %= MOD\n        return total\n    \n    def arithmetic_sum(self, arr, MOD):\n        if len(arr) < 2:\n            return 0\n        n = len(arr)\n        start = arr[0]\n        end = arr[-1]\n        # Sum of arithmetic series: n/2 * (first_term + last_term)\n        total = (n * (start + end)) // 2\n        return total % MOD",
+              "solution_hash": "33412bc90313c11594541e462d3cf80c1fe1484796aa3455b7bcfc3cec955387",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpdh2rk82e.py\", line 258, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpdh2rk82e.py\", line 127, in check\n    assert candidate(nums = [1, 3, 2, 4, 5, 7, 6, 8, 9, 10]) == 145\nAssertionError\n",
+                "execution_time": 0.06722521781921387
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_9",
+          "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                start = 0\n                diff = 0\n                first_diff = 0\n                for i in range(1, n):\n                    current_diff = nums[i] - nums[i-1]\n                    if i == 1:\n                        first_diff = current_diff\n                    if current_diff != first_diff:\n                        # Not consecutive, reset start and first_diff\n                        start = i - 1\n                        first_diff = 0\n                    else:\n                        # Still consecutive, calculate sum for the current window\n                        length = i - start + 1\n                        # Sum of all subarrays in the current window\n                        subarray_sum = self.sum_of_subarrays(nums, start, i)\n                        total = (total + subarray_sum) % MOD\n                # Add the last sequence if it's consecutive\n                if first_diff != 0:\n                    length = n - start\n                    subarray_sum = self.sum_of_subarrays(nums, start, n-1)\n                    total = (total + subarray_sum) % MOD\n                # Add individual elements as subarrays of length 1\n                for num in nums:\n                    total = (total + num) % MOD\n                return total % MOD\n            \n            def sum_of_subarrays(self, nums, start, end):\n                total = 0\n                for i in range(start, end + 1):\n                    # Number of subarrays including nums[i]\n                    left Ways = i - start + 1\n                    right Ways = end - i + 1\n                    subarrays_count = left Ways * right Ways\n                    total += nums[i] * subarrays_count\n                return total",
+          "solution_hash": "51ff2d6309f954462a1ba4aded764b9a0b2690bad8593668049f455ac391b5cd",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmph8k0gohx.py\", line 119\n    left Ways = i - start + 1\n         ^\nSyntaxError: invalid syntax\n",
+            "execution_time": 0.059699058532714844
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_10",
+              "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                start = 0\n                diff = 0\n                for i in range(1, n):\n                    current_diff = nums[i] - nums[i-1]\n                    if i == 1:\n                        diff = current_diff\n                    if current_diff != diff:\n                        # End of a consecutive sequence\n                        if diff == 1 or diff == -1:\n                            # Calculate sum of all subarrays in the sequence\n                            length = i - start\n                            total = (total + self.sum_of_subarrays(nums, start, i-1)) % MOD\n                        start = i - 1\n                        diff = current_diff\n                # Check the last sequence\n                if diff == 1 or diff == -1:\n                    length = n - start\n                    total = (total + self.sum_of_subarrays(nums, start, n-1)) % MOD\n                # Add individual elements as subarrays of length 1\n                for num in nums:\n                    total = (total + num) % MOD\n                return total % MOD\n            \n            def sum_of_subarrays(self, nums, start, end):\n                total = 0\n                for i in range(start, end + 1):\n                    # Number of subarrays including nums[i]\n                    left_ways = i - start + 1\n                    right_ways = end - i + 1\n                    subarrays_count = left_ways * right_ways\n                    total += nums[i] * subarrays_count\n                return total",
+              "solution_hash": "f9e8f5b39a8b895e9059c085757dd48e95c0022b85af49fad9ff96eb42a634b8",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpmwy96t5a.py\", line 256, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpmwy96t5a.py\", line 123, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.0678868293762207
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_11",
+              "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                start = 0\n                prev_diff = 0\n                for i in range(1, n):\n                    current_diff = nums[i] - nums[i-1]\n                    if i == 1:\n                        prev_diff = current_diff\n                    if current_diff != prev_diff and i != 1:\n                        # Not consecutive, calculate sum for the previous sequence\n                        length = i - start\n                        subarray_sum = self.calculate_subarray_sum(nums, start, i-1)\n                        total = (total + subarray_sum) % MOD\n                        # Reset start index\n                        start = i - 1\n                        prev_diff = current_diff\n                # Add the last sequence\n                length = n - start\n                subarray_sum = self.calculate_subarray_sum(nums, start, n-1)\n                total = (total + subarray_sum) % MOD\n                # Add individual elements as subarrays of length 1\n                for num in nums:\n                    total = (total + num) % MOD\n                return total % MOD\n            \n            def calculate_subarray_sum(self, nums, start, end):\n                total = 0\n                # Sum of all subarrays in the current window\n                # Using formula for sum of arithmetic series\n                for i in range(start, end + 1):\n                    left = i - start + 1\n                    right = end - i + 1\n                    subarrays_count = left * right\n                    total += (nums[i] * subarrays_count) % MOD\n                return total % MOD",
+              "solution_hash": "d7ba7ec92566f3df060564025a19bc89c480178f4ed26960da687c91fc4ac860",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmppsatuphp.py\", line 257, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmppsatuphp.py\", line 124, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\n  File \"/scratch/local/21419949/tmppsatuphp.py\", line 97, in getSum\n    subarray_sum = self.calculate_subarray_sum(nums, start, i-1)\n  File \"/scratch/local/21419949/tmppsatuphp.py\", line 119, in calculate_subarray_sum\n    total += (nums[i] * subarrays_count) % MOD\nNameError: name 'MOD' is not defined\n",
+                "execution_time": 0.06838107109069824
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_12",
+              "solution": "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        total = 0\n        start = 0\n        diff = 0\n        for i in range(1, n):\n            current_diff = nums[i] - nums[i-1]\n            if i == 1:\n                diff = current_diff\n            if current_diff != diff:\n                # Not consecutive, calculate sum for the current window\n                length = i - start\n                if length > 1:\n                    subarray_sum = self.sum_of_consecutive_subarrays(nums, start, i-1, diff)\n                    total = (total + subarray_sum) % MOD\n                # Reset for the new sequence\n                start = i - 1\n                diff = current_diff\n        # Add the last sequence\n        length = n - start\n        if length > 1:\n            subarray_sum = self.sum_of_consecutive_subarrays(nums, start, n-1, diff)\n            total = (total + subarray_sum) % MOD\n        # Add individual elements as subarrays of length 1\n        for num in nums:\n            total = (total + num) % MOD\n        return total % MOD\n    \n    def sum_of_consecutive_subarrays(self, nums, start, end, diff):\n        total = 0\n        for i in range(start, end + 1):\n            left = i - start + 1\n            right = end - i + 1\n            subarrays_count = left * right\n            total += nums[i] * subarrays_count\n        return total",
+              "solution_hash": "db629c779894d45d24a63027587f7e7bc5c9d9ce8cce3465a546dac42f695542",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp_68mreqp.py\", line 257, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmp_68mreqp.py\", line 124, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.0684819221496582
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        \n        i = 0\n        while i < n:\n            inc_count = 1\n            dec_count = 1\n            # Check increasing sequence\n            while i + 1 < n and nums[i + 1] - nums[i] == 1:\n                inc_count += 1\n                i += 1\n            # Check decreasing sequence\n            while i + 1 < n and nums[i + 1] - nums[i] == -1:\n                dec_count += 1\n                i += 1\n            # Move to the next different sequence\n            i += 1\n            \n            # Calculate sum for increasing sequence\n            if inc_count > 1:\n                # Sum of sums of all subarrays in the increasing sequence\n                total += self.sum_of_subarrays(nums[i - inc_count:i])\n                total %= MOD\n            # Calculate sum for decreasing sequence\n            if dec_count > 1:\n                # Sum of sums of all subarrays in the decreasing sequence\n                total += self.sum_of_subarrays(nums[i - dec_count:i])\n                total %= MOD\n            # Add the single element subarray if not part of any sequence\n            if inc_count == 1 and dec_count == 1:\n                total += nums[i - 1]\n                total %= MOD\n        \n        return total\n    \n    def sum_of_subarrays(self, subnums: List[int]) -> int:\n        total_sum = 0\n        n = len(subnums)\n        # Sum of sums of all subarrays is sum(subnums[j]*(j+1)*(n-j) for j in 0 to n-1)\n        for j in range(n):\n            total_sum += subnums[j] * (j + 1) * (n - j)\n            total_sum %= 10**9 + 7\n        return total_sum",
+      "solution_hash": "0d2897c84eb4e087138e606fcb46de2ff27fc16d1f0fb7ee38256b10b888b733",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp6zsiz8r4.py\", line 263, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmp6zsiz8r4.py\", line 139, in check\n    assert candidate(nums = [3, 2, 1, 2, 3, 4, 5, 4, 3, 2, 1]) == 224\nAssertionError\n",
+        "execution_time": 0.07293534278869629
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_14",
+          "solution": "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        if n == 0:\n            return 0\n        # Initialize sequence start and direction\n        start = 0\n        direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n        \n        for i in range(1, n):\n            diff = nums[i] - nums[i-1]\n            if direction == 0:\n                if diff == 1:\n                    direction = 1\n                elif diff == -1:\n                    direction = -1\n                else:\n                    # Single element or non-consecutive\n                    total += nums[i-1]\n            elif direction == 1 and diff == 1:\n                continue\n            elif direction == -1 and diff == -1:\n                continue\n            else:\n                # Sequence ends here\n                if direction == 1:\n                    total += self.sum_of_increasing_sequence(nums[start:i], MOD)\n                elif direction == -1:\n                    total += self.sum_of_decreasing_sequence(nums[start:i], MOD)\n                else:\n                    total += sum(nums[start:i]) % MOD\n                # Reset for new sequence\n                start = i - 1\n                if diff == 1:\n                    direction = 1\n                elif diff == -1:\n                    direction = -1\n                else:\n                    direction = 0\n                    total += nums[i]\n        # Handle the last sequence\n        if direction == 1:\n            total += self.sum_of_increasing_sequence(nums[start:i+1], MOD)\n        elif direction == -1:\n            total += self.sum_of_decreasing_sequence(nums[start:i+1], MOD)\n        else:\n            total += sum(nums[start:i+1]) % MOD\n        return total % MOD\n    \n    def sum_of_increasing_sequence(self, subnums: List[int], MOD: int) -> int:\n        total_sum = 0\n        n = len(subnums)\n        for j in range(n):\n            total_sum += subnums[j] * (j + 1) * (n - j)\n            total_sum %= MOD\n        return total_sum\n    \n    def sum_of_decreasing_sequence(self, subnums: List[int], MOD: int) -> int:\n        total_sum = 0\n        n = len(subnums)\n        for j in range(n):\n            total_sum += subnums[j] * (j + 1) * (n - j)\n            total_sum %= MOD\n        return total_sum",
+          "solution_hash": "9aef387c8d70a43e9585db3a18b078acdd1a522a71a045f81d9244789b47bc08",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpwy00_5y3.py\", line 283, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpwy00_5y3.py\", line 150, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+            "execution_time": 0.0671389102935791
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_15",
+              "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                if n == 0:\n                    return 0\n                start = 0\n                direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n                \n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if direction == 0:\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            # Single element or non-consecutive\n                            total += nums[i-1]\n                    elif (direction == 1 and diff != 1) or (direction == -1 and diff != -1):\n                        # Sequence ends here\n                        if direction == 1:\n                            total += self.sum_of_increasing_sequence(nums[start:i], MOD)\n                        elif direction == -1:\n                            total += self.sum_of_decreasing_sequence(nums[start:i], MOD)\n                        else:\n                            total += sum(nums[start:i]) % MOD\n                        # Reset for new sequence\n                        start = i - 1\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            direction = 0\n                            total += nums[i]\n                # Handle the last sequence\n                if direction == 1:\n                    total += self.sum_of_increasing_sequence(nums[start:i+1], MOD)\n                elif direction == -1:\n                    total += self.sum_of_decreasing_sequence(nums[start:i+1], MOD)\n                else:\n                    total += sum(nums[start:i+1]) % MOD\n                return total % MOD\n            \n            def sum_of_increasing_sequence(self, subnums: List[int], MOD: int) -> int:\n                total_sum = 0\n                n = len(subnums)\n                for j in range(n):\n                    total_sum += subnums[j] * (j + 1) * (n - j)\n                    total_sum %= MOD\n                return total_sum\n            \n            def sum_of_decreasing_sequence(self, subnums: List[int], MOD: int) -> int:\n                total_sum = 0\n                n = len(subnums)\n                for j in range(n):\n                    total_sum += subnums[j] * (j + 1) * (n - j)\n                    total_sum %= MOD\n                return total_sum",
+              "solution_hash": "7b8a110ae955880bbc877751db0a108593da7ae79c7d42594a7e40dd0710a496",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp2pqyffqy.py\", line 278, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmp2pqyffqy.py\", line 145, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.06674027442932129
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_16",
+              "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                if n == 0:\n                    return 0\n                \n                start = 0\n                direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n                \n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if direction == 0:\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            # Single element or non-consecutive\n                            total += nums[i-1]\n                    elif direction == 1 and diff == 1:\n                        continue\n                    elif direction == -1 and diff == -1:\n                        continue\n                    else:\n                        # Sequence ends here\n                        if direction == 1:\n                            total += self.sum_of_increasing_sequence(nums[start:i], MOD)\n                        elif direction == -1:\n                            total += self.sum_of_decreasing_sequence(nums[start:i], MOD)\n                        else:\n                            total += sum(nums[start:i]) % MOD\n                        # Reset for new sequence\n                        start = i - 1\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            direction = 0\n                            total += nums[i]\n                # Handle the last sequence\n                if direction == 1:\n                    total += self.sum_of_increasing_sequence(nums[start:i+1], MOD)\n                elif direction == -1:\n                    total += self.sum_of_decreasing_sequence(nums[start:i+1], MOD)\n                else:\n                    total += sum(nums[start:i+1]) % MOD\n                return total % MOD\n            \n            def sum_of_increasing_sequence(self, subnums: List[int], MOD: int) -> int:\n                total_sum = 0\n                n = len(subnums)\n                for j in range(n):\n                    total_sum += subnums[j] * (j + 1) * (n - j)\n                    total_sum %= MOD\n                return total_sum\n            \n            def sum_of_decreasing_sequence(self, subnums: List[int], MOD: int) -> int:\n                total_sum = 0\n                n = len(subnums)\n                for j in range(n):\n                    total_sum += subnums[j] * (j + 1) * (n - j)\n                    total_sum %= MOD\n                return total_sum",
+              "solution_hash": "9aef387c8d70a43e9585db3a18b078acdd1a522a71a045f81d9244789b47bc08",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpwy00_5y3.py\", line 283, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpwy00_5y3.py\", line 150, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.0671389102935791
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_17",
+              "solution": "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        if n == 0:\n            return 0\n        start = 0\n        direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n        \n        for i in range(1, n):\n            diff = nums[i] - nums[i-1]\n            if direction == 0:\n                if diff == 1:\n                    direction = 1\n                elif diff == -1:\n                    direction = -1\n                else:\n                    # Single element or non-consecutive\n                    total += nums[i-1]\n            elif (direction == 1 and diff == 1) or (direction == -1 and diff == -1):\n                continue\n            else:\n                # Sequence ends here\n                if direction != 0:\n                    length = i - start\n                    sequence_sum = sum(nums[start:i])\n                    total += self.sum_of_subarrays(sequence_sum, length, MOD)\n                # Reset for new sequence\n                start = i - 1\n                if diff == 1:\n                    direction = 1\n                elif diff == -1:\n                    direction = -1\n                else:\n                    direction = 0\n                    total += nums[i]\n        # Handle the last sequence\n        if direction != 0:\n            length = n - start\n            sequence_sum = sum(nums[start:n])\n            total += self.sum_of_subarrays(sequence_sum, length, MOD)\n        else:\n            total += nums[-1]\n        return total % MOD\n    \n    def sum_of_subarrays(self, sequence_sum: int, length: int, MOD: int) -> int:\n        # Number of subarrays in a sequence of length 'length' is length * (length + 1) // 2\n        # Each element appears in (i + 1) * (n - i) subarrays where i is its position in the subarray\n        # But for simplicity, we can use the formula for the sum of sums of subarrays\n        # Which is sequence_sum * (length * (length + 1) // 2)\n        # However, in this specific problem, we need to sum the values of all subarrays,\n        # which is equivalent to summing up all possible subarrays' sums.\n        # Given that, the sum is sequence_sum * length * (length + 1) // 2\n        sum_subarrays = sequence_sum * length * (length + 1) // 2\n        return sum_subarrays % MOD",
+              "solution_hash": "a7ea65f2cff18ada98c1381f3cf43270e4e4ae4db8c629ae921ff21d9a79c72b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp_fbfh1lg.py\", line 273, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmp_fbfh1lg.py\", line 140, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.06760716438293457
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_18",
+          "solution": "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        i = 0\n        while i < n:\n            j = i + 1\n            while j < n and (nums[j] - nums[j-1] == 1 or nums[j] - nums[j-1] == -1):\n                j += 1\n            # Sum of sums of all subarrays in the sequence from i to j-1\n            seq_sum = self.sum_of_subarrays(nums[i:j])\n            total = (total + seq_sum) % MOD\n            i = j\n        return total\n    \n    def sum_of_subarrays(self, subnums: List[int]) -> int:\n        total_sum = 0\n        n = len(subnums)\n        for j in range(n):\n            total_sum += subnums[j] * (j + 1) * (n - j)\n            total_sum %= 10**9 + 7\n        return total_sum",
+          "solution_hash": "906da8701c157b72cd478c8de1023a7c7ee475703434b30a40a8b6909972f70b",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpq2bprs5r.py\", line 240, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpq2bprs5r.py\", line 116, in check\n    assert candidate(nums = [3, 2, 1, 2, 3, 4, 5, 4, 3, 2, 1]) == 224\nAssertionError\n",
+            "execution_time": 0.06858229637145996
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_19",
+              "solution": "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        i = 0\n        while i < n:\n            # Determine the direction of the sequence\n            if i + 1 < n:\n                diff = nums[i + 1] - nums[i]\n                if diff != 1 and diff != -1:\n                    # Single element subarray\n                    total = (total + nums[i]) % MOD\n                    i += 1\n                    continue\n            else:\n                # Last element is a single subarray\n                total = (total + nums[i]) % MOD\n                break\n            \n            # Find the end of this consecutive sequence\n            j = i + 1\n            while j + 1 < n:\n                if nums[j + 1] - nums[j] != diff:\n                    break\n                j += 1\n            \n            # Calculate the sum of all subarrays in nums[i..j]\n            length = j - i + 1\n            # Sum of subarrays formula: sum(arr[k] * (k - start + 1) * (end - k))\n            sub_total = 0\n            for k in range(i, j + 1):\n                left = k - i + 1\n                right = j - k + 1\n                sub_total = (sub_total + nums[k] * left * right) % MOD\n            total = (total + sub_total) % MOD\n            # Move to the next potential start\n            i = j + 1\n        return total",
+              "solution_hash": "cfd63c11c80c05270ad3c709e9f932dfc851afc666cdaf2f76a8075568781302",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpd1qibtw3.py\", line 256, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpd1qibtw3.py\", line 132, in check\n    assert candidate(nums = [3, 2, 1, 2, 3, 4, 5, 4, 3, 2, 1]) == 224\nAssertionError\n",
+                "execution_time": 0.0669102668762207
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_20",
+              "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                i = 0\n                while i < n:\n                    j = i + 1\n                    if i < n - 1:\n                        diff = nums[i+1] - nums[i]\n                        while j < n - 1:\n                            if (nums[j+1] - nums[j]) != diff:\n                                break\n                            j += 1\n                        if (nums[j] - nums[j-1]) != diff:\n                            j -= 1\n                    seq = nums[i:j+1]\n                    seq_sum = sum(seq)\n                    len_seq = j - i + 1\n                    sum_of_subarrays = (len_seq * (len_seq + 1) // 2) * seq_sum % MOD\n                    total = (total + sum_of_subarrays) % MOD\n                    i = j + 1\n                return total",
+              "solution_hash": "95011d4bbaed309db4cfd7a0ee4a28d38be5f677f965fe186b2fe29ea342a8b1",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmptlzja8vt.py\", line 240, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmptlzja8vt.py\", line 107, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.06692814826965332
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_21",
+              "solution": "from typing import List\n\n        class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                if n == 0:\n                    return 0\n                # Initialize variables to track the sequence\n                start = 0\n                direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n                \n                for end in range(1, n + 1):\n                    if end < n:\n                        diff = nums[end] - nums[end - 1]\n                        if direction == 0:\n                            if diff == 1:\n                                direction = 1\n                            elif diff == -1:\n                                direction = -1\n                            else:\n                                # Not consecutive, handle the current sequence\n                                self.add_sequence_sum(nums, total, start, end - 1, direction, MOD)\n                                start = end\n                                direction = 0\n                        else:\n                            if (direction == 1 and diff != 1) or (direction == -1 and diff != -1):\n                                # Sequence breaks, handle the current sequence\n                                self.add_sequence_sum(nums, total, start, end - 1, direction, MOD)\n                                start = end\n                                direction = 0\n                    else:\n                        # End of array, handle the last sequence\n                        self.add_sequence_sum(nums, total, start, end - 1, direction, MOD)\n                \n                return total % MOD\n            \n            def add_sequence_sum(self, nums, total, start, end, direction, MOD):\n                if start > end:\n                    return\n                n = end - start + 1\n                # Calculate sum of all subarrays in the sequence\n                # Sum of subarrays = sum over j from 0 to n-1 of nums[start+j] * (j+1) * (n - j)\n                for j in range(n):\n                    total += nums[start + j] * (j + 1) * (n - j)\n                    total %= MOD",
+              "solution_hash": "398f85363b796f1e165418c17f6cff6885234dfa035e56eece9b9770b6c4fcb3",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmp9em8sse6.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05927014350891113
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_22",
+          "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                if n == 0:\n                    return 0\n                # Initialize with the first element\n                start = 0\n                prev_diff = 0\n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if diff != prev_diff and i - start > 1:\n                        # Sequence breaks, calculate sum for the previous sequence\n                        total += self.sum_of_subarrays(nums[start:i-1])\n                        total %= MOD\n                        # Reset start to the last two elements\n                        start = i - 1\n                    prev_diff = diff\n                # Add the last sequence\n                total += self.sum_of_subarrays(nums[start:n])\n                total %= MOD\n                return total\n\n            def sum_of_subarrays(self, subnums: List[int]) -> int:\n                total_sum = 0\n                n = len(subnums)\n                for j in range(n):\n                    total_sum += subnums[j] * (j + 1) * (n - j)\n                    total_sum %= 10**9 + 7\n                return total_sum",
+          "solution_hash": "924ff043eb595313df56f0e5a6569b0232c596b3cd27295fda810b4797f68e72",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpmkw3nv4d.py\", line 248, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpmkw3nv4d.py\", line 115, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+            "execution_time": 0.0654151439666748
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_23",
+              "solution": "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        if n == 0:\n            return 0\n        start = 0\n        for i in range(1, n):\n            if nums[i] - nums[i-1] not in [1, -1]:\n                # Not consecutive, calculate sum for the previous sequence\n                total += self.sum_of_subarrays(nums[start:i])\n                total %= MOD\n                start = i\n        # Add the last sequence\n        total += self.sum_of_subarrays(nums[start:n])\n        total %= MOD\n        return total\n\n    def sum_of_subarrays(self, subnums: List[int]) -> int:\n        total_sum = 0\n        n = len(subnums)\n        for j in range(n):\n            total_sum += subnums[j] * (j + 1) * (n - j)\n            total_sum %= 10**9 + 7\n        return total_sum",
+              "solution_hash": "b728695cd7690ecfab023f09258367b43bcb603a463fffa16122298de6be0667",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpyf_0wvjp.py\", line 243, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpyf_0wvjp.py\", line 119, in check\n    assert candidate(nums = [3, 2, 1, 2, 3, 4, 5, 4, 3, 2, 1]) == 224\nAssertionError\n",
+                "execution_time": 0.06776261329650879
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_24",
+              "solution": "from typing import List\n\n        class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                if n == 0:\n                    return 0\n                start = 0\n                for i in range(1, n):\n                    if i == 1 or nums[i] - nums[i-1] != diff:\n                        # Start of a new potential consecutive sequence\n                        if i - start > 1:\n                            # Calculate sum for the previous sequence\n                            total += self.sum_of_consecutive_subarrays(nums, start, i-1)\n                            total %= MOD\n                        # Set new difference\n                        diff = nums[i] - nums[i-1]\n                        start = i - 1\n                # Add the last sequence\n                total += self.sum_of_consecutive_subarrays(nums, start, n-1)\n                total %= MOD\n                return total\n\n            def sum_of_consecutive_subarrays(self, nums: List[int], start: int, end: int) -> int:\n                MOD = 10**9 + 7\n                total_sum = 0\n                n = end - start + 1\n                if n == 1:\n                    return nums[start]\n                diff = nums[start + 1] - nums[start]\n                for i in range(start, end + 1):\n                    len_sub = min(i - start + 1, end - i + 1)\n                    total_sum += nums[i] * len_sub\n                    total_sum %= MOD\n                return total_sum",
+              "solution_hash": "179ec2030b8f78791101e71bd25d2332e980ca8360f1282f0b223cecdcbcec7a",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpshcqjrex.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05417346954345703
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_25",
+              "solution": "from typing import List\n\n        class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                if n == 0:\n                    return 0\n                start = 0\n                for end in range(1, n):\n                    diff = nums[end] - nums[end - 1]\n                    if end == 1:\n                        prev_diff = diff\n                    elif diff != prev_diff or diff == 0:\n                        # End of a consecutive sequence\n                        total += self.sum_of_subarrays(nums, start, end - 1)\n                        total %= MOD\n                        start = end - 1\n                    prev_diff = diff\n                # Add the last sequence\n                total += self.sum_of_subarrays(nums, start, n - 1)\n                total %= MOD\n                return total\n\n            def sum_of_subarrays(self, nums: List[int], start: int, end: int) -> int:\n                MOD = 10**9 + 7\n                total_sum = 0\n                n = end - start + 1\n                for i in range(start, end + 1):\n                    total_sum += nums[i] * (i - start + 1) * (end - i + 1)\n                    total_sum %= MOD\n                return total_sum",
+              "solution_hash": "817f584ae451bd7f39a810500258de9894d04b3ad13842538826dfb16d7ba38e",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmp600y2fax.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05365896224975586
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        total = nums[0]\n        current_sum = nums[0]\n        length = 1\n        diff = 0\n        for i in range(1, n):\n            if nums[i] - nums[i-1] == 1 or nums[i] - nums[i-1] == -1:\n                if nums[i] - nums[i-1] == diff or diff == 0:\n                    diff = nums[i] - nums[i-1]\n                    length += 1\n                    current_sum += nums[i] * length - sum(range(length))\n                else:\n                    # Direction changed, reset\n                    total = (total + current_sum) % MOD\n                    current_sum = sum(nums[i-1:i+1])\n                    length = 2\n                    diff = nums[i] - nums[i-1]\n            else:\n                total = (total + current_sum) % MOD\n                current_sum = nums[i]\n                length = 1\n                diff = 0\n        total = (total + current_sum) % MOD\n        return total",
+      "solution_hash": "6e2ceb6f4c01ef80ecd90a47419a5240482e5a64c4441bc043e9228a2e35ed1d",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp01i2zdze.py\", line 246, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmp01i2zdze.py\", line 113, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+        "execution_time": 0.07267880439758301
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_27",
+          "solution": "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        total = 0\n        start = 0\n        direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n        \n        for i in range(1, n):\n            diff = nums[i] - nums[i-1]\n            if direction == 0:\n                if diff == 1:\n                    direction = 1\n                elif diff == -1:\n                    direction = -1\n                else:\n                    # Not consecutive, sum the single element subarray\n                    total = (total + nums[i-1]) % MOD\n            elif direction == 1 and diff == 1:\n                continue\n            elif direction == -1 and diff == -1:\n                continue\n            else:\n                # Direction changed or not consecutive, calculate sum of subarray from start to i-1\n                len_sub = i - start\n                sub_sum = sum(nums[start:i])\n                total = (total + sub_sum) % MOD\n                # Reset start and direction\n                start = i-1\n                if diff == 1:\n                    direction = 1\n                elif diff == -1:\n                    direction = -1\n                else:\n                    # Not consecutive, sum the single element subarray\n                    total = (total + nums[i]) % MOD\n                    start = i\n                    direction = 0\n        # Add the last subarray\n        len_sub = n - start\n        sub_sum = sum(nums[start:n])\n        total = (total + sub_sum) % MOD\n        return total",
+          "solution_hash": "d50e431bdf55d4c258d688df47f8c27f39665d61c20d4d01db252a4d2ca847ac",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpdlnenx80.py\", line 262, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpdlnenx80.py\", line 129, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+            "execution_time": 0.06875371932983398
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_28",
+              "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                \n                total = 0\n                current_sum = nums[0]\n                start = 0\n                direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n                \n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if direction == 0:\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            # Not consecutive, sum the single element subarray\n                            total = (total + nums[i-1]) % MOD\n                            current_sum = nums[i]\n                            start = i\n                    elif (direction == 1 and diff == 1) or (direction == -1 and diff == -1):\n                        # Continue the current direction\n                        current_sum += nums[i] * (i - start + 1)\n                    else:\n                        # Direction changed or not consecutive, calculate sum of subarray from start to i-1\n                        len_sub = i - start\n                        # Sum of arithmetic series for consecutive numbers\n                        if direction == 1:\n                            # Increasing: start to end\n                            total = (total + current_sum) % MOD\n                        elif direction == -1:\n                            # Decreasing: start to end\n                            total = (total + current_sum) % MOD\n                        # Reset start and direction\n                        start = i-1\n                        current_sum = nums[i-1] + nums[i]\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            # Not consecutive, sum the single element subarray\n                            total = (total + nums[i]) % MOD\n                            start = i\n                            direction = 0\n                # Add the last subarray\n                len_sub = n - start\n                if direction == 1:\n                    total = (total + current_sum) % MOD\n                elif direction == -1:\n                    total = (total + current_sum) % MOD\n                else:\n                    total = (total + sum(nums[start:n])) % MOD\n                return total",
+              "solution_hash": "589d6af9eb78a3c9a42afc4f7d1ed0ad8807641bb65f0e40b3e94e7cb8a7a9f4",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmphit_g15u.py\", line 275, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmphit_g15u.py\", line 142, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.0685124397277832
+              },
+              "depth": 2,
+              "parent_id": "1_27",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_29",
+              "solution": "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        total = 0\n        start = 0\n        direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n        \n        for i in range(1, n):\n            diff = nums[i] - nums[i-1]\n            if direction == 0:\n                if diff == 1:\n                    direction = 1\n                elif diff == -1:\n                    direction = -1\n                else:\n                    # Not consecutive, sum the single element subarray\n                    total = (total + nums[i-1]) % MOD\n            elif direction == 1 and diff == 1:\n                continue\n            elif direction == -1 and diff == -1:\n                continue\n            else:\n                # Direction changed or not consecutive, calculate sum of subarray from start to i-1\n                sub_sum = sum(nums[start:i])\n                total = (total + sub_sum) % MOD\n                # Reset start and direction\n                start = i-1\n                if diff == 1:\n                    direction = 1\n                elif diff == -1:\n                    direction = -1\n                else:\n                    # Not consecutive, sum the single element subarray\n                    total = (total + nums[i]) % MOD\n                    start = i\n                    direction = 0\n        # Add the last subarray\n        sub_sum = sum(nums[start:n])\n        total = (total + sub_sum) % MOD\n        return total",
+              "solution_hash": "6e30b95fd822333007d783b55451addee56ca7af6c7acd8bd86fca1c0c09cc1d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpq0okpri6.py\", line 260, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpq0okpri6.py\", line 127, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.07120275497436523
+              },
+              "depth": 2,
+              "parent_id": "1_27",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_30",
+              "solution": "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        total = 0\n        start = 0\n        end = 0\n        direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n        \n        while end < n:\n            if end == start:\n                total = (total + nums[start]) % MOD\n                end += 1\n                continue\n            diff = nums[end] - nums[end - 1]\n            if direction == 0:\n                direction = diff\n                end += 1\n                continue\n            if (direction == 1 and diff == 1) or (direction == -1 and diff == -1):\n                end += 1\n                continue\n            else:\n                # Sequence broken, calculate sum of all subarrays in the current sequence\n                len_seq = end - start\n                # Sum of all subarrays in the sequence\n                seq_sum = 0\n                for i in range(start, end):\n                    # Number of subarrays including nums[i]\n                    left Ways = i - start + 1\n                    right Ways = end - i\n                    subarrays Including nums[i] = left Ways * right Ways\n                    seq_sum = (seq_sum + subarrays Including nums[i] * nums[i]) % MOD\n                total = (total + seq_sum) % MOD\n                # Reset\n                start = end - 1\n                direction = 0\n        # Handle the last sequence\n        len_seq = end - start\n        seq_sum = 0\n        for i in range(start, end):\n            left Ways = i - start + 1\n            right Ways = end - i\n            subarrays Including nums[i] = left Ways * right Ways\n            seq_sum = (seq_sum + subarrays Including nums[i] * nums[i]) % MOD\n        total = (total + seq_sum) % MOD\n        return total",
+              "solution_hash": "2934686350cdbe65d0664d0944cc10a1aba03a5240e227d3aaaea5aa1002c0b4",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpgod_e2u4.py\", line 112\n    left Ways = i - start + 1\n         ^\nSyntaxError: invalid syntax\n",
+                "execution_time": 0.05337238311767578
+              },
+              "depth": 2,
+              "parent_id": "1_27",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_31",
+          "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                start = 0\n                direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if direction == 0:\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            # Single element or non-consecutive\n                            total = (total + nums[i-1]) % MOD\n                    elif (direction == 1 and diff != 1) or (direction == -1 and diff != -1):\n                        # Sequence breaks, calculate sum of subarrays from start to i-1\n                        length = i - start\n                        subarray_sum = sum(nums[start:i])\n                        # Number of subarrays: length * (length + 1) // 2\n                        total = (total + subarray_sum * length) % MOD\n                        # Reset\n                        start = i - 1\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            # Single element\n                            total = (total + nums[i]) % MOD\n                            direction = 0\n                            start = i\n                # Handle the last sequence\n                length = n - start\n                subarray_sum = sum(nums[start:])\n                total = (total + subarray_sum * length) % MOD\n                return total",
+          "solution_hash": "afe416c2054f734cb7f336370b50d230f6e1a7ab6ed80287e00f8b1c15df15d2",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpqlh6ek7g.py\", line 258, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpqlh6ek7g.py\", line 125, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+            "execution_time": 0.06568312644958496
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_32",
+              "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                start = 0\n                for i in range(1, n):\n                    if nums[i] - nums[i-1] != nums[start+1] - nums[start]:\n                        # Sequence breaks, calculate sum of all subarrays from start to i-1\n                        length = i - start\n                        # Sum of elements in the current consecutive sequence\n                        subarray_sum = sum(nums[start:i])\n                        # Number of subarrays: length * (length + 1) // 2\n                        total = (total + subarray_sum * length) % MOD\n                        start = i - 1\n                # Handle the last sequence\n                length = n - start\n                subarray_sum = sum(nums[start:])\n                total = (total + subarray_sum * length) % MOD\n                return total",
+              "solution_hash": "522d3b31c9395932b5b714b7c38d3dcbcff31946094ba8e0c82be43312b699c9",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpx5kzuj_l.py\", line 239, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpx5kzuj_l.py\", line 106, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.06711864471435547
+              },
+              "depth": 2,
+              "parent_id": "1_31",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_33",
+              "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                start = 0\n                prev_diff = 0  # Initialize to handle the first element\n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if diff != prev_diff and i - start > 1:\n                        # Sequence breaks, calculate sum of all subarrays from start to i-1\n                        length = i - start\n                        # Sum of all subarrays in the window [start, i-1]\n                        subarray_sum = 0\n                        current_sum = 0\n                        for j in range(start, i):\n                            current_sum += nums[j]\n                            subarray_sum += current_sum\n                        total = (total + subarray_sum) % MOD\n                        # Reset\n                        start = i - 1\n                        prev_diff = diff\n                    elif i - start == 1:\n                        # Initial diff setup\n                        prev_diff = diff\n                    if diff == 0:\n                        # Single element or non-consecutive\n                        total = (total + nums[i]) % MOD\n                        start = i\n                # Handle the last sequence\n                length = n - start\n                if length > 1:\n                    subarray_sum = 0\n                    current_sum = 0\n                    for j in range(start, n):\n                        current_sum += nums[j]\n                        subarray_sum += current_sum\n                    total = (total + subarray_sum) % MOD\n                else:\n                    total = (total + nums[-1]) % MOD\n                return total",
+              "solution_hash": "95eeba9ab68f498d4982801c6d9d9ad514d2254d8e8c99ac090b6ff855bdd267",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpcs7759a4.py\", line 260, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpcs7759a4.py\", line 127, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.06636619567871094
+              },
+              "depth": 2,
+              "parent_id": "1_31",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_34",
+              "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                start = 0\n                direction = 0  # 0: unknown, 1: increasing, -1: decreasing\n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if direction == 0:\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            # Single element\n                            total = (total + nums[i-1]) % MOD\n                            start = i\n                    elif (direction == 1 and diff != 1) or (direction == -1 and diff != -1):\n                        # Sequence breaks, calculate sum of subarrays from start to i-1\n                        length = i - start\n                        subarray_sum = sum(nums[start:i])\n                        # Number of subarrays: length * (length + 1) // 2\n                        total = (total + subarray_sum * length) % MOD\n                        # Reset\n                        start = i - 1\n                        if diff == 1:\n                            direction = 1\n                        elif diff == -1:\n                            direction = -1\n                        else:\n                            # Single element\n                            total = (total + nums[i]) % MOD\n                            direction = 0\n                            start = i\n                # Handle the last sequence\n                length = n - start\n                subarray_sum = sum(nums[start:])\n                total = (total + subarray_sum * length) % MOD\n                return total",
+              "solution_hash": "ae4f44918ff7d5348a772c27ffa46d0cbf0d14fb1199803520757f9da8660f79",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpy904q_nk.py\", line 259, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpy904q_nk.py\", line 126, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.06664538383483887
+              },
+              "depth": 2,
+              "parent_id": "1_31",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_35",
+          "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                current_sum = nums[0]\n                length = 1\n                prev_diff = 0  # Initialize to handle first element\n\n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if diff == 1 or diff == -1:\n                        if diff == prev_diff or prev_diff == 0:\n                            # Continue the same direction\n                            length += 1\n                            current_sum += nums[i] * length - sum(range(1, length+1))\n                        else:\n                            # Direction changed, reset\n                            total = (total + current_sum) % MOD\n                            current_sum = nums[i-1] + nums[i]\n                            length = 2\n                            prev_diff = diff\n                    else:\n                        # Not consecutive, reset\n                        total = (total + current_sum) % MOD\n                        current_sum = nums[i]\n                        length = 1\n                        prev_diff = 0\n                # Add the last subarray sum\n                total = (total + current_sum) % MOD\n                return total",
+          "solution_hash": "dd96ac0abc198303702dbecd214f9b725c97bc32a2610a4851e49e9fc5ce19f1",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp3ijz_voz.py\", line 250, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmp3ijz_voz.py\", line 117, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+            "execution_time": 0.06654763221740723
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_36",
+              "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                i = 0\n                while i < n:\n                    if i == n - 1:\n                        total = (total + nums[i]) % MOD\n                        break\n                    diff = nums[i+1] - nums[i]\n                    if diff not in [1, -1]:\n                        total = (total + nums[i]) % MOD\n                        i += 1\n                        continue\n                    j = i + 1\n                    while j < n - 1 and nums[j+1] - nums[j] == diff:\n                        j += 1\n                    # Sum of arithmetic series from i to j\n                    length = j - i + 1\n                    start = nums[i]\n                    end = nums[j]\n                    subarray_sum = (start + end) * length // 2\n                    total = (total + subarray_sum) % MOD\n                    i = j + 1\n                return total",
+              "solution_hash": "34f4f99eb9a91243b1319973a6f74417e03d02462132bc402a6355ea735e6b63",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp2uww_b6k.py\", line 245, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmp2uww_b6k.py\", line 112, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.06717395782470703
+              },
+              "depth": 2,
+              "parent_id": "1_35",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_37",
+              "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                current_sum = nums[0]\n                length = 1\n                if n >= 2:\n                    if nums[1] - nums[0] == 1:\n                        direction = 1\n                    elif nums[1] - nums[0] == -1:\n                        direction = -1\n                    else:\n                        direction = 0\n                else:\n                    direction = 0\n                total += nums[0]\n                \n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if diff == direction or length == 1:\n                        if diff == direction:\n                            length += 1\n                        else:\n                            length = 2\n                            direction = diff\n                        current_sum = current_sum + nums[i] * length - sum(range(1, length+1))\n                        total = (total + current_sum) % MOD\n                    else:\n                        total = (total + nums[i]) % MOD\n                        current_sum = nums[i]\n                        length = 1\n                        if i + 1 < n:\n                            if nums[i+1] - nums[i] == 1:\n                                direction = 1\n                            elif nums[i+1] - nums[i] == -1:\n                                direction = -1\n                            else:\n                                direction = 0\n                return total",
+              "solution_hash": "cb916fc149a067d9caba491fe8b85832916e4ae73a5dffce7805fe90962fb5ea",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpr77yuap9.py\", line 259, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmpr77yuap9.py\", line 126, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.06622838973999023
+              },
+              "depth": 2,
+              "parent_id": "1_35",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_38",
+              "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                total = 0\n                current_sum = nums[0]\n                length = 1\n                prev_diff = 0  # Initialize to handle first element\n\n                for i in range(1, n):\n                    diff = nums[i] - nums[i-1]\n                    if diff == 1 or diff == -1:\n                        if i == 1 or diff == prev_diff:\n                            # Continue the same direction\n                            length += 1\n                            current_sum += nums[i] * length - sum(range(1, length+1))\n                        else:\n                            # Direction changed, reset\n                            total = (total + current_sum) % MOD\n                            current_sum = nums[i-1] + nums[i]\n                            length = 2\n                            prev_diff = diff\n                    else:\n                        # Not consecutive, reset\n                        total = (total + current_sum) % MOD\n                        current_sum = nums[i]\n                        length = 1\n                        prev_diff = 0\n                # Add the last subarray sum\n                total = (total + current_sum) % MOD\n                return total",
+              "solution_hash": "d2be763878d0c6cba036ab0bb4506cca0ca194b7af39e7e29b83d3eb1276e608",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmphhh90ze_.py\", line 250, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/21419949/tmphhh90ze_.py\", line 117, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n",
+                "execution_time": 0.0671682357788086
+              },
+              "depth": 2,
+              "parent_id": "1_35",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 39,
+    "candidates_generated": 39,
+    "tests_passed": 0,
+    "tests_failed": 39,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 1114.04687333107,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.0,
+      "pass@3": 0.0,
+      "pass@5": 0.0,
+      "pass@10": 0.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: invalid syntax (<string>, line 135)",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: name 'MOD' is not defined",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 26
+          }
+        ],
+        [
+          27,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 27
+          }
+        ],
+        [
+          28,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 28
+          }
+        ],
+        [
+          29,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 29
+          }
+        ],
+        [
+          30,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: invalid syntax (<string>, line 128)",
+            "completion_id": 30
+          }
+        ],
+        [
+          31,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 31
+          }
+        ],
+        [
+          32,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 32
+          }
+        ],
+        [
+          33,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 33
+          }
+        ],
+        [
+          34,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 34
+          }
+        ],
+        [
+          35,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 35
+          }
+        ],
+        [
+          36,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 36
+          }
+        ],
+        [
+          37,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 37
+          }
+        ],
+        [
+          38,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 38
+          }
+        ],
+        [
+          39,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: name 'pairwise' is not defined",
+            "completion_id": 39
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 40,
+    "test_cases": 1
+  }
+}

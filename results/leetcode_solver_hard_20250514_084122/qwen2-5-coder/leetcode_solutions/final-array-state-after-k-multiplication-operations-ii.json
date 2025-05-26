@@ -1,0 +1,628 @@
+{
+  "problem_id": "final-array-state-after-k-multiplication-operations-ii",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        num_counts = Counter(nums)\n        sorted_unique_nums = sorted(num_counts.keys())\n        \n        i = 0\n        while k > 0 and i < len(sorted_unique_nums):\n            current_min = sorted_unique_nums[i]\n            count = num_counts[current_min]\n            \n            if count <= k:\n                # All occurrences of the current minimum can be updated\n                num_counts[current_min] = 0\n                num_counts[current_min * multiplier] += count\n                k -= count\n            else:\n                # Only some occurrences of the current minimum can be updated\n                num_counts[current_min] -= k\n                num_counts[current_min * multiplier] += k\n                k = 0\n            \n            i += 1\n        \n        # Reconstruct the final nums array\n        final_nums = []\n        for num, count in num_counts.items():\n            final_nums.extend([num % MOD] * count)\n        \n        # Sort the final nums array to maintain the original order of elements\n        final_nums.sort(key=lambda x: nums.index(x) if x in nums else float('inf'))\n        \n        return final_nums",
+  "passed_solutions": [
+    "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Count the occurrences of each number in nums\n        num_count = Counter(nums)\n        \n        # Get the sorted unique numbers\n        sorted_nums = sorted(num_count.keys())\n        \n        i = 0\n        while k > 0 and i < len(sorted_nums):\n            current_min = sorted_nums[i]\n            count = num_count[current_min]\n            \n            if count <= k:\n                # If we can fully replace all occurrences of the current minimum\n                num_count.pop(current_min)\n                new_value = (current_min * multiplier) % MOD\n                num_count[new_value] = num_count.get(new_value, 0) + count\n                k -= count\n            else:\n                # If we can only partially replace the occurrences of the current minimum\n                num_count[current_min] -= k\n                new_value = (current_min * multiplier) % MOD\n                num_count[new_value] = num_count.get(new_value, 0) + k\n                k = 0\n            \n            # Update the sorted keys if necessary\n            if k == 0 or i == len(sorted_nums) - 1:\n                sorted_nums = sorted(num_count.keys())\n            i += 1\n        \n        # Construct the final result array\n        result = []\n        for num, count in num_count.items():\n            result.extend([num] * count)\n        \n        return result",
+    "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Count the occurrences of each number in nums\n        count = Counter(nums)\n        \n        # Sort the unique numbers\n        unique_nums = sorted(count.keys())\n        \n        # Process each unique number\n        for num in unique_nums:\n            if k == 0:\n                break\n            # Determine how many times we can multiply this number\n            ops = min(k, count[num])\n            # Update the count of the new number after multiplication\n            new_num = (num * multiplier) % MOD\n            count[new_num] += ops\n            count[num] -= ops\n            k -= ops\n        \n        # Reconstruct the final array based on the counts\n        result = []\n        for num in unique_nums:\n            if count[num] > 0:\n                result.extend([num] * count[num])\n        \n        # Add any new numbers that were created\n        for num in sorted(count.keys()):\n            if num not in unique_nums and count[num] > 0:\n                result.extend([num] * count[num])\n        \n        return result",
+    "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        num_counts = Counter(nums)\n        sorted_unique_nums = sorted(num_counts.keys())\n        \n        i = 0\n        while k > 0 and i < len(sorted_unique_nums):\n            current_min = sorted_unique_nums[i]\n            count = num_counts[current_min]\n            \n            if count <= k:\n                # All occurrences of the current minimum can be updated\n                num_counts[current_min] = 0\n                num_counts[current_min * multiplier] += count\n                k -= count\n            else:\n                # Only some occurrences of the current minimum can be updated\n                num_counts[current_min] -= k\n                num_counts[current_min * multiplier] += k\n                k = 0\n            \n            i += 1\n        \n        # Reconstruct the final nums array\n        final_nums = []\n        for num, count in num_counts.items():\n            final_nums.extend([num % MOD] * count)\n        \n        # Sort the final nums array to maintain the original order of elements\n        final_nums.sort(key=lambda x: nums.index(x) if x in nums else float('inf'))\n        \n        return final_nums",
+    "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        num_counts = Counter(nums)\n        sorted_unique_nums = sorted(num_counts.keys())\n        \n        i = 0\n        while k > 0 and i < len(sorted_unique_nums):\n            current_min = sorted_unique_nums[i]\n            count = num_counts[current_min]\n            \n            if count <= k:\n                # All occurrences of current_min can be multiplied\n                num_counts.pop(current_min)\n                k -= count\n                new_value = (current_min * multiplier) % MOD\n                num_counts[new_value] += count\n                # Insert the new value in the sorted list of unique numbers\n                sorted_unique_nums.insert(i, new_value)\n                # Remove duplicates\n                while i + 1 < len(sorted_unique_nums) and sorted_unique_nums[i] == sorted_unique_nums[i + 1]:\n                    sorted_unique_nums.pop(i + 1)\n            else:\n                # Only some occurrences of current_min can be multiplied\n                num_counts[current_min] -= k\n                new_value = (current_min * multiplier) % MOD\n                num_counts[new_value] += k\n                # Insert the new value in the sorted list of unique numbers\n                sorted_unique_nums.insert(i + 1, new_value)\n                k = 0\n            \n            i += 1\n        \n        # Reconstruct the final nums array\n        final_nums = []\n        for num, count in num_counts.items():\n            final_nums.extend([num] * count)\n        \n        return final_nums",
+    "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        # Count the occurrences of each number in nums\n        count = Counter(nums)\n        sorted_nums = sorted(count.keys())\n        \n        for num in sorted_nums:\n            if k == 0:\n                break\n            # Determine how many times we can multiply this number\n            ops = min(k, count[num])\n            # Update the count dictionary\n            count[num] -= ops\n            count[num * multiplier] += ops\n            k -= ops\n        \n        # Reconstruct the final nums array\n        result = []\n        for num in sorted(count.keys()):\n            result.extend([num % MOD] * count[num])\n        \n        return result"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        # Convert nums to a min-heap\n        heapify(nums)\n        \n        # Perform k operations\n        for _ in range(k):\n            # Pop the smallest element\n            min_val = heappop(nums)\n            # Multiply by the multiplier and push back into the heap\n            heappush(nums, (min_val * multiplier) % MOD)\n        \n        # Apply modulo to each element in the final array\n        return [x % MOD for x in nums]",
+    "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Count the occurrences of each number in nums\n        num_counts = Counter(nums)\n        \n        # Sort the unique numbers\n        unique_nums = sorted(num_counts.keys())\n        \n        i = 0\n        while k > 0 and i < len(unique_nums):\n            current_min = unique_nums[i]\n            count = num_counts[current_min]\n            \n            if count <= k:\n                # If we have enough operations to replace all occurrences of current_min\n                num_counts.pop(current_min)\n                new_value = (current_min * multiplier) % MOD\n                num_counts[new_value] += count\n                k -= count\n                # Update the sorted list of unique numbers\n                unique_nums = sorted(num_counts.keys())\n                i = 0  # Reset index since the keys have changed\n            else:\n                # If we don't have enough operations to replace all occurrences of current_min\n                num_counts[current_min] -= k\n                new_value = (current_min * multiplier) % MOD\n                num_counts[new_value] += k\n                k = 0\n        \n        # Construct the final result array\n        result = []\n        for num, count in num_counts.items():\n            result.extend([num] * count)\n        \n        return result",
+    "from typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        for _ in range(k):\n            min_index = 0\n            min_value = nums[0]\n            \n            # Find the first occurrence of the minimum value\n            for i in range(1, len(nums)):\n                if nums[i] < min_value:\n                    min_value = nums[i]\n                    min_index = i\n            \n            # Replace the minimum value with its multiplied form modulo MOD\n            nums[min_index] = (min_value * multiplier) % MOD\n        \n        return nums",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Create a min-heap from the nums array\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapq.heapify(min_heap)\n        \n        # Perform k operations\n        for _ in range(k):\n            # Extract the minimum element\n            val, idx = heapq.heappop(min_heap)\n            # Multiply the minimum element by the multiplier and take modulo\n            new_val = (val * multiplier) % MOD\n            # Push the new value back into the heap with the same index\n            heapq.heappush(min_heap, (new_val, idx))\n        \n        # Reconstruct the final nums array from the heap\n        final_state = [0] * len(nums)\n        for val, idx in min_heap:\n            final_state[idx] = val\n        \n        return final_state",
+    "import heapq\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Create a min-heap from nums\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapq.heapify(min_heap)\n        \n        # Perform k operations\n        for _ in range(k):\n            # Extract the minimum element\n            min_val, min_idx = heapq.heappop(min_heap)\n            # Replace it with the new value\n            new_val = (min_val * multiplier) % MOD\n            # Push the new value back into the heap with the same index\n            heapq.heappush(min_heap, (new_val, min_idx))\n        \n        # Reconstruct the final nums array based on the heap\n        final_state = [0] * len(nums)\n        for val, idx in min_heap:\n            final_state[idx] = val\n        \n        return final_state",
+    "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Count the occurrences of each number in nums\n        num_count = Counter(nums)\n        \n        # Get the sorted unique numbers\n        sorted_nums = sorted(num_count.keys())\n        \n        i = 0\n        while k > 0 and i < len(sorted_nums):\n            current_min = sorted_nums[i]\n            count = num_count[current_min]\n            \n            if count <= k:\n                # If we can fully replace all occurrences of the current minimum\n                num_count.pop(current_min)\n                new_value = (current_min * multiplier) % MOD\n                num_count[new_value] = num_count.get(new_value, 0) + count\n                k -= count\n            else:\n                # If we can only partially replace the occurrences of the current minimum\n                num_count[current_min] -= k\n                new_value = (current_min * multiplier) % MOD\n                num_count[new_value] = num_count.get(new_value, 0) + k\n                k = 0\n            \n            # Update the sorted keys if necessary\n            if k == 0 or i == len(sorted_nums) - 1:\n                sorted_nums = sorted(num_count.keys())\n            i += 1\n        \n        # Construct the final result array\n        result = []\n        for num, count in num_count.items():\n            result.extend([num] * count)\n        \n        return result",
+    "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Count the occurrences of each number in nums\n        count = Counter(nums)\n        \n        # Sort the unique numbers\n        unique_nums = sorted(count.keys())\n        \n        # Process each unique number\n        for num in unique_nums:\n            if k == 0:\n                break\n            # Determine how many times we can multiply this number\n            ops = min(k, count[num])\n            # Update the count of the new number after multiplication\n            new_num = (num * multiplier) % MOD\n            count[new_num] += ops\n            count[num] -= ops\n            k -= ops\n        \n        # Reconstruct the final array based on the counts\n        result = []\n        for num in unique_nums:\n            if count[num] > 0:\n                result.extend([num] * count[num])\n        \n        # Add any new numbers that were created\n        for num in sorted(count.keys()):\n            if num not in unique_nums and count[num] > 0:\n                result.extend([num] * count[num])\n        \n        return result",
+    "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        min_heap = []\n        \n        # Convert nums into a heap\n        for index, value in enumerate(nums):\n            heappush(min_heap, (value, index))\n        \n        for _ in range(k):\n            # Extract the minimum element\n            value, index = heappop(min_heap)\n            # Multiply the minimum element by the multiplier\n            new_value = value * multiplier\n            # Push the new value back into the heap with the same index\n            heappush(min_heap, (new_value, index))\n        \n        # Reconstruct the final nums array from the heap\n        final_nums = [0] * len(nums)\n        while min_heap:\n            value, index = heappop(min_heap)\n            final_nums[index] = value % MOD\n        \n        return final_nums",
+    "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        num_counts = Counter(nums)\n        sorted_unique_nums = sorted(num_counts.keys())\n        \n        i = 0\n        while k > 0 and i < len(sorted_unique_nums):\n            current_min = sorted_unique_nums[i]\n            count = num_counts[current_min]\n            \n            if count <= k:\n                # All occurrences of the current minimum can be updated\n                num_counts[current_min] = 0\n                num_counts[current_min * multiplier] += count\n                k -= count\n            else:\n                # Only some occurrences of the current minimum can be updated\n                num_counts[current_min] -= k\n                num_counts[current_min * multiplier] += k\n                k = 0\n            \n            i += 1\n        \n        # Reconstruct the final nums array\n        final_nums = []\n        for num, count in num_counts.items():\n            final_nums.extend([num % MOD] * count)\n        \n        # Sort the final nums array to maintain the original order of elements\n        final_nums.sort(key=lambda x: nums.index(x) if x in nums else float('inf'))\n        \n        return final_nums",
+    "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        num_counts = Counter(nums)\n        sorted_unique_nums = sorted(num_counts.keys())\n        \n        i = 0\n        while k > 0 and i < len(sorted_unique_nums):\n            current_min = sorted_unique_nums[i]\n            count = num_counts[current_min]\n            \n            if count <= k:\n                # All occurrences of current_min can be multiplied\n                num_counts.pop(current_min)\n                k -= count\n                new_value = (current_min * multiplier) % MOD\n                num_counts[new_value] += count\n                # Insert the new value in the sorted list of unique numbers\n                sorted_unique_nums.insert(i, new_value)\n                # Remove duplicates\n                while i + 1 < len(sorted_unique_nums) and sorted_unique_nums[i] == sorted_unique_nums[i + 1]:\n                    sorted_unique_nums.pop(i + 1)\n            else:\n                # Only some occurrences of current_min can be multiplied\n                num_counts[current_min] -= k\n                new_value = (current_min * multiplier) % MOD\n                num_counts[new_value] += k\n                # Insert the new value in the sorted list of unique numbers\n                sorted_unique_nums.insert(i + 1, new_value)\n                k = 0\n            \n            i += 1\n        \n        # Reconstruct the final nums array\n        final_nums = []\n        for num, count in num_counts.items():\n            final_nums.extend([num] * count)\n        \n        return final_nums",
+    "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        num_counts = Counter(nums)\n        sorted_unique_nums = sorted(num_counts.keys())\n        \n        i = 0\n        while k > 0 and i < len(sorted_unique_nums):\n            current_min = sorted_unique_nums[i]\n            count = num_counts[current_min]\n            \n            if count <= k:\n                num_counts.pop(current_min)\n                k -= count\n                new_value = (current_min * multiplier) % MOD\n                num_counts[new_value] += count\n                sorted_unique_nums.append(new_value)\n            else:\n                num_counts[current_min] -= k\n                new_value = (current_min * multiplier) % MOD\n                num_counts[new_value] += k\n                k = 0\n            \n            i += 1\n        \n        final_nums = []\n        for num, count in num_counts.items():\n            final_nums.extend([num] * count)\n        \n        return final_nums",
+    "from heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        min_heap = []\n        \n        # Push all elements with their indices into the heap\n        for index, value in enumerate(nums):\n            heappush(min_heap, (value, index))\n        \n        while k > 0:\n            # Pop the smallest element\n            value, index = heappop(min_heap)\n            # Update the value in the original list\n            nums[index] = (value * multiplier) % MOD\n            # Push the updated value back into the heap with the same index\n            heappush(min_heap, (nums[index], index))\n            k -= 1\n        \n        return nums",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapq.heapify(min_heap)\n        \n        for _ in range(k):\n            val, idx = heapq.heappop(min_heap)\n            new_val = (val * multiplier) % MOD\n            heapq.heappush(min_heap, (new_val, idx))\n        \n        final_state = [0] * len(nums)\n        for val, idx in min_heap:\n            final_state[idx] = val\n        \n        return final_state",
+    "from typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        for _ in range(k):\n            min_index = nums.index(min(nums))\n            nums[min_index] = (nums[min_index] * multiplier) % MOD\n        \n        return nums",
+    "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        # Create a min-heap from the elements of nums along with their original indices\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapify(min_heap)\n        \n        for _ in range(k):\n            # Extract the minimum element\n            min_val, min_idx = heappop(min_heap)\n            # Multiply the minimum element by the multiplier\n            new_val = min_val * multiplier\n            # Push the new value back into the heap with the same index\n            heappush(min_heap, (new_val, min_idx))\n        \n        # Reconstruct the nums array from the heap\n        for _ in range(len(nums)):\n            nums[min_heap[0][1]] = heappop(min_heap)[0] % MOD\n        \n        return nums",
+    "from typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        for _ in range(k):\n            # Find the index of the minimum value in nums\n            min_idx = nums.index(min(nums))\n            # Update the minimum value by multiplying it with the multiplier\n            nums[min_idx] = (nums[min_idx] * multiplier) % MOD\n        \n        return nums",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Create a min-heap with tuples of (value, original_index)\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapq.heapify(min_heap)\n        \n        for _ in range(k):\n            # Extract the minimum element\n            val, idx = heapq.heappop(min_heap)\n            # Multiply the minimum element by the multiplier and take modulo\n            new_val = (val * multiplier) % MOD\n            # Push the updated value back into the heap with the same index\n            heapq.heappush(min_heap, (new_val, idx))\n        \n        # Reconstruct the final nums array from the heap\n        final_nums = [0] * len(nums)\n        while min_heap:\n            val, idx = heapq.heappop(min_heap)\n            final_nums[idx] = val\n        \n        return final_nums",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Create a min-heap with tuples of (value, original_index)\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapq.heapify(min_heap)\n        \n        for _ in range(k):\n            # Extract the smallest element\n            val, idx = heapq.heappop(min_heap)\n            # Multiply the value by the multiplier and take modulo\n            new_val = (val * multiplier) % MOD\n            # Push the updated value back into the heap with the same index\n            heapq.heappush(min_heap, (new_val, idx))\n        \n        # Reconstruct the final nums array from the heap\n        final_nums = [0] * len(nums)\n        while min_heap:\n            val, idx = heapq.heappop(min_heap)\n            final_nums[idx] = val\n        \n        return final_nums",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Create a min-heap from the nums array\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapq.heapify(min_heap)\n        \n        for _ in range(k):\n            # Extract the minimum value and its index\n            min_val, min_idx = heapq.heappop(min_heap)\n            # Update the minimum value by multiplying it with the multiplier\n            new_val = (min_val * multiplier) % MOD\n            # Push the updated value back into the heap with the same index\n            heapq.heappush(min_heap, (new_val, min_idx))\n        \n        # Reconstruct the final nums array from the heap\n        final_nums = [0] * len(nums)\n        while min_heap:\n            val, idx = heapq.heappop(min_heap)\n            final_nums[idx] = val\n        \n        return final_nums",
+    "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        # Count the occurrences of each number in nums\n        count = Counter(nums)\n        sorted_nums = sorted(count.keys())\n        \n        for num in sorted_nums:\n            if k == 0:\n                break\n            # Determine how many times we can multiply this number\n            ops = min(k, count[num])\n            # Update the count dictionary\n            count[num] -= ops\n            count[num * multiplier] += ops\n            k -= ops\n        \n        # Reconstruct the final nums array\n        result = []\n        for num in sorted(count.keys()):\n            result.extend([num % MOD] * count[num])\n        \n        return result",
+    "from typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Find the minimum value and its index\n        min_val = min(nums)\n        min_count = nums.count(min_val)\n        \n        # Determine how many times we can multiply the minimum value\n        if k >= min_count:\n            # Multiply the minimum value as many times as possible\n            new_min_val = pow(multiplier, min_count, MOD) * min_val % MOD\n            k -= min_count\n            # Replace all occurrences of the minimum value with the new value\n            nums = [new_min_val if num == min_val else num for num in nums]\n        else:\n            # Multiply the minimum value k times\n            new_min_val = pow(multiplier, k, MOD) * min_val % MOD\n            k = 0\n            # Replace the first k occurrences of the minimum value with the new value\n            for i in range(len(nums)):\n                if nums[i] == min_val:\n                    nums[i] = new_min_val\n                    k -= 1\n                    if k == 0:\n                        break\n        \n        # Apply modulo to all elements in the list\n        nums = [num % MOD for num in nums]\n        \n        return nums",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Create a min-heap with (value, index) pairs\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapq.heapify(min_heap)\n        \n        # Perform k operations\n        for _ in range(k):\n            # Extract the minimum value and its index\n            min_val, min_idx = heapq.heappop(min_heap)\n            # Multiply the minimum value by the multiplier and take modulo\n            new_min_val = (min_val * multiplier) % MOD\n            # Update the original nums array\n            nums[min_idx] = new_min_val\n            # Push the new value back into the heap with the same index\n            heapq.heappush(min_heap, (new_min_val, min_idx))\n        \n        # Apply modulo to all elements in the list (though they should already be modded)\n        nums = [num % MOD for num in nums]\n        \n        return nums",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Create a min-heap from the nums array with indices to maintain order\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapq.heapify(min_heap)\n        \n        # Perform k operations\n        for _ in range(k):\n            # Extract the minimum element\n            min_val, min_idx = heapq.heappop(min_heap)\n            \n            # Multiply the minimum value by the multiplier and apply modulo\n            new_min_val = (min_val * multiplier) % MOD\n            \n            # Push the new value back into the heap with the same index\n            heapq.heappush(min_heap, (new_min_val, min_idx))\n        \n        # Reconstruct the final nums array from the heap\n        final_nums = [0] * len(nums)\n        while min_heap:\n            val, idx = heapq.heappop(min_heap)\n            final_nums[idx] = val\n        \n        return final_nums",
+    "from typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        for _ in range(k):\n            # Find the index of the first occurrence of the minimum value\n            min_index = nums.index(min(nums))\n            # Update the minimum value\n            nums[min_index] = (nums[min_index] * multiplier) % MOD\n        \n        # Apply modulo to all elements in the list (though they should already be < MOD)\n        nums = [num % MOD for num in nums]\n        \n        return nums"
+  ],
+  "total_candidates": 24,
+  "nodes_explored": 24,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        # Convert nums to a min-heap\n        heapify(nums)\n        \n        # Perform k operations\n        for _ in range(k):\n            # Pop the smallest element\n            min_val = heappop(nums)\n            # Multiply by the multiplier and push back into the heap\n            heappush(nums, (min_val * multiplier) % MOD)\n        \n        # Apply modulo to each element in the final array\n        return [x % MOD for x in nums]",
+      "solution_hash": "7b41fea88eb3808e61601a63e63da9f977c95dd2dbba3470925e17cd4712f83c",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp8uqjvqlq.py\", line 105, in <module>\n    check(Solution().getFinalState)\n  File \"/scratch/local/21419950/tmp8uqjvqlq.py\", line 99, in check\n    assert candidate(nums = [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5],k = 25,multiplier = 1) == [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5]\nAssertionError\n",
+        "execution_time": 0.06061196327209473
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Count the occurrences of each number in nums\n        num_counts = Counter(nums)\n        \n        # Sort the unique numbers\n        unique_nums = sorted(num_counts.keys())\n        \n        i = 0\n        while k > 0 and i < len(unique_nums):\n            current_min = unique_nums[i]\n            count = num_counts[current_min]\n            \n            if count <= k:\n                # If we have enough operations to replace all occurrences of current_min\n                num_counts.pop(current_min)\n                new_value = (current_min * multiplier) % MOD\n                num_counts[new_value] += count\n                k -= count\n                # Update the sorted list of unique numbers\n                unique_nums = sorted(num_counts.keys())\n                i = 0  # Reset index since the keys have changed\n            else:\n                # If we don't have enough operations to replace all occurrences of current_min\n                num_counts[current_min] -= k\n                new_value = (current_min * multiplier) % MOD\n                num_counts[new_value] += k\n                k = 0\n        \n        # Construct the final result array\n        result = []\n        for num, count in num_counts.items():\n            result.extend([num] * count)\n        \n        return result",
+          "solution_hash": "3f9f38f0d821bd507d6a0c2d00f18e9f4e3107cd56540d2b9a11b0d80d725af5",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmphb4zfe2m.py\", line 130, in <module>\n    check(Solution().getFinalState)\n  File \"/scratch/local/21419950/tmphb4zfe2m.py\", line 124, in check\n    assert candidate(nums = [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5],k = 25,multiplier = 1) == [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5]\nAssertionError\n",
+            "execution_time": 0.06057238578796387
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_2",
+              "solution": "from typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        for _ in range(k):\n            min_index = 0\n            min_value = nums[0]\n            \n            # Find the first occurrence of the minimum value\n            for i in range(1, len(nums)):\n                if nums[i] < min_value:\n                    min_value = nums[i]\n                    min_index = i\n            \n            # Replace the minimum value with its multiplied form modulo MOD\n            nums[min_index] = (min_value * multiplier) % MOD\n        \n        return nums",
+              "solution_hash": "5a66626c63abaa5a222f81eda32d334a368372fee228da335e46defa453c1c5a",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_3",
+              "solution": "from typing import List\nimport heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Create a min-heap from the nums array\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapq.heapify(min_heap)\n        \n        # Perform k operations\n        for _ in range(k):\n            # Extract the minimum element\n            val, idx = heapq.heappop(min_heap)\n            # Multiply the minimum element by the multiplier and take modulo\n            new_val = (val * multiplier) % MOD\n            # Push the new value back into the heap with the same index\n            heapq.heappush(min_heap, (new_val, idx))\n        \n        # Reconstruct the final nums array from the heap\n        final_state = [0] * len(nums)\n        for val, idx in min_heap:\n            final_state[idx] = val\n        \n        return final_state",
+              "solution_hash": "f8e942aed06ab06eeab80412f24815f7b5460bf4e6c20f724cf2eeda4ba257a9",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "import heapq\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Create a min-heap from nums\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapq.heapify(min_heap)\n        \n        # Perform k operations\n        for _ in range(k):\n            # Extract the minimum element\n            min_val, min_idx = heapq.heappop(min_heap)\n            # Replace it with the new value\n            new_val = (min_val * multiplier) % MOD\n            # Push the new value back into the heap with the same index\n            heapq.heappush(min_heap, (new_val, min_idx))\n        \n        # Reconstruct the final nums array based on the heap\n        final_state = [0] * len(nums)\n        for val, idx in min_heap:\n            final_state[idx] = val\n        \n        return final_state",
+              "solution_hash": "fe832d6266df499ceb2a4e9e1431d5e61e8618a7547af8241f284604c6926275",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_5",
+          "solution": "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Count the occurrences of each number in nums\n        num_count = Counter(nums)\n        \n        # Get the sorted unique numbers\n        sorted_nums = sorted(num_count.keys())\n        \n        i = 0\n        while k > 0 and i < len(sorted_nums):\n            current_min = sorted_nums[i]\n            count = num_count[current_min]\n            \n            if count <= k:\n                # If we can fully replace all occurrences of the current minimum\n                num_count.pop(current_min)\n                new_value = (current_min * multiplier) % MOD\n                num_count[new_value] = num_count.get(new_value, 0) + count\n                k -= count\n            else:\n                # If we can only partially replace the occurrences of the current minimum\n                num_count[current_min] -= k\n                new_value = (current_min * multiplier) % MOD\n                num_count[new_value] = num_count.get(new_value, 0) + k\n                k = 0\n            \n            # Update the sorted keys if necessary\n            if k == 0 or i == len(sorted_nums) - 1:\n                sorted_nums = sorted(num_count.keys())\n            i += 1\n        \n        # Construct the final result array\n        result = []\n        for num, count in num_count.items():\n            result.extend([num] * count)\n        \n        return result",
+          "solution_hash": "c99421d1f28ff9981d7fbcddcca36d129a9fd6543c754efa0186488d9e4f22d0",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.06241559982299805
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_6",
+          "solution": "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Count the occurrences of each number in nums\n        count = Counter(nums)\n        \n        # Sort the unique numbers\n        unique_nums = sorted(count.keys())\n        \n        # Process each unique number\n        for num in unique_nums:\n            if k == 0:\n                break\n            # Determine how many times we can multiply this number\n            ops = min(k, count[num])\n            # Update the count of the new number after multiplication\n            new_num = (num * multiplier) % MOD\n            count[new_num] += ops\n            count[num] -= ops\n            k -= ops\n        \n        # Reconstruct the final array based on the counts\n        result = []\n        for num in unique_nums:\n            if count[num] > 0:\n                result.extend([num] * count[num])\n        \n        # Add any new numbers that were created\n        for num in sorted(count.keys()):\n            if num not in unique_nums and count[num] > 0:\n                result.extend([num] * count[num])\n        \n        return result",
+          "solution_hash": "b108e643d1d5885a198b1eab879cdd58a7cabafcd39ed838f8e27e27effc50ba",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.06207275390625
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [],
+          "passed": true
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        min_heap = []\n        \n        # Convert nums into a heap\n        for index, value in enumerate(nums):\n            heappush(min_heap, (value, index))\n        \n        for _ in range(k):\n            # Extract the minimum element\n            value, index = heappop(min_heap)\n            # Multiply the minimum element by the multiplier\n            new_value = value * multiplier\n            # Push the new value back into the heap with the same index\n            heappush(min_heap, (new_value, index))\n        \n        # Reconstruct the final nums array from the heap\n        final_nums = [0] * len(nums)\n        while min_heap:\n            value, index = heappop(min_heap)\n            final_nums[index] = value % MOD\n        \n        return final_nums",
+      "solution_hash": "db8b4d4c70acaeec954725c213a7329fc0b3d2b272c4350e2b7ad0b70f396880",
+      "test_result": {
+        "status": "timeout",
+        "error_message": "Test execution timed out after 10 seconds"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_8",
+          "solution": "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        num_counts = Counter(nums)\n        sorted_unique_nums = sorted(num_counts.keys())\n        \n        i = 0\n        while k > 0 and i < len(sorted_unique_nums):\n            current_min = sorted_unique_nums[i]\n            count = num_counts[current_min]\n            \n            if count <= k:\n                # All occurrences of the current minimum can be updated\n                num_counts[current_min] = 0\n                num_counts[current_min * multiplier] += count\n                k -= count\n            else:\n                # Only some occurrences of the current minimum can be updated\n                num_counts[current_min] -= k\n                num_counts[current_min * multiplier] += k\n                k = 0\n            \n            i += 1\n        \n        # Reconstruct the final nums array\n        final_nums = []\n        for num, count in num_counts.items():\n            final_nums.extend([num % MOD] * count)\n        \n        # Sort the final nums array to maintain the original order of elements\n        final_nums.sort(key=lambda x: nums.index(x) if x in nums else float('inf'))\n        \n        return final_nums",
+          "solution_hash": "82bc64d0cd54a4fadab19a31d6a19a5ae9ef5ba28ed84df40be16a6b66359674",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.0597529411315918
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_9",
+          "solution": "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        num_counts = Counter(nums)\n        sorted_unique_nums = sorted(num_counts.keys())\n        \n        i = 0\n        while k > 0 and i < len(sorted_unique_nums):\n            current_min = sorted_unique_nums[i]\n            count = num_counts[current_min]\n            \n            if count <= k:\n                # All occurrences of current_min can be multiplied\n                num_counts.pop(current_min)\n                k -= count\n                new_value = (current_min * multiplier) % MOD\n                num_counts[new_value] += count\n                # Insert the new value in the sorted list of unique numbers\n                sorted_unique_nums.insert(i, new_value)\n                # Remove duplicates\n                while i + 1 < len(sorted_unique_nums) and sorted_unique_nums[i] == sorted_unique_nums[i + 1]:\n                    sorted_unique_nums.pop(i + 1)\n            else:\n                # Only some occurrences of current_min can be multiplied\n                num_counts[current_min] -= k\n                new_value = (current_min * multiplier) % MOD\n                num_counts[new_value] += k\n                # Insert the new value in the sorted list of unique numbers\n                sorted_unique_nums.insert(i + 1, new_value)\n                k = 0\n            \n            i += 1\n        \n        # Reconstruct the final nums array\n        final_nums = []\n        for num, count in num_counts.items():\n            final_nums.extend([num] * count)\n        \n        return final_nums",
+          "solution_hash": "70010db36f4ce495d6fd56ebe3396c42c115aeb0b130abf08555090f1cda5fa5",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.0622560977935791
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_10",
+          "solution": "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        num_counts = Counter(nums)\n        sorted_unique_nums = sorted(num_counts.keys())\n        \n        i = 0\n        while k > 0 and i < len(sorted_unique_nums):\n            current_min = sorted_unique_nums[i]\n            count = num_counts[current_min]\n            \n            if count <= k:\n                num_counts.pop(current_min)\n                k -= count\n                new_value = (current_min * multiplier) % MOD\n                num_counts[new_value] += count\n                sorted_unique_nums.append(new_value)\n            else:\n                num_counts[current_min] -= k\n                new_value = (current_min * multiplier) % MOD\n                num_counts[new_value] += k\n                k = 0\n            \n            i += 1\n        \n        final_nums = []\n        for num, count in num_counts.items():\n            final_nums.extend([num] * count)\n        \n        return final_nums",
+          "solution_hash": "60b783c61d585737b596522425c9ab91a6a3de75d20084bc17f702fcc210f6e9",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpbde0pvlh.py\", line 123, in <module>\n    check(Solution().getFinalState)\n  File \"/scratch/local/21419950/tmpbde0pvlh.py\", line 117, in check\n    assert candidate(nums = [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5],k = 25,multiplier = 1) == [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5]\nAssertionError\n",
+            "execution_time": 0.06324410438537598
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_11",
+              "solution": "from heapq import heappush, heappop\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        min_heap = []\n        \n        # Push all elements with their indices into the heap\n        for index, value in enumerate(nums):\n            heappush(min_heap, (value, index))\n        \n        while k > 0:\n            # Pop the smallest element\n            value, index = heappop(min_heap)\n            # Update the value in the original list\n            nums[index] = (value * multiplier) % MOD\n            # Push the updated value back into the heap with the same index\n            heappush(min_heap, (nums[index], index))\n            k -= 1\n        \n        return nums",
+              "solution_hash": "aeca76744f0f7b8770a98c1836f57729042b8de4c7d3a915921ed633a049f1ad",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_10",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_12",
+              "solution": "from typing import List\nimport heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapq.heapify(min_heap)\n        \n        for _ in range(k):\n            val, idx = heapq.heappop(min_heap)\n            new_val = (val * multiplier) % MOD\n            heapq.heappush(min_heap, (new_val, idx))\n        \n        final_state = [0] * len(nums)\n        for val, idx in min_heap:\n            final_state[idx] = val\n        \n        return final_state",
+              "solution_hash": "f8e942aed06ab06eeab80412f24815f7b5460bf4e6c20f724cf2eeda4ba257a9",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_10",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_13",
+              "solution": "from typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        for _ in range(k):\n            min_index = nums.index(min(nums))\n            nums[min_index] = (nums[min_index] * multiplier) % MOD\n        \n        return nums",
+              "solution_hash": "004d0b7fcb727c9f09024fc8b4d2d13f60b3904a42f935ade531a8e4d394d553",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_10",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        # Create a min-heap from the elements of nums along with their original indices\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapify(min_heap)\n        \n        for _ in range(k):\n            # Extract the minimum element\n            min_val, min_idx = heappop(min_heap)\n            # Multiply the minimum element by the multiplier\n            new_val = min_val * multiplier\n            # Push the new value back into the heap with the same index\n            heappush(min_heap, (new_val, min_idx))\n        \n        # Reconstruct the nums array from the heap\n        for _ in range(len(nums)):\n            nums[min_heap[0][1]] = heappop(min_heap)[0] % MOD\n        \n        return nums",
+      "solution_hash": "72f5e7f742053d12771b7ba4192eb544f224cc443955dce887c0d25276484d3d",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp9i2lepg_.py\", line 110, in <module>\n    check(Solution().getFinalState)\n  File \"/scratch/local/21419950/tmp9i2lepg_.py\", line 104, in check\n    assert candidate(nums = [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5],k = 25,multiplier = 1) == [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5]\n  File \"/scratch/local/21419950/tmp9i2lepg_.py\", line 98, in getFinalState\n    nums[min_heap[0][1]] = heappop(min_heap)[0] % MOD\nIndexError: list index out of range\n",
+        "execution_time": 0.06067037582397461
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_15",
+          "solution": "from typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        for _ in range(k):\n            # Find the index of the minimum value in nums\n            min_idx = nums.index(min(nums))\n            # Update the minimum value by multiplying it with the multiplier\n            nums[min_idx] = (nums[min_idx] * multiplier) % MOD\n        \n        return nums",
+          "solution_hash": "d2b228d66bcd74d772c77169068d5bf18f69692c9d6b6aabe37473df0a656354",
+          "test_result": {
+            "status": "timeout",
+            "error_message": "Test execution timed out after 10 seconds"
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_16",
+              "solution": "from typing import List\nimport heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Create a min-heap with tuples of (value, original_index)\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapq.heapify(min_heap)\n        \n        for _ in range(k):\n            # Extract the minimum element\n            val, idx = heapq.heappop(min_heap)\n            # Multiply the minimum element by the multiplier and take modulo\n            new_val = (val * multiplier) % MOD\n            # Push the updated value back into the heap with the same index\n            heapq.heappush(min_heap, (new_val, idx))\n        \n        # Reconstruct the final nums array from the heap\n        final_nums = [0] * len(nums)\n        while min_heap:\n            val, idx = heapq.heappop(min_heap)\n            final_nums[idx] = val\n        \n        return final_nums",
+              "solution_hash": "efcbc905008f573e806e3407ec7ec1129d837955320294b3c2e9ff233229e6fd",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_15",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_17",
+              "solution": "from typing import List\nimport heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Create a min-heap with tuples of (value, original_index)\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapq.heapify(min_heap)\n        \n        for _ in range(k):\n            # Extract the smallest element\n            val, idx = heapq.heappop(min_heap)\n            # Multiply the value by the multiplier and take modulo\n            new_val = (val * multiplier) % MOD\n            # Push the updated value back into the heap with the same index\n            heapq.heappush(min_heap, (new_val, idx))\n        \n        # Reconstruct the final nums array from the heap\n        final_nums = [0] * len(nums)\n        while min_heap:\n            val, idx = heapq.heappop(min_heap)\n            final_nums[idx] = val\n        \n        return final_nums",
+              "solution_hash": "efcbc905008f573e806e3407ec7ec1129d837955320294b3c2e9ff233229e6fd",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_15",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_18",
+              "solution": "from typing import List\nimport heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Create a min-heap from the nums array\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapq.heapify(min_heap)\n        \n        for _ in range(k):\n            # Extract the minimum value and its index\n            min_val, min_idx = heapq.heappop(min_heap)\n            # Update the minimum value by multiplying it with the multiplier\n            new_val = (min_val * multiplier) % MOD\n            # Push the updated value back into the heap with the same index\n            heapq.heappush(min_heap, (new_val, min_idx))\n        \n        # Reconstruct the final nums array from the heap\n        final_nums = [0] * len(nums)\n        while min_heap:\n            val, idx = heapq.heappop(min_heap)\n            final_nums[idx] = val\n        \n        return final_nums",
+              "solution_hash": "754466dc64d8a378b1d7c834e05c63220816a0a880c6b618ede4eb36a5129d0f",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_15",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_19",
+          "solution": "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        # Count the occurrences of each number in nums\n        count = Counter(nums)\n        sorted_nums = sorted(count.keys())\n        \n        for num in sorted_nums:\n            if k == 0:\n                break\n            # Determine how many times we can multiply this number\n            ops = min(k, count[num])\n            # Update the count dictionary\n            count[num] -= ops\n            count[num * multiplier] += ops\n            k -= ops\n        \n        # Reconstruct the final nums array\n        result = []\n        for num in sorted(count.keys()):\n            result.extend([num % MOD] * count[num])\n        \n        return result",
+          "solution_hash": "6eed0cbc7ad3203290f58932f1d1cc91177289fa0f35246b009424a059d6a3e3",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.06120657920837402
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_20",
+          "solution": "from typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Find the minimum value and its index\n        min_val = min(nums)\n        min_count = nums.count(min_val)\n        \n        # Determine how many times we can multiply the minimum value\n        if k >= min_count:\n            # Multiply the minimum value as many times as possible\n            new_min_val = pow(multiplier, min_count, MOD) * min_val % MOD\n            k -= min_count\n            # Replace all occurrences of the minimum value with the new value\n            nums = [new_min_val if num == min_val else num for num in nums]\n        else:\n            # Multiply the minimum value k times\n            new_min_val = pow(multiplier, k, MOD) * min_val % MOD\n            k = 0\n            # Replace the first k occurrences of the minimum value with the new value\n            for i in range(len(nums)):\n                if nums[i] == min_val:\n                    nums[i] = new_min_val\n                    k -= 1\n                    if k == 0:\n                        break\n        \n        # Apply modulo to all elements in the list\n        nums = [num % MOD for num in nums]\n        \n        return nums",
+          "solution_hash": "e2620788dea89c802f583e66fad1296a44cdb017221ffebd866f58a53563967f",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpbr88r9kx.py\", line 123, in <module>\n    check(Solution().getFinalState)\n  File \"/scratch/local/21419950/tmpbr88r9kx.py\", line 117, in check\n    assert candidate(nums = [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5],k = 25,multiplier = 1) == [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5]\n  File \"/scratch/local/21419950/tmpbr88r9kx.py\", line 94, in getFinalState\n    new_min_val = pow(multiplier, min_count, MOD) * min_val % MOD\nTypeError: pow expected 2 arguments, got 3\n",
+            "execution_time": 0.06341814994812012
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_21",
+              "solution": "from typing import List\nimport heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Create a min-heap with (value, index) pairs\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapq.heapify(min_heap)\n        \n        # Perform k operations\n        for _ in range(k):\n            # Extract the minimum value and its index\n            min_val, min_idx = heapq.heappop(min_heap)\n            # Multiply the minimum value by the multiplier and take modulo\n            new_min_val = (min_val * multiplier) % MOD\n            # Update the original nums array\n            nums[min_idx] = new_min_val\n            # Push the new value back into the heap with the same index\n            heapq.heappush(min_heap, (new_min_val, min_idx))\n        \n        # Apply modulo to all elements in the list (though they should already be modded)\n        nums = [num % MOD for num in nums]\n        \n        return nums",
+              "solution_hash": "bbdf6234cc2f0c45075ea0cf349a8d376ca9c132b20fcc2e35af58bc4a562763",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_20",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_22",
+              "solution": "from typing import List\nimport heapq\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        # Create a min-heap from the nums array with indices to maintain order\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapq.heapify(min_heap)\n        \n        # Perform k operations\n        for _ in range(k):\n            # Extract the minimum element\n            min_val, min_idx = heapq.heappop(min_heap)\n            \n            # Multiply the minimum value by the multiplier and apply modulo\n            new_min_val = (min_val * multiplier) % MOD\n            \n            # Push the new value back into the heap with the same index\n            heapq.heappush(min_heap, (new_min_val, min_idx))\n        \n        # Reconstruct the final nums array from the heap\n        final_nums = [0] * len(nums)\n        while min_heap:\n            val, idx = heapq.heappop(min_heap)\n            final_nums[idx] = val\n        \n        return final_nums",
+              "solution_hash": "4f6832603a6fb0a088ed3881979c3e45508877c4c2dd682b7bfb878899fd3a2f",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_20",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_23",
+              "solution": "from typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        \n        for _ in range(k):\n            # Find the index of the first occurrence of the minimum value\n            min_index = nums.index(min(nums))\n            # Update the minimum value\n            nums[min_index] = (nums[min_index] * multiplier) % MOD\n        \n        # Apply modulo to all elements in the list (though they should already be < MOD)\n        nums = [num % MOD for num in nums]\n        \n        return nums",
+              "solution_hash": "6c4d220fe2efeac0c5da674cc5f9c09a84632e3d61c89d8b6d95dd64f576e669",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_20",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 24,
+    "candidates_generated": 24,
+    "tests_passed": 5,
+    "tests_failed": 5,
+    "test_errors": 14,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 624.7659089565277,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.2400000000000001,
+      "pass@3": 0.5786956521739129,
+      "pass@5": 0.7811405985319029,
+      "pass@10": 0.9717391304347827
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: list index out of range",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: pow expected 2 arguments, got 3",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 24
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 25,
+    "test_cases": 1
+  }
+}

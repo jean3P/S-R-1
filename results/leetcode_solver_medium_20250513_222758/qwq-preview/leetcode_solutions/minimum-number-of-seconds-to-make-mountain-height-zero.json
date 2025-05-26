@@ -1,0 +1,273 @@
+{
+  "problem_id": "minimum-number-of-seconds-to-make-mountain-height-zero",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "solved",
+  "best_solution": "from typing import List\nimport math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        n = len(workerTimes)\n        workerTimes.sort(reverse=True)\n        \n        # Function to check if a given time can reduce the mountain to zero\n        def can_reduce(time):\n            height_reduced = 0\n            for wt in workerTimes:\n                if wt == 0:\n                    continue\n                # Calculate maximum x for worker within the given time\n                # Solve x^2 + x - 2*time/wt <= 0\n                discriminant = 1 + 8 * time / wt\n                if discriminant < 0:\n                    continue\n                x = (-1 + math.sqrt(discriminant)) / 2\n                x = math.floor(x)\n                height_reduced += x\n                if height_reduced >= mountainHeight:\n                    return True\n            return height_reduced >= mountainHeight\n        \n        # Binary search on the time\n        left = 0\n        # Upper bound: if only one worker reduces the entire height\n        right = workerTimes[0] * mountainHeight * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+  "passed_solutions": [
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        # Helper function to calculate the maximum height a worker can reduce within a given time\n        def max_height_reduced(time, worker_time):\n            # The worker reduces height by x, taking worker_time * (1 + 2 + ... + x) = worker_time * x*(x+1)/2 seconds\n            # We need to find the maximum x such that worker_time * x*(x+1)/2 <= time\n            # This is a quadratic equation: worker_time * x^2 + worker_time * x - 2*time <= 0\n            # Using quadratic formula: x = [-b + sqrt(b^2 - 4*a*c)] / (2*a)\n            a = worker_time\n            b = worker_time\n            c = -2 * time\n            discriminant = b**2 - 4*a*c\n            if discriminant < 0:\n                return 0\n            x = (-b + math.isqrt(discriminant)) // (2*a)\n            return x\n        \n        # Binary search for the minimum time\n        left = 0\n        right = mountainHeight * min(workerTimes) * mountainHeight  # Upper bound\n        while left < right:\n            mid = (left + right) // 2\n            total_height = sum(max_height_reduced(mid, t) for t in workerTimes)\n            if total_height >= mountainHeight:\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "from typing import List\nimport math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        n = len(workerTimes)\n        workerTimes.sort(reverse=True)\n        \n        # Function to check if a given time can reduce the mountain to zero\n        def can_reduce(time):\n            height_reduced = 0\n            for wt in workerTimes:\n                if wt == 0:\n                    continue\n                # Calculate maximum x for worker within the given time\n                # Solve x^2 + x - 2*time/wt <= 0\n                discriminant = 1 + 8 * time / wt\n                if discriminant < 0:\n                    continue\n                x = (-1 + math.sqrt(discriminant)) / 2\n                x = math.floor(x)\n                height_reduced += x\n                if height_reduced >= mountainHeight:\n                    return True\n            return height_reduced >= mountainHeight\n        \n        # Binary search on the time\n        left = 0\n        # Upper bound: if only one worker reduces the entire height\n        right = workerTimes[0] * mountainHeight * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "from typing import List\nimport math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        n = len(workerTimes)\n        workerTimes.sort(reverse=True)\n        \n        # Function to check if a given time can reduce the mountain to zero\n        def can_reduce(time):\n            height_reduced = 0\n            for wt in workerTimes:\n                if wt == 0:\n                    continue\n                # Calculate maximum x for worker within the given time\n                # Solve x^2 + x - 2*time/wt <= 0\n                discriminant = 1 + 8 * time / wt\n                if discriminant < 0:\n                    continue\n                x = (-1 + math.sqrt(discriminant)) / 2\n                x = math.floor(x)\n                height_reduced += x\n                if height_reduced >= mountainHeight:\n                    return True\n            return height_reduced >= mountainHeight\n        \n        # Binary search on the time\n        left = 0\n        # Upper bound: total time if one worker reduces all height\n        right = mountainHeight * workerTimes[0] * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n            def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n                n = len(workerTimes)\n                workerTimes.sort(reverse=True)\n                \n                # Function to calculate the maximum x for a given time and worker time\n                def max_x(time, a):\n                    # Calculate the maximum x such that a * x * (x + 1) / 2 <= time\n                    # Using binary search to find the largest x satisfying the condition\n                    left = 0\n                    right = mountainHeight + 1  # Since x can be up to mountainHeight\n                    while left < right:\n                        mid = (left + right) // 2\n                        total_time = a * mid * (mid + 1) // 2\n                        if total_time <= time:\n                            left = mid + 1\n                        else:\n                            right = mid\n                    return left - 1  # Subtract 1 because mid where total_time > time\n                \n                # Function to check if a given time can reduce the mountain to zero\n                def can_reduce(time):\n                    height_reduced = 0\n                    for a in workerTimes:\n                        x = max_x(time, a)\n                        height_reduced += x\n                        if height_reduced >= mountainHeight:\n                            return True\n                    return height_reduced >= mountainHeight\n                \n                # Binary search on the time\n                left = 0\n                right = mountainHeight * workerTimes[0] * (mountainHeight + 1) // 2  # Upper bound\n                while left < right:\n                    mid = (left + right) // 2\n                    if can_reduce(mid):\n                        right = mid\n                    else:\n                        left = mid + 1\n                return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        import math\n        n = len(workerTimes)\n        workerTimes.sort(reverse=True)\n        \n        # Function to calculate the maximum x for a worker given time\n        def max_x(a, time):\n            if a == 0:\n                return 0\n            # Solve for x in a * x * (x + 1) / 2 <= time\n            # Using quadratic formula: x^2 + x - 2*time/a <= 0\n            discriminant = 1 + 8 * time / a\n            if discriminant < 0:\n                return 0\n            x = (-1 + math.sqrt(discriminant)) / 2\n            return math.floor(x)\n        \n        # Function to check if a given time can reduce the mountain to zero\n        def can_reduce(time):\n            height_reduced = 0\n            for a in workerTimes:\n                x = max_x(a, time)\n                height_reduced += x\n                if height_reduced >= mountainHeight:\n                    return True\n            return height_reduced >= mountainHeight\n        \n        # Binary search on the time\n        left = 0\n        right = mountainHeight * workerTimes[0] * mountainHeight  # Upper bound\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_within_time(t):\n            total_height = 0\n            for time in workerTimes:\n                # Calculate maximum x such that time * x*(x+1)/2 <= t\n                # This is equivalent to finding the largest x where x*(x+1) <= 2*t/time\n                # Using quadratic formula: x = (-1 + sqrt(1 + 8*t/time)) / 2\n                if time == 0:\n                    continue  # Avoid division by zero, though time >=1 as per constraints\n                max_x = int((-1 + math.sqrt(1 + 8 * t / time)) / 2)\n                total_height += max_x\n                if total_height >= mountainHeight:\n                    return True\n            return total_height >= mountainHeight\n        \n        # Binary search for the minimum time t\n        left = 0\n        right = workerTimes[0] * mountainHeight * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_within_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        # Helper function to calculate the maximum height a worker can reduce within a given time\n        def max_height_reduced(time, worker_time):\n            # The worker reduces height by x, taking worker_time * (1 + 2 + ... + x) = worker_time * x*(x+1)/2 seconds\n            # We need to find the maximum x such that worker_time * x*(x+1)/2 <= time\n            # This is a quadratic equation: worker_time * x^2 + worker_time * x - 2*time <= 0\n            # Using quadratic formula: x = [-b + sqrt(b^2 - 4*a*c)] / (2*a)\n            a = worker_time\n            b = worker_time\n            c = -2 * time\n            discriminant = b**2 - 4*a*c\n            if discriminant < 0:\n                return 0\n            x = (-b + math.isqrt(discriminant)) // (2*a)\n            return x\n        \n        # Binary search for the minimum time\n        left = 0\n        right = mountainHeight * min(workerTimes) * mountainHeight  # Upper bound\n        while left < right:\n            mid = (left + right) // 2\n            total_height = sum(max_height_reduced(mid, t) for t in workerTimes)\n            if total_height >= mountainHeight:\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        import math\n        n = len(workerTimes)\n        workerTimes.sort(reverse=True)\n        \n        # Function to check if a given time can reduce the mountain to zero\n        def can_reduce(time):\n            height_reduced = 0\n            for i in range(n):\n                # Calculate maximum x for worker i within the given time\n                # The time taken for worker i to reduce x units is workerTimes[i] * (x*(x+1))/2\n                # Solve for x in workerTimes[i] * (x*(x+1))/2 <= time\n                a = workerTimes[i]\n                # Using quadratic formula to find maximum x\n                discriminant = 1 + 8 * a**(-1) * time\n                if discriminant < 0:\n                    continue\n                x = (-1 + math.sqrt(discriminant)) / 2\n                x = math.floor(x)\n                height_reduced += x\n                if height_reduced >= mountainHeight:\n                    return True\n            return height_reduced >= mountainHeight\n        \n        # Binary search on the time\n        left = 0\n        right = mountainHeight * workerTimes[0] * mountainHeight  # Upper bound\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "from typing import List\n        import math\n\n        class Solution:\n            def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n                n = len(workerTimes)\n                workerTimes.sort(reverse=True)\n                \n                # Function to check if a given time can reduce the mountain to zero\n                def can_reduce(time):\n                    height_reduced = 0\n                    for i in range(n):\n                        # Calculate maximum x for worker i within the given time\n                        # The time taken for worker i to reduce x units is workerTimes[i] * x * (x + 1) / 2\n                        # Solve for x in workerTimes[i] * x * (x + 1) / 2 <= time\n                        a = workerTimes[i]\n                        if a == 0:\n                            continue\n                        # Using quadratic formula to find maximum x\n                        discriminant = 1 + 8 * a**(-1) * time\n                        if discriminant < 0:\n                            continue\n                        x = (-1 + math.sqrt(discriminant)) / 2\n                        x = math.floor(x)\n                        height_reduced += x\n                        if height_reduced >= mountainHeight:\n                            return True\n                    return height_reduced >= mountainHeight\n                \n                # Binary search on the time\n                left = 0\n                right = mountainHeight * workerTimes[0] * (mountainHeight + 1) // 2  # Upper bound\n                while left < right:\n                    mid = (left + right) // 2\n                    if can_reduce(mid):\n                        right = mid\n                    else:\n                        left = mid + 1\n                return left",
+    "from typing import List\nimport math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        n = len(workerTimes)\n        workerTimes.sort(reverse=True)\n        \n        # Function to check if a given time can reduce the mountain to zero\n        def can_reduce(time):\n            height_reduced = 0\n            for wt in workerTimes:\n                if wt == 0:\n                    continue\n                # Calculate maximum x for worker within the given time\n                # Solve x^2 + x - 2*time/wt <= 0\n                discriminant = 1 + 8 * time / wt\n                if discriminant < 0:\n                    continue\n                x = (-1 + math.sqrt(discriminant)) / 2\n                x = math.floor(x)\n                height_reduced += x\n                if height_reduced >= mountainHeight:\n                    return True\n            return height_reduced >= mountainHeight\n        \n        # Binary search on the time\n        left = 0\n        # Upper bound: if only one worker reduces the entire height\n        right = workerTimes[0] * mountainHeight * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "from typing import List\nimport math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        n = len(workerTimes)\n        workerTimes.sort(reverse=True)\n        \n        # Function to check if a given time can reduce the mountain to zero\n        def can_reduce(time):\n            height_reduced = 0\n            for wt in workerTimes:\n                if wt == 0:\n                    continue\n                # Calculate maximum x for worker within the given time\n                # Solve x^2 + x - 2*time/wt <= 0\n                discriminant = 1 + 8 * time / wt\n                if discriminant < 0:\n                    continue\n                x = (-1 + math.sqrt(discriminant)) / 2\n                x = math.floor(x)\n                height_reduced += x\n                if height_reduced >= mountainHeight:\n                    return True\n            return height_reduced >= mountainHeight\n        \n        # Binary search on the time\n        left = 0\n        # Upper bound: total time if one worker reduces all height\n        right = mountainHeight * workerTimes[0] * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "from typing import List\n        import math\n\n        class Solution:\n            def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n                n = len(workerTimes)\n                workerTimes.sort(reverse=True)\n                \n                # Function to check if a given time can reduce the mountain to zero\n                def can_reduce(time):\n                    height_reduced = 0\n                    for i in range(n):\n                        a = workerTimes[i]\n                        if a == 0:\n                            continue\n                        # Calculate maximum x for worker i within the given time\n                        # Solve for x in a * x * (x + 1) / 2 <= time\n                        # Rearranged: x^2 + x - 2*time/a <= 0\n                        discriminant = 1 + 8 * time / a\n                        if discriminant < 0:\n                            continue\n                        x = (-1 + math.sqrt(discriminant)) / 2\n                        x = math.floor(x)\n                        height_reduced += x\n                        if height_reduced >= mountainHeight:\n                            return True\n                    return height_reduced >= mountainHeight\n                \n                # Binary search on the time\n                left = 0\n                right = mountainHeight * workerTimes[0] * (mountainHeight + 1) // 2  # Upper bound\n                while left < right:\n                    mid = (left + right) // 2\n                    if can_reduce(mid):\n                        right = mid\n                    else:\n                        left = mid + 1\n                return left",
+    "class Solution:\n            def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n                n = len(workerTimes)\n                workerTimes.sort(reverse=True)\n                \n                # Function to calculate the maximum x for a given time and worker time\n                def max_x(time, a):\n                    # Calculate the maximum x such that a * x * (x + 1) / 2 <= time\n                    # Using binary search to find the largest x satisfying the condition\n                    left = 0\n                    right = mountainHeight + 1  # Since x can be up to mountainHeight\n                    while left < right:\n                        mid = (left + right) // 2\n                        total_time = a * mid * (mid + 1) // 2\n                        if total_time <= time:\n                            left = mid + 1\n                        else:\n                            right = mid\n                    return left - 1  # Subtract 1 because mid where total_time > time\n                \n                # Function to check if a given time can reduce the mountain to zero\n                def can_reduce(time):\n                    height_reduced = 0\n                    for a in workerTimes:\n                        x = max_x(time, a)\n                        height_reduced += x\n                        if height_reduced >= mountainHeight:\n                            return True\n                    return height_reduced >= mountainHeight\n                \n                # Binary search on the time\n                left = 0\n                right = mountainHeight * workerTimes[0] * (mountainHeight + 1) // 2  # Upper bound\n                while left < right:\n                    mid = (left + right) // 2\n                    if can_reduce(mid):\n                        right = mid\n                    else:\n                        left = mid + 1\n                return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        import math\n        n = len(workerTimes)\n        workerTimes.sort(reverse=True)\n        \n        # Function to calculate the maximum x for a worker given time\n        def max_x(a, time):\n            if a == 0:\n                return 0\n            # Solve for x in a * x * (x + 1) / 2 <= time\n            # Using quadratic formula: x^2 + x - 2*time/a <= 0\n            discriminant = 1 + 8 * time / a\n            if discriminant < 0:\n                return 0\n            x = (-1 + math.sqrt(discriminant)) / 2\n            return math.floor(x)\n        \n        # Function to check if a given time can reduce the mountain to zero\n        def can_reduce(time):\n            height_reduced = 0\n            for a in workerTimes:\n                x = max_x(a, time)\n                height_reduced += x\n                if height_reduced >= mountainHeight:\n                    return True\n            return height_reduced >= mountainHeight\n        \n        # Binary search on the time\n        left = 0\n        right = mountainHeight * workerTimes[0] * mountainHeight  # Upper bound\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_within_time(t):\n            total_height = 0\n            for time in workerTimes:\n                # Calculate maximum x such that time * x*(x+1)/2 <= t\n                # This is equivalent to finding the largest x where x*(x+1) <= 2*t/time\n                # Using quadratic formula: x = (-1 + sqrt(1 + 8*t/time)) / 2\n                if time == 0:\n                    continue  # Avoid division by zero, though time >=1 as per constraints\n                max_x = int((-1 + math.sqrt(1 + 8 * t / time)) / 2)\n                total_height += max_x\n                if total_height >= mountainHeight:\n                    return True\n            return total_height >= mountainHeight\n        \n        # Binary search for the minimum time t\n        left = 0\n        right = workerTimes[0] * mountainHeight * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_within_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left"
+  ],
+  "total_candidates": 9,
+  "nodes_explored": 9,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        # Helper function to calculate the maximum height a worker can reduce within a given time\n        def max_height_reduced(time, worker_time):\n            # The worker reduces height by x, taking worker_time * (1 + 2 + ... + x) = worker_time * x*(x+1)/2 seconds\n            # We need to find the maximum x such that worker_time * x*(x+1)/2 <= time\n            # This is a quadratic equation: worker_time * x^2 + worker_time * x - 2*time <= 0\n            # Using quadratic formula: x = [-b + sqrt(b^2 - 4*a*c)] / (2*a)\n            a = worker_time\n            b = worker_time\n            c = -2 * time\n            discriminant = b**2 - 4*a*c\n            if discriminant < 0:\n                return 0\n            x = (-b + math.isqrt(discriminant)) // (2*a)\n            return x\n        \n        # Binary search for the minimum time\n        left = 0\n        right = mountainHeight * min(workerTimes) * mountainHeight  # Upper bound\n        while left < right:\n            mid = (left + right) // 2\n            total_height = sum(max_height_reduced(mid, t) for t in workerTimes)\n            if total_height >= mountainHeight:\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+      "solution_hash": "9e8e2d6b40ef12e33fd60c65bde3db72b8b9d7ea7452f16f94de8e70b3c283c2",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.08144211769104004
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        import math\n        n = len(workerTimes)\n        workerTimes.sort(reverse=True)\n        \n        # Function to check if a given time can reduce the mountain to zero\n        def can_reduce(time):\n            height_reduced = 0\n            for i in range(n):\n                # Calculate maximum x for worker i within the given time\n                # The time taken for worker i to reduce x units is workerTimes[i] * (x*(x+1))/2\n                # Solve for x in workerTimes[i] * (x*(x+1))/2 <= time\n                a = workerTimes[i]\n                # Using quadratic formula to find maximum x\n                discriminant = 1 + 8 * a**(-1) * time\n                if discriminant < 0:\n                    continue\n                x = (-1 + math.sqrt(discriminant)) / 2\n                x = math.floor(x)\n                height_reduced += x\n                if height_reduced >= mountainHeight:\n                    return True\n            return height_reduced >= mountainHeight\n        \n        # Binary search on the time\n        left = 0\n        right = mountainHeight * workerTimes[0] * mountainHeight  # Upper bound\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+      "solution_hash": "618f904cb02c23f4458124adbeff5099091111747da42ca73a969a94b3978031",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpbim6pyu6.py\", line 239, in <module>\n    check(Solution().minNumberOfSeconds)\n  File \"/scratch/local/21419949/tmpbim6pyu6.py\", line 175, in check\n    assert candidate(mountainHeight = 10000,workerTimes = [999999, 999998, 999997, 999996, 999995]) == 2000997999000\nAssertionError\n",
+        "execution_time": 0.07327699661254883
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_2",
+          "solution": "from typing import List\n        import math\n\n        class Solution:\n            def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n                n = len(workerTimes)\n                workerTimes.sort(reverse=True)\n                \n                # Function to check if a given time can reduce the mountain to zero\n                def can_reduce(time):\n                    height_reduced = 0\n                    for i in range(n):\n                        # Calculate maximum x for worker i within the given time\n                        # The time taken for worker i to reduce x units is workerTimes[i] * x * (x + 1) / 2\n                        # Solve for x in workerTimes[i] * x * (x + 1) / 2 <= time\n                        a = workerTimes[i]\n                        if a == 0:\n                            continue\n                        # Using quadratic formula to find maximum x\n                        discriminant = 1 + 8 * a**(-1) * time\n                        if discriminant < 0:\n                            continue\n                        x = (-1 + math.sqrt(discriminant)) / 2\n                        x = math.floor(x)\n                        height_reduced += x\n                        if height_reduced >= mountainHeight:\n                            return True\n                    return height_reduced >= mountainHeight\n                \n                # Binary search on the time\n                left = 0\n                right = mountainHeight * workerTimes[0] * (mountainHeight + 1) // 2  # Upper bound\n                while left < right:\n                    mid = (left + right) // 2\n                    if can_reduce(mid):\n                        right = mid\n                    else:\n                        left = mid + 1\n                return left",
+          "solution_hash": "0058ca9d012407031717df4a68d187ef36e9244f9e1fb4aadb892fc9eba62f02",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmpyynxny6z.py\", line 82\n    import math\nIndentationError: unexpected indent\n",
+            "execution_time": 0.05456233024597168
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_3",
+              "solution": "from typing import List\nimport math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        n = len(workerTimes)\n        workerTimes.sort(reverse=True)\n        \n        # Function to check if a given time can reduce the mountain to zero\n        def can_reduce(time):\n            height_reduced = 0\n            for wt in workerTimes:\n                if wt == 0:\n                    continue\n                # Calculate maximum x for worker within the given time\n                # Solve x^2 + x - 2*time/wt <= 0\n                discriminant = 1 + 8 * time / wt\n                if discriminant < 0:\n                    continue\n                x = (-1 + math.sqrt(discriminant)) / 2\n                x = math.floor(x)\n                height_reduced += x\n                if height_reduced >= mountainHeight:\n                    return True\n            return height_reduced >= mountainHeight\n        \n        # Binary search on the time\n        left = 0\n        # Upper bound: if only one worker reduces the entire height\n        right = workerTimes[0] * mountainHeight * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+              "solution_hash": "41671d0282e1669c050152b2d76f4526600dca412fd5ddb1888c78d1f1ce24ec",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.07521677017211914
+              },
+              "depth": 2,
+              "parent_id": "1_2",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_4",
+              "solution": "from typing import List\nimport math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        n = len(workerTimes)\n        workerTimes.sort(reverse=True)\n        \n        # Function to check if a given time can reduce the mountain to zero\n        def can_reduce(time):\n            height_reduced = 0\n            for wt in workerTimes:\n                if wt == 0:\n                    continue\n                # Calculate maximum x for worker within the given time\n                # Solve x^2 + x - 2*time/wt <= 0\n                discriminant = 1 + 8 * time / wt\n                if discriminant < 0:\n                    continue\n                x = (-1 + math.sqrt(discriminant)) / 2\n                x = math.floor(x)\n                height_reduced += x\n                if height_reduced >= mountainHeight:\n                    return True\n            return height_reduced >= mountainHeight\n        \n        # Binary search on the time\n        left = 0\n        # Upper bound: total time if one worker reduces all height\n        right = mountainHeight * workerTimes[0] * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+              "solution_hash": "7be96971be8dccb81c3890b8ac10f26305be9eeb598f691c8aadaadb523ce98c",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.07952308654785156
+              },
+              "depth": 2,
+              "parent_id": "1_2",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_5",
+              "solution": "from typing import List\n        import math\n\n        class Solution:\n            def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n                n = len(workerTimes)\n                workerTimes.sort(reverse=True)\n                \n                # Function to check if a given time can reduce the mountain to zero\n                def can_reduce(time):\n                    height_reduced = 0\n                    for i in range(n):\n                        a = workerTimes[i]\n                        if a == 0:\n                            continue\n                        # Calculate maximum x for worker i within the given time\n                        # Solve for x in a * x * (x + 1) / 2 <= time\n                        # Rearranged: x^2 + x - 2*time/a <= 0\n                        discriminant = 1 + 8 * time / a\n                        if discriminant < 0:\n                            continue\n                        x = (-1 + math.sqrt(discriminant)) / 2\n                        x = math.floor(x)\n                        height_reduced += x\n                        if height_reduced >= mountainHeight:\n                            return True\n                    return height_reduced >= mountainHeight\n                \n                # Binary search on the time\n                left = 0\n                right = mountainHeight * workerTimes[0] * (mountainHeight + 1) // 2  # Upper bound\n                while left < right:\n                    mid = (left + right) // 2\n                    if can_reduce(mid):\n                        right = mid\n                    else:\n                        left = mid + 1\n                return left",
+              "solution_hash": "8e9ba3a7fffadbc1ff885a7a9ae6afc2cc11c621254ed2ac575b7e9d650ddce0",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpz8p4empe.py\", line 82\n    import math\nIndentationError: unexpected indent\n",
+                "execution_time": 0.06044888496398926
+              },
+              "depth": 2,
+              "parent_id": "1_2",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_6",
+          "solution": "class Solution:\n            def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n                n = len(workerTimes)\n                workerTimes.sort(reverse=True)\n                \n                # Function to calculate the maximum x for a given time and worker time\n                def max_x(time, a):\n                    # Calculate the maximum x such that a * x * (x + 1) / 2 <= time\n                    # Using binary search to find the largest x satisfying the condition\n                    left = 0\n                    right = mountainHeight + 1  # Since x can be up to mountainHeight\n                    while left < right:\n                        mid = (left + right) // 2\n                        total_time = a * mid * (mid + 1) // 2\n                        if total_time <= time:\n                            left = mid + 1\n                        else:\n                            right = mid\n                    return left - 1  # Subtract 1 because mid where total_time > time\n                \n                # Function to check if a given time can reduce the mountain to zero\n                def can_reduce(time):\n                    height_reduced = 0\n                    for a in workerTimes:\n                        x = max_x(time, a)\n                        height_reduced += x\n                        if height_reduced >= mountainHeight:\n                            return True\n                    return height_reduced >= mountainHeight\n                \n                # Binary search on the time\n                left = 0\n                right = mountainHeight * workerTimes[0] * (mountainHeight + 1) // 2  # Upper bound\n                while left < right:\n                    mid = (left + right) // 2\n                    if can_reduce(mid):\n                        right = mid\n                    else:\n                        left = mid + 1\n                return left",
+          "solution_hash": "23eba867db3215539b973f1db5654a57ab3e68af967b88400cc64d2469f26263",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.11442017555236816
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_7",
+          "solution": "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        import math\n        n = len(workerTimes)\n        workerTimes.sort(reverse=True)\n        \n        # Function to calculate the maximum x for a worker given time\n        def max_x(a, time):\n            if a == 0:\n                return 0\n            # Solve for x in a * x * (x + 1) / 2 <= time\n            # Using quadratic formula: x^2 + x - 2*time/a <= 0\n            discriminant = 1 + 8 * time / a\n            if discriminant < 0:\n                return 0\n            x = (-1 + math.sqrt(discriminant)) / 2\n            return math.floor(x)\n        \n        # Function to check if a given time can reduce the mountain to zero\n        def can_reduce(time):\n            height_reduced = 0\n            for a in workerTimes:\n                x = max_x(a, time)\n                height_reduced += x\n                if height_reduced >= mountainHeight:\n                    return True\n            return height_reduced >= mountainHeight\n        \n        # Binary search on the time\n        left = 0\n        right = mountainHeight * workerTimes[0] * mountainHeight  # Upper bound\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+          "solution_hash": "80af3f5b003b3623e886250baa5a5c70363a4a6f644e5ac00faf5b2abd426736",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07814931869506836
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [],
+          "passed": true
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_within_time(t):\n            total_height = 0\n            for time in workerTimes:\n                # Calculate maximum x such that time * x*(x+1)/2 <= t\n                # This is equivalent to finding the largest x where x*(x+1) <= 2*t/time\n                # Using quadratic formula: x = (-1 + sqrt(1 + 8*t/time)) / 2\n                if time == 0:\n                    continue  # Avoid division by zero, though time >=1 as per constraints\n                max_x = int((-1 + math.sqrt(1 + 8 * t / time)) / 2)\n                total_height += max_x\n                if total_height >= mountainHeight:\n                    return True\n            return total_height >= mountainHeight\n        \n        # Binary search for the minimum time t\n        left = 0\n        right = workerTimes[0] * mountainHeight * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_within_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+      "solution_hash": "362b9e78bff1b6dba6f1765f221828414cf9f362a8cb6c15af72a2054380b94d",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.07844972610473633
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    }
+  ],
+  "stats": {
+    "nodes_explored": 9,
+    "candidates_generated": 9,
+    "tests_passed": 6,
+    "tests_failed": 3,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 324.4027051925659,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.5999999999999999,
+      "pass@3": 0.9666666666666667,
+      "pass@5": 1.0,
+      "pass@10": 1.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: 'key' is an invalid keyword argument for bisect_left()",
+            "completion_id": 9
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 10,
+    "test_cases": 1
+  }
+}

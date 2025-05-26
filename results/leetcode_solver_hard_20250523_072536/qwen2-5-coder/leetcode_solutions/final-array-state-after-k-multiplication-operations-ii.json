@@ -1,0 +1,298 @@
+{
+  "problem_id": "final-array-state-after-k-multiplication-operations-ii",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        num_count = Counter(nums)\n        sorted_nums = sorted(num_count.keys())\n        \n        for num in sorted_nums:\n            if k == 0:\n                break\n            count = num_count[num]\n            if count <= k:\n                num_count[num] = 0\n                k -= count\n                num_count[num * multiplier] += count\n            else:\n                num_count[num] -= k\n                num_count[num * multiplier] += k\n                k = 0\n        \n        final_nums = []\n        for num in nums:\n            if num_count[num] > 0:\n                final_nums.append(num % MOD)\n                num_count[num] -= 1\n            else:\n                for new_num in sorted_nums:\n                    if num_count[new_num] > 0:\n                        final_nums.append(new_num % MOD)\n                        num_count[new_num] -= 1\n                        break\n        \n        return final_nums",
+  "passed_solutions": [
+    "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        num_count = Counter(nums)\n        sorted_nums = sorted(num_count.keys())\n        \n        for num in sorted_nums:\n            if k == 0:\n                break\n            count = num_count[num]\n            if count <= k:\n                num_count[num] = 0\n                k -= count\n                num_count[num * multiplier] += count\n            else:\n                num_count[num] -= k\n                num_count[num * multiplier] += k\n                k = 0\n        \n        final_nums = []\n        for num in nums:\n            if num_count[num] > 0:\n                final_nums.append(num % MOD)\n                num_count[num] -= 1\n            else:\n                for new_num in sorted_nums:\n                    if num_count[new_num] > 0:\n                        final_nums.append(new_num % MOD)\n                        num_count[new_num] -= 1\n                        break\n        \n        return final_nums"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        min_heap = []\n        \n        # Convert nums into a heap\n        for i, num in enumerate(nums):\n            heappush(min_heap, (num, i))\n        \n        for _ in range(k):\n            # Pop the smallest element\n            val, idx = heappop(min_heap)\n            # Multiply the smallest element by the multiplier\n            new_val = val * multiplier\n            # Push the new value back into the heap\n            heappush(min_heap, (new_val, idx))\n        \n        # Extract the final values from the heap and sort them by their original index\n        final_nums = [0] * len(nums)\n        while min_heap:\n            val, idx = heappop(min_heap)\n            final_nums[idx] = val % MOD\n        \n        return final_nums",
+    "from collections import Counter\nfrom heapq import heapify, heappop\n\nMOD = 10**9 + 7\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        # Count occurrences of each number\n        count = Counter(nums)\n        # Create a min-heap of unique numbers\n        min_heap = list(count.keys())\n        heapify(min_heap)\n        \n        while k > 0 and min_heap:\n            # Get the smallest element\n            val = heappop(min_heap)\n            # Determine how many times we can multiply this value\n            ops = min(k, count[val])\n            # Perform the multiplication\n            new_val = pow(multiplier, ops, MOD) * val % MOD\n            # Decrease k by the number of operations performed\n            k -= ops\n            # Update the count dictionary\n            count[new_val] += count[val]\n            count[val] = 0\n            \n            # If the new value is not already in the heap, add it\n            if count[new_val] == 1 and new_val != val:\n                heappush(min_heap, new_val)\n        \n        # Construct the final result array\n        final_nums = []\n        for num in nums:\n            final_nums.append(count[num] * num % MOD)\n        \n        return final_nums",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        for _ in range(k):\n            # Find the index of the minimum value\n            min_index = nums.index(min(nums))\n            # Multiply the minimum value by the multiplier and take modulo\n            nums[min_index] = (nums[min_index] * multiplier) % MOD\n        \n        return nums",
+    "from heapq import heapify, heappop, heappush\nfrom typing import List\n\nMOD = 10**9 + 7\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        # Create a min-heap of (value, index) pairs to maintain the order of first occurrence\n        min_heap = [(val, idx) for idx, val in enumerate(nums)]\n        heapify(min_heap)\n        \n        # Dictionary to keep track of the count of each value\n        count = {}\n        for val in nums:\n            if val in count:\n                count[val] += 1\n            else:\n                count[val] = 1\n        \n        while k > 0:\n            # Get the smallest element and its index\n            val, idx = heappop(min_heap)\n            \n            # If the count of this value is zero, it means it has been fully processed\n            if count[val] == 0:\n                continue\n            \n            # Determine how many times we can multiply this value\n            ops = min(k, count[val])\n            # Perform the multiplication\n            new_val = (pow(multiplier, ops, MOD) * val) % MOD\n            # Decrease k by the number of operations performed\n            k -= ops\n            # Update the count dictionary\n            count[val] -= ops\n            if new_val in count:\n                count[new_val] += ops\n            else:\n                count[new_val] = ops\n            \n            # Push the new value with the same index back into the heap\n            heappush(min_heap, (new_val, idx))\n        \n        # Construct the final result array\n        final_nums = []\n        for val in nums:\n            if count[val] > 0:\n                final_nums.append(val % MOD)\n                count[val] -= 1\n            else:\n                # Find the new value that replaced the old one\n                for new_val in sorted(count.keys()):\n                    if count[new_val] > 0:\n                        final_nums.append(new_val % MOD)\n                        count[new_val] -= 1\n                        break\n        \n        return final_nums",
+    "from collections import Counter\nfrom heapq import heapify, heappop, heappush\n\nMOD = 10**9 + 7\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        # Count occurrences of each number\n        count = Counter(nums)\n        # Create a min-heap of unique numbers\n        min_heap = list(count.keys())\n        heapify(min_heap)\n        \n        while k > 0 and min_heap:\n            # Get the smallest element\n            val = heappop(min_heap)\n            # Determine how many times we can multiply this value\n            ops = min(k, count[val])\n            # Perform the multiplication under modulo\n            new_val = (val * pow(multiplier, ops, MOD)) % MOD\n            # Decrease k by the number of operations performed\n            k -= ops\n            # Update the count dictionary\n            count[new_val] += count[val]\n            count[val] = 0\n            \n            # If the new value is not already in the heap, add it\n            if count[new_val] == 1 and new_val != val:\n                heappush(min_heap, new_val)\n        \n        # Construct the final result array\n        final_nums = []\n        for num in nums:\n            final_nums.append((num * pow(multiplier, count[num], MOD)) % MOD)\n        \n        return final_nums",
+    "from heapq import heapify, heappop\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        min_heap = [(num, i) for i, num in enumerate(nums)]\n        heapify(min_heap)\n        \n        # Dictionary to store the count of multiplications for each unique minimum value\n        min_count = {}\n        \n        while k > 0:\n            val, idx = heappop(min_heap)\n            if val not in min_count:\n                min_count[val] = 0\n            min_count[val] += 1\n            k -= 1\n            \n            # If the next smallest element is different, push it back\n            if not min_heap or min_heap[0][0] != val:\n                heappush(min_heap, (val, idx))\n        \n        # Apply the multiplications to the original list\n        final_nums = nums[:]\n        for val, count in min_count.items():\n            final_val = pow(val, count, MOD)  # Efficient power calculation with modulo\n            for i, num in enumerate(nums):\n                if num == val:\n                    final_nums[i] = final_val\n        \n        # Apply modulo to all elements\n        return [x % MOD for x in final_nums]",
+    "from heapq import heapify, heappop, heappush\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        min_heap = [(num, i) for i, num in enumerate(nums)]\n        heapify(min_heap)\n        \n        # Dictionary to store the count of multiplications for each unique minimum value\n        min_count = {}\n        \n        while k > 0:\n            val, idx = heappop(min_heap)\n            if val not in min_count:\n                min_count[val] = 0\n            min_count[val] += 1\n            k -= 1\n            \n            # If the next smallest element is different, push it back\n            if not min_heap or min_heap[0][0] != val:\n                heappush(min_heap, (val, idx))\n        \n        # Apply the multiplications to the original list\n        final_nums = nums[:]\n        for val, count in min_count.items():\n            final_val = val\n            for _ in range(count):\n                final_val = (final_val * multiplier) % MOD  # Multiply and apply modulo\n            for i, num in enumerate(nums):\n                if num == val:\n                    final_nums[i] = final_val\n        \n        # Apply modulo to all elements (though they are already modulo-ed)\n        return [x % MOD for x in final_nums]",
+    "from heapq import heapify, heappop, heappush\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        min_heap = [(num, i) for i, num in enumerate(nums)]\n        heapify(min_heap)\n        \n        while k > 0:\n            val, idx = heappop(min_heap)\n            new_val = (val * multiplier) % MOD\n            nums[idx] = new_val\n            heappush(min_heap, (new_val, idx))\n            k -= 1\n        \n        return nums",
+    "from heapq import heapify, heappop, heappush\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        min_heap = [(num, i) for i, num in enumerate(nums)]\n        heapify(min_heap)\n        \n        while k > 0:\n            val, idx = heappop(min_heap)\n            new_val = (val * multiplier) % MOD\n            nums[idx] = new_val\n            heappush(min_heap, (new_val, idx))\n            k -= 1\n        \n        return nums",
+    "from collections import Counter\nfrom typing import List\n\nclass Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        num_count = Counter(nums)\n        sorted_nums = sorted(num_count.keys())\n        \n        for num in sorted_nums:\n            if k == 0:\n                break\n            count = num_count[num]\n            if count <= k:\n                num_count[num] = 0\n                k -= count\n                num_count[num * multiplier] += count\n            else:\n                num_count[num] -= k\n                num_count[num * multiplier] += k\n                k = 0\n        \n        final_nums = []\n        for num in nums:\n            if num_count[num] > 0:\n                final_nums.append(num % MOD)\n                num_count[num] -= 1\n            else:\n                for new_num in sorted_nums:\n                    if num_count[new_num] > 0:\n                        final_nums.append(new_num % MOD)\n                        num_count[new_num] -= 1\n                        break\n        \n        return final_nums"
+  ],
+  "total_candidates": 10,
+  "nodes_explored": 10,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        min_heap = []\n        \n        # Convert nums into a heap\n        for i, num in enumerate(nums):\n            heappush(min_heap, (num, i))\n        \n        for _ in range(k):\n            # Pop the smallest element\n            val, idx = heappop(min_heap)\n            # Multiply the smallest element by the multiplier\n            new_val = val * multiplier\n            # Push the new value back into the heap\n            heappush(min_heap, (new_val, idx))\n        \n        # Extract the final values from the heap and sort them by their original index\n        final_nums = [0] * len(nums)\n        while min_heap:\n            val, idx = heappop(min_heap)\n            final_nums[idx] = val % MOD\n        \n        return final_nums",
+      "solution_hash": "e01d85bfd7ea88ffa748a1743fc95056bbeb8184177e14c3b3a66f84a4d71cca",
+      "test_result": {
+        "status": "timeout",
+        "error_message": "Test execution timed out after 10s",
+        "execution_time": 10
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5",
+        "1_9"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 10,
+    "candidates_generated": 10,
+    "tests_passed": 1,
+    "tests_failed": 4,
+    "test_errors": 5,
+    "execution_times": [
+      10,
+      16.00178360939026,
+      10,
+      16.935715913772583,
+      16.772995471954346,
+      16.734287977218628,
+      10,
+      10,
+      10,
+      19.64055347442627
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 9,
+      "unique_ratio": 0.9,
+      "similarity_score": 0.0,
+      "solution_lengths": {
+        "min": 410,
+        "max": 2061,
+        "avg": 1055.7
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "nums = [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5],k = 25,multiplier = 1": 4
+      },
+      "first_failing_tests": {
+        "nums = [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5],k = 25,multiplier = 1": 4
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 3,
+          "improvements": 0,
+          "solved": 1
+        },
+        "2": {
+          "attempts": 6,
+          "improvements": 0,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "other_error": {
+          "attempts": 1,
+          "improvements": 1
+        },
+        "type_error": {
+          "attempts": 2,
+          "improvements": 0
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "other_error->type_error": 2,
+        "type_error->other_error": 4,
+        "type_error->type_error": 2,
+        "other_error->unknown": 1
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.5,
+        "solutions_per_depth": {
+          "0": 1,
+          "1": 3,
+          "2": 6
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 1,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.18181818181818188,
+        "pass@3": 0.49090909090909096,
+        "pass@5": 0.7272727272727273,
+        "pass@10": 1.0
+      },
+      "solutions_evaluated": 11,
+      "passing_solution_depths": {
+        "min": 1,
+        "max": 1,
+        "avg": 1.0
+      }
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.1,
+        "branch_success_rate": 0.1
+      },
+      "error_recovery": {
+        "total_attempts": 3,
+        "total_improvements": 1,
+        "recovery_rate": 0.3333333333333333
+      },
+      "top_errors": [
+        [
+          "type_error",
+          2
+        ],
+        [
+          "other_error",
+          1
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "nums = [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5],k = 25,multiplier = 1",
+          4
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 474.87010431289673,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.18181818181818188,
+      "pass@3": 0.49090909090909096,
+      "pass@5": 0.7272727272727273,
+      "pass@10": 1.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: pow expected 2 arguments, got 3",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: pow expected 2 arguments, got 3",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: pow expected 2 arguments, got 3",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: pow expected 2 arguments, got 3",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 10
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 11,
+    "test_cases": 1
+  }
+}

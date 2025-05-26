@@ -1,0 +1,437 @@
+{
+  "problem_id": "count-substrings-that-can-be-rearranged-to-contain-a-string-i",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "solved",
+  "best_solution": "class Solution:\n            def validSubstringCount(self, word1: str, word2: str) -> int:\n                from collections import defaultdict\n                \n                # Frequency count of characters in word2\n                count_word2 = defaultdict(int)\n                for char in word2:\n                    count_word2[char] += 1\n                \n                # Frequency count of characters in the current window\n                window = defaultdict(int)\n                \n                # Number of unique characters in word2 that are not yet fully matched in the window\n                required_chars = len(count_word2)\n                \n                # Pointers for the sliding window\n                left = 0\n                result = 0\n                \n                for right in range(len(word1)):\n                    # Add the current character to the window\n                    window[word1[right]] += 1\n                    \n                    # If this character is in word2 and its count matches the required count, decrement required_chars\n                    if word1[right] in count_word2 and window[word1[right]] == count_word2[word1[right]]:\n                        required_chars -= 1\n                    \n                    # Try to shrink the window from the left\n                    while required_chars == 0:\n                        # If the window size is at least the length of word2, count the number of valid substrings\n                        if (right - left + 1) >= len(word2):\n                            # All substrings starting from left to right+1 are valid\n                            result += len(word1) - right\n                            \n                        # Remove the leftmost character from the window\n                        window[word1[left]] -= 1\n                        if word1[left] in count_word2 and window[word1[left]] < count_word2[word1[left]]:\n                            required_chars += 1\n                        left += 1\n                \n                return result",
+  "passed_solutions": [
+    "class Solution:\n            def validSubstringCount(self, word1: str, word2: str) -> int:\n                from collections import Counter\n                target = Counter(word2)\n                window = Counter()\n                required = len(target)\n                formed = 0\n                left = 0\n                right = 0\n                n = len(word1)\n                m = len(word2)\n                count = 0\n\n                if m > n:\n                    return 0\n\n                while right < n:\n                    char = word1[right]\n                    window[char] += 1\n\n                    if char in target and window[char] == target[char]:\n                        formed += 1\n\n                    while left <= right and formed == required:\n                        if right - left + 1 >= m:\n                            count += n - right\n                        char = word1[left]\n                        window[char] -= 1\n                        if char in target and window[char] < target[char]:\n                            formed -= 1\n                        left += 1\n                    right += 1\n\n                return count",
+    "class Solution:\n            def validSubstringCount(self, word1: str, word2: str) -> int:\n                from collections import defaultdict\n                \n                # Frequency count of characters in word2\n                count_word2 = defaultdict(int)\n                for char in word2:\n                    count_word2[char] += 1\n                \n                # Frequency count of characters in the current window\n                window = defaultdict(int)\n                \n                # Number of unique characters in word2 that are not yet fully matched in the window\n                required_chars = len(count_word2)\n                \n                # Pointers for the sliding window\n                left = 0\n                result = 0\n                \n                for right in range(len(word1)):\n                    # Add the current character to the window\n                    window[word1[right]] += 1\n                    \n                    # If this character is in word2 and its count matches the required count, decrement required_chars\n                    if word1[right] in count_word2 and window[word1[right]] == count_word2[word1[right]]:\n                        required_chars -= 1\n                    \n                    # Try to shrink the window from the left\n                    while required_chars == 0:\n                        # If the window size is at least the length of word2, count the number of valid substrings\n                        if (right - left + 1) >= len(word2):\n                            # All substrings starting from left to right+1 are valid\n                            result += len(word1) - right\n                            \n                        # Remove the leftmost character from the window\n                        window[word1[left]] -= 1\n                        if word1[left] in count_word2 and window[word1[left]] < count_word2[word1[left]]:\n                            required_chars += 1\n                        left += 1\n                \n                return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            char = word1[right]\n            window[char] += 1\n            if char in count_word2 and window[char] <= count_word2[char]:\n                required -= 1\n            \n            while required == 0:\n                if right - left + 1 >= len(word2):\n                    result += len(word1) - right\n                char_left = word1[left]\n                window[char_left] -= 1\n                if char_left in count_word2 and window[char_left] < count_word2[char_left]:\n                    required += 1\n                left += 1\n                \n        return result"
+  ],
+  "all_solutions": [
+    "class Solution:\n            def validSubstringCount(self, word1: str, word2: str) -> int:\n                from collections import Counter\n                target = Counter(word2)\n                window = Counter()\n                required = len(target)\n                formed = 0\n                left = 0\n                right = 0\n                n = len(word1)\n                m = len(word2)\n                count = 0\n\n                if m > n:\n                    return 0\n\n                while right < n:\n                    char = word1[right]\n                    window[char] += 1\n\n                    if char in target and window[char] == target[char]:\n                        formed += 1\n\n                    while left <= right and formed == required:\n                        if right - left + 1 >= m:\n                            count += n - right\n                        char = word1[left]\n                        window[char] -= 1\n                        if char in target and window[char] < target[char]:\n                            formed -= 1\n                        left += 1\n                    right += 1\n\n                return count",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            window[word1[right]] += 1\n            if window[word1[right]] <= count_word2[word1[right]]:\n                required -= 1\n            \n            while required == 0:\n                if (right - left + 1) >= len(word2):\n                    result += (len(word1) - right)\n                    break\n                window[word1[left]] -= 1\n                if window[word1[left]] < count_word2[word1[left]]:\n                    required += 1\n                left += 1\n        return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            window[word1[right]] += 1\n            if window[word1[right]] <= count_word2[word1[right]]:\n                required -= 1\n            \n            if right - left + 1 >= len(word2):\n                if required == 0:\n                    result += len(word1) - right\n                window[word1[left]] -= 1\n                if window[word1[left]] < count_word2[word1[left]]:\n                    required += 1\n                left += 1\n        return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            if word1[right] in count_word2:\n                if window[word1[right]] < count_word2[word1[right]]:\n                    required -= 1\n                window[word1[right]] += 1\n            \n            if right - left + 1 >= len(word2):\n                if required == 0:\n                    result += len(word1) - right\n                if word1[left] in count_word2:\n                    window[word1[left]] -= 1\n                    if window[word1[left]] < count_word2[word1[left]]:\n                        required += 1\n                left += 1\n        return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            window[word1[right]] += 1\n            if window[word1[right]] <= count_word2[word1[right]]:\n                required -= 1\n            \n            if right - left + 1 >= len(word2):\n                if required == 0:\n                    # All substrings starting at left and ending after right are valid\n                    result += len(word1) - right\n                window[word1[left]] -= 1\n                if window[word1[left]] < count_word2[word1[left]]:\n                    required += 1\n                left += 1\n        return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            window[word1[right]] += 1\n            if window[word1[right]] <= count_word2[word1[right]]:\n                required -= 1\n            \n            while right - left + 1 >= len(word2):\n                if required == 0:\n                    result += len(word1) - right\n                    window[word1[left]] -= 1\n                    if window[word1[left]] < count_word2[word1[left]]:\n                        required += 1\n                    left += 1\n                    break\n                else:\n                    window[word1[left]] -= 1\n                    if window[word1[left]] < count_word2[word1[left]]:\n                        required += 1\n                    left += 1\n        return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            window[word1[right]] += 1\n            if window[word1[right]] <= count_word2[word1[right]]:\n                required -= 1\n            \n            while required == 0:\n                if (right - left + 1) >= len(word2):\n                    result += (len(word1) - right)\n                    break\n                window[word1[left]] -= 1\n                if window[word1[left]] < count_word2[word1[left]]:\n                    required += 1\n                left += 1\n        return result",
+    "class Solution:\n            def validSubstringCount(self, word1: str, word2: str) -> int:\n                from collections import Counter\n                count_word2 = Counter(word2)\n                window = Counter()\n                left = 0\n                result = 0\n                required = len(word2)\n                \n                for right in range(len(word1)):\n                    window[word1[right]] += 1\n                    if window[word1[right]] <= count_word2[word1[right]]:\n                        required -= 1\n                    \n                    while left <= right and window[word1[left]] > count_word2[word1[left]]:\n                        window[word1[left]] -= 1\n                        left += 1\n                    \n                    if required == 0:\n                        result += len(word1) - right\n                return result",
+    "class Solution:\n            def validSubstringCount(self, word1: str, word2: str) -> int:\n                from collections import defaultdict\n                \n                # Frequency count of characters in word2\n                count_word2 = defaultdict(int)\n                for char in word2:\n                    count_word2[char] += 1\n                \n                # Frequency count of characters in the current window\n                window = defaultdict(int)\n                \n                # Number of unique characters in word2 that are not yet fully matched in the window\n                required_chars = len(count_word2)\n                \n                # Pointers for the sliding window\n                left = 0\n                result = 0\n                \n                for right in range(len(word1)):\n                    # Add the current character to the window\n                    window[word1[right]] += 1\n                    \n                    # If this character is in word2 and its count matches the required count, decrement required_chars\n                    if word1[right] in count_word2 and window[word1[right]] == count_word2[word1[right]]:\n                        required_chars -= 1\n                    \n                    # Try to shrink the window from the left\n                    while required_chars == 0:\n                        # If the window size is at least the length of word2, count the number of valid substrings\n                        if (right - left + 1) >= len(word2):\n                            # All substrings starting from left to right+1 are valid\n                            result += len(word1) - right\n                            \n                        # Remove the leftmost character from the window\n                        window[word1[left]] -= 1\n                        if word1[left] in count_word2 and window[word1[left]] < count_word2[word1[left]]:\n                            required_chars += 1\n                        left += 1\n                \n                return result",
+    "class Solution:\n            def validSubstringCount(self, word1: str, word2: str) -> int:\n                from collections import Counter\n                count_word2 = Counter(word2)\n                window = Counter()\n                left = 0\n                result = 0\n                required = len(word2)\n                \n                for right in range(len(word1)):\n                    window[word1[right]] += 1\n                    if window[word1[right]] <= count_word2[word1[right]]:\n                        required -= 1\n                    \n                    if right - left + 1 >= len(word2):\n                        if required == 0:\n                            result += len(word1) - right\n                        window[word1[left]] -= 1\n                        if window[word1[left]] < count_word2[word1[left]]:\n                            required += 1\n                        left += 1\n                return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            window[word1[right]] += 1\n            if window[word1[right]] <= count_word2[word1[right]]:\n                required -= 1\n            \n            if right - left + 1 >= len(word2):\n                if required == 0:\n                    result += len(word1) - right\n                window[word1[left]] -= 1\n                if window[word1[left]] < count_word2[word1[left]]:\n                    required += 1\n                left += 1\n        return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            window[word1[right]] += 1\n            if window[word1[right]] <= count_word2[word1[right]]:\n                required -= 1\n            \n            while right - left + 1 >= len(word2):\n                if required == 0:\n                    result += len(word1) - right\n                    break\n                window[word1[left]] -= 1\n                if window[word1[left]] < count_word2[word1[left]]:\n                    required += 1\n                left += 1\n        return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            window[word1[right]] += 1\n            if window[word1[right]] <= count_word2[word1[right]]:\n                required -= 1\n            \n            while right - left + 1 >= len(word2):\n                if required == 0:\n                    result += len(word1) - right\n                window[word1[left]] -= 1\n                if window[word1[left]] < count_word2[word1[left]]:\n                    required += 1\n                left += 1\n        return result",
+    "class Solution:\n            def validSubstringCount(self, word1: str, word2: str) -> int:\n                from collections import Counter\n                count_word2 = Counter(word2)\n                window = Counter()\n                left = 0\n                result = 0\n                required = len(word2)\n                \n                for right in range(len(word1)):\n                    window[word1[right]] += 1\n                    if window[word1[right]] <= count_word2[word1[right]]:\n                        required -= 1\n                    \n                    if right - left + 1 >= len(word2):\n                        if required == 0:\n                            result += len(word1) - right\n                        window[word1[left]] -= 1\n                        if window[word1[left]] < count_word2[word1[left]]:\n                            required += 1\n                        left += 1\n                return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            char = word1[right]\n            window[char] += 1\n            if char in count_word2 and window[char] <= count_word2[char]:\n                required -= 1\n            \n            while required == 0:\n                if right - left + 1 >= len(word2):\n                    result += len(word1) - right\n                char_left = word1[left]\n                window[char_left] -= 1\n                if char_left in count_word2 and window[char_left] < count_word2[char_left]:\n                    required += 1\n                left += 1\n                \n        return result"
+  ],
+  "total_candidates": 15,
+  "nodes_explored": 15,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n            def validSubstringCount(self, word1: str, word2: str) -> int:\n                from collections import Counter\n                target = Counter(word2)\n                window = Counter()\n                required = len(target)\n                formed = 0\n                left = 0\n                right = 0\n                n = len(word1)\n                m = len(word2)\n                count = 0\n\n                if m > n:\n                    return 0\n\n                while right < n:\n                    char = word1[right]\n                    window[char] += 1\n\n                    if char in target and window[char] == target[char]:\n                        formed += 1\n\n                    while left <= right and formed == required:\n                        if right - left + 1 >= m:\n                            count += n - right\n                        char = word1[left]\n                        window[char] -= 1\n                        if char in target and window[char] < target[char]:\n                            formed -= 1\n                        left += 1\n                    right += 1\n\n                return count",
+      "solution_hash": "779984ff02ba31d9d3bf29b567f3dd97eddf2e2b13d3c6671c6243dfe02526d8",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.0680532455444336
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            window[word1[right]] += 1\n            if window[word1[right]] <= count_word2[word1[right]]:\n                required -= 1\n            \n            while required == 0:\n                if (right - left + 1) >= len(word2):\n                    result += (len(word1) - right)\n                    break\n                window[word1[left]] -= 1\n                if window[word1[left]] < count_word2[word1[left]]:\n                    required += 1\n                left += 1\n        return result",
+      "solution_hash": "364f6d3589ea15846dbce228b3b8cb006990e4be729fdd4dbc2a17358407d847",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpvla5_32g.py\", line 217, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpvla5_32g.py\", line 107, in check\n    assert candidate(word1 = \"banana\",word2 = \"ban\") == 4\nAssertionError\n",
+        "execution_time": 0.07073163986206055
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_2",
+          "solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            window[word1[right]] += 1\n            if window[word1[right]] <= count_word2[word1[right]]:\n                required -= 1\n            \n            if right - left + 1 >= len(word2):\n                if required == 0:\n                    result += len(word1) - right\n                window[word1[left]] -= 1\n                if window[word1[left]] < count_word2[word1[left]]:\n                    required += 1\n                left += 1\n        return result",
+          "solution_hash": "c66130f09b473f530023fd7ed61245fafbc94458b6d448b783ec92867475043a",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpdcotit4d.py\", line 216, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpdcotit4d.py\", line 110, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+            "execution_time": 0.06590533256530762
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_3",
+              "solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            if word1[right] in count_word2:\n                if window[word1[right]] < count_word2[word1[right]]:\n                    required -= 1\n                window[word1[right]] += 1\n            \n            if right - left + 1 >= len(word2):\n                if required == 0:\n                    result += len(word1) - right\n                if word1[left] in count_word2:\n                    window[word1[left]] -= 1\n                    if window[word1[left]] < count_word2[word1[left]]:\n                        required += 1\n                left += 1\n        return result",
+              "solution_hash": "48de9db0877e43d7694e2c5ae569fb28037b8ede3c9e53bf04ed4fa01db27c16",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpcl2r31vf.py\", line 218, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpcl2r31vf.py\", line 112, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+                "execution_time": 0.06662940979003906
+              },
+              "depth": 2,
+              "parent_id": "1_2",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            window[word1[right]] += 1\n            if window[word1[right]] <= count_word2[word1[right]]:\n                required -= 1\n            \n            if right - left + 1 >= len(word2):\n                if required == 0:\n                    # All substrings starting at left and ending after right are valid\n                    result += len(word1) - right\n                window[word1[left]] -= 1\n                if window[word1[left]] < count_word2[word1[left]]:\n                    required += 1\n                left += 1\n        return result",
+              "solution_hash": "c66130f09b473f530023fd7ed61245fafbc94458b6d448b783ec92867475043a",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpdcotit4d.py\", line 216, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpdcotit4d.py\", line 110, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+                "execution_time": 0.06590533256530762
+              },
+              "depth": 2,
+              "parent_id": "1_2",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_5",
+              "solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            window[word1[right]] += 1\n            if window[word1[right]] <= count_word2[word1[right]]:\n                required -= 1\n            \n            while right - left + 1 >= len(word2):\n                if required == 0:\n                    result += len(word1) - right\n                    window[word1[left]] -= 1\n                    if window[word1[left]] < count_word2[word1[left]]:\n                        required += 1\n                    left += 1\n                    break\n                else:\n                    window[word1[left]] -= 1\n                    if window[word1[left]] < count_word2[word1[left]]:\n                        required += 1\n                    left += 1\n        return result",
+              "solution_hash": "2895c9a643d242b1d27d627c75007ed9d1dccee69ccfec2ddf28537bb4fbaabe",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmprg3h8uvr.py\", line 222, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmprg3h8uvr.py\", line 116, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+                "execution_time": 0.06616663932800293
+              },
+              "depth": 2,
+              "parent_id": "1_2",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_6",
+          "solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            window[word1[right]] += 1\n            if window[word1[right]] <= count_word2[word1[right]]:\n                required -= 1\n            \n            while required == 0:\n                if (right - left + 1) >= len(word2):\n                    result += (len(word1) - right)\n                    break\n                window[word1[left]] -= 1\n                if window[word1[left]] < count_word2[word1[left]]:\n                    required += 1\n                left += 1\n        return result",
+          "solution_hash": "364f6d3589ea15846dbce228b3b8cb006990e4be729fdd4dbc2a17358407d847",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpcwzblusf.py\", line 217, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpcwzblusf.py\", line 107, in check\n    assert candidate(word1 = \"banana\",word2 = \"ban\") == 4\nAssertionError\n",
+            "execution_time": 0.06714630126953125
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_7",
+              "solution": "class Solution:\n            def validSubstringCount(self, word1: str, word2: str) -> int:\n                from collections import Counter\n                count_word2 = Counter(word2)\n                window = Counter()\n                left = 0\n                result = 0\n                required = len(word2)\n                \n                for right in range(len(word1)):\n                    window[word1[right]] += 1\n                    if window[word1[right]] <= count_word2[word1[right]]:\n                        required -= 1\n                    \n                    while left <= right and window[word1[left]] > count_word2[word1[left]]:\n                        window[word1[left]] -= 1\n                        left += 1\n                    \n                    if required == 0:\n                        result += len(word1) - right\n                return result",
+              "solution_hash": "b24f6819b665257707cccd175ed54306ded0de5d8003b226c3d9d2dd4bebdf75",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpihz_py5w.py\", line 215, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpihz_py5w.py\", line 105, in check\n    assert candidate(word1 = \"banana\",word2 = \"ban\") == 4\nAssertionError\n",
+                "execution_time": 0.06543350219726562
+              },
+              "depth": 2,
+              "parent_id": "1_6",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "class Solution:\n            def validSubstringCount(self, word1: str, word2: str) -> int:\n                from collections import defaultdict\n                \n                # Frequency count of characters in word2\n                count_word2 = defaultdict(int)\n                for char in word2:\n                    count_word2[char] += 1\n                \n                # Frequency count of characters in the current window\n                window = defaultdict(int)\n                \n                # Number of unique characters in word2 that are not yet fully matched in the window\n                required_chars = len(count_word2)\n                \n                # Pointers for the sliding window\n                left = 0\n                result = 0\n                \n                for right in range(len(word1)):\n                    # Add the current character to the window\n                    window[word1[right]] += 1\n                    \n                    # If this character is in word2 and its count matches the required count, decrement required_chars\n                    if word1[right] in count_word2 and window[word1[right]] == count_word2[word1[right]]:\n                        required_chars -= 1\n                    \n                    # Try to shrink the window from the left\n                    while required_chars == 0:\n                        # If the window size is at least the length of word2, count the number of valid substrings\n                        if (right - left + 1) >= len(word2):\n                            # All substrings starting from left to right+1 are valid\n                            result += len(word1) - right\n                            \n                        # Remove the leftmost character from the window\n                        window[word1[left]] -= 1\n                        if word1[left] in count_word2 and window[word1[left]] < count_word2[word1[left]]:\n                            required_chars += 1\n                        left += 1\n                \n                return result",
+              "solution_hash": "5604f325bcd9ef96697585d6b79a0af3ba07b0989bb90fd9ec2b46793aeab718",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.06713652610778809
+              },
+              "depth": 2,
+              "parent_id": "1_6",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_9",
+              "solution": "class Solution:\n            def validSubstringCount(self, word1: str, word2: str) -> int:\n                from collections import Counter\n                count_word2 = Counter(word2)\n                window = Counter()\n                left = 0\n                result = 0\n                required = len(word2)\n                \n                for right in range(len(word1)):\n                    window[word1[right]] += 1\n                    if window[word1[right]] <= count_word2[word1[right]]:\n                        required -= 1\n                    \n                    if right - left + 1 >= len(word2):\n                        if required == 0:\n                            result += len(word1) - right\n                        window[word1[left]] -= 1\n                        if window[word1[left]] < count_word2[word1[left]]:\n                            required += 1\n                        left += 1\n                return result",
+              "solution_hash": "c66130f09b473f530023fd7ed61245fafbc94458b6d448b783ec92867475043a",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpdcotit4d.py\", line 216, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpdcotit4d.py\", line 110, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+                "execution_time": 0.06590533256530762
+              },
+              "depth": 2,
+              "parent_id": "1_6",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_10",
+          "solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            window[word1[right]] += 1\n            if window[word1[right]] <= count_word2[word1[right]]:\n                required -= 1\n            \n            if right - left + 1 >= len(word2):\n                if required == 0:\n                    result += len(word1) - right\n                window[word1[left]] -= 1\n                if window[word1[left]] < count_word2[word1[left]]:\n                    required += 1\n                left += 1\n        return result",
+          "solution_hash": "c66130f09b473f530023fd7ed61245fafbc94458b6d448b783ec92867475043a",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpdcotit4d.py\", line 216, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpdcotit4d.py\", line 110, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+            "execution_time": 0.06590533256530762
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_11",
+              "solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            window[word1[right]] += 1\n            if window[word1[right]] <= count_word2[word1[right]]:\n                required -= 1\n            \n            while right - left + 1 >= len(word2):\n                if required == 0:\n                    result += len(word1) - right\n                    break\n                window[word1[left]] -= 1\n                if window[word1[left]] < count_word2[word1[left]]:\n                    required += 1\n                left += 1\n        return result",
+              "solution_hash": "59e2b1d74c370c64550f3461790cd2589f71eaa106d50012f79d449bd017b205",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpzlysg2nu.py\", line 217, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpzlysg2nu.py\", line 107, in check\n    assert candidate(word1 = \"banana\",word2 = \"ban\") == 4\nAssertionError\n",
+                "execution_time": 0.0670013427734375
+              },
+              "depth": 2,
+              "parent_id": "1_10",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_12",
+              "solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            window[word1[right]] += 1\n            if window[word1[right]] <= count_word2[word1[right]]:\n                required -= 1\n            \n            while right - left + 1 >= len(word2):\n                if required == 0:\n                    result += len(word1) - right\n                window[word1[left]] -= 1\n                if window[word1[left]] < count_word2[word1[left]]:\n                    required += 1\n                left += 1\n        return result",
+              "solution_hash": "02021abd77ee247131d15f748da4414e276d3bdd7182aae5caf4d1a7cf260ddb",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpgj06bsh6.py\", line 216, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpgj06bsh6.py\", line 110, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+                "execution_time": 0.066925048828125
+              },
+              "depth": 2,
+              "parent_id": "1_10",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_13",
+              "solution": "class Solution:\n            def validSubstringCount(self, word1: str, word2: str) -> int:\n                from collections import Counter\n                count_word2 = Counter(word2)\n                window = Counter()\n                left = 0\n                result = 0\n                required = len(word2)\n                \n                for right in range(len(word1)):\n                    window[word1[right]] += 1\n                    if window[word1[right]] <= count_word2[word1[right]]:\n                        required -= 1\n                    \n                    if right - left + 1 >= len(word2):\n                        if required == 0:\n                            result += len(word1) - right\n                        window[word1[left]] -= 1\n                        if window[word1[left]] < count_word2[word1[left]]:\n                            required += 1\n                        left += 1\n                return result",
+              "solution_hash": "c66130f09b473f530023fd7ed61245fafbc94458b6d448b783ec92867475043a",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpdcotit4d.py\", line 216, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21419949/tmpdcotit4d.py\", line 110, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n",
+                "execution_time": 0.06590533256530762
+              },
+              "depth": 2,
+              "parent_id": "1_10",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        count_word2 = Counter(word2)\n        window = Counter()\n        left = 0\n        result = 0\n        required = len(word2)\n        \n        for right in range(len(word1)):\n            char = word1[right]\n            window[char] += 1\n            if char in count_word2 and window[char] <= count_word2[char]:\n                required -= 1\n            \n            while required == 0:\n                if right - left + 1 >= len(word2):\n                    result += len(word1) - right\n                char_left = word1[left]\n                window[char_left] -= 1\n                if char_left in count_word2 and window[char_left] < count_word2[char_left]:\n                    required += 1\n                left += 1\n                \n        return result",
+      "solution_hash": "22dd420c2324dc9abf6bddc542cd2c29acf81dbbb81ba709502e430cb0f2c8ec",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.06853199005126953
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    }
+  ],
+  "stats": {
+    "nodes_explored": 15,
+    "candidates_generated": 15,
+    "tests_passed": 3,
+    "tests_failed": 12,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 326.2054498195648,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.25,
+      "pass@3": 0.6071428571428572,
+      "pass@5": 0.8186813186813187,
+      "pass@10": 0.9917582417582418
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 15
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 16,
+    "test_cases": 1
+  }
+}

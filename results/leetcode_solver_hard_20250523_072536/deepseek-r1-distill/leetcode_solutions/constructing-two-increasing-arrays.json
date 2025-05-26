@@ -1,0 +1,703 @@
+{
+  "problem_id": "constructing-two-increasing-arrays",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def generate(arr, last1, last2, used, start):\n            if not arr:\n                return 0\n            current = arr[0]\n            if current == 0:\n                min_num = 2\n                parity = 0\n            else:\n                min_num = 1\n                parity = 1\n            min_num = max(min_num, start + 1)\n            while True:\n                if min_num % 2 == parity and min_num not in used:\n                    if min_num > last1 and min_num > last2:\n                        new_used = used.copy()\n                        new_used.add(min_num)\n                        res = generate(arr[1:], max(last1, min_num), last2, new_used, min_num)\n                        if res != -1:\n                            return max(min_num, res)\n                min_num += 1\n                if min_num > 10**6:\n                    return -1\n            return -1\n\n        combined = [(nums1, 0, 0, set(), 0), (nums2, 0, 0, set(), 0)]\n        result = []\n        for arr, last1, last2, used, start in combined:\n            res = generate(arr, last1, last2, used, start)\n            if res != -1:\n                result.append(res)\n        return min(result)",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def assign_numbers(arr, last1, last2, current_max):\n            last = 0\n            for num in arr:\n                if num == 0:\n                    parity = 0\n                    min_val = 2\n                else:\n                    parity = 1\n                    min_val = 1\n                # Determine the smallest possible number\n                start = max(last + 1, last2 + 1, min_val)\n                if start % 2 != parity:\n                    start += 1\n                # Update last and current_max\n                last = start\n                current_max = max(current_max, last)\n            return current_max, last\n\n        # Process nums1 first, then nums2\n        max1, last1 = assign_numbers(nums1, 0, 0, 0)\n        max2, last2 = assign_numbers(nums2, last1, 0, max1)\n        total_max = max(max1, max2)\n\n        # Process nums2 first, then nums1\n        max2_first, last2_first = assign_numbers(nums2, 0, 0, 0)\n        max1_first, last1_first = assign_numbers(nums1, 0, last2_first, max2_first)\n        total_max_first = max(max2_first, max1_first)\n\n        return min(total_max, total_max_first)",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def assign(arr, last1, last2, current_max):\n            last = 0\n            for num in arr:\n                if num == 0:\n                    parity = 0\n                    min_val = 2\n                else:\n                    parity = 1\n                    min_val = 1\n                start = max(last + 1, last1 + 1, last2 + 1, min_val)\n                if start % 2 != parity:\n                    start += 1\n                last = start\n                current_max = max(current_max, last)\n            return current_max, last\n\n        max1, last1 = assign(nums1, 0, 0, 0)\n        max2, last2 = assign(nums2, last1, 0, max1)\n        total_max = max(max1, max2)\n\n        max2_first, last2_first = assign(nums2, 0, 0, 0)\n        max1_first, last1_first = assign(nums1, 0, last2_first, max2_first)\n        total_max_first = max(max2_first, max1_first)\n\n        return min(total_max, total_max_first)",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def assign_numbers(arr1, arr2):\n            last1_even = 0\n            last1_odd = 0\n            last2_even = 0\n            last2_odd = 0\n            max_num = 0\n            i = j = 0\n            len1, len2 = len(arr1), len(arr2)\n            while i < len1 or j < len2:\n                if i < len1:\n                    num1 = arr1[i]\n                    if num1 == 0:\n                        min_val1 = 2\n                        parity1 = 0\n                    else:\n                        min_val1 = 1\n                        parity1 = 1\n                else:\n                    num1 = None\n                if j < len2:\n                    num2 = arr2[j]\n                    if num2 == 0:\n                        min_val2 = 2\n                        parity2 = 0\n                    else:\n                        min_val2 = 1\n                        parity2 = 1\n                else:\n                    num2 = None\n\n                candidates = []\n                if num1 is not None:\n                    start1 = max(last1_even + (1 if parity1 == 0 else 0), last1_odd + (1 if parity1 == 1 else 0), min_val1)\n                    if start1 % 2 != parity1:\n                        start1 += 1\n                    candidates.append(start1)\n                if num2 is not None:\n                    start2 = max(last2_even + (1 if parity2 == 0 else 0), last2_odd + (1 if parity2 == 1 else 0), min_val2)\n                    if start2 % 2 != parity2:\n                        start2 += 1\n                    candidates.append(start2)\n\n                if not candidates:\n                    break\n\n                chosen = min(candidates)\n                if num1 is not None and chosen == start1:\n                    if parity1 == 0:\n                        last1_even = chosen\n                    else:\n                        last1_odd = chosen\n                    i += 1\n                if num2 is not None and chosen == start2:\n                    if parity2 == 0:\n                        last2_even = chosen\n                    else:\n                        last2_odd = chosen\n                    j += 1\n                max_num = max(max_num, chosen)\n            return max_num\n\n        combined = sorted(zip(nums1, nums2), key=lambda x: (x[0], x[1]))\n        nums1_sorted = [x[0] for x in combined]\n        nums2_sorted = [x[1] for x in combined]\n\n        max1 = assign_numbers(nums1_sorted, nums2_sorted)\n        max2 = assign_numbers(nums2_sorted, nums1_sorted)\n        return min(max1, max2)",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def assign_numbers(arr1, arr2):\n            last1 = 0\n            last2 = 0\n            current_max = 0\n            i = j = 0\n            len1, len2 = len(arr1), len(arr2)\n            while i < len1 or j < len2:\n                if i < len1:\n                    num1 = arr1[i]\n                    if num1 == 0:\n                        parity1 = 0\n                        min_val1 = 2\n                    else:\n                        parity1 = 1\n                        min_val1 = 1\n                    start1 = max(last1 + 1, min_val1)\n                    if start1 % 2 != parity1:\n                        start1 += 1\n                else:\n                    start1 = float('inf')\n                \n                if j < len2:\n                    num2 = arr2[j]\n                    if num2 == 0:\n                        parity2 = 0\n                        min_val2 = 2\n                    else:\n                        parity2 = 1\n                        min_val2 = 1\n                    start2 = max(last2 + 1, min_val2)\n                    if start2 % 2 != parity2:\n                        start2 += 1\n                else:\n                    start2 = float('inf')\n                \n                if start1 < start2:\n                    last1 = start1\n                    current_max = max(current_max, last1)\n                    i += 1\n                else:\n                    last2 = start2\n                    current_max = max(current_max, last2)\n                    j += 1\n            return current_max\n        \n        # Try both orders: process nums1 first, then nums2, and vice versa\n        max1 = assign_numbers(nums1, nums2)\n        max2 = assign_numbers(nums2, nums1)\n        return min(max1, max2)",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        used = set()\n        last1 = 0\n        last2 = 0\n        max_num = 0\n        ptr1 = 0\n        ptr2 = 0\n\n        while ptr1 < len(nums1) or ptr2 < len(nums2):\n            candidates = []\n            if ptr1 < len(nums1):\n                current = nums1[ptr1]\n                if current == 0:\n                    start = 2 if last1 == 0 else last1 + 2 if last1 % 2 == 0 else last1 + 1\n                    while True:\n                        if start % 2 == 0 and start not in used and start > last1:\n                            candidates.append(start)\n                            break\n                        start += 1\n                else:\n                    start = 1 if last1 == 0 else last1 + 2 if last1 % 2 == 1 else last1 + 1\n                    while True:\n                        if start % 2 == 1 and start not in used and start > last1:\n                            candidates.append(start)\n                            break\n                        start += 1\n\n            if ptr2 < len(nums2):\n                current = nums2[ptr2]\n                if current == 0:\n                    start = 2 if last2 == 0 else last2 + 2 if last2 % 2 == 0 else last2 + 1\n                    while True:\n                        if start % 2 == 0 and start not in used and start > last2:\n                            candidates.append(start)\n                            break\n                        start += 1\n                else:\n                    start = 1 if last2 == 0 else last2 + 2 if last2 % 2 == 1 else last2 + 1\n                    while True:\n                        if start % 2 == 1 and start not in used and start > last2:\n                            candidates.append(start)\n                            break\n                        start += 1\n\n            if not candidates:\n                return -1  # should not happen as per problem constraints\n\n            chosen = min(candidates)\n            if ptr1 < len(nums1) and (ptr2 >= len(nums2) or chosen <= candidates[1]):\n                last1 = chosen\n                ptr1 += 1\n            else:\n                last2 = chosen\n                ptr2 += 1\n\n            used.add(chosen)\n            max_num = max(max_num, chosen)\n\n        return max_num",
+    "import heapq\n\nclass Solution:\n    def minLargest(self, nums1: list[int], nums2: list[int]) -> int:\n        heap = []\n        last1 = 0\n        last2 = 0\n        ptr1 = 0\n        ptr2 = 0\n        max_num = 0\n        \n        while ptr1 < len(nums1) or ptr2 < len(nums2):\n            # Generate next possible for nums1\n            if ptr1 < len(nums1):\n                current = nums1[ptr1]\n                if current == 0:\n                    next_num = last1 + 1 if last1 % 2 == 1 else last1 + 2\n                    if next_num % 2 != 0:\n                        next_num += 1\n                else:\n                    next_num = last1 + 1 if last1 % 2 == 0 else last1 + 2\n                    if next_num % 2 != 1:\n                        next_num += 1\n                heapq.heappush(heap, (next_num, 1, ptr1))\n            \n            # Generate next possible for nums2\n            if ptr2 < len(nums2):\n                current = nums2[ptr2]\n                if current == 0:\n                    next_num = last2 + 1 if last2 % 2 == 1 else last2 + 2\n                    if next_num % 2 != 0:\n                        next_num += 1\n                else:\n                    next_num = last2 + 1 if last2 % 2 == 0 else last2 + 2\n                    if next_num % 2 != 1:\n                        next_num += 1\n                heapq.heappush(heap, (next_num, 2, ptr2))\n            \n            # Select the smallest available\n            next_val, arr, ptr = heapq.heappop(heap)\n            if arr == 1:\n                last1 = next_val\n                ptr1 += 1\n            else:\n                last2 = next_val\n                ptr2 += 1\n            \n            max_num = max(max_num, next_val)\n        \n        return max_num",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        from heapq import heappush, heappop\n        \n        def get_next(current_last, is_even):\n            if current_last == 0:\n                return 2 if is_even else 1\n            next_num = current_last + 1\n            if (next_num % 2) == (0 if is_even else 1):\n                return next_num\n            else:\n                return next_num + 1\n        \n        heap = []\n        last1 = 0\n        last2 = 0\n        ptr1 = 0\n        ptr2 = 0\n        used = set()\n        max_num = 0\n        \n        while ptr1 < len(nums1) or ptr2 < len(nums2):\n            candidates = []\n            if ptr1 < len(nums1):\n                val = nums1[ptr1]\n                is_even = (val == 0)\n                next_num = get_next(last1, is_even)\n                while next_num in used:\n                    next_num = get_next(next_num, is_even)\n                heappush(heap, (next_num, 'nums1', ptr1))\n            \n            if ptr2 < len(nums2):\n                val = nums2[ptr2]\n                is_even = (val == 0)\n                next_num = get_next(last2, is_even)\n                while next_num in used:\n                    next_num = get_next(next_num, is_even)\n                heappush(heap, (next_num, 'nums2', ptr2))\n            \n            if not heap:\n                return -1  # Should not happen as per problem constraints\n            \n            chosen_num, arr_name, ptr = heappop(heap)\n            \n            if arr_name == 'nums1':\n                last1 = chosen_num\n                ptr1 += 1\n            else:\n                last2 = chosen_num\n                ptr2 += 1\n            \n            used.add(chosen_num)\n            max_num = max(max_num, chosen_num)\n        \n        return max_num",
+    "import heapq\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        heap = []\n        last1 = 0\n        last2 = 0\n        ptr1 = 0\n        ptr2 = 0\n        used = set()\n        max_num = 0\n\n        while ptr1 < len(nums1) or ptr2 < len(nums2):\n            candidates = []\n            if ptr1 < len(nums1):\n                current = nums1[ptr1]\n                if current == 0:\n                    start = 2 if last1 == 0 else last1 + 2 if last1 % 2 == 0 else last1 + 1\n                    while True:\n                        if start % 2 == 0 and start > last1 and start not in used:\n                            candidates.append((start, 'nums1', ptr1))\n                            break\n                        start += 1\n                else:\n                    start = 1 if last1 == 0 else last1 + 2 if last1 % 2 == 1 else last1 + 1\n                    while True:\n                        if start % 2 == 1 and start > last1 and start not in used:\n                            candidates.append((start, 'nums1', ptr1))\n                            break\n                        start += 1\n\n            if ptr2 < len(nums2):\n                current = nums2[ptr2]\n                if current == 0:\n                    start = 2 if last2 == 0 else last2 + 2 if last2 % 2 == 0 else last2 + 1\n                    while True:\n                        if start % 2 == 0 and start > last2 and start not in used:\n                            candidates.append((start, 'nums2', ptr2))\n                            break\n                        start += 1\n                else:\n                    start = 1 if last2 == 0 else last2 + 2 if last2 % 2 == 1 else last2 + 1\n                    while True:\n                        if start % 2 == 1 and start > last2 and start not in used:\n                            candidates.append((start, 'nums2', ptr2))\n                            break\n                        start += 1\n\n            if not candidates:\n                return -1  # Should not happen as per problem constraints\n\n            # Select the smallest candidate\n            chosen = min(candidates, key=lambda x: x[0])\n            val, arr, ptr = chosen\n\n            if arr == 'nums1':\n                last1 = val\n                ptr1 += 1\n            else:\n                last2 = val\n                ptr2 += 1\n\n            used.add(val)\n            max_num = max(max_num, val)\n\n        return max_num",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def assign_numbers(arr, last_num, is_nums1):\n            if not arr:\n                return (0, 0) if is_nums1 else (0, 0)\n            current = 1 if arr[0] == 1 else 2\n            used = {current}\n            last1 = max(last_num, current) if is_nums1 else 0\n            last2 = max(last_num, current) if not is_nums1 else 0\n            for i in range(1, len(arr)):\n                prev = current\n                if arr[i] == 1:\n                    current = prev + 1 if prev % 2 == 1 else prev + 2\n                    if current % 2 == 0:\n                        current += 1\n                else:\n                    current = prev + 1 if prev % 2 == 0 else prev + 2\n                    if current % 2 == 1:\n                        current += 1\n                while current in used:\n                    current += 2\n                used.add(current)\n                if is_nums1:\n                    last1 = max(last1, current)\n                else:\n                    last2 = max(last2, current)\n            return (last1, last2) if is_nums1 else (last2, last1)\n        \n        last1, last2 = 0, 0\n        if nums1:\n            last1, _ = assign_numbers(nums1, 0, True)\n        if nums2:\n            _, last2 = assign_numbers(nums2, 0, False)\n        \n        return max(last1, last2)",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def get_min_max(arr1, arr2):\n            used = set()\n            max_num = 0\n            i = j = 0\n            while i < len(arr1) or j < len(arr2):\n                current1 = None\n                if i < len(arr1):\n                    if arr1[i] == 1:\n                        if not used:\n                            current1 = 1\n                        else:\n                            current1 = max(max_num + 1 if (max_num % 2 == 1) else max_num + 2, 1)\n                            while current1 in used:\n                                current1 += 2\n                    else:\n                        if not used:\n                            current1 = 2\n                        else:\n                            current1 = max(max_num + 1 if (max_num % 2 == 0) else max_num + 2, 2)\n                            while current1 in used:\n                                current1 += 2\n                current2 = None\n                if j < len(arr2):\n                    if arr2[j] == 1:\n                        current2 = max(max_num + 1 if (max_num % 2 == 1) else max_num + 2, 1)\n                        while current2 in used:\n                            current2 += 2\n                    else:\n                        current2 = max(max_num + 1 if (max_num % 2 == 0) else max_num + 2, 2)\n                        while current2 in used:\n                            current2 += 2\n                if current1 is not None and current2 is not None:\n                    if current1 < current2:\n                        used.add(current1)\n                        max_num = max(max_num, current1)\n                        i += 1\n                    else:\n                        used.add(current2)\n                        max_num = max(max_num, current2)\n                        j += 1\n                elif current1 is not None:\n                    used.add(current1)\n                    max_num = max(max_num, current1)\n                    i += 1\n                elif current2 is not None:\n                    used.add(current2)\n                    max_num = max(max_num, current2)\n                    j += 1\n            return max_num\n        \n        option1 = get_min_max(nums1, nums2)\n        option2 = get_min_max(nums2, nums1)\n        return min(option1, option2)",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def assign_numbers(arr, last_num, is_nums1, used):\n            if not arr:\n                return 0\n            current = 1 if arr[0] == 1 else 2\n            while current in used:\n                current += 2\n            used.add(current)\n            last = max(last_num, current) if is_nums1 else 0\n            for i in range(1, len(arr)):\n                prev = current\n                if arr[i] == 1:\n                    current = prev + 1 if prev % 2 == 1 else prev + 2\n                    if current % 2 == 0:\n                        current += 1\n                else:\n                    current = prev + 1 if prev % 2 == 0 else prev + 2\n                    if current % 2 == 1:\n                        current += 1\n                while current in used:\n                    current += 2\n                used.add(current)\n                if is_nums1:\n                    last = max(last, current)\n                else:\n                    last = max(last, current)\n            return last\n        \n        used = set()\n        last1 = 0\n        if nums1:\n            last1 = assign_numbers(nums1, 0, True, used)\n        \n        used2 = used.copy()\n        last2 = 0\n        if nums2:\n            last2 = assign_numbers(nums2, 0, False, used2)\n        \n        return max(last1, last2)",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def assign_numbers(arr, last_num, is_nums1, used):\n            current = 1 if arr[0] == 1 else 2\n            while current in used:\n                current += 2\n            used.add(current)\n            last = current\n            for i in range(1, len(arr)):\n                if arr[i] == 1:\n                    next_num = last + 1 if last % 2 == 1 else last + 2\n                    if next_num % 2 == 0:\n                        next_num += 1\n                else:\n                    next_num = last + 1 if last % 2 == 0 else last + 2\n                    if next_num % 2 == 1:\n                        next_num += 1\n                while next_num in used:\n                    next_num += 2\n                used.add(next_num)\n                last = next_num\n            return last\n        \n        used = set()\n        last1 = 0\n        if nums1:\n            last1 = assign_numbers(nums1, 0, True, used)\n        last2 = 0\n        if nums2:\n            last2 = assign_numbers(nums2, 0, False, used)\n        return max(last1, last2)",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def get_min_max(nums, is_first):\n            last_even = 0\n            last_odd = 0\n            for num in nums:\n                if num == 0:\n                    current = last_even + 2\n                    last_even = current\n                else:\n                    current = last_odd + 2\n                    last_odd = current\n                if is_first:\n                    used.add(current)\n                else:\n                    if current in used:\n                        return None\n                    used.add(current)\n            return max(last_even, last_odd)\n        \n        used = set()\n        max1 = get_min_max(nums1, True)\n        if max1 is None:\n            return -1\n        max2 = get_min_max(nums2, False)\n        if max2 is None:\n            return -1\n        return max(max1, max2)",
+    "import heapq\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def get_next_available(heap, last, is_even):\n            if not heap:\n                return last + 2 if is_even else last + 1\n            return heapq.heappop(heap)\n        \n        def assign_numbers(nums, even_heap, odd_heap, last_even, last_odd):\n            current_even = last_even\n            current_odd = last_odd\n            for num in nums:\n                if num == 0:\n                    next_even = get_next_available(even_heap, current_even, True)\n                    if next_even <= current_even:\n                        return None, None, None\n                    current_even = next_even\n                else:\n                    next_odd = get_next_available(odd_heap, current_odd, False)\n                    if next_odd <= current_odd:\n                        return None, None, None\n                    current_odd = next_odd\n            return current_even, current_odd, max(current_even, current_odd)\n        \n        even_heap = []\n        odd_heap = []\n        for i in range(2, 10000, 2):\n            heapq.heappush(even_heap, i)\n        for i in range(1, 10000, 2):\n            heapq.heappush(odd_heap, i)\n        \n        ce1, co1, max1 = assign_numbers(nums1, even_heap, odd_heap, 0, 0)\n        if max1 is None:\n            return -1\n        ce2, co2, max2 = assign_numbers(nums2, even_heap, odd_heap, ce1, co1)\n        if max2 is None:\n            return -1\n        return max(max1, max2)",
+    "import heapq\n\nclass Solution:\n    def minLargest(self, nums1: list[int], nums2: list[int]) -> int:\n        def get_next_even(last_even):\n            return last_even + 2 if last_even % 2 == 0 else last_even + 1\n        \n        def get_next_odd(last_odd):\n            return last_odd + 2 if last_odd % 2 == 1 else last_odd + 1\n        \n        def assign_numbers(nums, even_heap, odd_heap, last_even, last_odd):\n            current_even = last_even\n            current_odd = last_odd\n            for num in nums:\n                if num == 0:\n                    if even_heap:\n                        next_even = heapq.heappop(even_heap)\n                        if next_even <= current_even:\n                            return None, None, None\n                        current_even = next_even\n                    else:\n                        next_even = get_next_even(current_even)\n                        if next_even <= current_even:\n                            return None, None, None\n                        current_even = next_even\n                else:\n                    if odd_heap:\n                        next_odd = heapq.heappop(odd_heap)\n                        if next_odd <= current_odd:\n                            return None, None, None\n                        current_odd = next_odd\n                    else:\n                        next_odd = get_next_odd(current_odd)\n                        if next_odd <= current_odd:\n                            return None, None, None\n                        current_odd = next_odd\n            return current_even, current_odd, max(current_even, current_odd)\n        \n        even_heap = []\n        odd_heap = []\n        for i in range(2, 10000, 2):\n            heapq.heappush(even_heap, i)\n        for i in range(1, 10000, 2):\n            heapq.heappush(odd_heap, i)\n        \n        ce1, co1, max1 = assign_numbers(nums1, even_heap, odd_heap, 0, 0)\n        if max1 is None:\n            return -1\n        ce2, co2, max2 = assign_numbers(nums2, even_heap, odd_heap, ce1, co1)\n        if max2 is None:\n            return -1\n        return max(max1, max2)",
+    "import heapq\n\nclass Solution:\n    def minLargest(self, nums1: list, nums2: list) -> int:\n        def assign_numbers(nums, even_available, odd_available, last_even, last_odd, used):\n            current_even = last_even\n            current_odd = last_odd\n            for num in nums:\n                if num == 0:\n                    next_even = None\n                    if even_available:\n                        next_even = heapq.heappop(even_available)\n                        if next_even <= current_even:\n                            heapq.heappush(even_available, next_even)\n                            next_even = None\n                    if next_even is None:\n                        next_even = current_even + 2\n                        while next_even in used:\n                            next_even += 2\n                        used.add(next_even)\n                    current_even = next_even\n                else:\n                    next_odd = None\n                    if odd_available:\n                        next_odd = heapq.heappop(odd_available)\n                        if next_odd <= current_odd:\n                            heapq.heappush(odd_available, next_odd)\n                            next_odd = None\n                    if next_odd is None:\n                        next_odd = current_odd + 2 if current_odd % 2 == 1 else current_odd + 1\n                        while next_odd in used:\n                            next_odd += 2\n                        used.add(next_odd)\n                    current_odd = next_odd\n            return current_even, current_odd, max(current_even, current_odd)\n        \n        even_available = []\n        for i in range(2, 10000, 2):\n            heapq.heappush(even_available, i)\n        odd_available = []\n        for i in range(1, 10000, 2):\n            heapq.heappush(odd_available, i)\n        used = set()\n        \n        ce1, co1, max1 = assign_numbers(nums1, even_available, odd_available, 0, 0, used)\n        if max1 is None:\n            return -1\n        ce2, co2, max2 = assign_numbers(nums2, even_available, odd_available, ce1, co1, used)\n        if max2 is None:\n            return -1\n        return max(max1, max2)",
+    "import heapq\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def get_next_available(heap, last, is_even):\n            if not heap:\n                next_num = last + 2 if is_even else last + 1\n                return next_num\n            else:\n                return heapq.heappop(heap)\n        \n        def assign_numbers(nums, even_heap, odd_heap, last_even, last_odd):\n            current_even = last_even\n            current_odd = last_odd\n            for num in nums:\n                if num == 0:\n                    next_even = get_next_available(even_heap, current_even, True)\n                    if next_even <= current_even:\n                        return None, None, None\n                    current_even = next_even\n                else:\n                    next_odd = get_next_available(odd_heap, current_odd, False)\n                    if next_odd <= current_odd:\n                        return None, None, None\n                    current_odd = next_odd\n            return current_even, current_odd, max(current_even, current_odd)\n        \n        even_heap = []\n        odd_heap = []\n        for i in range(2, 10000, 2):\n            heapq.heappush(even_heap, i)\n        for i in range(1, 10000, 2):\n            heapq.heappush(odd_heap, i)\n        \n        ce1, co1, max1 = assign_numbers(nums1, even_heap, odd_heap, 0, 0)\n        if max1 is None:\n            return -1\n        ce2, co2, max2 = assign_numbers(nums2, even_heap, odd_heap, ce1, co1)\n        if max2 is None:\n            return -1\n        return max(max1, max2)",
+    "import heapq\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def get_next_available(heap, last_used):\n            while True:\n                if not heap:\n                    return None\n                current = heapq.heappop(heap)\n                if current > last_used:\n                    return current\n        \n        even_heap = []\n        odd_heap = []\n        for i in range(1, 2000):  # Sufficiently large range to cover possible cases\n            if i % 2 == 0:\n                heapq.heappush(even_heap, i)\n            else:\n                heapq.heappush(odd_heap, i)\n        \n        max_num = 0\n        last1_even = 0\n        last1_odd = 0\n        last2_even = 0\n        last2_odd = 0\n        \n        # Process nums1 first\n        for num in nums1:\n            if num == 0:\n                next_even = get_next_available(even_heap, last1_even)\n                if next_even is None:\n                    return -1\n                last1_even = next_even\n                max_num = max(max_num, next_even)\n            else:\n                next_odd = get_next_available(odd_heap, last1_odd)\n                if next_odd is None:\n                    return -1\n                last1_odd = next_odd\n                max_num = max(max_num, next_odd)\n        \n        # Process nums2\n        for num in nums2:\n            if num == 0:\n                next_even = get_next_available(even_heap, last2_even)\n                if next_even is None:\n                    return -1\n                last2_even = next_even\n                max_num = max(max_num, next_even)\n            else:\n                next_odd = get_next_available(odd_heap, last2_odd)\n                if next_odd is None:\n                    return -1\n                last2_odd = next_odd\n                max_num = max(max_num, next_odd)\n        \n        return max_num",
+    "import heapq\nfrom typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def get_next_available(heap, last_used):\n            while heap:\n                current = heapq.heappop(heap)\n                if current > last_used:\n                    return current\n            return None\n        \n        even_heap = []\n        odd_heap = []\n        for i in range(1, 2000):\n            if i % 2 == 0:\n                heapq.heappush(even_heap, i)\n            else:\n                heapq.heappush(odd_heap, i)\n        \n        max_num = 0\n        last1_even = 0\n        last1_odd = 0\n        last2_even = 0\n        last2_odd = 0\n        \n        # Process both arrays together\n        for num1, num2 in zip(nums1, nums2):\n            # Handle nums1\n            if num1 == 0:\n                next_even = get_next_available(even_heap, last1_even)\n                if next_even is None:\n                    return -1\n                last1_even = next_even\n                max_num = max(max_num, next_even)\n            else:\n                next_odd = get_next_available(odd_heap, last1_odd)\n                if next_odd is None:\n                    return -1\n                last1_odd = next_odd\n                max_num = max(max_num, next_odd)\n            \n            # Handle nums2\n            if num2 == 0:\n                next_even = get_next_available(even_heap, last2_even)\n                if next_even is None:\n                    return -1\n                last2_even = next_even\n                max_num = max(max_num, next_even)\n            else:\n                next_odd = get_next_available(odd_heap, last2_odd)\n                if next_odd is None:\n                    return -1\n                last2_odd = next_odd\n                max_num = max(max_num, next_odd)\n        \n        # Process remaining elements in nums1 if any\n        for num in nums1[len(nums2):]:\n            if num == 0:\n                next_even = get_next_available(even_heap, last1_even)\n                if next_even is None:\n                    return -1\n                last1_even = next_even\n                max_num = max(max_num, next_even)\n            else:\n                next_odd = get_next_available(odd_heap, last1_odd)\n                if next_odd is None:\n                    return -1\n                last1_odd = next_odd\n                max_num = max(max_num, next_odd)\n        \n        # Process remaining elements in nums2 if any\n        for num in nums2[len(nums1):]:\n            if num == 0:\n                next_even = get_next_available(even_heap, last2_even)\n                if next_even is None:\n                    return -1\n                last2_even = next_even\n                max_num = max(max_num, next_even)\n            else:\n                next_odd = get_next_available(odd_heap, last2_odd)\n                if next_odd is None:\n                    return -1\n                last2_odd = next_odd\n                max_num = max(max_num, next_odd)\n        \n        return max_num",
+    "import heapq\nfrom typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Combine both arrays with their respective types\n        combined = []\n        for num in nums1:\n            combined.append(('nums1', num))\n        for num in nums2:\n            combined.append(('nums2', num))\n        \n        # Separate into even and odd heaps\n        even_heap = []\n        odd_heap = []\n        for i in range(1, 2000):  # Sufficiently large range to cover possible cases\n            if i % 2 == 0:\n                heapq.heappush(even_heap, i)\n            else:\n                heapq.heappush(odd_heap, i)\n        \n        max_num = 0\n        last1_even = 0\n        last1_odd = 0\n        last2_even = 0\n        last2_odd = 0\n        \n        # Process combined array\n        for source, num in combined:\n            if num == 0:\n                if source == 'nums1':\n                    next_even = self.get_next_available(even_heap, last1_even)\n                    if next_even is None:\n                        return -1\n                    last1_even = next_even\n                    max_num = max(max_num, next_even)\n                else:\n                    next_even = self.get_next_available(even_heap, last2_even)\n                    if next_even is None:\n                        return -1\n                    last2_even = next_even\n                    max_num = max(max_num, next_even)\n            else:\n                if source == 'nums1':\n                    next_odd = self.get_next_available(odd_heap, last1_odd)\n                    if next_odd is None:\n                        return -1\n                    last1_odd = next_odd\n                    max_num = max(max_num, next_odd)\n                else:\n                    next_odd = self.get_next_available(odd_heap, last2_odd)\n                    if next_odd is None:\n                        return -1\n                    last2_odd = next_odd\n                    max_num = max(max_num, next_odd)\n        \n        return max_num\n\n    def get_next_available(self, heap, last_used):\n        while True:\n            if not heap:\n                return None\n            current = heapq.heappop(heap)\n            if current > last_used:\n                return current",
+    "import heapq\nfrom typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        even_heap = []\n        odd_heap = []\n        for i in range(1, 2000):\n            if i % 2 == 0:\n                heapq.heappush(even_heap, i)\n            else:\n                heapq.heappush(odd_heap, i)\n        \n        max_num = 0\n        last1_even = 0\n        last1_odd = 0\n        last2_even = 0\n        last2_odd = 0\n        \n        # Process both arrays together\n        for num1, num2 in zip(nums1, nums2):\n            # For nums1\n            if num1 == 0:\n                next_even = self.get_next_available(even_heap, last1_even)\n                if next_even is None:\n                    return -1\n                last1_even = next_even\n                max_num = max(max_num, next_even)\n            else:\n                next_odd = self.get_next_available(odd_heap, last1_odd)\n                if next_odd is None:\n                    return -1\n                last1_odd = next_odd\n                max_num = max(max_num, next_odd)\n            \n            # For nums2\n            if num2 == 0:\n                next_even = self.get_next_available(even_heap, last2_even)\n                if next_even is None:\n                    return -1\n                last2_even = next_even\n                max_num = max(max_num, next_even)\n            else:\n                next_odd = self.get_next_available(odd_heap, last2_odd)\n                if next_odd is None:\n                    return -1\n                last2_odd = next_odd\n                max_num = max(max_num, next_odd)\n        \n        # Handle remaining elements in nums1 if any\n        for num in nums1[len(nums2):]:\n            if num == 0:\n                next_even = self.get_next_available(even_heap, last1_even)\n                if next_even is None:\n                    return -1\n                last1_even = next_even\n                max_num = max(max_num, next_even)\n            else:\n                next_odd = self.get_next_available(odd_heap, last1_odd)\n                if next_odd is None:\n                    return -1\n                last1_odd = next_odd\n                max_num = max(max_num, next_odd)\n        \n        # Handle remaining elements in nums2 if any\n        for num in nums2[len(nums1):]:\n            if num == 0:\n                next_even = self.get_next_available(even_heap, last2_even)\n                if next_even is None:\n                    return -1\n                last2_even = next_even\n                max_num = max(max_num, next_even)\n            else:\n                next_odd = self.get_next_available(odd_heap, last2_odd)\n                if next_odd is None:\n                    return -1\n                last2_odd = next_odd\n                max_num = max(max_num, next_odd)\n        \n        return max_num\n    \n    def get_next_available(self, heap, last_used):\n        while heap:\n            current = heapq.heappop(heap)\n            if current > last_used:\n                return current\n        return None",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def assign_numbers(nums, last_even, last_odd, is_first):\n            current_even = last_even\n            current_odd = last_odd\n            for num in nums:\n                if num == 0:\n                    next_even = current_even + 2 if current_even != 0 else 2\n                    if next_even <= current_odd:\n                        next_even = current_odd + 1 if current_odd % 2 == 0 else current_odd + 2\n                    current_even = next_even\n                else:\n                    next_odd = current_odd + 2 if current_odd != 0 else 1\n                    if next_odd <= current_even:\n                        next_odd = current_even + 1 if current_even % 2 == 1 else current_even + 2\n                    current_odd = next_odd\n            return current_even, current_odd\n        \n        max_even1, max_odd1 = assign_numbers(nums1, 0, 0, True)\n        max_even2, max_odd2 = assign_numbers(nums2, max_even1, max_odd1, False)\n        return max(max_even1, max_odd1, max_even2, max_odd2)",
+    "import heapq\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        heap = []\n        for num in nums1:\n            if num == 0:\n                heapq.heappush(heap, (2, 'even', 'nums1'))\n            else:\n                heapq.heappush(heap, (1, 'odd', 'nums1'))\n        \n        for num in nums2:\n            if num == 0:\n                heapq.heappush(heap, (2, 'even', 'nums2'))\n            else:\n                heapq.heappush(heap, (1, 'odd', 'nums2'))\n        \n        last_even = {'nums1': 0, 'nums2': 0}\n        last_odd = {'nums1': 0, 'nums2': 0}\n        max_num = 0\n        \n        while heap:\n            val, typ, arr = heapq.heappop(heap)\n            if typ == 'even':\n                if last_even[arr] == 0:\n                    current = 2\n                else:\n                    current = last_even[arr] + 2\n                if current <= last_odd[arr]:\n                    if last_odd[arr] % 2 == 0:\n                        current = last_odd[arr] + 1\n                    else:\n                        current = last_odd[arr] + 2\n                last_even[arr] = current\n                max_num = max(max_num, current)\n            else:\n                if last_odd[arr] == 0:\n                    current = 1\n                else:\n                    current = last_odd[arr] + 2\n                if current <= last_even[arr]:\n                    if last_even[arr] % 2 == 1:\n                        current = last_even[arr] + 1\n                    else:\n                        current = last_even[arr] + 2\n                last_odd[arr] = current\n                max_num = max(max_num, current)\n        \n        return max_num",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def assign_numbers(nums, last_even, last_odd):\n            current_even = last_even\n            current_odd = last_odd\n            for num in nums:\n                if num == 0:\n                    next_even = current_even + 2 if current_even != 0 else 2\n                    if next_even <= current_odd:\n                        next_even = current_odd + 1 if current_odd % 2 == 0 else current_odd + 2\n                    current_even = next_even\n                else:\n                    next_odd = current_odd + 2 if current_odd != 0 else 1\n                    if next_odd <= current_even:\n                        next_odd = current_even + 1 if current_even % 2 == 1 else current_even + 2\n                    current_odd = next_odd\n            return current_even, current_odd\n        \n        max_even1, max_odd1 = assign_numbers(nums1, 0, 0)\n        max_even2, max_odd2 = assign_numbers(nums2, max_even1, max_odd1)\n        return max(max_even1, max_odd1, max_even2, max_odd2)",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def assign_numbers(nums, last_even, last_odd):\n            current_even = last_even\n            current_odd = last_odd\n            for num in nums:\n                if num == 0:\n                    # Need even number\n                    next_even = current_even + 2 if current_even != 0 else 2\n                    if next_even <= current_odd:\n                        if current_odd % 2 == 0:\n                            next_even = current_odd + 1\n                        else:\n                            next_even = current_odd + 2\n                    current_even = next_even\n                else:\n                    # Need odd number\n                    next_odd = current_odd + 2 if current_odd != 0 else 1\n                    if next_odd <= current_even:\n                        if current_even % 2 == 1:\n                            next_odd = current_even + 1\n                        else:\n                            next_odd = current_even + 2\n                    current_odd = next_odd\n            return current_even, current_odd\n        \n        # Assign numbers to nums1 first\n        max_even1, max_odd1 = assign_numbers(nums1, 0, 0)\n        # Assign numbers to nums2, starting from the last used numbers in nums1\n        max_even2, max_odd2 = assign_numbers(nums2, max_even1, max_odd1)\n        # The maximum of all four will be the answer\n        return max(max_even1, max_odd1, max_even2, max_odd2)",
+    "</think>\n\n## Problem Analysis\nThe problem requires us to replace 0s and 1s in two arrays with even and odd positive integers respectively, ensuring both arrays are strictly increasing. Additionally, each integer used must be unique across both arrays. Our goal is to find the minimum possible largest number after these replacements.\n\n## Solution Approach\nThe approach involves dynamically assigning the smallest possible even or odd numbers to each position in the arrays while maintaining the increasing order and uniqueness of the numbers. We can model this using dynamic programming, where we track the last assigned number for each array and ensure that each new number is larger than the previous and adheres to the even/odd constraints.\n\n## Code Solution",
+    "class Solution:\n    def minLargest(self, nums1: list, nums2: list) -> int:\n        def get_min_max(nums1, nums2):\n            last1_even = last1_odd = last2_even = last2_odd = 0\n            max_num = 0\n            i = j = 0\n            while i < len(nums1) or j < len(nums2):\n                if i < len(nums1):\n                    current = nums1[i]\n                    if current == 0:\n                        next_even = last1_even + 2 if last1_even != 0 else 2\n                        if next_even > last2_even and next_even > last2_odd:\n                            last1_even = next_even\n                            max_num = max(max_num, next_even)\n                            i += 1\n                        else:\n                            next_even = max(last2_even, last2_odd) + 1\n                            if next_even % 2 == 0:\n                                last1_even = next_even\n                                max_num = max(max_num, next_even)\n                                i += 1\n                            else:\n                                next_even = next_even + 1\n                                last1_even = next_even\n                                max_num = max(max_num, next_even)\n                                i += 1\n                    else:\n                        next_odd = last1_odd + 2 if last1_odd != 0 else 1\n                        if next_odd > last2_even and next_odd > last2_odd:\n                            last1_odd = next_odd\n                            max_num = max(max_num, next_odd)\n                            i += 1\n                        else:\n                            next_odd = max(last2_even, last2_odd) + 1\n                            if next_odd % 2 == 1:\n                                last1_odd = next_odd\n                                max_num = max(max_num, next_odd)\n                                i += 1\n                            else:\n                                next_odd += 1\n                                last1_odd = next_odd\n                                max_num = max(max_num, next_odd)\n                                i += 1\n                if j < len(nums2):\n                    current = nums2[j]\n                    if current == 0:\n                        next_even = last2_even + 2 if last2_even != 0 else 2\n                        if next_even > last1_even and next_even > last1_odd:\n                            last2_even = next_even\n                            max_num = max(max_num, next_even)\n                            j += 1\n                        else:\n                            next_even = max(last1_even, last1_odd) + 1\n                            if next_even % 2 == 0:\n                                last2_even = next_even\n                                max_num = max(max_num, next_even)\n                                j += 1\n                            else:\n                                next_even += 1\n                                last2_even = next_even\n                                max_num = max(max_num, next_even)\n                                j += 1\n                    else:\n                        next_odd = last2_odd + 2 if last2_odd != 0 else 1\n                        if next_odd > last1_even and next_odd > last1_odd:\n                            last2_odd = next_odd\n                            max_num = max(max_num, next_odd)\n                            j += 1\n                        else:\n                            next_odd = max(last1_even, last1_odd) + 1\n                            if next_odd % 2 == 1:\n                                last2_odd = next_odd\n                                max_num = max(max_num, next_odd)\n                                j += 1\n                            else:\n                                next_odd += 1\n                                last2_odd = next_odd\n                                max_num = max(max_num, next_odd)\n                                j += 1\n            return max_num\n\n        return get_min_max(nums1, nums2)",
+    "import heapq\n\nclass Solution:\n    def minLargest(self, nums1: list, nums2: list) -> int:\n        def get_next_even(last):\n            return last + 2 if last != 0 else 2\n        \n        def get_next_odd(last):\n            return last + 2 if last != 0 else 1\n        \n        heap = []\n        last1_even = last1_odd = 0\n        last2_even = last2_odd = 0\n        \n        i = j = 0\n        max_num = 0\n        \n        while i < len(nums1) or j < len(nums2):\n            candidates = []\n            \n            if i < len(nums1):\n                current = nums1[i]\n                if current == 0:\n                    next_even = get_next_even(last1_even)\n                    if next_even > last2_even and next_even > last2_odd:\n                        candidates.append((next_even, 'nums1_even', i))\n                    else:\n                        next_even = max(last2_even, last2_odd) + 1\n                        if next_even % 2 != 0:\n                            next_even += 1\n                        candidates.append((next_even, 'nums1_even', i))\n                else:\n                    next_odd = get_next_odd(last1_odd)\n                    if next_odd > last2_even and next_odd > last2_odd:\n                        candidates.append((next_odd, 'nums1_odd', i))\n                    else:\n                        next_odd = max(last2_even, last2_odd) + 1\n                        if next_odd % 2 == 0:\n                            next_odd += 1\n                        candidates.append((next_odd, 'nums1_odd', i))\n            \n            if j < len(nums2):\n                current = nums2[j]\n                if current == 0:\n                    next_even = get_next_even(last2_even)\n                    if next_even > last1_even and next_even > last1_odd:\n                        candidates.append((next_even, 'nums2_even', j))\n                    else:\n                        next_even = max(last1_even, last1_odd) + 1\n                        if next_even % 2 != 0:\n                            next_even += 1\n                        candidates.append((next_even, 'nums2_even', j))\n                else:\n                    next_odd = get_next_odd(last2_odd)\n                    if next_odd > last1_even and next_odd > last1_odd:\n                        candidates.append((next_odd, 'nums2_odd', j))\n                    else:\n                        next_odd = max(last1_even, last1_odd) + 1\n                        if next_odd % 2 == 0:\n                            next_odd += 1\n                        candidates.append((next_odd, 'nums2_odd', j))\n            \n            if not candidates:\n                break\n            \n            next_val, arr, idx = min(candidates, key=lambda x: x[0])\n            max_num = max(max_num, next_val)\n            \n            if arr == 'nums1_even':\n                last1_even = next_val\n                i += 1\n            elif arr == 'nums1_odd':\n                last1_odd = next_val\n                i += 1\n            elif arr == 'nums2_even':\n                last2_even = next_val\n                j += 1\n            else:\n                last2_odd = next_val\n                j += 1\n        \n        return max_num",
+    "class Solution:\n    def minLargest(self, nums1: list, nums2: list) -> int:\n        def get_min_max(nums1, nums2):\n            last1_even = last1_odd = last2_even = last2_odd = 0\n            max_num = 0\n            i = j = 0\n            while i < len(nums1) or j < len(nums2):\n                # Process nums1 if possible\n                if i < len(nums1):\n                    current = nums1[i]\n                    if current == 0:\n                        # Need even number\n                        next_even = last1_even + 2 if last1_even != 0 else 2\n                        # Check if next_even is larger than both last2's\n                        if next_even > last2_even and next_even > last2_odd:\n                            last1_even = next_even\n                            max_num = max(max_num, next_even)\n                            i += 1\n                        else:\n                            # Find the smallest even that's larger than both\n                            next_even = max(last2_even, last2_odd) + 1\n                            if next_even % 2 != 0:\n                                next_even += 1\n                            last1_even = next_even\n                            max_num = max(max_num, next_even)\n                            i += 1\n                    else:\n                        # Need odd number\n                        next_odd = last1_odd + 2 if last1_odd != 0 else 1\n                        if next_odd > last2_even and next_odd > last2_odd:\n                            last1_odd = next_odd\n                            max_num = max(max_num, next_odd)\n                            i += 1\n                        else:\n                            next_odd = max(last2_even, last2_odd) + 1\n                            if next_odd % 2 == 0:\n                                next_odd += 1\n                            last1_odd = next_odd\n                            max_num = max(max_num, next_odd)\n                            i += 1\n                # Process nums2 if possible\n                if j < len(nums2):\n                    current = nums2[j]\n                    if current == 0:\n                        # Need even number\n                        next_even = last2_even + 2 if last2_even != 0 else 2\n                        if next_even > last1_even and next_even > last1_odd:\n                            last2_even = next_even\n                            max_num = max(max_num, next_even)\n                            j += 1\n                        else:\n                            next_even = max(last1_even, last1_odd) + 1\n                            if next_even % 2 != 0:\n                                next_even += 1\n                            last2_even = next_even\n                            max_num = max(max_num, next_even)\n                            j += 1\n                    else:\n                        # Need odd number\n                        next_odd = last2_odd + 2 if last2_odd != 0 else 1\n                        if next_odd > last1_even and next_odd > last1_odd:\n                            last2_odd = next_odd\n                            max_num = max(max_num, next_odd)\n                            j += 1\n                        else:\n                            next_odd = max(last1_even, last1_odd) + 1\n                            if next_odd % 2 == 0:\n                                next_odd += 1\n                            last2_odd = next_odd\n                            max_num = max(max_num, next_odd)\n                            j += 1\n            return max_num\n\n        return get_min_max(nums1, nums2)",
+    "import heapq\n\nclass Solution:\n    def minLargest(self, nums1: list, nums2: list) -> int:\n        def get_next_even(last):\n            return last + 2 if last != 0 else 2\n        \n        def get_next_odd(last):\n            return last + 2 if last != 0 else 1\n        \n        heap = []\n        last1_even, last1_odd = 0, 0\n        last2_even, last2_odd = 0, 0\n        \n        i = j = 0\n        max_num = 0\n        \n        while i < len(nums1) or j < len(nums2):\n            candidates = []\n            \n            if i < len(nums1):\n                current = nums1[i]\n                if current == 0:\n                    next_even = get_next_even(last1_even)\n                    if next_even > last2_even and next_even > last2_odd:\n                        candidates.append((next_even, 'nums1_even'))\n                    else:\n                        next_even = max(last2_even, last2_odd) + 1\n                        if next_even % 2 != 0:\n                            next_even += 1\n                        candidates.append((next_even, 'nums1_even'))\n                else:\n                    next_odd = get_next_odd(last1_odd)\n                    if next_odd > last2_even and next_odd > last2_odd:\n                        candidates.append((next_odd, 'nums1_odd'))\n                    else:\n                        next_odd = max(last2_even, last2_odd) + 1\n                        if next_odd % 2 == 0:\n                            next_odd += 1\n                        candidates.append((next_odd, 'nums1_odd'))\n            \n            if j < len(nums2):\n                current = nums2[j]\n                if current == 0:\n                    next_even = get_next_even(last2_even)\n                    if next_even > last1_even and next_even > last1_odd:\n                        candidates.append((next_even, 'nums2_even'))\n                    else:\n                        next_even = max(last1_even, last1_odd) + 1\n                        if next_even % 2 != 0:\n                            next_even += 1\n                        candidates.append((next_even, 'nums2_even'))\n                else:\n                    next_odd = get_next_odd(last2_odd)\n                    if next_odd > last1_even and next_odd > last1_odd:\n                        candidates.append((next_odd, 'nums2_odd'))\n                    else:\n                        next_odd = max(last1_even, last1_odd) + 1\n                        if next_odd % 2 == 0:\n                            next_odd += 1\n                        candidates.append((next_odd, 'nums2_odd'))\n            \n            if not candidates:\n                break\n            \n            next_val, source = min(candidates, key=lambda x: x[0])\n            max_num = max(max_num, next_val)\n            \n            if source == 'nums1_even':\n                last1_even = next_val\n                i += 1\n            elif source == 'nums1_odd':\n                last1_odd = next_val\n                i += 1\n            elif source == 'nums2_even':\n                last2_even = next_val\n                j += 1\n            else:\n                last2_odd = next_val\n                j += 1\n        \n        return max_num",
+    "class Solution:\n    def minLargest(self, nums1: list, nums2: list) -> int:\n        def get_min_max(nums1, nums2):\n            from functools import lru_cache\n\n            @lru_cache(maxsize=None)\n            def dp(i, j, last1, last2):\n                if i == len(nums1) and j == len(nums2):\n                    return max(last1, last2)\n                res = float('inf')\n                if i < len(nums1):\n                    current = nums1[i]\n                    if current == 0:\n                        start = 2\n                        if last1 > 0:\n                            start = max(start, last1 + 1 if last1 % 2 == 0 else last1 + 2)\n                        else:\n                            start = 2\n                        while True:\n                            if start > last1 and (start % 2 == 0) and (start not in used):\n                                used.add(start)\n                                new_last1 = start\n                                temp = dp(i + 1, j, new_last1, last2)\n                                if temp < res:\n                                    res = temp\n                                used.remove(start)\n                                break\n                            start += 2\n                    else:\n                        start = 1\n                        if last1 > 0:\n                            start = max(start, last1 + 2 if last1 % 2 == 1 else last1 + 1)\n                        else:\n                            start = 1\n                        while True:\n                            if start > last1 and (start % 2 == 1) and (start not in used):\n                                used.add(start)\n                                new_last1 = start\n                                temp = dp(i + 1, j, new_last1, last2)\n                                if temp < res:\n                                    res = temp\n                                used.remove(start)\n                                break\n                            start += 2\n                if j < len(nums2):\n                    current = nums2[j]\n                    if current == 0:\n                        start = 2\n                        if last2 > 0:\n                            start = max(start, last2 + 1 if last2 % 2 == 0 else last2 + 2)\n                        else:\n                            start = 2\n                        while True:\n                            if start > last2 and (start % 2 == 0) and (start not in used):\n                                used.add(start)\n                                new_last2 = start\n                                temp = dp(i, j + 1, last1, new_last2)\n                                if temp < res:\n                                    res = temp\n                                used.remove(start)\n                                break\n                            start += 2\n                    else:\n                        start = 1\n                        if last2 > 0:\n                            start = max(start, last2 + 2 if last2 % 2 == 1 else last2 + 1)\n                        else:\n                            start = 1\n                        while True:\n                            if start > last2 and (start % 2 == 1) and (start not in used):\n                                used.add(start)\n                                new_last2 = start\n                                temp = dp(i, j + 1, last1, new_last2)\n                                if temp < res:\n                                    res = temp\n                                used.remove(start)\n                                break\n                            start += 2\n                return res\n\n            used = set()\n            return dp(0, 0, 0, 0)\n\n        return get_min_max(nums1, nums2)",
+    "class Solution:\n    def minLargest(self, nums1: list, nums2: list) -> int:\n        def generate_sequence(nums, last_num):\n            seq = []\n            current = last_num + 1 if last_num % 2 == 0 else last_num + 2\n            for num in nums:\n                if num == 0:\n                    while True:\n                        if current % 2 == 0 and current > last_num:\n                            break\n                        current += 2\n                else:\n                    while True:\n                        if current % 2 == 1 and current > last_num:\n                            break\n                        current += 2\n                seq.append(current)\n                last_num = current\n                current += 1\n            return seq, last_num\n\n        max_num = 0\n        last1 = 0\n        last2 = 0\n        while True:\n            new_nums1, last1 = generate_sequence(nums1, last1)\n            new_nums2, last2 = generate_sequence(nums2, last2)\n            current_max = max(max(new_nums1) if new_nums1 else 0, max(new_nums2) if new_nums2 else 0)\n            if current_max <= max_num:\n                break\n            max_num = current_max\n            last1 += 1 if last1 % 2 == 0 else 2\n            last2 += 1 if last2 % 2 == 0 else 2\n        return max_num",
+    "class Solution:\n    def minLargest(self, nums1: list, nums2: list) -> int:\n        def is_possible(max_num):\n            a, b = [], []\n            for num in nums1:\n                if num == 0:\n                    a.append(2)\n                else:\n                    a.append(1)\n            for num in nums2:\n                if num == 0:\n                    b.append(2)\n                else:\n                    b.append(1)\n            a_ptr, b_ptr = 0, 0\n            used = set()\n            while a_ptr < len(a) or b_ptr < len(b):\n                if a_ptr < len(a):\n                    current = a[a_ptr]\n                    if current == 0:\n                        start = 2\n                        while start <= max_num:\n                            if start % 2 == 0 and (start > (a[a_ptr-1] if a_ptr > 0 else 0)) and start not in used:\n                                used.add(start)\n                                a[a_ptr] = start\n                                a_ptr += 1\n                                break\n                            start += 2\n                        else:\n                            return False\n                    else:\n                        start = 1\n                        while start <= max_num:\n                            if start % 2 == 1 and (start > (a[a_ptr-1] if a_ptr > 0 else 0)) and start not in used:\n                                used.add(start)\n                                a[a_ptr] = start\n                                a_ptr += 1\n                                break\n                            start += 2\n                        else:\n                            return False\n                if b_ptr < len(b):\n                    current = b[b_ptr]\n                    if current == 0:\n                        start = 2\n                        while start <= max_num:\n                            if start % 2 == 0 and (start > (b[b_ptr-1] if b_ptr > 0 else 0)) and start not in used:\n                                used.add(start)\n                                b[b_ptr] = start\n                                b_ptr += 1\n                                break\n                            start += 2\n                        else:\n                            return False\n                    else:\n                        start = 1\n                        while start <= max_num:\n                            if start % 2 == 1 and (start > (b[b_ptr-1] if b_ptr > 0 else 0)) and start not in used:\n                                used.add(start)\n                                b[b_ptr] = start\n                                b_ptr += 1\n                                break\n                            start += 2\n                        else:\n                            return False\n            return True\n\n        left = 1\n        right = 2 * (len(nums1) + len(nums2)) + 1\n        while left < right:\n            mid = (left + right) // 2\n            if is_possible(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minLargest(self, nums1: list, nums2: list) -> int:\n        def generate_sequence(nums):\n            seq = []\n            current = 0\n            for num in nums:\n                if num == 0:\n                    current = max(current + 1, 2) if current % 2 == 0 else max(current + 1, 2)\n                    while current % 2 != 0:\n                        current += 1\n                else:\n                    current = max(current + 1, 1) if current % 2 == 1 else max(current + 1, 1)\n                    while current % 2 != 1:\n                        current += 1\n                seq.append(current)\n                current += 1\n            return seq\n\n        seq1 = generate_sequence(nums1)\n        seq2 = generate_sequence(nums2)\n        max1 = max(seq1) if seq1 else 0\n        max2 = max(seq2) if seq2 else 0\n        return max(max1, max2)",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def get_min_max(nums1, nums2):\n            last1 = 0\n            last2 = 0\n            max_num = 0\n            for i in range(max(len(nums1), len(nums2))):\n                a = nums1[i] if i < len(nums1) else None\n                b = nums2[i] if i < len(nums2) else None\n                current = []\n                if a is not None:\n                    if a == 0:\n                        current.append(2)\n                    else:\n                        current.append(1)\n                if b is not None:\n                    if b == 0:\n                        current.append(2)\n                    else:\n                        current.append(1)\n                while True:\n                    valid = True\n                    new_last1 = last1\n                    new_last2 = last2\n                    if a is not None:\n                        if a == 0:\n                            new_last1 = max(new_last1 + 2, last2 + 1)\n                        else:\n                            new_last1 = max(new_last1 + 2, last2 + 1)\n                        if new_last1 % 2 != 0:\n                            new_last1 += 1\n                    if b is not None:\n                        if b == 0:\n                            new_last2 = max(new_last2 + 2, last1 + 1)\n                        else:\n                            new_last2 = max(new_last2 + 2, last1 + 1)\n                        if new_last2 % 2 != 1:\n                            new_last2 += 1\n                    if a is not None and b is not None and new_last1 >= new_last2:\n                        valid = False\n                    if valid:\n                        last1 = new_last1\n                        last2 = new_last2\n                        max_num = max(max_num, last1, last2)\n                        break\n            return max_num\n\n        return min(get_min_max(nums1, nums2), get_min_max(nums2, nums1))",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def calculate_max(nums_a, nums_b):\n            last_a = 0\n            last_b = 0\n            max_num = 0\n            for i in range(max(len(nums_a), len(nums_b))):\n                a = nums_a[i] if i < len(nums_a) else None\n                b = nums_b[i] if i < len(nums_b) else None\n                current_a = None\n                current_b = None\n                if a is not None:\n                    if a == 0:\n                        current_a = last_a + 2 if last_a % 2 == 0 else last_a + 1\n                        if current_a <= last_b:\n                            current_a = last_b + 1\n                        if current_a % 2 != 0:\n                            current_a += 1\n                    else:\n                        current_a = last_a + 2 if last_a % 2 == 1 else last_a + 1\n                        if current_a <= last_b:\n                            current_a = last_b + 1\n                        if current_a % 2 != 1:\n                            current_a += 1\n                if b is not None:\n                    if b == 0:\n                        current_b = last_b + 2 if last_b % 2 == 0 else last_b + 1\n                        if current_b <= last_a:\n                            current_b = last_a + 1\n                        if current_b % 2 != 0:\n                            current_b += 1\n                    else:\n                        current_b = last_b + 2 if last_b % 2 == 1 else last_b + 1\n                        if current_b <= last_a:\n                            current_b = last_a + 1\n                        if current_b % 2 != 1:\n                            current_b += 1\n                if a is not None:\n                    last_a = current_a\n                if b is not None:\n                    last_b = current_b\n                max_num = max(max_num, last_a, last_b)\n            return max_num\n\n        return min(calculate_max(nums1, nums2), calculate_max(nums2, nums1))",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def get_min_max(a, b):\n            last_a = 0\n            last_b = 0\n            max_num = 0\n            for i in range(max(len(a), len(b))):\n                current_a = a[i] if i < len(a) else None\n                current_b = b[i] if i < len(b) else None\n                while True:\n                    valid = True\n                    new_last_a = last_a\n                    new_last_b = last_b\n                    if current_a is not None:\n                        if current_a == 0:\n                            new_last_a = max(new_last_a + 2, last_b + 1)\n                            if new_last_a % 2 != 0:\n                                new_last_a += 1\n                        else:\n                            new_last_a = max(new_last_a + 2, last_b + 1)\n                            if new_last_a % 2 == 0:\n                                new_last_a += 1\n                    if current_b is not None:\n                        if current_b == 0:\n                            new_last_b = max(new_last_b + 2, last_a + 1)\n                            if new_last_b % 2 != 0:\n                                new_last_b += 1\n                        else:\n                            new_last_b = max(new_last_b + 2, last_a + 1)\n                            if new_last_b % 2 == 0:\n                                new_last_b += 1\n                    if current_a is not None and current_b is not None:\n                        if new_last_a >= new_last_b:\n                            valid = False\n                    if valid:\n                        last_a = new_last_a\n                        last_b = new_last_b\n                        max_num = max(max_num, last_a, last_b)\n                        break\n            return max_num\n\n        return min(get_min_max(nums1, nums2), get_min_max(nums2, nums1))",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def calculate_max(nums_a, nums_b):\n            last_a = 0\n            last_b = 0\n            max_num = 0\n            for i in range(max(len(nums_a), len(nums_b))):\n                a = nums_a[i] if i < len(nums_a) else None\n                b = nums_b[i] if i < len(nums_b) else None\n                \n                next_a = None\n                next_b = None\n                \n                if a is not None:\n                    if a == 0:\n                        next_a = last_a + 2\n                        if next_a <= last_b:\n                            next_a = last_b + 1\n                            if next_a % 2 != 0:\n                                next_a += 1\n                    else:\n                        next_a = last_a + 2\n                        if next_a <= last_b:\n                            next_a = last_b + 1\n                            if next_a % 2 == 0:\n                                next_a += 1\n                if b is not None:\n                    if b == 0:\n                        next_b = last_b + 2\n                        if next_b <= last_a:\n                            next_b = last_a + 1\n                            if next_b % 2 != 0:\n                                next_b += 1\n                    else:\n                        next_b = last_b + 2\n                        if next_b <= last_a:\n                            next_b = last_a + 1\n                            if next_b % 2 == 0:\n                                next_b += 1\n                \n                if a is not None:\n                    last_a = next_a\n                if b is not None:\n                    last_b = next_b\n                \n                current_max = 0\n                if a is not None:\n                    current_max = max(current_max, last_a)\n                if b is not None:\n                    current_max = max(current_max, last_b)\n                max_num = max(max_num, current_max)\n                \n            return max_num\n        \n        option1 = calculate_max(nums1, nums2)\n        option2 = calculate_max(nums2, nums1)\n        return min(option1, option2)"
+  ],
+  "total_candidates": 39,
+  "nodes_explored": 39,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def generate(arr, last1, last2, used, start):\n            if not arr:\n                return 0\n            current = arr[0]\n            if current == 0:\n                min_num = 2\n                parity = 0\n            else:\n                min_num = 1\n                parity = 1\n            min_num = max(min_num, start + 1)\n            while True:\n                if min_num % 2 == parity and min_num not in used:\n                    if min_num > last1 and min_num > last2:\n                        new_used = used.copy()\n                        new_used.add(min_num)\n                        res = generate(arr[1:], max(last1, min_num), last2, new_used, min_num)\n                        if res != -1:\n                            return max(min_num, res)\n                min_num += 1\n                if min_num > 10**6:\n                    return -1\n            return -1\n\n        combined = [(nums1, 0, 0, set(), 0), (nums2, 0, 0, set(), 0)]\n        result = []\n        for arr, last1, last2, used, start in combined:\n            res = generate(arr, last1, last2, used, start)\n            if res != -1:\n                result.append(res)\n        return min(result)",
+      "solution_hash": "141505e84a3aaefc01add9734f5af298c156e9dc6c4b8c9013ea5a9bc5d0b0ca",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmpr_vyxsop.py\", line 242, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21926555/tmpr_vyxsop.py\", line 117, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpr_vyxsop.py` failed. (See above for error)\n",
+        "execution_time": 14.747519731521606,
+        "failed_tests": [
+          {
+            "input": "nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]",
+            "expected": "8",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmpr_vyxsop.py\", line 242, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21926555/tmpr_vyxsop.py\", line 117, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpr_vyxsop.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5",
+        "1_9"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        def get_min_max(nums, is_first):\n            last_even = 0\n            last_odd = 0\n            for num in nums:\n                if num == 0:\n                    current = last_even + 2\n                    last_even = current\n                else:\n                    current = last_odd + 2\n                    last_odd = current\n                if is_first:\n                    used.add(current)\n                else:\n                    if current in used:\n                        return None\n                    used.add(current)\n            return max(last_even, last_odd)\n        \n        used = set()\n        max1 = get_min_max(nums1, True)\n        if max1 is None:\n            return -1\n        max2 = get_min_max(nums2, False)\n        if max2 is None:\n            return -1\n        return max(max1, max2)",
+      "solution_hash": "590bb860f64637f4fca3a2f2bddd9551d68aaf2d1183ca8aa6272c055af114f5",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmpvfgapnhr.py\", line 237, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21926555/tmpvfgapnhr.py\", line 112, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpvfgapnhr.py` failed. (See above for error)\n",
+        "execution_time": 13.479997634887695,
+        "failed_tests": [
+          {
+            "input": "nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]",
+            "expected": "8",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmpvfgapnhr.py\", line 237, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21926555/tmpvfgapnhr.py\", line 112, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpvfgapnhr.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_14",
+        "1_18",
+        "1_22"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "</think>\n\n## Problem Analysis\nThe problem requires us to replace 0s and 1s in two arrays with even and odd positive integers respectively, ensuring both arrays are strictly increasing. Additionally, each integer used must be unique across both arrays. Our goal is to find the minimum possible largest number after these replacements.\n\n## Solution Approach\nThe approach involves dynamically assigning the smallest possible even or odd numbers to each position in the arrays while maintaining the increasing order and uniqueness of the numbers. We can model this using dynamic programming, where we track the last assigned number for each array and ensure that each new number is larger than the previous and adheres to the even/odd constraints.\n\n## Code Solution",
+      "solution_hash": "57e20c7b590dbb8222e6e1b7a9a5cec049f88e6bd882f701f677527b3f952fc1",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "  File \"/scratch/local/21926555/tmpbowyg3ve.py\", line 81\n    </think>\n    ^\nSyntaxError: invalid syntax\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpbowyg3ve.py` failed. (See above for error)\n",
+        "execution_time": 13.543220520019531,
+        "failed_tests": [],
+        "error_message": "File \"/scratch/local/21926555/tmpbowyg3ve.py\", line 81\n    </think>\n    ^\nSyntaxError: invalid syntax\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpbowyg3ve.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_27",
+        "1_31",
+        "1_35"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 39,
+    "candidates_generated": 39,
+    "tests_passed": 0,
+    "tests_failed": 36,
+    "test_errors": 3,
+    "execution_times": [
+      14.747519731521606,
+      14.533742189407349,
+      13.997557163238525,
+      13.468299388885498,
+      13.577073335647583,
+      13.572939395904541,
+      14.092900514602661,
+      13.569910764694214,
+      13.378525495529175,
+      13.69145131111145,
+      13.796890497207642,
+      13.484214067459106,
+      13.482552766799927,
+      13.479997634887695,
+      14.282653093338013,
+      14.77401351928711,
+      13.520737409591675,
+      13.579987287521362,
+      13.399318218231201,
+      13.634665727615356,
+      13.485877752304077,
+      13.527711629867554,
+      13.519702672958374,
+      14.643703699111938,
+      13.419052124023438,
+      13.46759033203125,
+      13.543220520019531,
+      14.655248165130615,
+      14.743701219558716,
+      13.573090076446533,
+      13.579078435897827,
+      10,
+      10,
+      17.398647785186768,
+      18.725732564926147,
+      19.18442130088806,
+      16.229335069656372,
+      10,
+      13.957581996917725
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 39,
+      "unique_ratio": 1.0,
+      "similarity_score": 0.0,
+      "solution_lengths": {
+        "min": 761,
+        "max": 4015,
+        "avg": 2000.3076923076924
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]": 14,
+        "nums1 = [1, 0, 1, 0],nums2 = [0, 1, 0, 1]": 6,
+        "nums1 = [],nums2 = [0, 0, 0, 0]": 1,
+        "nums1 = [1],nums2 = [0]": 2,
+        "nums1 = [0, 1, 0, 1],nums2 = [1, 0, 0, 1]": 10,
+        "nums1 = [1, 1],nums2 = [1, 1]": 2
+      },
+      "first_failing_tests": {
+        "nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]": 14,
+        "nums1 = [1, 0, 1, 0],nums2 = [0, 1, 0, 1]": 6,
+        "nums1 = [],nums2 = [0, 0, 0, 0]": 1,
+        "nums1 = [1],nums2 = [0]": 2,
+        "nums1 = [0, 1, 0, 1],nums2 = [1, 0, 0, 1]": 10,
+        "nums1 = [1, 1],nums2 = [1, 1]": 2
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 9,
+          "improvements": 0,
+          "solved": 0
+        },
+        "2": {
+          "attempts": 27,
+          "improvements": 0,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "assertion_failure": {
+          "attempts": 10,
+          "improvements": 0
+        },
+        "syntax_error": {
+          "attempts": 1,
+          "improvements": 0
+        },
+        "other_error": {
+          "attempts": 1,
+          "improvements": 0
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "assertion_failure->assertion_failure": 29,
+        "syntax_error->assertion_failure": 2,
+        "syntax_error->other_error": 1,
+        "other_error->other_error": 1,
+        "other_error->assertion_failure": 2,
+        "assertion_failure->other_error": 1
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.6153846153846154,
+        "solutions_per_depth": {
+          "0": 3,
+          "1": 9,
+          "2": 27
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 0,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.025000000000000022,
+        "pass@3": 0.07499999999999996,
+        "pass@5": 0.125,
+        "pass@10": 0.25
+      },
+      "solutions_evaluated": 40
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.0,
+        "branch_success_rate": 0.0
+      },
+      "error_recovery": {
+        "total_attempts": 12,
+        "total_improvements": 0,
+        "recovery_rate": 0.0
+      },
+      "top_errors": [
+        [
+          "assertion_failure",
+          10
+        ],
+        [
+          "syntax_error",
+          1
+        ],
+        [
+          "other_error",
+          1
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]",
+          14
+        ],
+        [
+          "nums1 = [0, 1, 0, 1],nums2 = [1, 0, 0, 1]",
+          10
+        ],
+        [
+          "nums1 = [1, 0, 1, 0],nums2 = [0, 1, 0, 1]",
+          6
+        ],
+        [
+          "nums1 = [1],nums2 = [0]",
+          2
+        ],
+        [
+          "nums1 = [1, 1],nums2 = [1, 1]",
+          2
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 3437.744327068329,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.025000000000000022,
+      "pass@3": 0.07499999999999996,
+      "pass@5": 0.125,
+      "pass@10": 0.25
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: invalid syntax (<string>, line 95)",
+            "completion_id": 26
+          }
+        ],
+        [
+          27,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 27
+          }
+        ],
+        [
+          28,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 28
+          }
+        ],
+        [
+          29,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 29
+          }
+        ],
+        [
+          30,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 30
+          }
+        ],
+        [
+          31,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 31
+          }
+        ],
+        [
+          32,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 32
+          }
+        ],
+        [
+          33,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 33
+          }
+        ],
+        [
+          34,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 34
+          }
+        ],
+        [
+          35,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 35
+          }
+        ],
+        [
+          36,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 36
+          }
+        ],
+        [
+          37,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 37
+          }
+        ],
+        [
+          38,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 38
+          }
+        ],
+        [
+          39,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 39
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 40,
+    "test_cases": 1
+  }
+}

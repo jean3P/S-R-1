@@ -1,0 +1,269 @@
+{
+  "problem_id": "count-substrings-that-can-be-rearranged-to-contain-a-string-i",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "unsolved",
+  "best_solution": "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        len1, len2 = len(word1), len(word2)\n        if len2 > len1:\n            return 0\n        \n        count_word2 = Counter(word2)\n        required = len(count_word2)\n        \n        # Precompute prefix sums for each character\n        prefix = [Counter() for _ in range(len1 + 1)]\n        for i in range(len1):\n            prefix[i+1] = prefix[i].copy()\n            prefix[i+1][word1[i]] += 1\n        \n        result = 0\n        \n        for end in range(len2, len1 + 1):\n            for start in range(0, end - len2 + 1):\n                current = prefix[end].copy()\n                for key in prefix[start]:\n                    current[key] -= prefix[start][key]\n                    if current[key] == 0:\n                        del current[key]\n                \n                valid = True\n                for key in count_word2:\n                    if current.get(key, 0) < count_word2[key]:\n                        valid = False\n                        break\n                if valid:\n                    result += 1\n        \n        return result",
+  "passed_solutions": [
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        len1, len2 = len(word1), len(word2)\n        if len2 > len1:\n            return 0\n        \n        count_word2 = Counter(word2)\n        required = len(count_word2)\n        \n        # Precompute prefix sums for each character\n        prefix = [Counter() for _ in range(len1 + 1)]\n        for i in range(len1):\n            prefix[i+1] = prefix[i].copy()\n            prefix[i+1][word1[i]] += 1\n        \n        result = 0\n        \n        for end in range(len2, len1 + 1):\n            for start in range(0, end - len2 + 1):\n                current = prefix[end].copy()\n                for key in prefix[start]:\n                    current[key] -= prefix[start][key]\n                    if current[key] == 0:\n                        del current[key]\n                \n                valid = True\n                for key in count_word2:\n                    if current.get(key, 0) < count_word2[key]:\n                        valid = False\n                        break\n                if valid:\n                    result += 1\n        \n        return result"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        len1, len2 = len(word1), len(word2)\n        if len2 > len1:\n            return 0\n        \n        count_word2 = Counter(word2)\n        required = len(count_word2)\n        current = defaultdict(int)\n        result = 0\n        \n        for i in range(len1):\n            char = word1[i]\n            current[char] += 1\n            \n            if i >= len2 - 1:\n                # Check if current window meets the criteria\n                valid = True\n                for key in count_word2:\n                    if current.get(key, 0) < count_word2[key]:\n                        valid = False\n                        break\n                if valid:\n                    result += 1\n                \n                # Slide the window\n                left_char = word1[i - len2 + 1]\n                current[left_char] -= 1\n                if current[left_char] == 0:\n                    del current[left_char]\n        \n        return result",
+    "from collections import Counter, defaultdict\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        len1, len2 = len(word1), len(word2)\n        if len2 > len1:\n            return 0\n        \n        count_word2 = Counter(word2)\n        required = len(count_word2)\n        current = defaultdict(int)\n        result = 0\n        \n        for i in range(len1):\n            char = word1[i]\n            current[char] += 1\n            \n            # Check all possible substrings ending at i with length >= len2\n            for j in range(max(0, i - len1 + len2), i + 1):\n                # Check if the substring from j to i is valid\n                valid = True\n                for key in count_word2:\n                    if current.get(key, 0) < count_word2[key]:\n                        valid = False\n                        break\n                if valid:\n                    result += 1\n                # Slide the window\n                left_char = word1[j]\n                current[left_char] -= 1\n                if current[left_char] == 0:\n                    del current[left_char]\n        \n        return result",
+    "from collections import defaultdict\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        len1, len2 = len(word1), len(word2)\n        if len2 > len1:\n            return 0\n        \n        count_word2 = defaultdict(int)\n        for c in word2:\n            count_word2[c] += 1\n        \n        current = defaultdict(int)\n        required = len(count_word2)\n        formed = 0\n        result = 0\n        \n        left = 0\n        for right in range(len1):\n            char = word1[right]\n            current[char] += 1\n            \n            if char in count_word2 and current[char] == count_word2[char]:\n                formed += 1\n            \n            # When window is at least len2, check if all required are met\n            while right - left + 1 >= len2:\n                if formed == required:\n                    # All substrings ending at right with length >= len2 are valid\n                    result += (right - left + 1 - len2 + 1)\n                    # Move left to find more possible valid substrings\n                    left_char = word1[left]\n                    current[left_char] -= 1\n                    if current[left_char] == 0:\n                        del current[left_char]\n                    if left_char in count_word2 and current[left_char] < count_word2[left_char]:\n                        formed -= 1\n                    left += 1\n                else:\n                    break\n        \n        return result",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        len1, len2 = len(word1), len(word2)\n        if len2 > len1:\n            return 0\n        \n        count_word2 = Counter(word2)\n        current = Counter()\n        result = 0\n        \n        # Initialize the first window\n        for i in range(len2):\n            current[word1[i]] += 1\n        \n        # Check if the first window is valid\n        if current >= count_word2:\n            result += 1\n        \n        # Slide the window\n        for i in range(len2, len1):\n            # Add the new character\n            current[word1[i]] += 1\n            # Remove the leftmost character of the previous window\n            left_char = word1[i - len2]\n            current[left_char] -= 1\n            if current[left_char] == 0:\n                del current[left_char]\n            # Check if current window is valid\n            if current >= count_word2:\n                result += 1\n                # Add all possible longer substrings starting at i - len2 + 1\n                result += (i - (i - len2 + 1) + 1)\n        \n        return result",
+    "from collections import Counter, defaultdict\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        len1, len2 = len(word1), len(word2)\n        if len2 > len1:\n            return 0\n        \n        count_word2 = Counter(word2)\n        required = len(count_word2)\n        current = defaultdict(int)\n        result = 0\n        left = 0\n        \n        for right in range(len1):\n            char = word1[right]\n            current[char] += 1\n            \n            # Check if the current window meets the requirements\n            while right - left + 1 >= len2:\n                valid = True\n                for key in count_word2:\n                    if current.get(key, 0) < count_word2[key]:\n                        valid = False\n                        break\n                if valid:\n                    # All substrings ending at right and starting from left or later are valid\n                    result += (right - left + 1 - len2 + 1)\n                    left += 1\n                else:\n                    # Move left to try to find a valid window\n                    left_char = word1[left]\n                    current[left_char] -= 1\n                    if current[left_char] == 0:\n                        del current[left_char]\n                    left += 1\n        \n        return result",
+    "from collections import Counter\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        len1, len2 = len(word1), len(word2)\n        if len2 > len1:\n            return 0\n        \n        count_word2 = Counter(word2)\n        required = len(count_word2)\n        \n        # Precompute prefix sums for each character\n        prefix = [Counter() for _ in range(len1 + 1)]\n        for i in range(len1):\n            prefix[i+1] = prefix[i].copy()\n            prefix[i+1][word1[i]] += 1\n        \n        result = 0\n        \n        for end in range(len2, len1 + 1):\n            for start in range(0, end - len2 + 1):\n                current = prefix[end].copy()\n                for key in prefix[start]:\n                    current[key] -= prefix[start][key]\n                    if current[key] == 0:\n                        del current[key]\n                \n                valid = True\n                for key in count_word2:\n                    if current.get(key, 0) < count_word2[key]:\n                        valid = False\n                        break\n                if valid:\n                    result += 1\n        \n        return result",
+    "from collections import Counter, defaultdict\n\nclass Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        len1, len2 = len(word1), len(word2)\n        if len2 > len1:\n            return 0\n        \n        count_word2 = Counter(word2)\n        required = len(count_word2)\n        current = defaultdict(int)\n        result = 0\n        \n        # Initialize the current window with the first len2 characters\n        for i in range(len2):\n            char = word1[i]\n            current[char] += 1\n        \n        # Check if the initial window is valid\n        valid = True\n        for key in count_word2:\n            if current.get(key, 0) < count_word2[key]:\n                valid = False\n                break\n        if valid:\n            result += 1\n        \n        # Slide the window through the rest of word1\n        for i in range(len2, len1):\n            # Add the new character to the window\n            new_char = word1[i]\n            current[new_char] += 1\n            \n            # Remove the oldest character from the window\n            old_char = word1[i - len2]\n            current[old_char] -= 1\n            if current[old_char] == 0:\n                del current[old_char]\n            \n            # Check if current window is valid\n            valid = True\n            for key in count_word2:\n                if current.get(key, 0) < count_word2[key]:\n                    valid = False\n                    break\n            if valid:\n                result += 1\n        \n        return result"
+  ],
+  "total_candidates": 7,
+  "nodes_explored": 7,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        len1, len2 = len(word1), len(word2)\n        if len2 > len1:\n            return 0\n        \n        count_word2 = Counter(word2)\n        required = len(count_word2)\n        current = defaultdict(int)\n        result = 0\n        \n        for i in range(len1):\n            char = word1[i]\n            current[char] += 1\n            \n            if i >= len2 - 1:\n                # Check if current window meets the criteria\n                valid = True\n                for key in count_word2:\n                    if current.get(key, 0) < count_word2[key]:\n                        valid = False\n                        break\n                if valid:\n                    result += 1\n                \n                # Slide the window\n                left_char = word1[i - len2 + 1]\n                current[left_char] -= 1\n                if current[left_char] == 0:\n                    del current[left_char]\n        \n        return result",
+      "solution_hash": "5db2a8390e4fb4d44a8a418be6237b41b2663d57e872b02bc7c69bdbd4b367db",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21926554/tmp3fakdk9p.py\", line 226, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21926554/tmp3fakdk9p.py\", line 116, in check\n    assert candidate(word1 = \"banana\",word2 = \"ban\") == 4\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926554/tmp3fakdk9p.py` failed. (See above for error)\n",
+        "execution_time": 14.0920729637146,
+        "failed_tests": [
+          {
+            "input": "word1 = \"banana\",word2 = \"ban\"",
+            "expected": "4",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/21926554/tmp3fakdk9p.py\", line 226, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/21926554/tmp3fakdk9p.py\", line 116, in check\n    assert candidate(word1 = \"banana\",word2 = \"ban\") == 4\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926554/tmp3fakdk9p.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5",
+        "1_6"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 7,
+    "candidates_generated": 7,
+    "tests_passed": 1,
+    "tests_failed": 6,
+    "test_errors": 0,
+    "execution_times": [
+      14.0920729637146,
+      14.242199659347534,
+      13.968380689620972,
+      13.63896656036377,
+      13.674933671951294,
+      13.798732280731201,
+      13.654022216796875
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 7,
+      "unique_ratio": 1.0,
+      "similarity_score": 0.0,
+      "solution_lengths": {
+        "min": 1024,
+        "max": 1537,
+        "avg": 1265.142857142857
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "word1 = \"banana\",word2 = \"ban\"": 5,
+        "word1 = \"aaaabc\",word2 = \"aaa\"": 1
+      },
+      "first_failing_tests": {
+        "word1 = \"banana\",word2 = \"ban\"": 5,
+        "word1 = \"aaaabc\",word2 = \"aaa\"": 1
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 3,
+          "improvements": 0,
+          "solved": 1
+        },
+        "2": {
+          "attempts": 3,
+          "improvements": 0,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "assertion_failure": {
+          "attempts": 2,
+          "improvements": 1
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "assertion_failure->assertion_failure": 4,
+        "assertion_failure->type_error": 1,
+        "assertion_failure->unknown": 1
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.2857142857142858,
+        "solutions_per_depth": {
+          "0": 1,
+          "1": 3,
+          "2": 3
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 1,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.25,
+        "pass@3": 0.6428571428571429,
+        "pass@5": 0.8928571428571429
+      },
+      "solutions_evaluated": 8,
+      "passing_solution_depths": {
+        "min": 1,
+        "max": 1,
+        "avg": 1.0
+      }
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.14285714285714285,
+        "branch_success_rate": 0.14285714285714285
+      },
+      "error_recovery": {
+        "total_attempts": 2,
+        "total_improvements": 1,
+        "recovery_rate": 0.5
+      },
+      "top_errors": [
+        [
+          "assertion_failure",
+          2
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "word1 = \"banana\",word2 = \"ban\"",
+          5
+        ],
+        [
+          "word1 = \"aaaabc\",word2 = \"aaa\"",
+          1
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 535.2204949855804,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.25,
+      "pass@3": 0.6428571428571429,
+      "pass@5": 0.8928571428571429
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: '>=' not supported between instances of 'Counter' and 'Counter'",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 7
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 8,
+    "test_cases": 1
+  }
+}

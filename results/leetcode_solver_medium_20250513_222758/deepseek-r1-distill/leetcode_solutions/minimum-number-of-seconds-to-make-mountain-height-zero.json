@@ -1,0 +1,354 @@
+{
+  "problem_id": "minimum-number-of-seconds-to-make-mountain-height-zero",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "solved",
+  "best_solution": "import bisect\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_height(t, w):\n            if w == 0:\n                return 0\n            # Solve for x in w*(x(x+1)/2) <= t\n            # x^2 + x - 2t/w <= 0\n            # Using quadratic formula: x = [-1 + sqrt(1 + 8t/w)] / 2\n            return (-1 + (1 + 8 * t / w) ** 0.5) // 2\n        \n        left = 0\n        right = max(workerTimes) * mountainHeight * (mountainHeight + 1) // 2\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                total += max_height(mid, w)\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return int(answer)",
+  "passed_solutions": [
+    "import bisect\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_height(t, w):\n            if w == 0:\n                return 0\n            # Solve for x in w*(x(x+1)/2) <= t\n            # x^2 + x - 2t/w <= 0\n            # Using quadratic formula: x = [-1 + sqrt(1 + 8t/w)] / 2\n            return (-1 + (1 + 8 * t / w) ** 0.5) // 2\n        \n        left = 0\n        right = max(workerTimes) * mountainHeight * (mountainHeight + 1) // 2\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                total += max_height(mid, w)\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return int(answer)",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_height(t, w):\n            # Calculate the maximum x such that sum_{k=1 to x} (w * k) <= t\n            # Sum is w * x(x+1)/2 <= t\n            # Solve x^2 + x - 2t/w <= 0\n            if w == 0:\n                return 0\n            max_sum = t // w\n            x = int((-1 + (1 + 8 * max_sum) ** 0.5) // 2)\n            return x\n        \n        left = 0\n        right = max(workerTimes) * mountainHeight * (mountainHeight + 1) // 2\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                total += max_height(mid, w)\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        \n        return answer",
+    "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            # Binary search to find the maximum x where w*(x(x+1)/2) <= t\n            left = 0\n            right = int(math.isqrt(2 * t // w)) + 1\n            best = 0\n            while left <= right:\n                mid = (left + right) // 2\n                total = mid * (mid + 1) // 2 * w\n                if total <= t:\n                    best = mid\n                    left = mid + 1\n                else:\n                    right = mid - 1\n            return best\n        \n        left = 0\n        # The maximum possible time is when the fastest worker does all the work\n        min_w = min(workerTimes)\n        max_possible = min_w * mountainHeight * (mountainHeight + 1) // 2\n        right = max_possible\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+    "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if mountainHeight == 0:\n            return 0\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            max_t = t / w\n            discriminant = 1 + 8 * max_t\n            x = (-1 + math.sqrt(discriminant)) / 2\n            return int(x)\n        \n        min_w = min(workerTimes)\n        max_possible = min_w * mountainHeight * (mountainHeight + 1) // 2\n        left = 0\n        right = max_possible\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+    "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            # Solve w * x(x+1)/2 <= t\n            # x^2 + x - 2t/w <= 0\n            # Find the maximum x\n            discriminant = 1 + 8 * t / w\n            x = (-1 + math.sqrt(discriminant)) / 2\n            return int(x)\n        \n        left = 0\n        # The maximum possible time is when one worker does all the work\n        max_single = workerTimes[0] * mountainHeight * (mountainHeight + 1) // 2\n        for w in workerTimes[1:]:\n            current = w * mountainHeight * (mountainHeight + 1) // 2\n            if current > max_single:\n                max_single = current\n        right = max_single\n        \n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer"
+  ],
+  "all_solutions": [
+    "import bisect\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_height(t, w):\n            if w == 0:\n                return 0\n            # Solve for x in w*(x(x+1)/2) <= t\n            # x^2 + x - 2t/w <= 0\n            # Using quadratic formula: x = [-1 + sqrt(1 + 8t/w)] / 2\n            return (-1 + (1 + 8 * t / w) ** 0.5) // 2\n        \n        left = 0\n        right = max(workerTimes) * mountainHeight * (mountainHeight + 1) // 2\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                total += max_height(mid, w)\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return int(answer)",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_height(t, w):\n            # Calculate the maximum x such that sum_{k=1 to x} (w * k) <= t\n            # Sum is w * x(x+1)/2 <= t\n            # Solve x^2 + x - 2t/w <= 0\n            if w == 0:\n                return 0\n            max_sum = t // w\n            x = int((-1 + (1 + 8 * max_sum) ** 0.5) // 2)\n            return x\n        \n        left = 0\n        right = max(workerTimes) * mountainHeight * (mountainHeight + 1) // 2\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                total += max_height(mid, w)\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        \n        return answer",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            # Calculate the maximum x such that w*(x(x+1)/2) <= t\n            # Solve x^2 + x - 2t/w <= 0\n            if w == 0:\n                return 0\n            x = int((-1 + (1 + 8 * t / w) ** 0.5) // 2)\n            return x\n        \n        left = 0\n        right = mountainHeight * min(workerTimes)\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                total += max_reduction(mid, w)\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+    "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            # Calculate the maximum x such that w*(x(x+1)/2) <= t\n            # Solve x^2 + x - 2t/w <= 0\n            max_x = (-1 + math.sqrt(1 + 8 * t / w)) / 2\n            return int(max_x)\n        \n        left = 0\n        right = mountainHeight * min(workerTimes)\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+    "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            # Calculate the maximum x such that w*(x(x+1)/2) <= t\n            # Solve x^2 + x - 2t/w <= 0\n            max_x = (-1 + math.sqrt(1 + 8 * t / w)) / 2\n            return int(max_x)\n        \n        left = 0\n        right = mountainHeight * min(workerTimes)\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+    "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            # Calculate the maximum x such that w * x (x + 1) / 2 <= t\n            # Solve x^2 + x - 2t/w <= 0\n            discriminant = 1 + 8 * t / w\n            if discriminant < 0:\n                return 0\n            max_x = (-1 + math.sqrt(discriminant)) / 2\n            return int(max_x)\n        \n        left = 0\n        right = mountainHeight * min(workerTimes)\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+    "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            x = 0\n            total = 0\n            while True:\n                next_total = total + w * (x + 1)\n                if next_total > t:\n                    break\n                total = next_total\n                x += 1\n            return x\n        \n        left = 0\n        right = mountainHeight * min(workerTimes)\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+    "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            # Calculate the maximum x such that w*(x(x+1)/2) <= t\n            # Solve x^2 + x - 2t/w <= 0\n            discriminant = 1 + 8 * t / w\n            x = (-1 + math.sqrt(discriminant)) / 2\n            return int(x)\n        \n        left = 0\n        right = mountainHeight * min(workerTimes)\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+    "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            # Binary search to find the maximum x where w*(x(x+1)/2) <= t\n            left = 0\n            right = int(math.isqrt(2 * t // w)) + 1\n            best = 0\n            while left <= right:\n                mid = (left + right) // 2\n                total = mid * (mid + 1) // 2 * w\n                if total <= t:\n                    best = mid\n                    left = mid + 1\n                else:\n                    right = mid - 1\n            return best\n        \n        left = 0\n        # The maximum possible time is when the fastest worker does all the work\n        min_w = min(workerTimes)\n        max_possible = min_w * mountainHeight * (mountainHeight + 1) // 2\n        right = max_possible\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+    "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if mountainHeight == 0:\n            return 0\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            max_t = t / w\n            discriminant = 1 + 8 * max_t\n            x = (-1 + math.sqrt(discriminant)) / 2\n            return int(x)\n        \n        min_w = min(workerTimes)\n        max_possible = min_w * mountainHeight * (mountainHeight + 1) // 2\n        left = 0\n        right = max_possible\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+    "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            # Calculate the maximum x such that w*(x(x+1)/2) <= t\n            # Solve x^2 + x - 2t/w <= 0\n            discriminant = 1 + 8 * t / w\n            x = (-1 + math.sqrt(discriminant)) / 2\n            return int(x)\n        \n        left = 0\n        right = mountainHeight * min(workerTimes)\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+    "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            # Solve w * x(x+1)/2 <= t\n            # x^2 + x - 2t/w <= 0\n            # Find the maximum x\n            discriminant = 1 + 8 * t / w\n            x = (-1 + math.sqrt(discriminant)) / 2\n            return int(x)\n        \n        left = 0\n        # The maximum possible time is when one worker does all the work\n        max_single = workerTimes[0] * mountainHeight * (mountainHeight + 1) // 2\n        for w in workerTimes[1:]:\n            current = w * mountainHeight * (mountainHeight + 1) // 2\n            if current > max_single:\n                max_single = current\n        right = max_single\n        \n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer"
+  ],
+  "total_candidates": 12,
+  "nodes_explored": 12,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "import bisect\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_height(t, w):\n            if w == 0:\n                return 0\n            # Solve for x in w*(x(x+1)/2) <= t\n            # x^2 + x - 2t/w <= 0\n            # Using quadratic formula: x = [-1 + sqrt(1 + 8t/w)] / 2\n            return (-1 + (1 + 8 * t / w) ** 0.5) // 2\n        \n        left = 0\n        right = max(workerTimes) * mountainHeight * (mountainHeight + 1) // 2\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                total += max_height(mid, w)\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return int(answer)",
+      "solution_hash": "d54a411f683fb789caea5a5fe85c21a1d43118f924975ba6f212401b56c1e79e",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.07341170310974121
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_height(t, w):\n            # Calculate the maximum x such that sum_{k=1 to x} (w * k) <= t\n            # Sum is w * x(x+1)/2 <= t\n            # Solve x^2 + x - 2t/w <= 0\n            if w == 0:\n                return 0\n            max_sum = t // w\n            x = int((-1 + (1 + 8 * max_sum) ** 0.5) // 2)\n            return x\n        \n        left = 0\n        right = max(workerTimes) * mountainHeight * (mountainHeight + 1) // 2\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                total += max_height(mid, w)\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        \n        return answer",
+      "solution_hash": "dfc1de2d68cdfbd371d4c87b1d9861085b99c8ecad3cea26bff2d43d03a62472",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.07814455032348633
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            # Calculate the maximum x such that w*(x(x+1)/2) <= t\n            # Solve x^2 + x - 2t/w <= 0\n            if w == 0:\n                return 0\n            x = int((-1 + (1 + 8 * t / w) ** 0.5) // 2)\n            return x\n        \n        left = 0\n        right = mountainHeight * min(workerTimes)\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                total += max_reduction(mid, w)\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+      "solution_hash": "4bc33de944568e9de10492746bf92823e9760e79f865840e2b7fcd0d8aa4dd2e",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmppub793jz.py\", line 234, in <module>\n    check(Solution().minNumberOfSeconds)\n  File \"/scratch/local/21419949/tmppub793jz.py\", line 115, in check\n    assert candidate(mountainHeight = 15,workerTimes = [1, 2, 3]) == 30\nAssertionError\n",
+        "execution_time": 0.07160735130310059
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_3",
+          "solution": "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            # Calculate the maximum x such that w*(x(x+1)/2) <= t\n            # Solve x^2 + x - 2t/w <= 0\n            max_x = (-1 + math.sqrt(1 + 8 * t / w)) / 2\n            return int(max_x)\n        \n        left = 0\n        right = mountainHeight * min(workerTimes)\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+          "solution_hash": "b4a516cd896b6e7bb39972790b075dcf896238c18a21ff580d25a45d1a5c97e7",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmppy73nofm.py\", line 237, in <module>\n    check(Solution().minNumberOfSeconds)\n  File \"/scratch/local/21419949/tmppy73nofm.py\", line 118, in check\n    assert candidate(mountainHeight = 15,workerTimes = [1, 2, 3]) == 30\nAssertionError\n",
+            "execution_time": 0.06754755973815918
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_4",
+              "solution": "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            # Calculate the maximum x such that w*(x(x+1)/2) <= t\n            # Solve x^2 + x - 2t/w <= 0\n            max_x = (-1 + math.sqrt(1 + 8 * t / w)) / 2\n            return int(max_x)\n        \n        left = 0\n        right = mountainHeight * min(workerTimes)\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+              "solution_hash": "b4a516cd896b6e7bb39972790b075dcf896238c18a21ff580d25a45d1a5c97e7",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmppy73nofm.py\", line 237, in <module>\n    check(Solution().minNumberOfSeconds)\n  File \"/scratch/local/21419949/tmppy73nofm.py\", line 118, in check\n    assert candidate(mountainHeight = 15,workerTimes = [1, 2, 3]) == 30\nAssertionError\n",
+                "execution_time": 0.06754755973815918
+              },
+              "depth": 2,
+              "parent_id": "1_3",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_5",
+              "solution": "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            # Calculate the maximum x such that w * x (x + 1) / 2 <= t\n            # Solve x^2 + x - 2t/w <= 0\n            discriminant = 1 + 8 * t / w\n            if discriminant < 0:\n                return 0\n            max_x = (-1 + math.sqrt(discriminant)) / 2\n            return int(max_x)\n        \n        left = 0\n        right = mountainHeight * min(workerTimes)\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+              "solution_hash": "442ed437ddfd1362c8d124acb5cfb9ed4d296d6750137e317fce7f18601b4e74",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpngqc00i3.py\", line 240, in <module>\n    check(Solution().minNumberOfSeconds)\n  File \"/scratch/local/21419949/tmpngqc00i3.py\", line 121, in check\n    assert candidate(mountainHeight = 15,workerTimes = [1, 2, 3]) == 30\nAssertionError\n",
+                "execution_time": 0.0678558349609375
+              },
+              "depth": 2,
+              "parent_id": "1_3",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_6",
+              "solution": "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            x = 0\n            total = 0\n            while True:\n                next_total = total + w * (x + 1)\n                if next_total > t:\n                    break\n                total = next_total\n                x += 1\n            return x\n        \n        left = 0\n        right = mountainHeight * min(workerTimes)\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+              "solution_hash": "b05650a1ebd8eb90dbd9ae20b91918c7413931254da2993fa20cf0cbdc0bbed1",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp14tyuy9v.py\", line 242, in <module>\n    check(Solution().minNumberOfSeconds)\n  File \"/scratch/local/21419949/tmp14tyuy9v.py\", line 123, in check\n    assert candidate(mountainHeight = 15,workerTimes = [1, 2, 3]) == 30\nAssertionError\n",
+                "execution_time": 0.06847620010375977
+              },
+              "depth": 2,
+              "parent_id": "1_3",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_7",
+          "solution": "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            # Calculate the maximum x such that w*(x(x+1)/2) <= t\n            # Solve x^2 + x - 2t/w <= 0\n            discriminant = 1 + 8 * t / w\n            x = (-1 + math.sqrt(discriminant)) / 2\n            return int(x)\n        \n        left = 0\n        right = mountainHeight * min(workerTimes)\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+          "solution_hash": "e501d0673430df2aaafec5ff9401dd7ccd5ae23c3c1f24648676a28b668ce909",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp23nduqri.py\", line 238, in <module>\n    check(Solution().minNumberOfSeconds)\n  File \"/scratch/local/21419949/tmp23nduqri.py\", line 119, in check\n    assert candidate(mountainHeight = 15,workerTimes = [1, 2, 3]) == 30\nAssertionError\n",
+            "execution_time": 0.0691385269165039
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_8",
+              "solution": "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            # Binary search to find the maximum x where w*(x(x+1)/2) <= t\n            left = 0\n            right = int(math.isqrt(2 * t // w)) + 1\n            best = 0\n            while left <= right:\n                mid = (left + right) // 2\n                total = mid * (mid + 1) // 2 * w\n                if total <= t:\n                    best = mid\n                    left = mid + 1\n                else:\n                    right = mid - 1\n            return best\n        \n        left = 0\n        # The maximum possible time is when the fastest worker does all the work\n        min_w = min(workerTimes)\n        max_possible = min_w * mountainHeight * (mountainHeight + 1) // 2\n        right = max_possible\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+              "solution_hash": "0e2811a9ed19100764bad959df2aaec53bf405ffc9b7a8a2210a4265ef4979de",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.10367846488952637
+              },
+              "depth": 2,
+              "parent_id": "1_7",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_9",
+              "solution": "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if mountainHeight == 0:\n            return 0\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            max_t = t / w\n            discriminant = 1 + 8 * max_t\n            x = (-1 + math.sqrt(discriminant)) / 2\n            return int(x)\n        \n        min_w = min(workerTimes)\n        max_possible = min_w * mountainHeight * (mountainHeight + 1) // 2\n        left = 0\n        right = max_possible\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+              "solution_hash": "ed079c6a931f6622192d38f21842f862084b641237b7e0586f6d6c2723255bfd",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.07435297966003418
+              },
+              "depth": 2,
+              "parent_id": "1_7",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_10",
+              "solution": "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            # Calculate the maximum x such that w*(x(x+1)/2) <= t\n            # Solve x^2 + x - 2t/w <= 0\n            discriminant = 1 + 8 * t / w\n            x = (-1 + math.sqrt(discriminant)) / 2\n            return int(x)\n        \n        left = 0\n        right = mountainHeight * min(workerTimes)\n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+              "solution_hash": "e501d0673430df2aaafec5ff9401dd7ccd5ae23c3c1f24648676a28b668ce909",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp23nduqri.py\", line 238, in <module>\n    check(Solution().minNumberOfSeconds)\n  File \"/scratch/local/21419949/tmp23nduqri.py\", line 119, in check\n    assert candidate(mountainHeight = 15,workerTimes = [1, 2, 3]) == 30\nAssertionError\n",
+                "execution_time": 0.0691385269165039
+              },
+              "depth": 2,
+              "parent_id": "1_7",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_11",
+          "solution": "import math\n\nclass Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        if not workerTimes:\n            return 0\n        \n        def max_reduction(t, w):\n            if w == 0:\n                return 0\n            # Solve w * x(x+1)/2 <= t\n            # x^2 + x - 2t/w <= 0\n            # Find the maximum x\n            discriminant = 1 + 8 * t / w\n            x = (-1 + math.sqrt(discriminant)) / 2\n            return int(x)\n        \n        left = 0\n        # The maximum possible time is when one worker does all the work\n        max_single = workerTimes[0] * mountainHeight * (mountainHeight + 1) // 2\n        for w in workerTimes[1:]:\n            current = w * mountainHeight * (mountainHeight + 1) // 2\n            if current > max_single:\n                max_single = current\n        right = max_single\n        \n        answer = right\n        \n        while left <= right:\n            mid = (left + right) // 2\n            total = 0\n            for w in workerTimes:\n                x = max_reduction(mid, w)\n                total += x\n                if total >= mountainHeight:\n                    break\n            if total >= mountainHeight:\n                answer = mid\n                right = mid - 1\n            else:\n                left = mid + 1\n        return answer",
+          "solution_hash": "d05e857a3707cff5da9633cff4a9be7c67c0cf4cdcae180fdc14294f3e6a1e49",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07881522178649902
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [],
+          "passed": true
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 12,
+    "candidates_generated": 12,
+    "tests_passed": 5,
+    "tests_failed": 7,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 552.7296957969666,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.3846153846153847,
+      "pass@3": 0.8041958041958042,
+      "pass@5": 0.9564879564879565,
+      "pass@10": 1.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: 'key' is an invalid keyword argument for bisect_left()",
+            "completion_id": 12
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 13,
+    "test_cases": 1
+  }
+}

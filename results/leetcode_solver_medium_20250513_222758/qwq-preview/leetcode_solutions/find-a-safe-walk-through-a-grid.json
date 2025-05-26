@@ -1,0 +1,277 @@
+{
+  "problem_id": "find-a-safe-walk-through-a-grid",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "solved",
+  "best_solution": "from typing import List\nimport heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        if not grid or not grid[0]:\n            return False\n        m, n = len(grid), len(grid[0])\n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Initialize cost grid with infinity\n        cost = [[float('inf')] * n for _ in range(m)]\n        cost[0][0] = grid[0][0]\n        \n        # Priority queue for Dijkstra's algorithm\n        pq = [(grid[0][0], 0, 0)]  # (cost, row, col)\n        \n        while pq:\n            curr_cost, r, c = heapq.heappop(pq)\n            if r == m - 1 and c == n - 1:\n                # Reached the destination\n                return curr_cost <= health - 1\n            if curr_cost > cost[r][c]:\n                continue  # Already found a better path\n            for dr, dc in directions:\n                nr, nc = r + dr, c + dc\n                if 0 <= nr < m and 0 <= nc < n:\n                    new_cost = curr_cost + grid[nr][nc]\n                    if new_cost < cost[nr][nc]:\n                        cost[nr][nc] = new_cost\n                        heapq.heappush(pq, (new_cost, nr, nc))\n        return False",
+  "passed_solutions": [
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Initialize the priority queue with the starting point\n        pq = [(0, 0, 0)]  # (health_lost, row, col)\n        visited = [[False] * n for _ in range(m)]\n        \n        while pq:\n            health_lost, r, c = heapq.heappop(pq)\n            if r == m - 1 and c == n - 1:\n                # Reached the end, check if health is sufficient\n                return health - health_lost >= 1\n            if visited[r][c]:\n                continue\n            visited[r][c] = True\n            for dr, dc in directions:\n                nr, nc = r + dr, c + dc\n                if 0 <= nr < m and 0 <= nc < n and not visited[nr][nc]:\n                    next_health_lost = health_lost + grid[nr][nc]\n                    heapq.heappush(pq, (next_health_lost, nr, nc))\n        return False",
+    "from typing import List\nfrom heapq import heappush, heappop\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0,1), (1,0), (0,-1), (-1,0)]\n        \n        # Priority queue: (-remaining health, row, col)\n        pq = []\n        heappush(pq, (-health, 0, 0))\n        \n        # Visit array to track the maximum health with which we visited each cell\n        visited = [[-float('inf')] * n for _ in range(m)]\n        visited[0][0] = health\n        \n        while pq:\n            current_health, row, col = heappop(pq)\n            current_health = -current_health  # Convert back to positive\n            \n            # If reached destination\n            if row == m-1 and col == n-1:\n                return current_health >= 1\n            \n            # Explore neighbors\n            for dr, dc in directions:\n                new_row, new_col = row + dr, col + dc\n                # Check bounds\n                if 0 <= new_row < m and 0 <= new_col < n:\n                    # Calculate new health\n                    new_health = current_health - grid[new_row][new_col]\n                    # If new health is positive and better than previous visits\n                    if new_health >= 1 and new_health > visited[new_row][new_col]:\n                        visited[new_row][new_col] = new_health\n                        heappush(pq, (-new_health, new_row, new_col))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0,1), (1,0), (0,-1), (-1,0)]\n        \n        # Check if start cell is unsafe\n        if grid[0][0] == 1:\n            health -= 1\n            if health < 1:\n                return False  # Cannot even start\n        \n        # Queue for BFS: (row, col, remaining health)\n        queue = deque()\n        queue.append((0, 0, health))\n        \n        # Visit array to keep track of visited cells with remaining health\n        visited = [[set() for _ in range(n)] for _ in range(m)]\n        visited[0][0].add(health)\n        \n        while queue:\n            row, col, current_health = queue.popleft()\n            \n            # If reached destination with health >=1\n            if row == m-1 and col == n-1:\n                if current_health >= 1:\n                    return True\n                continue  # Otherwise, continue searching\n            \n            # Explore neighbors\n            for dr, dc in directions:\n                new_row, new_col = row + dr, col + dc\n                # Check bounds\n                if 0 <= new_row < m and 0 <= new_col < n:\n                    # Calculate new health\n                    if grid[new_row][new_col] == 1:\n                        new_health = current_health - 1\n                    else:\n                        new_health = current_health\n                    # If new health is positive and not visited with this health\n                    if new_health >= 1 and new_health not in visited[new_row][new_col]:\n                        visited[new_row][new_col].add(new_health)\n                        queue.append((new_row, new_col, new_health))\n        \n        return False",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        if not grid or not grid[0]:\n            return False\n        m, n = len(grid), len(grid[0])\n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Initialize cost grid with infinity\n        cost = [[float('inf')] * n for _ in range(m)]\n        cost[0][0] = grid[0][0]\n        \n        # Priority queue for Dijkstra's algorithm\n        pq = [(grid[0][0], 0, 0)]  # (cost, row, col)\n        \n        while pq:\n            curr_cost, r, c = heapq.heappop(pq)\n            if r == m - 1 and c == n - 1:\n                # Reached the destination\n                return curr_cost <= health - 1\n            if curr_cost > cost[r][c]:\n                continue  # Already found a better path\n            for dr, dc in directions:\n                nr, nc = r + dr, c + dc\n                if 0 <= nr < m and 0 <= nc < n:\n                    new_cost = curr_cost + grid[nr][nc]\n                    if new_cost < cost[nr][nc]:\n                        cost[nr][nc] = new_cost\n                        heapq.heappush(pq, (new_cost, nr, nc))\n        return False"
+  ],
+  "all_solutions": [
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Initialize the priority queue with the starting point\n        pq = [(0, 0, 0)]  # (health_lost, row, col)\n        visited = [[False] * n for _ in range(m)]\n        \n        while pq:\n            health_lost, r, c = heapq.heappop(pq)\n            if r == m - 1 and c == n - 1:\n                # Reached the end, check if health is sufficient\n                return health - health_lost >= 1\n            if visited[r][c]:\n                continue\n            visited[r][c] = True\n            for dr, dc in directions:\n                nr, nc = r + dr, c + dc\n                if 0 <= nr < m and 0 <= nc < n and not visited[nr][nc]:\n                    next_health_lost = health_lost + grid[nr][nc]\n                    heapq.heappush(pq, (next_health_lost, nr, nc))\n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0,1), (1,0), (0,-1), (-1,0)]\n        \n        # Check if start or end is unsafe\n        if grid[0][0] == 1:\n            health -= 1\n        if grid[m-1][n-1] == 1:\n            health -= 1\n        \n        # If health becomes negative before starting, it's impossible\n        if health < 0:\n            return False\n        \n        # Queue for BFS: (row, col, remaining health)\n        queue = deque()\n        queue.append((0, 0, health))\n        \n        # Visit array to keep track of visited cells with remaining health\n        visited = [[set() for _ in range(n)] for _ in range(m)]\n        \n        while queue:\n            row, col, current_health = queue.popleft()\n            \n            # If reached destination with health >=1\n            if row == m-1 and col == n-1:\n                if current_health >= 1:\n                    return True\n                continue  # Otherwise, continue searching\n            \n            # Explore neighbors\n            for dr, dc in directions:\n                new_row, new_col = row + dr, col + dc\n                # Check bounds\n                if 0 <= new_row < m and 0 <= new_col < n:\n                    # Calculate new health\n                    new_health = current_health - grid[new_row][new_col]\n                    # If new health is positive and not visited with this health\n                    if new_health >= 0 and new_health not in visited[new_row][new_col]:\n                        visited[new_row][new_col].add(new_health)\n                        queue.append((new_row, new_col, new_health))\n        \n        return False",
+    "from typing import List\nfrom heapq import heappush, heappop\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0,1), (1,0), (0,-1), (-1,0)]\n        \n        # Priority queue: (-remaining health, row, col)\n        pq = []\n        heappush(pq, (-health, 0, 0))\n        \n        # Visit array to track the maximum health with which we visited each cell\n        visited = [[-float('inf')] * n for _ in range(m)]\n        visited[0][0] = health\n        \n        while pq:\n            current_health, row, col = heappop(pq)\n            current_health = -current_health  # Convert back to positive\n            \n            # If reached destination\n            if row == m-1 and col == n-1:\n                return current_health >= 1\n            \n            # Explore neighbors\n            for dr, dc in directions:\n                new_row, new_col = row + dr, col + dc\n                # Check bounds\n                if 0 <= new_row < m and 0 <= new_col < n:\n                    # Calculate new health\n                    new_health = current_health - grid[new_row][new_col]\n                    # If new health is positive and better than previous visits\n                    if new_health >= 1 and new_health > visited[new_row][new_col]:\n                        visited[new_row][new_col] = new_health\n                        heappush(pq, (-new_health, new_row, new_col))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0,1), (1,0), (0,-1), (-1,0)]\n        \n        # Check if start cell is unsafe\n        if grid[0][0] == 1:\n            health -= 1\n            if health < 1:\n                return False  # Cannot even start\n        \n        # Queue for BFS: (row, col, remaining health)\n        queue = deque()\n        queue.append((0, 0, health))\n        \n        # Visit array to keep track of visited cells with remaining health\n        visited = [[set() for _ in range(n)] for _ in range(m)]\n        visited[0][0].add(health)\n        \n        while queue:\n            row, col, current_health = queue.popleft()\n            \n            # If reached destination with health >=1\n            if row == m-1 and col == n-1:\n                if current_health >= 1:\n                    return True\n                continue  # Otherwise, continue searching\n            \n            # Explore neighbors\n            for dr, dc in directions:\n                new_row, new_col = row + dr, col + dc\n                # Check bounds\n                if 0 <= new_row < m and 0 <= new_col < n:\n                    # Calculate new health\n                    if grid[new_row][new_col] == 1:\n                        new_health = current_health - 1\n                    else:\n                        new_health = current_health\n                    # If new health is positive and not visited with this health\n                    if new_health >= 1 and new_health not in visited[new_row][new_col]:\n                        visited[new_row][new_col].add(new_health)\n                        queue.append((new_row, new_col, new_health))\n        \n        return False",
+    "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n                m, n = len(grid), len(grid[0])\n                directions = [(0,1), (1,0), (0,-1), (-1,0)]\n                \n                # Check if start or end is unsafe\n                if grid[0][0] == 1:\n                    health -= 1\n                if grid[m-1][n-1] == 1:\n                    health -= 1\n                \n                # If health becomes negative before starting, it's impossible\n                if health < 0:\n                    return False\n                \n                # Queue for BFS: (row, col, remaining health)\n                queue = deque()\n                queue.append((0, 0, health))\n                \n                # Visit array to keep track of visited cells with remaining health\n                visited = [[float('inf') for _ in range(n)] for _ in range(m)]\n                \n                while queue:\n                    row, col, current_health = queue.popleft()\n                    \n                    # If reached destination with health >=1\n                    if row == m-1 and col == n-1:\n                        if current_health >= 1:\n                            return True\n                        continue  # Otherwise, continue searching\n                    \n                    # Explore neighbors\n                    for dr, dc in directions:\n                        new_row, new_col = row + dr, col + dc\n                        # Check bounds\n                        if 0 <= new_row < m and 0 <= new_col < n:\n                            # Calculate new health after entering the new cell\n                            new_health = current_health - grid[new_row][new_col]\n                            # If new health is positive and better than previously visited health\n                            if new_health >= 1 and new_health < visited[new_row][new_col]:\n                                visited[new_row][new_col] = new_health\n                                queue.append((new_row, new_col, new_health))\n                \n                return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0,1), (1,0), (0,-1), (-1,0)]\n        \n        # Check if start cell is unsafe\n        if grid[0][0] == 1:\n            health -= 1\n            if health < 0:\n                return False  # Cannot start if health goes negative immediately\n        \n        # Queue for BFS: (row, col, remaining health)\n        queue = deque()\n        queue.append((0, 0, health))\n        \n        # Visit array to keep track of visited cells with remaining health\n        visited = [[float('inf') for _ in range(n)] for _ in range(m)]\n        \n        while queue:\n            row, col, current_health = queue.popleft()\n            \n            # If reached destination with health >=1\n            if row == m-1 and col == n-1:\n                if current_health >= 1:\n                    return True\n                continue  # Otherwise, continue searching\n            \n            # Explore neighbors\n            for dr, dc in directions:\n                new_row, new_col = row + dr, col + dc\n                # Check bounds\n                if 0 <= new_row < m and 0 <= new_col < n:\n                    # Calculate new health after entering the new cell\n                    new_health = current_health - grid[new_row][new_col]\n                    # If new health is positive and better than previously visited health\n                    if new_health >= 1 and new_health < visited[new_row][new_col]:\n                        visited[new_row][new_col] = new_health\n                        queue.append((new_row, new_col, new_health))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0,1), (1,0), (0,-1), (-1,0)]\n        \n        # Check if start or end is unsafe\n        if grid[0][0] == 1:\n            health -= 1\n        if grid[m-1][n-1] == 1:\n            health -= 1\n        \n        # If health becomes negative before starting or at end, it's impossible\n        if health < 0:\n            return False\n        \n        # Queue for BFS: (row, col, remaining health)\n        queue = deque()\n        queue.append((0, 0, health))\n        \n        # Visit array to keep track of visited cells with remaining health\n        visited = [[float('inf') for _ in range(n)] for _ in range(m)]\n        visited[0][0] = health\n        \n        while queue:\n            row, col, current_health = queue.popleft()\n            \n            # If reached destination with health >=1\n            if row == m-1 and col == n-1:\n                if current_health >= 1:\n                    return True\n                continue  # Otherwise, continue searching\n            \n            # Explore neighbors\n            for dr, dc in directions:\n                new_row, new_col = row + dr, col + dc\n                # Check bounds\n                if 0 <= new_row < m and 0 <= new_col < n:\n                    # Calculate new health after entering the new cell\n                    new_health = current_health - grid[new_row][new_col]\n                    # If new health is positive and better than previously visited health\n                    if new_health >= 1 and new_health < visited[new_row][new_col]:\n                        visited[new_row][new_col] = new_health\n                        queue.append((new_row, new_col, new_health))\n        \n        return False",
+    "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n                m, n = len(grid), len(grid[0])\n                directions = [(0,1), (1,0), (0,-1), (-1,0)]\n                \n                # Initialize visited array with infinity\n                visited = [[float('inf') for _ in range(n)] for _ in range(m)]\n                \n                # Start from (0,0) with initial health\n                queue = deque()\n                queue.append((0, 0, health))\n                visited[0][0] = health\n                \n                while queue:\n                    row, col, current_health = queue.popleft()\n                    \n                    # If reached destination with health >=1\n                    if row == m-1 and col == n-1:\n                        if current_health >= 1:\n                            return True\n                        continue  # Otherwise, continue searching\n                    \n                    # Explore neighbors\n                    for dr, dc in directions:\n                        new_row, new_col = row + dr, col + dc\n                        # Check bounds\n                        if 0 <= new_row < m and 0 <= new_col < n:\n                            # Calculate new health after entering the new cell\n                            new_health = current_health - grid[new_row][new_col]\n                            # If new health is positive and better than previously visited health\n                            if new_health >= 1 and new_health < visited[new_row][new_col]:\n                                visited[new_row][new_col] = new_health\n                                queue.append((new_row, new_col, new_health))\n                \n                return False",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        if not grid or not grid[0]:\n            return False\n        m, n = len(grid), len(grid[0])\n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Initialize cost grid with infinity\n        cost = [[float('inf')] * n for _ in range(m)]\n        cost[0][0] = grid[0][0]\n        \n        # Priority queue for Dijkstra's algorithm\n        pq = [(grid[0][0], 0, 0)]  # (cost, row, col)\n        \n        while pq:\n            curr_cost, r, c = heapq.heappop(pq)\n            if r == m - 1 and c == n - 1:\n                # Reached the destination\n                return curr_cost <= health - 1\n            if curr_cost > cost[r][c]:\n                continue  # Already found a better path\n            for dr, dc in directions:\n                nr, nc = r + dr, c + dc\n                if 0 <= nr < m and 0 <= nc < n:\n                    new_cost = curr_cost + grid[nr][nc]\n                    if new_cost < cost[nr][nc]:\n                        cost[nr][nc] = new_cost\n                        heapq.heappush(pq, (new_cost, nr, nc))\n        return False"
+  ],
+  "total_candidates": 9,
+  "nodes_explored": 9,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "from typing import List\nimport heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Initialize the priority queue with the starting point\n        pq = [(0, 0, 0)]  # (health_lost, row, col)\n        visited = [[False] * n for _ in range(m)]\n        \n        while pq:\n            health_lost, r, c = heapq.heappop(pq)\n            if r == m - 1 and c == n - 1:\n                # Reached the end, check if health is sufficient\n                return health - health_lost >= 1\n            if visited[r][c]:\n                continue\n            visited[r][c] = True\n            for dr, dc in directions:\n                nr, nc = r + dr, c + dc\n                if 0 <= nr < m and 0 <= nc < n and not visited[nr][nc]:\n                    next_health_lost = health_lost + grid[nr][nc]\n                    heapq.heappush(pq, (next_health_lost, nr, nc))\n        return False",
+      "solution_hash": "7b4c07a468f24b89265638775f66855e441dc650225487bd6ae31009d097d1f4",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.07061171531677246
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    },
+    {
+      "node_id": "0_1",
+      "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0,1), (1,0), (0,-1), (-1,0)]\n        \n        # Check if start or end is unsafe\n        if grid[0][0] == 1:\n            health -= 1\n        if grid[m-1][n-1] == 1:\n            health -= 1\n        \n        # If health becomes negative before starting, it's impossible\n        if health < 0:\n            return False\n        \n        # Queue for BFS: (row, col, remaining health)\n        queue = deque()\n        queue.append((0, 0, health))\n        \n        # Visit array to keep track of visited cells with remaining health\n        visited = [[set() for _ in range(n)] for _ in range(m)]\n        \n        while queue:\n            row, col, current_health = queue.popleft()\n            \n            # If reached destination with health >=1\n            if row == m-1 and col == n-1:\n                if current_health >= 1:\n                    return True\n                continue  # Otherwise, continue searching\n            \n            # Explore neighbors\n            for dr, dc in directions:\n                new_row, new_col = row + dr, col + dc\n                # Check bounds\n                if 0 <= new_row < m and 0 <= new_col < n:\n                    # Calculate new health\n                    new_health = current_health - grid[new_row][new_col]\n                    # If new health is positive and not visited with this health\n                    if new_health >= 0 and new_health not in visited[new_row][new_col]:\n                        visited[new_row][new_col].add(new_health)\n                        queue.append((new_row, new_col, new_health))\n        \n        return False",
+      "solution_hash": "1cbfeb7805fe50b9d482b27eb572ce04b5fb2bd851168b23f7828444909b75d3",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpclomc3_n.py\", line 216, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmpclomc3_n.py\", line 133, in check\n    assert candidate(grid = [[1, 1, 1], [1, 0, 1], [1, 1, 1]],health = 5) == True\nAssertionError\n",
+        "execution_time": 0.07148385047912598
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_2",
+          "solution": "from typing import List\nfrom heapq import heappush, heappop\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0,1), (1,0), (0,-1), (-1,0)]\n        \n        # Priority queue: (-remaining health, row, col)\n        pq = []\n        heappush(pq, (-health, 0, 0))\n        \n        # Visit array to track the maximum health with which we visited each cell\n        visited = [[-float('inf')] * n for _ in range(m)]\n        visited[0][0] = health\n        \n        while pq:\n            current_health, row, col = heappop(pq)\n            current_health = -current_health  # Convert back to positive\n            \n            # If reached destination\n            if row == m-1 and col == n-1:\n                return current_health >= 1\n            \n            # Explore neighbors\n            for dr, dc in directions:\n                new_row, new_col = row + dr, col + dc\n                # Check bounds\n                if 0 <= new_row < m and 0 <= new_col < n:\n                    # Calculate new health\n                    new_health = current_health - grid[new_row][new_col]\n                    # If new health is positive and better than previous visits\n                    if new_health >= 1 and new_health > visited[new_row][new_col]:\n                        visited[new_row][new_col] = new_health\n                        heappush(pq, (-new_health, new_row, new_col))\n        \n        return False",
+          "solution_hash": "79bf448babed6ff065f8e662f128d054041d647779dcf005c76c1183f811148f",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.0703742504119873
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_3",
+          "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0,1), (1,0), (0,-1), (-1,0)]\n        \n        # Check if start cell is unsafe\n        if grid[0][0] == 1:\n            health -= 1\n            if health < 1:\n                return False  # Cannot even start\n        \n        # Queue for BFS: (row, col, remaining health)\n        queue = deque()\n        queue.append((0, 0, health))\n        \n        # Visit array to keep track of visited cells with remaining health\n        visited = [[set() for _ in range(n)] for _ in range(m)]\n        visited[0][0].add(health)\n        \n        while queue:\n            row, col, current_health = queue.popleft()\n            \n            # If reached destination with health >=1\n            if row == m-1 and col == n-1:\n                if current_health >= 1:\n                    return True\n                continue  # Otherwise, continue searching\n            \n            # Explore neighbors\n            for dr, dc in directions:\n                new_row, new_col = row + dr, col + dc\n                # Check bounds\n                if 0 <= new_row < m and 0 <= new_col < n:\n                    # Calculate new health\n                    if grid[new_row][new_col] == 1:\n                        new_health = current_health - 1\n                    else:\n                        new_health = current_health\n                    # If new health is positive and not visited with this health\n                    if new_health >= 1 and new_health not in visited[new_row][new_col]:\n                        visited[new_row][new_col].add(new_health)\n                        queue.append((new_row, new_col, new_health))\n        \n        return False",
+          "solution_hash": "842b81db428ca4cc6a7c9394cb439cde53dc28f3010c612159854475a803ea1e",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.08843207359313965
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_4",
+          "solution": "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n                m, n = len(grid), len(grid[0])\n                directions = [(0,1), (1,0), (0,-1), (-1,0)]\n                \n                # Check if start or end is unsafe\n                if grid[0][0] == 1:\n                    health -= 1\n                if grid[m-1][n-1] == 1:\n                    health -= 1\n                \n                # If health becomes negative before starting, it's impossible\n                if health < 0:\n                    return False\n                \n                # Queue for BFS: (row, col, remaining health)\n                queue = deque()\n                queue.append((0, 0, health))\n                \n                # Visit array to keep track of visited cells with remaining health\n                visited = [[float('inf') for _ in range(n)] for _ in range(m)]\n                \n                while queue:\n                    row, col, current_health = queue.popleft()\n                    \n                    # If reached destination with health >=1\n                    if row == m-1 and col == n-1:\n                        if current_health >= 1:\n                            return True\n                        continue  # Otherwise, continue searching\n                    \n                    # Explore neighbors\n                    for dr, dc in directions:\n                        new_row, new_col = row + dr, col + dc\n                        # Check bounds\n                        if 0 <= new_row < m and 0 <= new_col < n:\n                            # Calculate new health after entering the new cell\n                            new_health = current_health - grid[new_row][new_col]\n                            # If new health is positive and better than previously visited health\n                            if new_health >= 1 and new_health < visited[new_row][new_col]:\n                                visited[new_row][new_col] = new_health\n                                queue.append((new_row, new_col, new_health))\n                \n                return False",
+          "solution_hash": "b38b6077e8c7144aa88d65988a8bbfce8d9a1e6505da0bfaf6073539ad6e32df",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmphz7n8vkf.py\", line 82\n    from collections import deque\nIndentationError: unexpected indent\n",
+            "execution_time": 0.05781865119934082
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_5",
+              "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0,1), (1,0), (0,-1), (-1,0)]\n        \n        # Check if start cell is unsafe\n        if grid[0][0] == 1:\n            health -= 1\n            if health < 0:\n                return False  # Cannot start if health goes negative immediately\n        \n        # Queue for BFS: (row, col, remaining health)\n        queue = deque()\n        queue.append((0, 0, health))\n        \n        # Visit array to keep track of visited cells with remaining health\n        visited = [[float('inf') for _ in range(n)] for _ in range(m)]\n        \n        while queue:\n            row, col, current_health = queue.popleft()\n            \n            # If reached destination with health >=1\n            if row == m-1 and col == n-1:\n                if current_health >= 1:\n                    return True\n                continue  # Otherwise, continue searching\n            \n            # Explore neighbors\n            for dr, dc in directions:\n                new_row, new_col = row + dr, col + dc\n                # Check bounds\n                if 0 <= new_row < m and 0 <= new_col < n:\n                    # Calculate new health after entering the new cell\n                    new_health = current_health - grid[new_row][new_col]\n                    # If new health is positive and better than previously visited health\n                    if new_health >= 1 and new_health < visited[new_row][new_col]:\n                        visited[new_row][new_col] = new_health\n                        queue.append((new_row, new_col, new_health))\n        \n        return False",
+              "solution_hash": "0eb4bd6214a659147ccd32196b7ea9ff2f640f5744753d2fa9f793a3db35378c",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp58qx75yw.py\", line 212, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmp58qx75yw.py\", line 163, in check\n    assert candidate(grid = [[0, 1, 1, 1, 0, 0, 1, 0], [1, 0, 0, 0, 1, 0, 1, 1], [0, 0, 1, 0, 0, 0, 0, 0], [1, 0, 1, 0, 1, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0, 1]],health = 5) == True\nAssertionError\n",
+                "execution_time": 0.07153487205505371
+              },
+              "depth": 2,
+              "parent_id": "1_4",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_6",
+              "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0,1), (1,0), (0,-1), (-1,0)]\n        \n        # Check if start or end is unsafe\n        if grid[0][0] == 1:\n            health -= 1\n        if grid[m-1][n-1] == 1:\n            health -= 1\n        \n        # If health becomes negative before starting or at end, it's impossible\n        if health < 0:\n            return False\n        \n        # Queue for BFS: (row, col, remaining health)\n        queue = deque()\n        queue.append((0, 0, health))\n        \n        # Visit array to keep track of visited cells with remaining health\n        visited = [[float('inf') for _ in range(n)] for _ in range(m)]\n        visited[0][0] = health\n        \n        while queue:\n            row, col, current_health = queue.popleft()\n            \n            # If reached destination with health >=1\n            if row == m-1 and col == n-1:\n                if current_health >= 1:\n                    return True\n                continue  # Otherwise, continue searching\n            \n            # Explore neighbors\n            for dr, dc in directions:\n                new_row, new_col = row + dr, col + dc\n                # Check bounds\n                if 0 <= new_row < m and 0 <= new_col < n:\n                    # Calculate new health after entering the new cell\n                    new_health = current_health - grid[new_row][new_col]\n                    # If new health is positive and better than previously visited health\n                    if new_health >= 1 and new_health < visited[new_row][new_col]:\n                        visited[new_row][new_col] = new_health\n                        queue.append((new_row, new_col, new_health))\n        \n        return False",
+              "solution_hash": "3314b46fd126876408d7c2ef259b2af8461716830dc8c5debb08e3132572990d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp0td6xm4q.py\", line 217, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmp0td6xm4q.py\", line 134, in check\n    assert candidate(grid = [[1, 1, 1], [1, 0, 1], [1, 1, 1]],health = 5) == True\nAssertionError\n",
+                "execution_time": 0.06812882423400879
+              },
+              "depth": 2,
+              "parent_id": "1_4",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_7",
+              "solution": "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n                m, n = len(grid), len(grid[0])\n                directions = [(0,1), (1,0), (0,-1), (-1,0)]\n                \n                # Initialize visited array with infinity\n                visited = [[float('inf') for _ in range(n)] for _ in range(m)]\n                \n                # Start from (0,0) with initial health\n                queue = deque()\n                queue.append((0, 0, health))\n                visited[0][0] = health\n                \n                while queue:\n                    row, col, current_health = queue.popleft()\n                    \n                    # If reached destination with health >=1\n                    if row == m-1 and col == n-1:\n                        if current_health >= 1:\n                            return True\n                        continue  # Otherwise, continue searching\n                    \n                    # Explore neighbors\n                    for dr, dc in directions:\n                        new_row, new_col = row + dr, col + dc\n                        # Check bounds\n                        if 0 <= new_row < m and 0 <= new_col < n:\n                            # Calculate new health after entering the new cell\n                            new_health = current_health - grid[new_row][new_col]\n                            # If new health is positive and better than previously visited health\n                            if new_health >= 1 and new_health < visited[new_row][new_col]:\n                                visited[new_row][new_col] = new_health\n                                queue.append((new_row, new_col, new_health))\n                \n                return False",
+              "solution_hash": "e63ccae90331a5c4b1837bdafac9d6f614d103bd30c9c2dee9b2760f048b68e0",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmp6sahkapx.py\", line 82\n    from collections import deque\nIndentationError: unexpected indent\n",
+                "execution_time": 0.053336381912231445
+              },
+              "depth": 2,
+              "parent_id": "1_4",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "from typing import List\nimport heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        if not grid or not grid[0]:\n            return False\n        m, n = len(grid), len(grid[0])\n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Initialize cost grid with infinity\n        cost = [[float('inf')] * n for _ in range(m)]\n        cost[0][0] = grid[0][0]\n        \n        # Priority queue for Dijkstra's algorithm\n        pq = [(grid[0][0], 0, 0)]  # (cost, row, col)\n        \n        while pq:\n            curr_cost, r, c = heapq.heappop(pq)\n            if r == m - 1 and c == n - 1:\n                # Reached the destination\n                return curr_cost <= health - 1\n            if curr_cost > cost[r][c]:\n                continue  # Already found a better path\n            for dr, dc in directions:\n                nr, nc = r + dr, c + dc\n                if 0 <= nr < m and 0 <= nc < n:\n                    new_cost = curr_cost + grid[nr][nc]\n                    if new_cost < cost[nr][nc]:\n                        cost[nr][nc] = new_cost\n                        heapq.heappush(pq, (new_cost, nr, nc))\n        return False",
+      "solution_hash": "a62213469754a06f8ebd8febff14ffff21cd36ff0832df81dba45db78951ed96",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.06926131248474121
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    }
+  ],
+  "stats": {
+    "nodes_explored": 9,
+    "candidates_generated": 9,
+    "tests_passed": 4,
+    "tests_failed": 5,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 324.4459819793701,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.4,
+      "pass@3": 0.8333333333333334,
+      "pass@5": 0.9761904761904762,
+      "pass@10": 1.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: name 'pairwise' is not defined",
+            "completion_id": 9
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 10,
+    "test_cases": 1
+  }
+}

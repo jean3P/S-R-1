@@ -1,0 +1,970 @@
+{
+  "problem_id": "find-the-count-of-monotonic-pairs-ii",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        max_a = max(nums)\n        dp = [[0] * (max_a + 1) for _ in range(n)]\n        \n        # Initialize dp[0]\n        for a in range(nums[0] + 1):\n            dp[0][a] = 1\n        \n        for i in range(1, n):\n            delta = max(0, nums[i] - nums[i-1])\n            # Precompute prefix sums for dp[i-1]\n            prefix = [0] * (max_a + 2)\n            for a in range(max_a + 1):\n                prefix[a+1] = (prefix[a] + dp[i-1][a]) % MOD\n            \n            # For each possible a_i, compute the sum of dp[i-1][a_{i-1}] where a_{i-1} <= a_i - delta\n            for a_i in range(max_a + 1):\n                if a_i > nums[i]:\n                    continue  # a_i cannot exceed nums[i]\n                max_a_prev = a_i - delta\n                if max_a_prev < 0:\n                    dp[i][a_i] = 0\n                else:\n                    max_a_prev = min(max_a_prev, max_a)\n                    dp[i][a_i] = prefix[max_a_prev + 1] % MOD\n        \n        # The answer is the sum of dp[n-1][a] for all a <= nums[n-1]\n        total = 0\n        for a in range(nums[-1] + 1):\n            total = (total + dp[n-1][a]) % MOD\n        return total",
+  "passed_solutions": [
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        max_a = max(nums)\n        dp = [[0] * (max_a + 1) for _ in range(n)]\n        \n        # Initialize dp[0]\n        for a in range(nums[0] + 1):\n            dp[0][a] = 1\n        \n        for i in range(1, n):\n            delta = max(0, nums[i] - nums[i-1])\n            # Precompute prefix sums for dp[i-1]\n            prefix = [0] * (max_a + 2)\n            for a in range(max_a + 1):\n                prefix[a+1] = (prefix[a] + dp[i-1][a]) % MOD\n            \n            # For each possible a_i, compute the sum of dp[i-1][a_{i-1}] where a_{i-1} <= a_i - delta\n            for a_i in range(max_a + 1):\n                if a_i > nums[i]:\n                    continue  # a_i cannot exceed nums[i]\n                max_a_prev = a_i - delta\n                if max_a_prev < 0:\n                    dp[i][a_i] = 0\n                else:\n                    max_a_prev = min(max_a_prev, max_a)\n                    dp[i][a_i] = prefix[max_a_prev + 1] % MOD\n        \n        # The answer is the sum of dp[n-1][a] for all a <= nums[n-1]\n        total = 0\n        for a in range(nums[-1] + 1):\n            total = (total + dp[n-1][a]) % MOD\n        return total"
+  ],
+  "all_solutions": [
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp1[i][v] represents the number of ways to have arr1[0..i] with arr1[i] = v, maintaining non-decreasing order\n        dp1 = [defaultdict(int) for _ in range(n)]\n        # dp2[i][v] represents the number of ways to have arr2[0..i] with arr2[i] = v, maintaining non-increasing order\n        dp2 = [defaultdict(int) for _ in range(n)]\n        \n        # Initialize dp1 and dp2 for the first element\n        for v in range(nums[0] + 1):\n            dp1[0][v] = 1\n            dp2[0][nums[0] - v] = 1\n        \n        for i in range(1, n):\n            # Update dp1 for arr1\n            for v in range(nums[i] + 1):\n                # arr1[i] can be any value >= arr1[i-1]\n                # So we sum all dp1[i-1][u] where u <= v\n                # To optimize, we can precompute prefix sums\n                # Similarly for dp2, but in reverse\n                # Precompute prefix sums for dp1[i-1]\n                prefix = 0\n                for u in range(v + 1):\n                    prefix += dp1[i-1].get(u, 0)\n                    prefix %= MOD\n                dp1[i][v] = prefix % MOD\n            \n            # Update dp2 for arr2\n            for v in range(nums[i] + 1):\n                # arr2[i] can be any value <= arr2[i-1]\n                # So we sum all dp2[i-1][u] where u >= v\n                # Precompute suffix sums for dp2[i-1]\n                suffix = 0\n                for u in range(v, nums[i-1] + 1):\n                    suffix += dp2[i-1].get(u, 0)\n                    suffix %= MOD\n                dp2[i][v] = suffix % MOD\n        \n        # The total number of valid pairs is the sum over all possible a and b where a + b = nums[0], and the product of dp1 and dp2\n        total = 0\n        for a in dp1[n-1]:\n            b = nums[0] - a\n            if b in dp2[n-1]:\n                total = (total + dp1[n-1][a] * dp2[n-1][b]) % MOD\n        return total",
+    "MOD = 10**9 + 7\n\nfrom collections import defaultdict\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        dp1 = [defaultdict(int) for _ in range(n)]\n        dp2 = [defaultdict(int) for _ in range(n)]\n        \n        # Initialize for the first element\n        for v in range(nums[0] + 1):\n            dp1[0][v] = 1\n            dp2[0][nums[0] - v] = 1\n        \n        for i in range(1, n):\n            # Update dp1 for arr1\n            prefix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp1[i-1].keys())\n            for u in sorted_prev:\n                current_sum = (current_sum + dp1[i-1][u]) % MOD\n                prefix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                max_u = min(v, sorted_prev[-1]) if sorted_prev else 0\n                if max_u < 0:\n                    dp1[i][v] = 0\n                else:\n                    dp1[i][v] = prefix[max_u] % MOD\n            \n            # Update dp2 for arr2\n            suffix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp2[i-1].keys(), reverse=True)\n            for u in sorted_prev:\n                current_sum = (current_sum + dp2[i-1][u]) % MOD\n                suffix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                min_u = max(v, sorted_prev[0]) if sorted_prev else 0\n                if min_u > (sorted_prev[0] if sorted_prev else 0):\n                    dp2[i][v] = 0\n                else:\n                    dp2[i][v] = suffix.get(min_u, 0) % MOD\n        \n        total = 0\n        for i in range(n):\n            for a in dp1[i]:\n                b = nums[i] - a\n                if b in dp2[i]:\n                    total = (total + dp1[i][a] * dp2[i][b]) % MOD\n        return total",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: list[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        dp1 = [dict() for _ in range(n)]\n        dp2 = [dict() for _ in range(n)]\n        \n        for v in range(nums[0] + 1):\n            dp1[0][v] = 1\n            dp2[0][v] = 1\n        \n        for i in range(1, n):\n            prefix = {}\n            current_sum = 0\n            prev_keys = sorted(dp1[i-1].keys())\n            for u in prev_keys:\n                current_sum = (current_sum + dp1[i-1][u]) % MOD\n                prefix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                low, high = 0, len(prev_keys) - 1\n                res = -1\n                while low <= high:\n                    mid = (low + high) // 2\n                    if prev_keys[mid] <= v:\n                        res = mid\n                        low = mid + 1\n                    else:\n                        high = mid - 1\n                if res == -1:\n                    dp1[i][v] = 0\n                else:\n                    dp1[i][v] = prefix[prev_keys[res]] % MOD\n            \n            suffix = {}\n            current_sum = 0\n            prev_keys = sorted(dp2[i-1].keys(), reverse=True)\n            for u in prev_keys:\n                current_sum = (current_sum + dp2[i-1][u]) % MOD\n                suffix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                low, high = 0, len(prev_keys) - 1\n                res = -1\n                while low <= high:\n                    mid = (low + high) // 2\n                    if prev_keys[mid] >= v:\n                        res = mid\n                        high = mid - 1\n                    else:\n                        low = mid + 1\n                if res == -1:\n                    dp2[i][v] = 0\n                else:\n                    dp2[i][v] = suffix[prev_keys[res]] % MOD\n        \n        total = 0\n        for i in range(n):\n            for a in dp1[i]:\n                b = nums[i] - a\n                if b in dp2[i]:\n                    total = (total + dp1[i][a] * dp2[i][b]) % MOD\n        return total",
+    "MOD = 10**9 + 7\n\nfrom collections import defaultdict\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        dp1 = [defaultdict(int) for _ in range(n)]\n        dp2 = [defaultdict(int) for _ in range(n)]\n        \n        # Initialize for the first element\n        for v in range(nums[0] + 1):\n            dp1[0][v] = 1\n            dp2[0][v] = 1\n        \n        for i in range(1, n):\n            # Update dp1 for arr1 (non-decreasing)\n            prefix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp1[i-1].keys())\n            for u in sorted_prev:\n                current_sum = (current_sum + dp1[i-1][u]) % MOD\n                prefix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                max_u = min(v, sorted_prev[-1]) if sorted_prev else 0\n                dp1[i][v] = prefix[max_u] % MOD if max_u >= 0 else 0\n            \n            # Update dp2 for arr2 (non-increasing)\n            suffix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp2[i-1].keys(), reverse=True)\n            for u in sorted_prev:\n                current_sum = (current_sum + dp2[i-1][u]) % MOD\n                suffix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                min_u = max(v, sorted_prev[0]) if sorted_prev else 0\n                dp2[i][v] = suffix.get(min_u, 0) % MOD\n        \n        total = 0\n        for i in range(n):\n            for a in dp1[i]:\n                b = nums[i] - a\n                if b in dp2[i]:\n                    total = (total + dp1[i][a] * dp2[i][b]) % MOD\n        return total",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: list[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        dp1 = [dict() for _ in range(n)]\n        dp2 = [dict() for _ in range(n)]\n        \n        # Initialize for the first element\n        for v in range(nums[0] + 1):\n            dp1[0][v] = 1\n            dp2[0][nums[0] - v] = 1\n        \n        for i in range(1, n):\n            # Update dp1 for arr1\n            prefix = {}\n            current_sum = 0\n            sorted_prev = sorted(dp1[i-1].keys())\n            for u in sorted_prev:\n                current_sum = (current_sum + dp1[i-1][u]) % MOD\n                prefix[u] = current_sum\n            \n            max_prev = sorted_prev[-1] if sorted_prev else 0\n            for v in range(nums[i] + 1):\n                max_u = min(v, max_prev)\n                if max_u < 0:\n                    dp1[i][v] = 0\n                else:\n                    dp1[i][v] = prefix.get(max_u, 0) % MOD\n            \n            # Update dp2 for arr2\n            suffix = {}\n            current_sum = 0\n            sorted_prev = sorted(dp2[i-1].keys(), reverse=True)\n            for u in sorted_prev:\n                current_sum = (current_sum + dp2[i-1][u]) % MOD\n                suffix[u] = current_sum\n            \n            min_prev = sorted_prev[0] if sorted_prev else 0\n            for v in range(nums[i] + 1):\n                min_u = max(v, min_prev)\n                if min_u > (min_prev if sorted_prev else 0):\n                    dp2[i][v] = 0\n                else:\n                    dp2[i][v] = suffix.get(min_u, 0) % MOD\n        \n        total = 0\n        for i in range(n):\n            for a in dp1[i]:\n                b = nums[i] - a\n                if b in dp2[i]:\n                    total = (total + dp1[i][a] * dp2[i][b]) % MOD\n        return total",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp1[i][v] represents the number of ways to have arr1[0..i] with arr1[i] = v, maintaining non-decreasing order\n        dp1 = [defaultdict(int) for _ in range(n)]\n        # dp2[i][v] represents the number of ways to have arr2[0..i] with arr2[i] = v, maintaining non-increasing order\n        dp2 = [defaultdict(int) for _ in range(n)]\n        \n        # Initialize dp1 and dp2 for the first element\n        for v in range(nums[0] + 1):\n            dp1[0][v] = 1\n            dp2[0][nums[0] - v] = 1\n        \n        for i in range(1, n):\n            # Update dp1 for arr1\n            # Precompute prefix sums for dp1[i-1]\n            prefix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp1[i-1].keys())\n            for u in sorted_prev:\n                current_sum = (current_sum + dp1[i-1][u]) % MOD\n                prefix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                # Find the maximum u <= v in dp1[i-1]\n                max_u = min(v, max(sorted_prev) if sorted_prev else 0)\n                if max_u < 0:\n                    dp1[i][v] = 0\n                else:\n                    dp1[i][v] = prefix[max_u] % MOD\n            \n            # Update dp2 for arr2\n            # Precompute suffix sums for dp2[i-1]\n            suffix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp2[i-1].keys(), reverse=True)\n            for u in sorted_prev:\n                current_sum = (current_sum + dp2[i-1][u]) % MOD\n                suffix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                # Find the minimum u >= v in dp2[i-1]\n                min_u = max(v, min(sorted_prev) if sorted_prev else 0)\n                if min_u > nums[i]:\n                    dp2[i][v] = 0\n                else:\n                    dp2[i][v] = suffix.get(min_u, 0) % MOD\n        \n        # Calculate the total number of valid pairs\n        total = 0\n        for a in dp1[n-1]:\n            b = nums[-1] - a\n            if b in dp2[n-1]:\n                total = (total + dp1[n-1][a] * dp2[n-1][b]) % MOD\n        return total",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp1[i][v] represents the number of ways to have arr1[0..i] with arr1[i] = v, maintaining non-decreasing order\n        dp1 = [defaultdict(int) for _ in range(n)]\n        # dp2[i][v] represents the number of ways to have arr2[0..i] with arr2[i] = v, maintaining non-increasing order\n        dp2 = [defaultdict(int) for _ in range(n)]\n        \n        # Initialize dp1 and dp2 for the first element\n        for v in range(nums[0] + 1):\n            dp1[0][v] = 1\n            dp2[0][nums[0] - v] = 1\n        \n        for i in range(1, n):\n            # Update dp1 for arr1\n            # Precompute prefix sums for dp1[i-1]\n            prefix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp1[i-1].keys())\n            for u in sorted_prev:\n                current_sum = (current_sum + dp1[i-1][u]) % MOD\n                prefix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                # Find the maximum u <= v in dp1[i-1]\n                max_u = min(v, sorted_prev[-1]) if sorted_prev else 0\n                if max_u < 0:\n                    dp1[i][v] = 0\n                else:\n                    dp1[i][v] = prefix[max_u] % MOD\n            \n            # Update dp2 for arr2\n            # Precompute suffix sums for dp2[i-1]\n            suffix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp2[i-1].keys(), reverse=True)\n            for u in sorted_prev:\n                current_sum = (current_sum + dp2[i-1][u]) % MOD\n                suffix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                # Find the minimum u >= v in dp2[i-1]\n                min_u = max(v, sorted_prev[-1]) if sorted_prev else 0\n                if min_u > nums[i]:\n                    dp2[i][v] = 0\n                else:\n                    dp2[i][v] = suffix.get(min_u, 0) % MOD\n        \n        # Calculate the total number of valid pairs\n        total = 0\n        for a in dp1[n-1]:\n            b = nums[-1] - a\n            if b in dp2[n-1]:\n                total = (total + dp1[n-1][a] * dp2[n-1][b]) % MOD\n        return total",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: list[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp1[i][v] is the number of ways to have arr1[0..i] with arr1[i] = v, non-decreasing\n        dp1 = [{} for _ in range(n)]\n        # dp2[i][v] is the number of ways to have arr2[0..i] with arr2[i] = v, non-increasing\n        dp2 = [{} for _ in range(n)]\n        \n        # Initialize dp1 and dp2 for the first element\n        for v in range(nums[0] + 1):\n            dp1[0][v] = 1\n            dp2[0][nums[0] - v] = 1\n        \n        for i in range(1, n):\n            # Update dp1 for arr1\n            # Precompute prefix sums for dp1[i-1]\n            prefix = {}\n            current_sum = 0\n            sorted_prev = sorted(dp1[i-1].keys())\n            for u in sorted_prev:\n                current_sum = (current_sum + dp1[i-1][u]) % MOD\n                prefix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                # Find the largest u <= v\n                max_u = max([u for u in sorted_prev if u <= v], default=-1)\n                if max_u == -1:\n                    dp1[i][v] = 0\n                else:\n                    dp1[i][v] = prefix[max_u] % MOD\n            \n            # Update dp2 for arr2\n            # Precompute suffix sums for dp2[i-1]\n            suffix = {}\n            current_sum = 0\n            sorted_prev = sorted(dp2[i-1].keys(), reverse=True)\n            for u in sorted_prev:\n                current_sum = (current_sum + dp2[i-1][u]) % MOD\n                suffix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                # Find the smallest u >= v\n                min_u = min([u for u in sorted_prev if u >= v], default=-1)\n                if min_u == -1:\n                    dp2[i][v] = 0\n                else:\n                    dp2[i][v] = suffix.get(min_u, 0) % MOD\n        \n        # Calculate the total number of valid pairs\n        total = 0\n        for a in dp1[n-1]:\n            b = nums[-1] - a\n            if b in dp2[n-1]:\n                total = (total + dp1[n-1][a] * dp2[n-1][b]) % MOD\n        return total",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp1[i][v] represents the number of ways to have arr1[0..i] with arr1[i] = v, maintaining non-decreasing order\n        dp1 = [defaultdict(int) for _ in range(n)]\n        # dp2[i][v] represents the number of ways to have arr2[0..i] with arr2[i] = v, maintaining non-increasing order\n        dp2 = [defaultdict(int) for _ in range(n)]\n        \n        # Initialize dp1 and dp2 for the first element\n        for v in range(nums[0] + 1):\n            dp1[0][v] = 1\n            dp2[0][nums[0] - v] = 1\n        \n        for i in range(1, n):\n            # Update dp1 for arr1\n            # Precompute prefix sums for dp1[i-1]\n            prefix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp1[i-1].keys())\n            for u in sorted_prev:\n                current_sum = (current_sum + dp1[i-1][u]) % MOD\n                prefix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                # Find the largest u <= v using binary search\n                left, right = 0, len(sorted_prev)\n                while left < right:\n                    mid = (left + right) // 2\n                    if sorted_prev[mid] <= v:\n                        left = mid + 1\n                    else:\n                        right = mid\n                if left == 0:\n                    dp1[i][v] = 0\n                else:\n                    dp1[i][v] = prefix[sorted_prev[left-1]] % MOD\n            \n            # Update dp2 for arr2\n            # Precompute suffix sums for dp2[i-1]\n            suffix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp2[i-1].keys(), reverse=True)\n            for u in sorted_prev:\n                current_sum = (current_sum + dp2[i-1][u]) % MOD\n                suffix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                # Find the smallest u >= v using binary search\n                left, right = 0, len(sorted_prev)\n                while left < right:\n                    mid = (left + right) // 2\n                    if sorted_prev[mid] >= v:\n                        left = mid + 1\n                    else:\n                        right = mid\n                if left == 0:\n                    dp2[i][v] = 0\n                else:\n                    dp2[i][v] = suffix[sorted_prev[left-1]] % MOD\n        \n        # Calculate the total number of valid pairs\n        total = 0\n        for a in dp1[n-1]:\n            b = nums[-1] - a\n            if b in dp2[n-1]:\n                total = (total + dp1[n-1][a] * dp2[n-1][b]) % MOD\n        return total",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        max_a = max(nums)\n        dp = [[0] * (max_a + 1) for _ in range(n)]\n        \n        # Initialize dp[0]\n        for a in range(nums[0] + 1):\n            dp[0][a] = 1\n        \n        for i in range(1, n):\n            delta = max(0, nums[i] - nums[i-1])\n            # Precompute prefix sums for dp[i-1]\n            prefix = [0] * (max_a + 2)\n            for a in range(max_a + 1):\n                prefix[a+1] = (prefix[a] + dp[i-1][a]) % MOD\n            \n            # For each possible a_i, compute the sum of dp[i-1][a_{i-1}] where a_{i-1} <= a_i - delta\n            for a_i in range(max_a + 1):\n                if a_i > nums[i]:\n                    continue  # a_i cannot exceed nums[i]\n                max_a_prev = a_i - delta\n                if max_a_prev < 0:\n                    dp[i][a_i] = 0\n                else:\n                    max_a_prev = min(max_a_prev, max_a)\n                    dp[i][a_i] = prefix[max_a_prev + 1] % MOD\n        \n        # The answer is the sum of dp[n-1][a] for all a <= nums[n-1]\n        total = 0\n        for a in range(nums[-1] + 1):\n            total = (total + dp[n-1][a]) % MOD\n        return total",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [defaultdict(int) for _ in range(n)]\n        dp[0][nums[0]] = 1  # arr1[0] can be any value from 0 to nums[0], but arr2[0] = nums[0] - arr1[0]\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = defaultdict(int)\n            # For each possible a_prev in arr1[i-1], compute possible a_curr\n            for a_prev, count in prev_dp.items():\n                max_a_curr = min(s, a_prev + (s - a_prev))  # arr1 must be non-decreasing\n                # arr2 must be non-increasing: s - a_curr <= s_prev - a_prev\n                # => a_curr >= a_prev + (s_prev - s_curr)\n                min_a_curr = a_prev + (nums[i-1] - s)\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr < 0 or a_curr > s:\n                        continue\n                    current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n            dp[i] = current_dp\n        \n        # Sum all possible a_n in the last dp\n        return sum(dp[-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        \n        # Initialize the first position\n        for a1 in range(0, nums[0] + 1):\n            a2 = nums[0] - a1\n            dp[0][a1] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # Calculate the minimum a_curr based on arr2's non-increasing property\n                min_a_curr = max(a_prev, a_prev + (nums[i-1] - s))\n                max_a_curr = s\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr < 0 or a_curr > s:\n                        continue\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        return sum(dp[-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        \n        # Initialize the first position\n        for a1 in range(0, nums[0] + 1):\n            a2 = nums[0] - a1\n            dp[0][a1] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # arr1 must be non-decreasing, so a_curr >= a_prev\n                # arr2 must be non-increasing, so (s - a_curr) <= (nums[i-1] - a_prev)\n                # Rearranged: a_curr >= a_prev + (nums[i-1] - s)\n                min_a_curr = max(a_prev, a_prev + (nums[i-1] - s))\n                max_a_curr = s\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr < 0 or a_curr > s:\n                        continue\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        return sum(dp[-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        \n        # Initialize the first position\n        for a1 in range(0, nums[0] + 1):\n            a2 = nums[0] - a1\n            dp[0][a1] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # Calculate the minimum a_curr based on arr2's non-increasing property\n                min_a_curr = max(a_prev, s - (nums[i-1] - a_prev))\n                max_a_curr = s\n                if min_a_curr > max_a_curr:\n                    continue\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr < 0 or a_curr > s:\n                        continue\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        return sum(dp[-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        \n        # Initialize the first position\n        for a1 in range(0, nums[0] + 1):\n            a2 = nums[0] - a1\n            dp[0][a1] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # Calculate the minimum a_curr based on arr1's non-decreasing and arr2's non-increasing\n                min_a_curr = max(a_prev, a_prev + (nums[i-1] - s))\n                max_a_curr = s\n                # Ensure that a_curr is within valid bounds\n                if min_a_curr > max_a_curr:\n                    continue\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr < 0 or a_curr > s:\n                        continue\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        return sum(dp[-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        # Initialize the first position\n        dp[0] = {a1: 1 for a1 in range(0, nums[0] + 1)}\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # arr1 must be non-decreasing: a_curr >= a_prev\n                # arr2 must be non-increasing: s - a_curr <= (nums[i-1] - a_prev)\n                # => a_curr >= a_prev + (nums[i-1] - s)\n                min_a_curr = max(a_prev, a_prev + (nums[i-1] - s))\n                max_a_curr = min(s, a_prev + (s - a_prev))\n                if min_a_curr > max_a_curr:\n                    continue  # No valid a_curr for this a_prev\n                # Ensure a_curr is within [0, s]\n                min_a_curr = max(min_a_curr, 0)\n                max_a_curr = min(max_a_curr, s)\n                if min_a_curr > max_a_curr:\n                    continue\n                # Add all possible a_curr in this range\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        # Sum all possible a_n in the last dp\n        return sum(dp[-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        dp = [{} for _ in range(n)]\n        # Initialize the first position\n        dp[0] = {a1: 1 for a1 in range(0, nums[0] + 1)}\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_s = nums[i-1]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # Calculate the minimum and maximum possible a_curr\n                min_a_curr = max(a_prev, a_prev + (prev_s - s))\n                max_a_curr = min(s, a_prev + (s - a_prev))\n                # Ensure a_curr is within valid bounds\n                min_a_curr = max(min_a_curr, 0)\n                max_a_curr = min(max_a_curr, s)\n                if min_a_curr > max_a_curr:\n                    continue\n                # Use difference array technique to mark the range\n                if min_a_curr in current_dp:\n                    current_dp[min_a_curr] = (current_dp[min_a_curr] + count) % MOD\n                else:\n                    current_dp[min_a_curr] = count % MOD\n                if max_a_curr + 1 <= s:\n                    if max_a_curr + 1 in current_dp:\n                        current_dp[max_a_curr + 1] = (current_dp[max_a_curr + 1] - count) % MOD\n                    else:\n                        current_dp[max_a_curr + 1] = (-count) % MOD\n            # Compute prefix sums to get the actual counts\n            sorted_keys = sorted(current_dp.keys())\n            prefix = 0\n            new_current_dp = {}\n            for key in sorted_keys:\n                prefix = (prefix + current_dp[key]) % MOD\n                new_current_dp[key] = prefix\n            current_dp = new_current_dp\n            dp[i] = current_dp\n        \n        # Sum all possible values in the last DP state\n        return sum(dp[-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        # Initialize the first position\n        dp[0] = {a1: 1 for a1 in range(0, nums[0] + 1)}\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # Calculate the minimum and maximum possible a_curr\n                min_a_curr = max(a_prev, a_prev + (nums[i-1] - s))\n                max_a_curr = min(s, a_prev + (s - a_prev))\n                if min_a_curr > max_a_curr:\n                    continue  # No valid a_curr for this a_prev\n                # Ensure a_curr is within [0, s]\n                min_a_curr = max(min_a_curr, 0)\n                max_a_curr = min(max_a_curr, s)\n                if min_a_curr > max_a_curr:\n                    continue\n                # Add all possible a_curr in this range\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        # Sum all possible a_n in the last dp\n        return sum(dp[-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        # Initialize the first position\n        dp[0] = {a1: 1 for a1 in range(0, nums[0] + 1)}\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # arr1 must be non-decreasing: a_curr >= a_prev\n                # arr2 must be non-increasing: (s - a_curr) <= (nums[i-1] - a_prev)\n                # Rearranged: a_curr >= a_prev + (nums[i-1] - s)\n                min_a_curr = max(a_prev, a_prev + (nums[i-1] - s))\n                # Also, a_curr can't exceed s, and must be >=0\n                min_a_curr = max(min_a_curr, 0)\n                max_a_curr = min(s, a_prev + (s - a_prev))\n                # Ensure that a_curr is within [0, s]\n                if min_a_curr > max_a_curr:\n                    continue\n                # The number of valid a_curr is (max_a_curr - min_a_curr + 1)\n                # Each contributes 'count' to current_dp[a_curr]\n                # Instead of iterating, use arithmetic to calculate the sum\n                num_options = max_a_curr - min_a_curr + 1\n                if num_options <= 0:\n                    continue\n                # Update current_dp: for each a_curr in [min, max], add count\n                # To avoid iterating, we can represent this as a range update\n                # Using a dictionary to accumulate the counts\n                # However, for simplicity, we'll use the range and update each a_curr\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        # Sum all possible a_n in the last dp\n        return sum(dp[-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        # Initialize the first position\n        dp[0] = {a1: 1 for a1 in range(0, nums[0] + 1)}\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # Calculate the minimum a_curr based on arr2's non-increasing condition\n                min_a_curr = a_prev + (nums[i-1] - s)\n                # Ensure arr1 is non-decreasing: a_curr >= a_prev\n                min_a_curr = max(min_a_curr, a_prev)\n                # a_curr can't exceed s, and arr2[i] must be >=0, so a_curr <= s\n                max_a_curr = s\n                # Iterate through all possible a_curr in [min_a_curr, max_a_curr]\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        # Sum all possible a_n in the last dp\n        return sum(dp[-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        \n        # Initialize the first position\n        dp[0] = {a1: 1 for a1 in range(0, nums[0] + 1)}\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # Calculate the minimum a_curr based on arr2's non-increasing condition\n                min_a_curr = a_prev + (nums[i-1] - s)\n                # Ensure arr1 is non-decreasing: a_curr >= a_prev\n                min_a_curr = max(min_a_curr, a_prev)\n                # a_curr can't exceed s, and arr2[i] must be >=0, so a_curr <= s\n                max_a_curr = s\n                \n                # Iterate through all possible a_curr in [min_a_curr, max_a_curr]\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        # Sum all possible a_n in the last dp\n        return sum(dp[-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        # Initialize the first position\n        dp[0] = {a1: 1 for a1 in range(0, nums[0] + 1)}\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # Calculate the maximum allowed arr2_curr\n                arr2_prev = nums[i-1] - a_prev\n                min_a_curr = max(a_prev, s - arr2_prev)\n                max_a_curr = s\n                # Iterate through all possible a_curr in [min_a_curr, max_a_curr]\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        # Sum all possible a_n in the last dp\n        return sum(dp[-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp[i] is a dictionary where key is a1[i], value is the count of ways to reach a1[i] at position i\n        dp = [{} for _ in range(n)]\n        \n        # Initialize the first position\n        s = nums[0]\n        for a1 in range(0, s + 1):\n            a2 = s - a1\n            if a2 >= 0:\n                dp[0][a1] = 1\n        \n        for i in range(1, n):\n            s_prev = nums[i-1]\n            s_curr = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            \n            for a_prev, count in prev_dp.items():\n                # arr1 must be non-decreasing: a_curr >= a_prev\n                # arr2 must be non-increasing: (s_prev - a_prev) >= (s_curr - a_curr)\n                # Rearranged: a_curr >= a_prev + (s_prev - s_curr)\n                min_a_curr = a_prev + (s_prev - s_curr)\n                # Also, a_curr must be >= a_prev (since arr1 is non-decreasing)\n                min_a_curr = max(min_a_curr, a_prev)\n                # a_curr can't exceed s_curr, and a_curr must be >=0\n                max_a_curr = s_curr\n                min_a_curr = max(min_a_curr, 0)\n                \n                # Iterate through all possible a_curr in [min_a_curr, max_a_curr]\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    a2_curr = s_curr - a_curr\n                    if a2_curr < 0:\n                        continue  # arr2 must be non-negative\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            \n            dp[i] = current_dp\n        \n        # Sum all possible a_n in the last dp\n        return sum(dp[-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        max_val = max(nums)\n        dp = [defaultdict(int) for _ in range(n)]\n        \n        for i in range(n):\n            s = nums[i]\n            if i == 0:\n                for a1 in range(s + 1):\n                    a2 = s - a1\n                    dp[i][(a1, a2)] = 1\n            else:\n                for prev_a1, prev_a2 in dp[i-1]:\n                    for a1 in range(prev_a1, s + 1):\n                        a2 = s - a1\n                        if a2 <= prev_a2:\n                            dp[i][(a1, a2)] = (dp[i][(a1, a2)] + dp[i-1][(prev_a1, prev_a2)]) % MOD\n        return sum(dp[n-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nfrom collections import defaultdict\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp1 = [defaultdict(int) for _ in range(n)]  # Tracks possible arr1[i] values and their counts\n        dp2 = [defaultdict(int) for _ in range(n)]  # Tracks possible arr2[i] values and their counts\n        \n        for i in range(n):\n            s = nums[i]\n            if i == 0:\n                for a1 in range(s + 1):\n                    a2 = s - a1\n                    dp1[i][a1] = 1\n                    dp2[i][a2] = 1\n            else:\n                # Update dp1: arr1[i] must be >= arr1[i-1]\n                for prev_a1, count in dp1[i-1].items():\n                    for a1 in range(prev_a1, s + 1):\n                        a2 = s - a1\n                        if a2 <= dp2[i-1].get(a2, float('inf')):\n                            dp1[i][a1] = (dp1[i][a1] + count) % MOD\n                # Update dp2: arr2[i] must be <= arr2[i-1]\n                for prev_a2, count in dp2[i-1].items():\n                    for a2 in range(prev_a2, -1, -1):\n                        a1 = s - a2\n                        if a1 >= dp1[i-1].get(a1, -1):\n                            dp2[i][a2] = (dp2[i][a2] + count) % MOD\n        # The total is the sum of possible a1 or a2 at the last index\n        return sum(dp1[n-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [dict() for _ in range(n)]\n        \n        for i in range(n):\n            s = nums[i]\n            current = dp[i]\n            if i == 0:\n                for a1 in range(s + 1):\n                    a2 = s - a1\n                    current[(a1, a2)] = 1\n            else:\n                prev_dp = dp[i-1]\n                for (prev_a1, prev_a2), count in prev_dp.items():\n                    for a1 in range(prev_a1, s + 1):\n                        a2 = s - a1\n                        if a2 <= prev_a2:\n                            key = (a1, a2)\n                            current[key] = (current.get(key, 0) + count) % MOD\n            # Optimize by keeping only the necessary keys\n            dp[i] = current\n        \n        return sum(dp[n-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [dict() for _ in range(n)]\n        \n        for i in range(n):\n            s = nums[i]\n            if i == 0:\n                for a1 in range(s + 1):\n                    a2 = s - a1\n                    dp[i][(a1, a2)] = 1\n            else:\n                for prev_a1, prev_a2 in dp[i-1]:\n                    for a1 in range(prev_a1, s + 1):\n                        a2 = s - a1\n                        if a2 <= prev_a2:\n                            key = (a1, a2)\n                            dp[i][key] = (dp[i].get(key, 0) + dp[i-1][(prev_a1, prev_a2)]) % MOD\n        return sum(dp[n-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nfrom collections import defaultdict\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [defaultdict(int) for _ in range(n)]\n        \n        # Initialize the first position\n        s = nums[0]\n        for a1 in range(s + 1):\n            a2 = s - a1\n            dp[0][(a1, a2)] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            for (prev_a1, prev_a2), count in dp[i-1].items():\n                # Determine the minimum a1 for the current position\n                min_a1 = max(prev_a1, s - prev_a2)\n                # Iterate over possible a1 values\n                for a1 in range(min_a1, s + 1):\n                    a2 = s - a1\n                    if a2 < 0:\n                        continue\n                    dp[i][(a1, a2)] = (dp[i][(a1, a2)] + count) % MOD\n        \n        return sum(dp[n-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp1 = [defaultdict(int) for _ in range(n)]  # Tracks possible a1 values and their counts\n        dp2 = [defaultdict(int) for _ in range(n)]  # Tracks possible a2 values and their counts\n        \n        # Initialize for the first element\n        s = nums[0]\n        for a1 in range(s + 1):\n            a2 = s - a1\n            dp1[0][a1] += 1\n            dp2[0][a2] += 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            # Update dp1: a1 must be >= previous a1\n            for prev_a1, count in dp1[i-1].items():\n                for a1 in range(prev_a1, s + 1):\n                    dp1[i][a1] = (dp1[i][a1] + count) % MOD\n            # Update dp2: a2 must be <= previous a2\n            for prev_a2, count in dp2[i-1].items():\n                for a2 in range(0, min(prev_a2, s) + 1):\n                    a1 = s - a2\n                    if a1 >= 0:\n                        dp2[i][a2] = (dp2[i][a2] + count) % MOD\n        \n        # The total number of valid pairs is the sum of the counts where a1 and a2 are compatible\n        total = 0\n        for a1, count1 in dp1[n-1].items():\n            a2 = nums[-1] - a1\n            if a2 in dp2[n-1]:\n                total = (total + count1 * dp2[n-1][a2]) % MOD\n        return total",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]  # Tracks (a1, a2) pairs and their counts\n        \n        # Initialize for the first element\n        s = nums[0]\n        for a1 in range(s + 1):\n            a2 = s - a1\n            dp[0][(a1, a2)] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            current_dp = {}\n            for (prev_a1, prev_a2), count in dp[i-1].items():\n                # For arr1, a1 must be >= prev_a1\n                for a1 in range(prev_a1, s + 1):\n                    a2 = s - a1\n                    # For arr2, a2 must be <= prev_a2\n                    if a2 <= prev_a2 and a2 >= 0:\n                        key = (a1, a2)\n                        if key in current_dp:\n                            current_dp[key] = (current_dp[key] + count) % MOD\n                        else:\n                            current_dp[key] = count % MOD\n            dp[i] = current_dp\n        \n        # Sum all possible valid pairs at the last index\n        return sum(dp[n-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp1[i][a1] represents the number of ways to have arr1 up to index i with arr1[i] = a1\n        dp1 = [defaultdict(int) for _ in range(n)]\n        # dp2[i][a2] represents the number of ways to have arr2 up to index i with arr2[i] = a2\n        dp2 = [defaultdict(int) for _ in range(n)]\n        \n        # Initialize for the first element\n        s = nums[0]\n        for a1 in range(s + 1):\n            a2 = s - a1\n            dp1[0][a1] = 1\n            dp2[0][a2] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            # Update dp1: a1 must be >= previous a1\n            for prev_a1, count in dp1[i-1].items():\n                for a1 in range(prev_a1, s + 1):\n                    dp1[i][a1] = (dp1[i][a1] + count) % MOD\n            # Update dp2: a2 must be <= previous a2\n            for prev_a2, count in dp2[i-1].items():\n                for a2 in range(0, min(prev_a2, s) + 1):\n                    a1 = s - a2\n                    if a1 >= 0:\n                        dp2[i][a2] = (dp2[i][a2] + count) % MOD\n        \n        # Calculate the total valid pairs\n        total = 0\n        for a1, count1 in dp1[n-1].items():\n            a2 = nums[-1] - a1\n            if a2 in dp2[n-1]:\n                total = (total + count1 * dp2[n-1][a2]) % MOD\n        return total",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp1[i][a1] = number of ways to have arr1 up to i with arr1[i] = a1\n        dp1 = [defaultdict(int) for _ in range(n)]\n        # dp2[i][a2] = number of ways to have arr2 up to i with arr2[i] = a2\n        dp2 = [defaultdict(int) for _ in range(n)]\n        \n        # Initialize for the first element\n        s = nums[0]\n        for a1 in range(s + 1):\n            a2 = s - a1\n            dp1[0][a1] += 1\n            dp2[0][a2] += 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            # Update dp1: a1 must be >= previous a1\n            for prev_a1, count in dp1[i-1].items():\n                for a1 in range(prev_a1, s + 1):\n                    dp1[i][a1] = (dp1[i][a1] + count) % MOD\n            # Update dp2: a2 must be <= previous a2\n            for prev_a2, count in dp2[i-1].items():\n                for a2 in range(0, min(prev_a2, s) + 1):\n                    a1 = s - a2\n                    if a1 >= 0:\n                        dp2[i][a2] = (dp2[i][a2] + count) % MOD\n        \n        # The total number of valid pairs is the sum of the counts where a1 and a2 are compatible\n        total = 0\n        for a1, count1 in dp1[n-1].items():\n            a2 = nums[-1] - a1\n            if a2 in dp2[n-1]:\n                total = (total + count1 * dp2[n-1][a2]) % MOD\n        return total",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp1[i][a] represents the number of ways to have arr1[0..i] ending with a, which is non-decreasing\n        dp1 = [{} for _ in range(n)]\n        # dp2[i][b] represents the number of ways to have arr2[0..i] ending with b, which is non-increasing\n        dp2 = [{} for _ in range(n)]\n        \n        # Initialize the first element\n        s = nums[0]\n        for a in range(s + 1):\n            b = s - a\n            dp1[0][a] = 1\n            dp2[0][b] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            # Update dp1: arr1 must be >= previous arr1\n            for prev_a in dp1[i-1]:\n                for a in range(prev_a, s + 1):\n                    b = s - a\n                    if b <= dp2[i-1].get(b, float('inf')):\n                        if a in dp1[i]:\n                            dp1[i][a] = (dp1[i][a] + dp1[i-1][prev_a]) % MOD\n                        else:\n                            dp1[i][a] = dp1[i-1][prev_a] % MOD\n            # Update dp2: arr2 must be <= previous arr2\n            for prev_b in dp2[i-1]:\n                for b in range(prev_b, -1, -1):\n                    a = s - b\n                    if a >= dp1[i-1].get(a, -1):\n                        if b in dp2[i]:\n                            dp2[i][b] = (dp2[i][b] + dp2[i-1][prev_b]) % MOD\n                        else:\n                            dp2[i][b] = dp2[i-1][prev_b] % MOD\n        \n        # The total number of valid pairs is the sum of the product of dp1 and dp2 at each position\n        total = 0\n        for a in dp1[-1]:\n            b = nums[-1] - a\n            if b in dp2[-1]:\n                total = (total + dp1[-1][a] * dp2[-1][b]) % MOD\n        return total",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp[i] is a dictionary mapping (a, b) to the count of ways\n        dp = [{} for _ in range(n)]\n        \n        # Initialize the first element\n        s = nums[0]\n        for a in range(s + 1):\n            b = s - a\n            dp[0][(a, b)] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            current_dp = {}\n            for (prev_a, prev_b), count in dp[i-1].items():\n                # Iterate through possible a values starting from prev_a\n                for a in range(prev_a, s + 1):\n                    b = s - a\n                    if b <= prev_b:\n                        key = (a, b)\n                        if key in current_dp:\n                            current_dp[key] = (current_dp[key] + count) % MOD\n                        else:\n                            current_dp[key] = count % MOD\n            dp[i] = current_dp\n        \n        # Sum all possible ways for the last element\n        return sum(dp[n-1].values()) % MOD",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp1[i][a] represents the number of ways to have arr1[0..i] ending with a, which is non-decreasing\n        dp1 = [{} for _ in range(n)]\n        # dp2[i][b] represents the number of ways to have arr2[0..i] ending with b, which is non-increasing\n        dp2 = [{} for _ in range(n)]\n        \n        # Initialize the first element\n        s = nums[0]\n        for a in range(s + 1):\n            b = s - a\n            dp1[0][a] = 1\n            dp2[0][b] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            # Update dp1: arr1 must be >= previous arr1\n            for prev_a in dp1[i-1]:\n                for a in range(prev_a, s + 1):\n                    b = s - a\n                    # Check if b is <= previous b in dp2[i-1]\n                    # We need to find all b_prev in dp2[i-1] where b_prev >= b\n                    # To optimize, we can precompute the prefix sums for dp2[i-1]\n                    # But for now, let's compute it directly\n                    total = 0\n                    for b_prev in dp2[i-1]:\n                        if b_prev >= b:\n                            total += dp2[i-1][b_prev]\n                            if total >= MOD:\n                                total -= MOD\n                    if a in dp1[i]:\n                        dp1[i][a] = (dp1[i][a] + dp1[i-1][prev_a] * total) % MOD\n                    else:\n                        dp1[i][a] = (dp1[i-1][prev_a] * total) % MOD\n            # Update dp2: arr2 must be <= previous arr2\n            for prev_b in dp2[i-1]:\n                for b in range(prev_b, -1, -1):\n                    a = s - b\n                    # Check if a is >= previous a in dp1[i-1]\n                    # We need to find all a_prev in dp1[i-1] where a_prev <= a\n                    # So for each b, we can accumulate the sum of dp1[i-1][a_prev] where a_prev <= a\n                    # Again, for now, compute directly\n                    total = 0\n                    for a_prev in dp1[i-1]:\n                        if a_prev <= a:\n                            total += dp1[i-1][a_prev]\n                            if total >= MOD:\n                                total -= MOD\n                    if b in dp2[i]:\n                        dp2[i][b] = (dp2[i][b] + dp2[i-1][prev_b] * total) % MOD\n                    else:\n                        dp2[i][b] = (dp2[i-1][prev_b] * total) % MOD\n        \n        # The total number of valid pairs is the sum of the product of dp1 and dp2 at each position\n        total = 0\n        for a in dp1[-1]:\n            b = nums[-1] - a\n            if b in dp2[-1]:\n                total = (total + dp1[-1][a] * dp2[-1][b]) % MOD\n        return total",
+    "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp1[i][a] represents the number of ways to have arr1[0..i] ending with a, which is non-decreasing\n        dp1 = [{} for _ in range(n)]\n        # dp2[i][b] represents the number of ways to have arr2[0..i] ending with b, which is non-increasing\n        dp2 = [{} for _ in range(n)]\n        \n        # Initialize the first element\n        s = nums[0]\n        for a in range(s + 1):\n            b = s - a\n            dp1[0][a] = 1\n            dp2[0][b] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            # Update dp1: arr1 must be >= previous arr1\n            for prev_a in dp1[i-1]:\n                for a in range(prev_a, s + 1):\n                    b = s - a\n                    if b <= dp2[i-1].get(b, float('inf')):\n                        if a in dp1[i]:\n                            dp1[i][a] = (dp1[i][a] + dp1[i-1][prev_a]) % MOD\n                        else:\n                            dp1[i][a] = dp1[i-1][prev_a] % MOD\n            # Update dp2: arr2 must be <= previous arr2\n            for prev_b in dp2[i-1]:\n                for b in range(prev_b, -1, -1):\n                    a = s - b\n                    if a >= dp1[i-1].get(a, -1):\n                        if b in dp2[i]:\n                            dp2[i][b] = (dp2[i][b] + dp2[i-1][prev_b]) % MOD\n                        else:\n                            dp2[i][b] = dp2[i-1][prev_b] % MOD\n        \n        # The total number of valid pairs is the sum of the product of dp1 and dp2 at each position\n        total = 0\n        for a in dp1[-1]:\n            b = nums[-1] - a\n            if b in dp2[-1]:\n                total = (total + dp1[-1][a] * dp2[-1][b]) % MOD\n        return total"
+  ],
+  "total_candidates": 36,
+  "nodes_explored": 36,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp1[i][v] represents the number of ways to have arr1[0..i] with arr1[i] = v, maintaining non-decreasing order\n        dp1 = [defaultdict(int) for _ in range(n)]\n        # dp2[i][v] represents the number of ways to have arr2[0..i] with arr2[i] = v, maintaining non-increasing order\n        dp2 = [defaultdict(int) for _ in range(n)]\n        \n        # Initialize dp1 and dp2 for the first element\n        for v in range(nums[0] + 1):\n            dp1[0][v] = 1\n            dp2[0][nums[0] - v] = 1\n        \n        for i in range(1, n):\n            # Update dp1 for arr1\n            for v in range(nums[i] + 1):\n                # arr1[i] can be any value >= arr1[i-1]\n                # So we sum all dp1[i-1][u] where u <= v\n                # To optimize, we can precompute prefix sums\n                # Similarly for dp2, but in reverse\n                # Precompute prefix sums for dp1[i-1]\n                prefix = 0\n                for u in range(v + 1):\n                    prefix += dp1[i-1].get(u, 0)\n                    prefix %= MOD\n                dp1[i][v] = prefix % MOD\n            \n            # Update dp2 for arr2\n            for v in range(nums[i] + 1):\n                # arr2[i] can be any value <= arr2[i-1]\n                # So we sum all dp2[i-1][u] where u >= v\n                # Precompute suffix sums for dp2[i-1]\n                suffix = 0\n                for u in range(v, nums[i-1] + 1):\n                    suffix += dp2[i-1].get(u, 0)\n                    suffix %= MOD\n                dp2[i][v] = suffix % MOD\n        \n        # The total number of valid pairs is the sum over all possible a and b where a + b = nums[0], and the product of dp1 and dp2\n        total = 0\n        for a in dp1[n-1]:\n            b = nums[0] - a\n            if b in dp2[n-1]:\n                total = (total + dp1[n-1][a] * dp2[n-1][b]) % MOD\n        return total",
+      "solution_hash": "8a1107b71d03014c33865e806036f98f6037f8fed6564e2d1dec4451d4c71606",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpfa6tzath.py\", line 219, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmpfa6tzath.py\", line 133, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n",
+        "execution_time": 0.06327605247497559
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "MOD = 10**9 + 7\n\nfrom collections import defaultdict\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        dp1 = [defaultdict(int) for _ in range(n)]\n        dp2 = [defaultdict(int) for _ in range(n)]\n        \n        # Initialize for the first element\n        for v in range(nums[0] + 1):\n            dp1[0][v] = 1\n            dp2[0][nums[0] - v] = 1\n        \n        for i in range(1, n):\n            # Update dp1 for arr1\n            prefix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp1[i-1].keys())\n            for u in sorted_prev:\n                current_sum = (current_sum + dp1[i-1][u]) % MOD\n                prefix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                max_u = min(v, sorted_prev[-1]) if sorted_prev else 0\n                if max_u < 0:\n                    dp1[i][v] = 0\n                else:\n                    dp1[i][v] = prefix[max_u] % MOD\n            \n            # Update dp2 for arr2\n            suffix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp2[i-1].keys(), reverse=True)\n            for u in sorted_prev:\n                current_sum = (current_sum + dp2[i-1][u]) % MOD\n                suffix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                min_u = max(v, sorted_prev[0]) if sorted_prev else 0\n                if min_u > (sorted_prev[0] if sorted_prev else 0):\n                    dp2[i][v] = 0\n                else:\n                    dp2[i][v] = suffix.get(min_u, 0) % MOD\n        \n        total = 0\n        for i in range(n):\n            for a in dp1[i]:\n                b = nums[i] - a\n                if b in dp2[i]:\n                    total = (total + dp1[i][a] * dp2[i][b]) % MOD\n        return total",
+          "solution_hash": "dcae76c346f4a7305f889b19241f9442f0388baec967d0cb6e65ba2be09f2ea3",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpqdlqu_id.py\", line 226, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmpqdlqu_id.py\", line 140, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n",
+            "execution_time": 0.06338167190551758
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_2",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: list[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        dp1 = [dict() for _ in range(n)]\n        dp2 = [dict() for _ in range(n)]\n        \n        for v in range(nums[0] + 1):\n            dp1[0][v] = 1\n            dp2[0][v] = 1\n        \n        for i in range(1, n):\n            prefix = {}\n            current_sum = 0\n            prev_keys = sorted(dp1[i-1].keys())\n            for u in prev_keys:\n                current_sum = (current_sum + dp1[i-1][u]) % MOD\n                prefix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                low, high = 0, len(prev_keys) - 1\n                res = -1\n                while low <= high:\n                    mid = (low + high) // 2\n                    if prev_keys[mid] <= v:\n                        res = mid\n                        low = mid + 1\n                    else:\n                        high = mid - 1\n                if res == -1:\n                    dp1[i][v] = 0\n                else:\n                    dp1[i][v] = prefix[prev_keys[res]] % MOD\n            \n            suffix = {}\n            current_sum = 0\n            prev_keys = sorted(dp2[i-1].keys(), reverse=True)\n            for u in prev_keys:\n                current_sum = (current_sum + dp2[i-1][u]) % MOD\n                suffix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                low, high = 0, len(prev_keys) - 1\n                res = -1\n                while low <= high:\n                    mid = (low + high) // 2\n                    if prev_keys[mid] >= v:\n                        res = mid\n                        high = mid - 1\n                    else:\n                        low = mid + 1\n                if res == -1:\n                    dp2[i][v] = 0\n                else:\n                    dp2[i][v] = suffix[prev_keys[res]] % MOD\n        \n        total = 0\n        for i in range(n):\n            for a in dp1[i]:\n                b = nums[i] - a\n                if b in dp2[i]:\n                    total = (total + dp1[i][a] * dp2[i][b]) % MOD\n        return total",
+              "solution_hash": "4f7cca62893440f8701f8e7db696db10ba5a3b0a6457eb0fda56558928397e1a",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpg2foq681.py\", line 237, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmpg2foq681.py\", line 151, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n",
+                "execution_time": 0.062463998794555664
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_3",
+              "solution": "MOD = 10**9 + 7\n\nfrom collections import defaultdict\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        dp1 = [defaultdict(int) for _ in range(n)]\n        dp2 = [defaultdict(int) for _ in range(n)]\n        \n        # Initialize for the first element\n        for v in range(nums[0] + 1):\n            dp1[0][v] = 1\n            dp2[0][v] = 1\n        \n        for i in range(1, n):\n            # Update dp1 for arr1 (non-decreasing)\n            prefix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp1[i-1].keys())\n            for u in sorted_prev:\n                current_sum = (current_sum + dp1[i-1][u]) % MOD\n                prefix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                max_u = min(v, sorted_prev[-1]) if sorted_prev else 0\n                dp1[i][v] = prefix[max_u] % MOD if max_u >= 0 else 0\n            \n            # Update dp2 for arr2 (non-increasing)\n            suffix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp2[i-1].keys(), reverse=True)\n            for u in sorted_prev:\n                current_sum = (current_sum + dp2[i-1][u]) % MOD\n                suffix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                min_u = max(v, sorted_prev[0]) if sorted_prev else 0\n                dp2[i][v] = suffix.get(min_u, 0) % MOD\n        \n        total = 0\n        for i in range(n):\n            for a in dp1[i]:\n                b = nums[i] - a\n                if b in dp2[i]:\n                    total = (total + dp1[i][a] * dp2[i][b]) % MOD\n        return total",
+              "solution_hash": "cae422a62670dcb88dd75cdc1f0d45d3e837b87699ca622afbe9bc9abab7aa12",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp2rgn068c.py\", line 220, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmp2rgn068c.py\", line 134, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n",
+                "execution_time": 0.06256222724914551
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: list[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        dp1 = [dict() for _ in range(n)]\n        dp2 = [dict() for _ in range(n)]\n        \n        # Initialize for the first element\n        for v in range(nums[0] + 1):\n            dp1[0][v] = 1\n            dp2[0][nums[0] - v] = 1\n        \n        for i in range(1, n):\n            # Update dp1 for arr1\n            prefix = {}\n            current_sum = 0\n            sorted_prev = sorted(dp1[i-1].keys())\n            for u in sorted_prev:\n                current_sum = (current_sum + dp1[i-1][u]) % MOD\n                prefix[u] = current_sum\n            \n            max_prev = sorted_prev[-1] if sorted_prev else 0\n            for v in range(nums[i] + 1):\n                max_u = min(v, max_prev)\n                if max_u < 0:\n                    dp1[i][v] = 0\n                else:\n                    dp1[i][v] = prefix.get(max_u, 0) % MOD\n            \n            # Update dp2 for arr2\n            suffix = {}\n            current_sum = 0\n            sorted_prev = sorted(dp2[i-1].keys(), reverse=True)\n            for u in sorted_prev:\n                current_sum = (current_sum + dp2[i-1][u]) % MOD\n                suffix[u] = current_sum\n            \n            min_prev = sorted_prev[0] if sorted_prev else 0\n            for v in range(nums[i] + 1):\n                min_u = max(v, min_prev)\n                if min_u > (min_prev if sorted_prev else 0):\n                    dp2[i][v] = 0\n                else:\n                    dp2[i][v] = suffix.get(min_u, 0) % MOD\n        \n        total = 0\n        for i in range(n):\n            for a in dp1[i]:\n                b = nums[i] - a\n                if b in dp2[i]:\n                    total = (total + dp1[i][a] * dp2[i][b]) % MOD\n        return total",
+              "solution_hash": "c9d835b34c374361e6361bd2ed3aef7e0bd84fd030e4fcf1e4a83852660f5e00",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpbvenkthv.py\", line 226, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmpbvenkthv.py\", line 140, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n",
+                "execution_time": 0.06243729591369629
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_5",
+          "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp1[i][v] represents the number of ways to have arr1[0..i] with arr1[i] = v, maintaining non-decreasing order\n        dp1 = [defaultdict(int) for _ in range(n)]\n        # dp2[i][v] represents the number of ways to have arr2[0..i] with arr2[i] = v, maintaining non-increasing order\n        dp2 = [defaultdict(int) for _ in range(n)]\n        \n        # Initialize dp1 and dp2 for the first element\n        for v in range(nums[0] + 1):\n            dp1[0][v] = 1\n            dp2[0][nums[0] - v] = 1\n        \n        for i in range(1, n):\n            # Update dp1 for arr1\n            # Precompute prefix sums for dp1[i-1]\n            prefix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp1[i-1].keys())\n            for u in sorted_prev:\n                current_sum = (current_sum + dp1[i-1][u]) % MOD\n                prefix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                # Find the maximum u <= v in dp1[i-1]\n                max_u = min(v, max(sorted_prev) if sorted_prev else 0)\n                if max_u < 0:\n                    dp1[i][v] = 0\n                else:\n                    dp1[i][v] = prefix[max_u] % MOD\n            \n            # Update dp2 for arr2\n            # Precompute suffix sums for dp2[i-1]\n            suffix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp2[i-1].keys(), reverse=True)\n            for u in sorted_prev:\n                current_sum = (current_sum + dp2[i-1][u]) % MOD\n                suffix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                # Find the minimum u >= v in dp2[i-1]\n                min_u = max(v, min(sorted_prev) if sorted_prev else 0)\n                if min_u > nums[i]:\n                    dp2[i][v] = 0\n                else:\n                    dp2[i][v] = suffix.get(min_u, 0) % MOD\n        \n        # Calculate the total number of valid pairs\n        total = 0\n        for a in dp1[n-1]:\n            b = nums[-1] - a\n            if b in dp2[n-1]:\n                total = (total + dp1[n-1][a] * dp2[n-1][b]) % MOD\n        return total",
+          "solution_hash": "ed3c688683a2ce158c4d425a2567f20d1a6f9cf9ccc43a20d46079863b2423f6",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpovxy_s61.py\", line 230, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmpovxy_s61.py\", line 144, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n",
+            "execution_time": 0.061688899993896484
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_6",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp1[i][v] represents the number of ways to have arr1[0..i] with arr1[i] = v, maintaining non-decreasing order\n        dp1 = [defaultdict(int) for _ in range(n)]\n        # dp2[i][v] represents the number of ways to have arr2[0..i] with arr2[i] = v, maintaining non-increasing order\n        dp2 = [defaultdict(int) for _ in range(n)]\n        \n        # Initialize dp1 and dp2 for the first element\n        for v in range(nums[0] + 1):\n            dp1[0][v] = 1\n            dp2[0][nums[0] - v] = 1\n        \n        for i in range(1, n):\n            # Update dp1 for arr1\n            # Precompute prefix sums for dp1[i-1]\n            prefix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp1[i-1].keys())\n            for u in sorted_prev:\n                current_sum = (current_sum + dp1[i-1][u]) % MOD\n                prefix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                # Find the maximum u <= v in dp1[i-1]\n                max_u = min(v, sorted_prev[-1]) if sorted_prev else 0\n                if max_u < 0:\n                    dp1[i][v] = 0\n                else:\n                    dp1[i][v] = prefix[max_u] % MOD\n            \n            # Update dp2 for arr2\n            # Precompute suffix sums for dp2[i-1]\n            suffix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp2[i-1].keys(), reverse=True)\n            for u in sorted_prev:\n                current_sum = (current_sum + dp2[i-1][u]) % MOD\n                suffix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                # Find the minimum u >= v in dp2[i-1]\n                min_u = max(v, sorted_prev[-1]) if sorted_prev else 0\n                if min_u > nums[i]:\n                    dp2[i][v] = 0\n                else:\n                    dp2[i][v] = suffix.get(min_u, 0) % MOD\n        \n        # Calculate the total number of valid pairs\n        total = 0\n        for a in dp1[n-1]:\n            b = nums[-1] - a\n            if b in dp2[n-1]:\n                total = (total + dp1[n-1][a] * dp2[n-1][b]) % MOD\n        return total",
+              "solution_hash": "6a4a3aaf084d9950bad64bc69e70f499dabf44dae2919de69307a8213bfe8fd3",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpc9t_bpdf.py\", line 230, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmpc9t_bpdf.py\", line 144, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n",
+                "execution_time": 0.08129215240478516
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_7",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: list[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp1[i][v] is the number of ways to have arr1[0..i] with arr1[i] = v, non-decreasing\n        dp1 = [{} for _ in range(n)]\n        # dp2[i][v] is the number of ways to have arr2[0..i] with arr2[i] = v, non-increasing\n        dp2 = [{} for _ in range(n)]\n        \n        # Initialize dp1 and dp2 for the first element\n        for v in range(nums[0] + 1):\n            dp1[0][v] = 1\n            dp2[0][nums[0] - v] = 1\n        \n        for i in range(1, n):\n            # Update dp1 for arr1\n            # Precompute prefix sums for dp1[i-1]\n            prefix = {}\n            current_sum = 0\n            sorted_prev = sorted(dp1[i-1].keys())\n            for u in sorted_prev:\n                current_sum = (current_sum + dp1[i-1][u]) % MOD\n                prefix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                # Find the largest u <= v\n                max_u = max([u for u in sorted_prev if u <= v], default=-1)\n                if max_u == -1:\n                    dp1[i][v] = 0\n                else:\n                    dp1[i][v] = prefix[max_u] % MOD\n            \n            # Update dp2 for arr2\n            # Precompute suffix sums for dp2[i-1]\n            suffix = {}\n            current_sum = 0\n            sorted_prev = sorted(dp2[i-1].keys(), reverse=True)\n            for u in sorted_prev:\n                current_sum = (current_sum + dp2[i-1][u]) % MOD\n                suffix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                # Find the smallest u >= v\n                min_u = min([u for u in sorted_prev if u >= v], default=-1)\n                if min_u == -1:\n                    dp2[i][v] = 0\n                else:\n                    dp2[i][v] = suffix.get(min_u, 0) % MOD\n        \n        # Calculate the total number of valid pairs\n        total = 0\n        for a in dp1[n-1]:\n            b = nums[-1] - a\n            if b in dp2[n-1]:\n                total = (total + dp1[n-1][a] * dp2[n-1][b]) % MOD\n        return total",
+              "solution_hash": "cf63007785ffdad9e51c5fc7a2d3a0a35279a80799677d22223f5fff198dffc7",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpydxh51ro.py\", line 230, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmpydxh51ro.py\", line 144, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n",
+                "execution_time": 0.062299489974975586
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp1[i][v] represents the number of ways to have arr1[0..i] with arr1[i] = v, maintaining non-decreasing order\n        dp1 = [defaultdict(int) for _ in range(n)]\n        # dp2[i][v] represents the number of ways to have arr2[0..i] with arr2[i] = v, maintaining non-increasing order\n        dp2 = [defaultdict(int) for _ in range(n)]\n        \n        # Initialize dp1 and dp2 for the first element\n        for v in range(nums[0] + 1):\n            dp1[0][v] = 1\n            dp2[0][nums[0] - v] = 1\n        \n        for i in range(1, n):\n            # Update dp1 for arr1\n            # Precompute prefix sums for dp1[i-1]\n            prefix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp1[i-1].keys())\n            for u in sorted_prev:\n                current_sum = (current_sum + dp1[i-1][u]) % MOD\n                prefix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                # Find the largest u <= v using binary search\n                left, right = 0, len(sorted_prev)\n                while left < right:\n                    mid = (left + right) // 2\n                    if sorted_prev[mid] <= v:\n                        left = mid + 1\n                    else:\n                        right = mid\n                if left == 0:\n                    dp1[i][v] = 0\n                else:\n                    dp1[i][v] = prefix[sorted_prev[left-1]] % MOD\n            \n            # Update dp2 for arr2\n            # Precompute suffix sums for dp2[i-1]\n            suffix = defaultdict(int)\n            current_sum = 0\n            sorted_prev = sorted(dp2[i-1].keys(), reverse=True)\n            for u in sorted_prev:\n                current_sum = (current_sum + dp2[i-1][u]) % MOD\n                suffix[u] = current_sum\n            \n            for v in range(nums[i] + 1):\n                # Find the smallest u >= v using binary search\n                left, right = 0, len(sorted_prev)\n                while left < right:\n                    mid = (left + right) // 2\n                    if sorted_prev[mid] >= v:\n                        left = mid + 1\n                    else:\n                        right = mid\n                if left == 0:\n                    dp2[i][v] = 0\n                else:\n                    dp2[i][v] = suffix[sorted_prev[left-1]] % MOD\n        \n        # Calculate the total number of valid pairs\n        total = 0\n        for a in dp1[n-1]:\n            b = nums[-1] - a\n            if b in dp2[n-1]:\n                total = (total + dp1[n-1][a] * dp2[n-1][b]) % MOD\n        return total",
+              "solution_hash": "590b9e29fffae2b0dfbc0f77f44131f8d79b93979b5ef76df82afb75c49bbc08",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpkzfj98zj.py\", line 242, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmpkzfj98zj.py\", line 156, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n",
+                "execution_time": 0.06359553337097168
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_9",
+          "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        max_a = max(nums)\n        dp = [[0] * (max_a + 1) for _ in range(n)]\n        \n        # Initialize dp[0]\n        for a in range(nums[0] + 1):\n            dp[0][a] = 1\n        \n        for i in range(1, n):\n            delta = max(0, nums[i] - nums[i-1])\n            # Precompute prefix sums for dp[i-1]\n            prefix = [0] * (max_a + 2)\n            for a in range(max_a + 1):\n                prefix[a+1] = (prefix[a] + dp[i-1][a]) % MOD\n            \n            # For each possible a_i, compute the sum of dp[i-1][a_{i-1}] where a_{i-1} <= a_i - delta\n            for a_i in range(max_a + 1):\n                if a_i > nums[i]:\n                    continue  # a_i cannot exceed nums[i]\n                max_a_prev = a_i - delta\n                if max_a_prev < 0:\n                    dp[i][a_i] = 0\n                else:\n                    max_a_prev = min(max_a_prev, max_a)\n                    dp[i][a_i] = prefix[max_a_prev + 1] % MOD\n        \n        # The answer is the sum of dp[n-1][a] for all a <= nums[n-1]\n        total = 0\n        for a in range(nums[-1] + 1):\n            total = (total + dp[n-1][a]) % MOD\n        return total",
+          "solution_hash": "d0c21d719d9fecab999de0f6677d0de31e07410f97022114444fb8be3cf1441f",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.16810297966003418
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [],
+          "passed": true
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [defaultdict(int) for _ in range(n)]\n        dp[0][nums[0]] = 1  # arr1[0] can be any value from 0 to nums[0], but arr2[0] = nums[0] - arr1[0]\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = defaultdict(int)\n            # For each possible a_prev in arr1[i-1], compute possible a_curr\n            for a_prev, count in prev_dp.items():\n                max_a_curr = min(s, a_prev + (s - a_prev))  # arr1 must be non-decreasing\n                # arr2 must be non-increasing: s - a_curr <= s_prev - a_prev\n                # => a_curr >= a_prev + (s_prev - s_curr)\n                min_a_curr = a_prev + (nums[i-1] - s)\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr < 0 or a_curr > s:\n                        continue\n                    current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n            dp[i] = current_dp\n        \n        # Sum all possible a_n in the last dp\n        return sum(dp[-1].values()) % MOD",
+      "solution_hash": "c2b7ec50a4fd218ef1b90e56bc8b51c59dc82226f33a93a2bf7e0d077b198725",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpp710f7zt.py\", line 196, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmpp710f7zt.py\", line 110, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n",
+        "execution_time": 0.06452322006225586
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_11",
+          "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        \n        # Initialize the first position\n        for a1 in range(0, nums[0] + 1):\n            a2 = nums[0] - a1\n            dp[0][a1] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # Calculate the minimum a_curr based on arr2's non-increasing property\n                min_a_curr = max(a_prev, a_prev + (nums[i-1] - s))\n                max_a_curr = s\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr < 0 or a_curr > s:\n                        continue\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        return sum(dp[-1].values()) % MOD",
+          "solution_hash": "f1c2353ccc044e733d46b3668dadf02ce716b1ad6b400ac2aa316dec7aca7c53",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp2zy9scb4.py\", line 200, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmp2zy9scb4.py\", line 115, in check\n    assert candidate(nums = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]) == 11\nAssertionError\n",
+            "execution_time": 0.062207698822021484
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_12",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        \n        # Initialize the first position\n        for a1 in range(0, nums[0] + 1):\n            a2 = nums[0] - a1\n            dp[0][a1] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # arr1 must be non-decreasing, so a_curr >= a_prev\n                # arr2 must be non-increasing, so (s - a_curr) <= (nums[i-1] - a_prev)\n                # Rearranged: a_curr >= a_prev + (nums[i-1] - s)\n                min_a_curr = max(a_prev, a_prev + (nums[i-1] - s))\n                max_a_curr = s\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr < 0 or a_curr > s:\n                        continue\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        return sum(dp[-1].values()) % MOD",
+              "solution_hash": "f1c2353ccc044e733d46b3668dadf02ce716b1ad6b400ac2aa316dec7aca7c53",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp2zy9scb4.py\", line 200, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmp2zy9scb4.py\", line 115, in check\n    assert candidate(nums = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]) == 11\nAssertionError\n",
+                "execution_time": 0.062207698822021484
+              },
+              "depth": 2,
+              "parent_id": "1_11",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_13",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        \n        # Initialize the first position\n        for a1 in range(0, nums[0] + 1):\n            a2 = nums[0] - a1\n            dp[0][a1] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # Calculate the minimum a_curr based on arr2's non-increasing property\n                min_a_curr = max(a_prev, s - (nums[i-1] - a_prev))\n                max_a_curr = s\n                if min_a_curr > max_a_curr:\n                    continue\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr < 0 or a_curr > s:\n                        continue\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        return sum(dp[-1].values()) % MOD",
+              "solution_hash": "6269e5f7a81507286c0781f1bc6e5bf2a8d5f19bc94ef0b9717d7334ee3e6ed1",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_11",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_14",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        \n        # Initialize the first position\n        for a1 in range(0, nums[0] + 1):\n            a2 = nums[0] - a1\n            dp[0][a1] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # Calculate the minimum a_curr based on arr1's non-decreasing and arr2's non-increasing\n                min_a_curr = max(a_prev, a_prev + (nums[i-1] - s))\n                max_a_curr = s\n                # Ensure that a_curr is within valid bounds\n                if min_a_curr > max_a_curr:\n                    continue\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr < 0 or a_curr > s:\n                        continue\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        return sum(dp[-1].values()) % MOD",
+              "solution_hash": "9b217b97063bf35b42f97436534d37940d7d0dc692ffd1558655298f2bf9cc34",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpsljtki2o.py\", line 203, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmpsljtki2o.py\", line 118, in check\n    assert candidate(nums = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]) == 11\nAssertionError\n",
+                "execution_time": 0.06460022926330566
+              },
+              "depth": 2,
+              "parent_id": "1_11",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_15",
+          "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        # Initialize the first position\n        dp[0] = {a1: 1 for a1 in range(0, nums[0] + 1)}\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # arr1 must be non-decreasing: a_curr >= a_prev\n                # arr2 must be non-increasing: s - a_curr <= (nums[i-1] - a_prev)\n                # => a_curr >= a_prev + (nums[i-1] - s)\n                min_a_curr = max(a_prev, a_prev + (nums[i-1] - s))\n                max_a_curr = min(s, a_prev + (s - a_prev))\n                if min_a_curr > max_a_curr:\n                    continue  # No valid a_curr for this a_prev\n                # Ensure a_curr is within [0, s]\n                min_a_curr = max(min_a_curr, 0)\n                max_a_curr = min(max_a_curr, s)\n                if min_a_curr > max_a_curr:\n                    continue\n                # Add all possible a_curr in this range\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        # Sum all possible a_n in the last dp\n        return sum(dp[-1].values()) % MOD",
+          "solution_hash": "877d1792f469a83acba1c9ccc90c053fc3dbef8f0218bc785345501aca7212a2",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpme07_x9w.py\", line 206, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmpme07_x9w.py\", line 121, in check\n    assert candidate(nums = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]) == 11\nAssertionError\n",
+            "execution_time": 0.061940670013427734
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_16",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        dp = [{} for _ in range(n)]\n        # Initialize the first position\n        dp[0] = {a1: 1 for a1 in range(0, nums[0] + 1)}\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_s = nums[i-1]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # Calculate the minimum and maximum possible a_curr\n                min_a_curr = max(a_prev, a_prev + (prev_s - s))\n                max_a_curr = min(s, a_prev + (s - a_prev))\n                # Ensure a_curr is within valid bounds\n                min_a_curr = max(min_a_curr, 0)\n                max_a_curr = min(max_a_curr, s)\n                if min_a_curr > max_a_curr:\n                    continue\n                # Use difference array technique to mark the range\n                if min_a_curr in current_dp:\n                    current_dp[min_a_curr] = (current_dp[min_a_curr] + count) % MOD\n                else:\n                    current_dp[min_a_curr] = count % MOD\n                if max_a_curr + 1 <= s:\n                    if max_a_curr + 1 in current_dp:\n                        current_dp[max_a_curr + 1] = (current_dp[max_a_curr + 1] - count) % MOD\n                    else:\n                        current_dp[max_a_curr + 1] = (-count) % MOD\n            # Compute prefix sums to get the actual counts\n            sorted_keys = sorted(current_dp.keys())\n            prefix = 0\n            new_current_dp = {}\n            for key in sorted_keys:\n                prefix = (prefix + current_dp[key]) % MOD\n                new_current_dp[key] = prefix\n            current_dp = new_current_dp\n            dp[i] = current_dp\n        \n        # Sum all possible values in the last DP state\n        return sum(dp[-1].values()) % MOD",
+              "solution_hash": "b93863b9d3b5acee8f5d84e234ce8ad9180d61c617e240cbbf298c258652821a",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmppmh0ayzy.py\", line 217, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmppmh0ayzy.py\", line 132, in check\n    assert candidate(nums = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]) == 11\nAssertionError\n",
+                "execution_time": 0.06371402740478516
+              },
+              "depth": 2,
+              "parent_id": "1_15",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_17",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        # Initialize the first position\n        dp[0] = {a1: 1 for a1 in range(0, nums[0] + 1)}\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # Calculate the minimum and maximum possible a_curr\n                min_a_curr = max(a_prev, a_prev + (nums[i-1] - s))\n                max_a_curr = min(s, a_prev + (s - a_prev))\n                if min_a_curr > max_a_curr:\n                    continue  # No valid a_curr for this a_prev\n                # Ensure a_curr is within [0, s]\n                min_a_curr = max(min_a_curr, 0)\n                max_a_curr = min(max_a_curr, s)\n                if min_a_curr > max_a_curr:\n                    continue\n                # Add all possible a_curr in this range\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        # Sum all possible a_n in the last dp\n        return sum(dp[-1].values()) % MOD",
+              "solution_hash": "877d1792f469a83acba1c9ccc90c053fc3dbef8f0218bc785345501aca7212a2",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpme07_x9w.py\", line 206, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmpme07_x9w.py\", line 121, in check\n    assert candidate(nums = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]) == 11\nAssertionError\n",
+                "execution_time": 0.061940670013427734
+              },
+              "depth": 2,
+              "parent_id": "1_15",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_18",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        # Initialize the first position\n        dp[0] = {a1: 1 for a1 in range(0, nums[0] + 1)}\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # arr1 must be non-decreasing: a_curr >= a_prev\n                # arr2 must be non-increasing: (s - a_curr) <= (nums[i-1] - a_prev)\n                # Rearranged: a_curr >= a_prev + (nums[i-1] - s)\n                min_a_curr = max(a_prev, a_prev + (nums[i-1] - s))\n                # Also, a_curr can't exceed s, and must be >=0\n                min_a_curr = max(min_a_curr, 0)\n                max_a_curr = min(s, a_prev + (s - a_prev))\n                # Ensure that a_curr is within [0, s]\n                if min_a_curr > max_a_curr:\n                    continue\n                # The number of valid a_curr is (max_a_curr - min_a_curr + 1)\n                # Each contributes 'count' to current_dp[a_curr]\n                # Instead of iterating, use arithmetic to calculate the sum\n                num_options = max_a_curr - min_a_curr + 1\n                if num_options <= 0:\n                    continue\n                # Update current_dp: for each a_curr in [min, max], add count\n                # To avoid iterating, we can represent this as a range update\n                # Using a dictionary to accumulate the counts\n                # However, for simplicity, we'll use the range and update each a_curr\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        # Sum all possible a_n in the last dp\n        return sum(dp[-1].values()) % MOD",
+              "solution_hash": "b9f9d2b2f3f87d2be7d26ba2ca11594e73071328b817fe367ea1a07a6defa727",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpjymv2qf1.py\", line 213, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmpjymv2qf1.py\", line 128, in check\n    assert candidate(nums = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]) == 11\nAssertionError\n",
+                "execution_time": 0.06293368339538574
+              },
+              "depth": 2,
+              "parent_id": "1_15",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_19",
+          "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        # Initialize the first position\n        dp[0] = {a1: 1 for a1 in range(0, nums[0] + 1)}\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # Calculate the minimum a_curr based on arr2's non-increasing condition\n                min_a_curr = a_prev + (nums[i-1] - s)\n                # Ensure arr1 is non-decreasing: a_curr >= a_prev\n                min_a_curr = max(min_a_curr, a_prev)\n                # a_curr can't exceed s, and arr2[i] must be >=0, so a_curr <= s\n                max_a_curr = s\n                # Iterate through all possible a_curr in [min_a_curr, max_a_curr]\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        # Sum all possible a_n in the last dp\n        return sum(dp[-1].values()) % MOD",
+          "solution_hash": "9320b70eef31ad4a95d4bbc0bf85535d328f0d5d2ad6448f94d2429743675deb",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmppuomufw1.py\", line 200, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmppuomufw1.py\", line 115, in check\n    assert candidate(nums = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]) == 11\nAssertionError\n",
+            "execution_time": 0.062314510345458984
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_20",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        \n        # Initialize the first position\n        dp[0] = {a1: 1 for a1 in range(0, nums[0] + 1)}\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # Calculate the minimum a_curr based on arr2's non-increasing condition\n                min_a_curr = a_prev + (nums[i-1] - s)\n                # Ensure arr1 is non-decreasing: a_curr >= a_prev\n                min_a_curr = max(min_a_curr, a_prev)\n                # a_curr can't exceed s, and arr2[i] must be >=0, so a_curr <= s\n                max_a_curr = s\n                \n                # Iterate through all possible a_curr in [min_a_curr, max_a_curr]\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        # Sum all possible a_n in the last dp\n        return sum(dp[-1].values()) % MOD",
+              "solution_hash": "9320b70eef31ad4a95d4bbc0bf85535d328f0d5d2ad6448f94d2429743675deb",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmppuomufw1.py\", line 200, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmppuomufw1.py\", line 115, in check\n    assert candidate(nums = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]) == 11\nAssertionError\n",
+                "execution_time": 0.062314510345458984
+              },
+              "depth": 2,
+              "parent_id": "1_19",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_21",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]\n        # Initialize the first position\n        dp[0] = {a1: 1 for a1 in range(0, nums[0] + 1)}\n        \n        for i in range(1, n):\n            s = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            for a_prev, count in prev_dp.items():\n                # Calculate the maximum allowed arr2_curr\n                arr2_prev = nums[i-1] - a_prev\n                min_a_curr = max(a_prev, s - arr2_prev)\n                max_a_curr = s\n                # Iterate through all possible a_curr in [min_a_curr, max_a_curr]\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            dp[i] = current_dp\n        \n        # Sum all possible a_n in the last dp\n        return sum(dp[-1].values()) % MOD",
+              "solution_hash": "0a03e1c3b66eb2dedc5f673638d25dbd330b7a83c28fda86d646b2039434a6db",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_19",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_22",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp[i] is a dictionary where key is a1[i], value is the count of ways to reach a1[i] at position i\n        dp = [{} for _ in range(n)]\n        \n        # Initialize the first position\n        s = nums[0]\n        for a1 in range(0, s + 1):\n            a2 = s - a1\n            if a2 >= 0:\n                dp[0][a1] = 1\n        \n        for i in range(1, n):\n            s_prev = nums[i-1]\n            s_curr = nums[i]\n            prev_dp = dp[i-1]\n            current_dp = {}\n            \n            for a_prev, count in prev_dp.items():\n                # arr1 must be non-decreasing: a_curr >= a_prev\n                # arr2 must be non-increasing: (s_prev - a_prev) >= (s_curr - a_curr)\n                # Rearranged: a_curr >= a_prev + (s_prev - s_curr)\n                min_a_curr = a_prev + (s_prev - s_curr)\n                # Also, a_curr must be >= a_prev (since arr1 is non-decreasing)\n                min_a_curr = max(min_a_curr, a_prev)\n                # a_curr can't exceed s_curr, and a_curr must be >=0\n                max_a_curr = s_curr\n                min_a_curr = max(min_a_curr, 0)\n                \n                # Iterate through all possible a_curr in [min_a_curr, max_a_curr]\n                for a_curr in range(min_a_curr, max_a_curr + 1):\n                    a2_curr = s_curr - a_curr\n                    if a2_curr < 0:\n                        continue  # arr2 must be non-negative\n                    if a_curr in current_dp:\n                        current_dp[a_curr] = (current_dp[a_curr] + count) % MOD\n                    else:\n                        current_dp[a_curr] = count % MOD\n            \n            dp[i] = current_dp\n        \n        # Sum all possible a_n in the last dp\n        return sum(dp[-1].values()) % MOD",
+              "solution_hash": "738f73f450c97c249ddbd54f42fd2303d7f1fcc6cc93aa3e4014b61e484e01d3",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp3pr91181.py\", line 219, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmp3pr91181.py\", line 134, in check\n    assert candidate(nums = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]) == 11\nAssertionError\n",
+                "execution_time": 0.06519460678100586
+              },
+              "depth": 2,
+              "parent_id": "1_19",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        max_val = max(nums)\n        dp = [defaultdict(int) for _ in range(n)]\n        \n        for i in range(n):\n            s = nums[i]\n            if i == 0:\n                for a1 in range(s + 1):\n                    a2 = s - a1\n                    dp[i][(a1, a2)] = 1\n            else:\n                for prev_a1, prev_a2 in dp[i-1]:\n                    for a1 in range(prev_a1, s + 1):\n                        a2 = s - a1\n                        if a2 <= prev_a2:\n                            dp[i][(a1, a2)] = (dp[i][(a1, a2)] + dp[i-1][(prev_a1, prev_a2)]) % MOD\n        return sum(dp[n-1].values()) % MOD",
+      "solution_hash": "cf04a592f9ddab919c73cc066aca98c9f41d92d371fa7370cbcb577d7adae4dc",
+      "test_result": {
+        "status": "timeout",
+        "error_message": "Test execution timed out after 10 seconds"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_24",
+          "solution": "MOD = 10**9 + 7\n\nfrom collections import defaultdict\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp1 = [defaultdict(int) for _ in range(n)]  # Tracks possible arr1[i] values and their counts\n        dp2 = [defaultdict(int) for _ in range(n)]  # Tracks possible arr2[i] values and their counts\n        \n        for i in range(n):\n            s = nums[i]\n            if i == 0:\n                for a1 in range(s + 1):\n                    a2 = s - a1\n                    dp1[i][a1] = 1\n                    dp2[i][a2] = 1\n            else:\n                # Update dp1: arr1[i] must be >= arr1[i-1]\n                for prev_a1, count in dp1[i-1].items():\n                    for a1 in range(prev_a1, s + 1):\n                        a2 = s - a1\n                        if a2 <= dp2[i-1].get(a2, float('inf')):\n                            dp1[i][a1] = (dp1[i][a1] + count) % MOD\n                # Update dp2: arr2[i] must be <= arr2[i-1]\n                for prev_a2, count in dp2[i-1].items():\n                    for a2 in range(prev_a2, -1, -1):\n                        a1 = s - a2\n                        if a1 >= dp1[i-1].get(a1, -1):\n                            dp2[i][a2] = (dp2[i][a2] + count) % MOD\n        # The total is the sum of possible a1 or a2 at the last index\n        return sum(dp1[n-1].values()) % MOD",
+          "solution_hash": "df08bc6197e7e2222e25e3fa4632a0a481c5ec13983cb65799c82a223a3e4397",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp8kk_7c7s.py\", line 202, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmp8kk_7c7s.py\", line 116, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n",
+            "execution_time": 0.06303167343139648
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_25",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [dict() for _ in range(n)]\n        \n        for i in range(n):\n            s = nums[i]\n            current = dp[i]\n            if i == 0:\n                for a1 in range(s + 1):\n                    a2 = s - a1\n                    current[(a1, a2)] = 1\n            else:\n                prev_dp = dp[i-1]\n                for (prev_a1, prev_a2), count in prev_dp.items():\n                    for a1 in range(prev_a1, s + 1):\n                        a2 = s - a1\n                        if a2 <= prev_a2:\n                            key = (a1, a2)\n                            current[key] = (current.get(key, 0) + count) % MOD\n            # Optimize by keeping only the necessary keys\n            dp[i] = current\n        \n        return sum(dp[n-1].values()) % MOD",
+              "solution_hash": "3ebff55707895ce99e23909f9d2ee96eaa50a9b1b6f7d93af3d3888a0f34a09b",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_24",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_26",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [dict() for _ in range(n)]\n        \n        for i in range(n):\n            s = nums[i]\n            if i == 0:\n                for a1 in range(s + 1):\n                    a2 = s - a1\n                    dp[i][(a1, a2)] = 1\n            else:\n                for prev_a1, prev_a2 in dp[i-1]:\n                    for a1 in range(prev_a1, s + 1):\n                        a2 = s - a1\n                        if a2 <= prev_a2:\n                            key = (a1, a2)\n                            dp[i][key] = (dp[i].get(key, 0) + dp[i-1][(prev_a1, prev_a2)]) % MOD\n        return sum(dp[n-1].values()) % MOD",
+              "solution_hash": "19d5a32116cfcb00c3c551e3d2447a9e21b65869fea559f53561f65c31f1e926",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_24",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_27",
+              "solution": "MOD = 10**9 + 7\n\nfrom collections import defaultdict\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [defaultdict(int) for _ in range(n)]\n        \n        # Initialize the first position\n        s = nums[0]\n        for a1 in range(s + 1):\n            a2 = s - a1\n            dp[0][(a1, a2)] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            for (prev_a1, prev_a2), count in dp[i-1].items():\n                # Determine the minimum a1 for the current position\n                min_a1 = max(prev_a1, s - prev_a2)\n                # Iterate over possible a1 values\n                for a1 in range(min_a1, s + 1):\n                    a2 = s - a1\n                    if a2 < 0:\n                        continue\n                    dp[i][(a1, a2)] = (dp[i][(a1, a2)] + count) % MOD\n        \n        return sum(dp[n-1].values()) % MOD",
+              "solution_hash": "adb0df081dc32f3d5cd499d7d663930de8edf892a05a7a8a2c42101abbc52c2e",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_24",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_28",
+          "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp1 = [defaultdict(int) for _ in range(n)]  # Tracks possible a1 values and their counts\n        dp2 = [defaultdict(int) for _ in range(n)]  # Tracks possible a2 values and their counts\n        \n        # Initialize for the first element\n        s = nums[0]\n        for a1 in range(s + 1):\n            a2 = s - a1\n            dp1[0][a1] += 1\n            dp2[0][a2] += 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            # Update dp1: a1 must be >= previous a1\n            for prev_a1, count in dp1[i-1].items():\n                for a1 in range(prev_a1, s + 1):\n                    dp1[i][a1] = (dp1[i][a1] + count) % MOD\n            # Update dp2: a2 must be <= previous a2\n            for prev_a2, count in dp2[i-1].items():\n                for a2 in range(0, min(prev_a2, s) + 1):\n                    a1 = s - a2\n                    if a1 >= 0:\n                        dp2[i][a2] = (dp2[i][a2] + count) % MOD\n        \n        # The total number of valid pairs is the sum of the counts where a1 and a2 are compatible\n        total = 0\n        for a1, count1 in dp1[n-1].items():\n            a2 = nums[-1] - a1\n            if a2 in dp2[n-1]:\n                total = (total + count1 * dp2[n-1][a2]) % MOD\n        return total",
+          "solution_hash": "c6324c12440329f0751a88965901bdf6156dc3a8ed6510ea9c0004f134e6217e",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpkxzv0ly3.py\", line 205, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmpkxzv0ly3.py\", line 119, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n",
+            "execution_time": 0.0636904239654541
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_29",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [{} for _ in range(n)]  # Tracks (a1, a2) pairs and their counts\n        \n        # Initialize for the first element\n        s = nums[0]\n        for a1 in range(s + 1):\n            a2 = s - a1\n            dp[0][(a1, a2)] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            current_dp = {}\n            for (prev_a1, prev_a2), count in dp[i-1].items():\n                # For arr1, a1 must be >= prev_a1\n                for a1 in range(prev_a1, s + 1):\n                    a2 = s - a1\n                    # For arr2, a2 must be <= prev_a2\n                    if a2 <= prev_a2 and a2 >= 0:\n                        key = (a1, a2)\n                        if key in current_dp:\n                            current_dp[key] = (current_dp[key] + count) % MOD\n                        else:\n                            current_dp[key] = count % MOD\n            dp[i] = current_dp\n        \n        # Sum all possible valid pairs at the last index\n        return sum(dp[n-1].values()) % MOD",
+              "solution_hash": "9c853ac500ef7df459fe42164cc0237c8be56c17bef4d8bf0d2624961b8aa9a5",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_28",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_30",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp1[i][a1] represents the number of ways to have arr1 up to index i with arr1[i] = a1\n        dp1 = [defaultdict(int) for _ in range(n)]\n        # dp2[i][a2] represents the number of ways to have arr2 up to index i with arr2[i] = a2\n        dp2 = [defaultdict(int) for _ in range(n)]\n        \n        # Initialize for the first element\n        s = nums[0]\n        for a1 in range(s + 1):\n            a2 = s - a1\n            dp1[0][a1] = 1\n            dp2[0][a2] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            # Update dp1: a1 must be >= previous a1\n            for prev_a1, count in dp1[i-1].items():\n                for a1 in range(prev_a1, s + 1):\n                    dp1[i][a1] = (dp1[i][a1] + count) % MOD\n            # Update dp2: a2 must be <= previous a2\n            for prev_a2, count in dp2[i-1].items():\n                for a2 in range(0, min(prev_a2, s) + 1):\n                    a1 = s - a2\n                    if a1 >= 0:\n                        dp2[i][a2] = (dp2[i][a2] + count) % MOD\n        \n        # Calculate the total valid pairs\n        total = 0\n        for a1, count1 in dp1[n-1].items():\n            a2 = nums[-1] - a1\n            if a2 in dp2[n-1]:\n                total = (total + count1 * dp2[n-1][a2]) % MOD\n        return total",
+              "solution_hash": "bd8a5cff7bcd25180e3379416143894a833405d1a1cce343cfee8b1c6813bf7b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpnk__8zyb.py\", line 210, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmpnk__8zyb.py\", line 124, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n",
+                "execution_time": 0.06449222564697266
+              },
+              "depth": 2,
+              "parent_id": "1_28",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_31",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp1[i][a1] = number of ways to have arr1 up to i with arr1[i] = a1\n        dp1 = [defaultdict(int) for _ in range(n)]\n        # dp2[i][a2] = number of ways to have arr2 up to i with arr2[i] = a2\n        dp2 = [defaultdict(int) for _ in range(n)]\n        \n        # Initialize for the first element\n        s = nums[0]\n        for a1 in range(s + 1):\n            a2 = s - a1\n            dp1[0][a1] += 1\n            dp2[0][a2] += 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            # Update dp1: a1 must be >= previous a1\n            for prev_a1, count in dp1[i-1].items():\n                for a1 in range(prev_a1, s + 1):\n                    dp1[i][a1] = (dp1[i][a1] + count) % MOD\n            # Update dp2: a2 must be <= previous a2\n            for prev_a2, count in dp2[i-1].items():\n                for a2 in range(0, min(prev_a2, s) + 1):\n                    a1 = s - a2\n                    if a1 >= 0:\n                        dp2[i][a2] = (dp2[i][a2] + count) % MOD\n        \n        # The total number of valid pairs is the sum of the counts where a1 and a2 are compatible\n        total = 0\n        for a1, count1 in dp1[n-1].items():\n            a2 = nums[-1] - a1\n            if a2 in dp2[n-1]:\n                total = (total + count1 * dp2[n-1][a2]) % MOD\n        return total",
+              "solution_hash": "b45e188c4511c555bc2ca100392f57bdd21a805267307afea02e363b8a07b87b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp7g3uis8n.py\", line 210, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmp7g3uis8n.py\", line 124, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n",
+                "execution_time": 0.06279134750366211
+              },
+              "depth": 2,
+              "parent_id": "1_28",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_32",
+          "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp1[i][a] represents the number of ways to have arr1[0..i] ending with a, which is non-decreasing\n        dp1 = [{} for _ in range(n)]\n        # dp2[i][b] represents the number of ways to have arr2[0..i] ending with b, which is non-increasing\n        dp2 = [{} for _ in range(n)]\n        \n        # Initialize the first element\n        s = nums[0]\n        for a in range(s + 1):\n            b = s - a\n            dp1[0][a] = 1\n            dp2[0][b] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            # Update dp1: arr1 must be >= previous arr1\n            for prev_a in dp1[i-1]:\n                for a in range(prev_a, s + 1):\n                    b = s - a\n                    if b <= dp2[i-1].get(b, float('inf')):\n                        if a in dp1[i]:\n                            dp1[i][a] = (dp1[i][a] + dp1[i-1][prev_a]) % MOD\n                        else:\n                            dp1[i][a] = dp1[i-1][prev_a] % MOD\n            # Update dp2: arr2 must be <= previous arr2\n            for prev_b in dp2[i-1]:\n                for b in range(prev_b, -1, -1):\n                    a = s - b\n                    if a >= dp1[i-1].get(a, -1):\n                        if b in dp2[i]:\n                            dp2[i][b] = (dp2[i][b] + dp2[i-1][prev_b]) % MOD\n                        else:\n                            dp2[i][b] = dp2[i-1][prev_b] % MOD\n        \n        # The total number of valid pairs is the sum of the product of dp1 and dp2 at each position\n        total = 0\n        for a in dp1[-1]:\n            b = nums[-1] - a\n            if b in dp2[-1]:\n                total = (total + dp1[-1][a] * dp2[-1][b]) % MOD\n        return total",
+          "solution_hash": "7da63a74a9d4b975f84f6fc1d43031cc2570f37045a94db1ff1c09a8c07894fd",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp2w23dc19.py\", line 218, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmp2w23dc19.py\", line 132, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n",
+            "execution_time": 0.06316018104553223
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_33",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp[i] is a dictionary mapping (a, b) to the count of ways\n        dp = [{} for _ in range(n)]\n        \n        # Initialize the first element\n        s = nums[0]\n        for a in range(s + 1):\n            b = s - a\n            dp[0][(a, b)] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            current_dp = {}\n            for (prev_a, prev_b), count in dp[i-1].items():\n                # Iterate through possible a values starting from prev_a\n                for a in range(prev_a, s + 1):\n                    b = s - a\n                    if b <= prev_b:\n                        key = (a, b)\n                        if key in current_dp:\n                            current_dp[key] = (current_dp[key] + count) % MOD\n                        else:\n                            current_dp[key] = count % MOD\n            dp[i] = current_dp\n        \n        # Sum all possible ways for the last element\n        return sum(dp[n-1].values()) % MOD",
+              "solution_hash": "879ab84ebdb64d1a3a7108388a7f795cabb1c7ece5fd0e9e85f9855ffaf102b7",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_32",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_34",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp1[i][a] represents the number of ways to have arr1[0..i] ending with a, which is non-decreasing\n        dp1 = [{} for _ in range(n)]\n        # dp2[i][b] represents the number of ways to have arr2[0..i] ending with b, which is non-increasing\n        dp2 = [{} for _ in range(n)]\n        \n        # Initialize the first element\n        s = nums[0]\n        for a in range(s + 1):\n            b = s - a\n            dp1[0][a] = 1\n            dp2[0][b] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            # Update dp1: arr1 must be >= previous arr1\n            for prev_a in dp1[i-1]:\n                for a in range(prev_a, s + 1):\n                    b = s - a\n                    # Check if b is <= previous b in dp2[i-1]\n                    # We need to find all b_prev in dp2[i-1] where b_prev >= b\n                    # To optimize, we can precompute the prefix sums for dp2[i-1]\n                    # But for now, let's compute it directly\n                    total = 0\n                    for b_prev in dp2[i-1]:\n                        if b_prev >= b:\n                            total += dp2[i-1][b_prev]\n                            if total >= MOD:\n                                total -= MOD\n                    if a in dp1[i]:\n                        dp1[i][a] = (dp1[i][a] + dp1[i-1][prev_a] * total) % MOD\n                    else:\n                        dp1[i][a] = (dp1[i-1][prev_a] * total) % MOD\n            # Update dp2: arr2 must be <= previous arr2\n            for prev_b in dp2[i-1]:\n                for b in range(prev_b, -1, -1):\n                    a = s - b\n                    # Check if a is >= previous a in dp1[i-1]\n                    # We need to find all a_prev in dp1[i-1] where a_prev <= a\n                    # So for each b, we can accumulate the sum of dp1[i-1][a_prev] where a_prev <= a\n                    # Again, for now, compute directly\n                    total = 0\n                    for a_prev in dp1[i-1]:\n                        if a_prev <= a:\n                            total += dp1[i-1][a_prev]\n                            if total >= MOD:\n                                total -= MOD\n                    if b in dp2[i]:\n                        dp2[i][b] = (dp2[i][b] + dp2[i-1][prev_b] * total) % MOD\n                    else:\n                        dp2[i][b] = (dp2[i-1][prev_b] * total) % MOD\n        \n        # The total number of valid pairs is the sum of the product of dp1 and dp2 at each position\n        total = 0\n        for a in dp1[-1]:\n            b = nums[-1] - a\n            if b in dp2[-1]:\n                total = (total + dp1[-1][a] * dp2[-1][b]) % MOD\n        return total",
+              "solution_hash": "f4258e61b07f05eb5b50de2205903ff0303ff7fe9c9db59e9f241322adee5084",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpjgayqalo.py\", line 236, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmpjgayqalo.py\", line 150, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n",
+                "execution_time": 0.06521892547607422
+              },
+              "depth": 2,
+              "parent_id": "1_32",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_35",
+              "solution": "MOD = 10**9 + 7\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # dp1[i][a] represents the number of ways to have arr1[0..i] ending with a, which is non-decreasing\n        dp1 = [{} for _ in range(n)]\n        # dp2[i][b] represents the number of ways to have arr2[0..i] ending with b, which is non-increasing\n        dp2 = [{} for _ in range(n)]\n        \n        # Initialize the first element\n        s = nums[0]\n        for a in range(s + 1):\n            b = s - a\n            dp1[0][a] = 1\n            dp2[0][b] = 1\n        \n        for i in range(1, n):\n            s = nums[i]\n            # Update dp1: arr1 must be >= previous arr1\n            for prev_a in dp1[i-1]:\n                for a in range(prev_a, s + 1):\n                    b = s - a\n                    if b <= dp2[i-1].get(b, float('inf')):\n                        if a in dp1[i]:\n                            dp1[i][a] = (dp1[i][a] + dp1[i-1][prev_a]) % MOD\n                        else:\n                            dp1[i][a] = dp1[i-1][prev_a] % MOD\n            # Update dp2: arr2 must be <= previous arr2\n            for prev_b in dp2[i-1]:\n                for b in range(prev_b, -1, -1):\n                    a = s - b\n                    if a >= dp1[i-1].get(a, -1):\n                        if b in dp2[i]:\n                            dp2[i][b] = (dp2[i][b] + dp2[i-1][prev_b]) % MOD\n                        else:\n                            dp2[i][b] = dp2[i-1][prev_b] % MOD\n        \n        # The total number of valid pairs is the sum of the product of dp1 and dp2 at each position\n        total = 0\n        for a in dp1[-1]:\n            b = nums[-1] - a\n            if b in dp2[-1]:\n                total = (total + dp1[-1][a] * dp2[-1][b]) % MOD\n        return total",
+              "solution_hash": "7da63a74a9d4b975f84f6fc1d43031cc2570f37045a94db1ff1c09a8c07894fd",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp2w23dc19.py\", line 218, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21419950/tmp2w23dc19.py\", line 132, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n",
+                "execution_time": 0.06316018104553223
+              },
+              "depth": 2,
+              "parent_id": "1_32",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 36,
+    "candidates_generated": 36,
+    "tests_passed": 1,
+    "tests_failed": 27,
+    "test_errors": 8,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 3009.438974380493,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.05405405405405406,
+      "pass@3": 0.1576576576576577,
+      "pass@5": 0.25525525525525516,
+      "pass@10": 0.472972972972973
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 26
+          }
+        ],
+        [
+          27,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 27
+          }
+        ],
+        [
+          28,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 28
+          }
+        ],
+        [
+          29,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 29
+          }
+        ],
+        [
+          30,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 30
+          }
+        ],
+        [
+          31,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 31
+          }
+        ],
+        [
+          32,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 32
+          }
+        ],
+        [
+          33,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 33
+          }
+        ],
+        [
+          34,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 34
+          }
+        ],
+        [
+          35,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 35
+          }
+        ],
+        [
+          36,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 36
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 37,
+    "test_cases": 1
+  }
+}

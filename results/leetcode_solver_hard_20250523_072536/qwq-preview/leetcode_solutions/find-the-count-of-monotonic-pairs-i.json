@@ -1,0 +1,315 @@
+{
+  "problem_id": "find-the-count-of-monotonic-pairs-i",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": "from typing import List\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_sum = max(nums)\n        \n        # Initialize DP: dp[a1][a2] = number of ways to form arr1 and arr2 up to previous index\n        # with arr1 ending with a1 and arr2 ending with a2.\n        # But since a1 and a2 are up to max_sum, we need an efficient way to handle this.\n        \n        # Optimize by only keeping track of the previous state\n        prev_dp = {}\n        for a1 in range(nums[0] + 1):\n            a2 = nums[0] - a1\n            if a2 >= 0:\n                prev_dp[(a1, a2)] = 1\n        \n        for i in range(1, n):\n            new_dp = {}\n            for a1 in range(nums[i] + 1):\n                a2 = nums[i] - a1\n                if a2 < 0:\n                    continue\n                # Count the number of ways where previous a1 <= current a1 and previous a2 >= current a2\n                count = 0\n                for prev_a1, prev_a2 in prev_dp:\n                    if prev_a1 <= a1 and prev_a2 >= a2:\n                        count = (count + prev_dp[(prev_a1, prev_a2)]) % MOD\n                if count:\n                    new_dp[(a1, a2)] = count\n            prev_dp = new_dp\n        \n        # Sum up all the ways for the last element\n        total = 0\n        for count in prev_dp.values():\n            total = (total + count) % MOD\n        return total",
+  "passed_solutions": [
+    "from typing import List\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_sum = max(nums)\n        \n        # Initialize DP: dp[a1][a2] = number of ways to form arr1 and arr2 up to previous index\n        # with arr1 ending with a1 and arr2 ending with a2.\n        # But since a1 and a2 are up to max_sum, we need an efficient way to handle this.\n        \n        # Optimize by only keeping track of the previous state\n        prev_dp = {}\n        for a1 in range(nums[0] + 1):\n            a2 = nums[0] - a1\n            if a2 >= 0:\n                prev_dp[(a1, a2)] = 1\n        \n        for i in range(1, n):\n            new_dp = {}\n            for a1 in range(nums[i] + 1):\n                a2 = nums[i] - a1\n                if a2 < 0:\n                    continue\n                # Count the number of ways where previous a1 <= current a1 and previous a2 >= current a2\n                count = 0\n                for prev_a1, prev_a2 in prev_dp:\n                    if prev_a1 <= a1 and prev_a2 >= a2:\n                        count = (count + prev_dp[(prev_a1, prev_a2)]) % MOD\n                if count:\n                    new_dp[(a1, a2)] = count\n            prev_dp = new_dp\n        \n        # Sum up all the ways for the last element\n        total = 0\n        for count in prev_dp.values():\n            total = (total + count) % MOD\n        return total"
+  ],
+  "all_solutions": [
+    "class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                max_sum = max(nums)\n                \n                # Initialize dp arrays\n                dp1 = [0] * (max_sum + 1)\n                dp2 = [0] * (max_sum + 1)\n                \n                # Initialize for the first element\n                for a1 in range(nums[0] + 1):\n                    a2 = nums[0] - a1\n                    if a2 >= 0:\n                        dp1[a1] += 1\n                        dp2[a2] += 1\n                \n                # Iterate through the rest of the elements\n                for i in range(1, n):\n                    new_dp1 = [0] * (max_sum + 1)\n                    new_dp2 = [0] * (max_sum + 1)\n                    for a1 in range(nums[i] + 1):\n                        a2 = nums[i] - a1\n                        if a2 < 0:\n                            continue\n                        # Update dp1: arr1 should be non-decreasing\n                        count1 = sum(dp1[:a1+1]) % MOD\n                        # Update dp2: arr2 should be non-increasing\n                        count2 = sum(dp2[a2:]) % MOD\n                        # The total ways for this pair is count1 * count2\n                        new_dp1[a1] = (new_dp1[a1] + count1 * count2) % MOD\n                        new_dp2[a2] = (new_dp2[a2] + count1 * count2) % MOD\n                    dp1, dp2 = new_dp1, new_dp2\n                \n                # The total count is the sum of all possible ways\n                total = sum(dp1) % MOD\n                return total",
+    "from typing import List\n\n        class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                max_sum = max(nums)\n                \n                # Initialize dp arrays\n                # dp1[i][a1]: number of ways to form arr1 up to index i with arr1[i] == a1\n                # dp2[i][a2]: number of ways to form arr2 up to index i with arr2[i] == a2\n                dp1 = [0] * (max_sum + 1)\n                dp2 = [0] * (max_sum + 1)\n                \n                # Initialize for the first element\n                a1_max = nums[0]\n                for a1 in range(a1_max + 1):\n                    a2 = nums[0] - a1\n                    if a2 >= 0:\n                        dp1[a1] = 1\n                        dp2[a2] = 1\n                \n                # Iterate through the rest of the elements\n                for i in range(1, n):\n                    new_dp1 = [0] * (max_sum + 1)\n                    new_dp2 = [0] * (max_sum + 1)\n                    a1_max = nums[i]\n                    for a1 in range(a1_max + 1):\n                        a2 = nums[i] - a1\n                        if a2 < 0:\n                            continue\n                        # Find the number of ways where arr1[i-1] <= a1 and arr2[i-1] >= a2\n                        count1 = sum(dp1[:a1+1]) % MOD  # arr1 is non-decreasing\n                        count2 = sum(dp2[a2:]) % MOD    # arr2 is non-increasing\n                        # The total ways for this pair is count1 * count2\n                        new_dp1[a1] = (new_dp1[a1] + count1 * count2) % MOD\n                        new_dp2[a2] = (new_dp2[a2] + count1 * count2) % MOD\n                    dp1, dp2 = new_dp1, new_dp2\n                \n                # The total count is the sum of all possible ways\n                total = sum(dp1) % MOD\n                return total",
+    "from typing import List\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_sum = max(nums)\n        \n        # Initialize dp arrays\n        # dp1[a1]: number of ways to form arr1 with arr1[0] == a1\n        # dp2[a2]: number of ways to form arr2 with arr2[0] == a2\n        dp1 = [0] * (max_sum + 1)\n        dp2 = [0] * (max_sum + 1)\n        \n        # Initialize for the first element\n        a1_max = nums[0]\n        for a1 in range(a1_max + 1):\n            a2 = nums[0] - a1\n            if a2 >= 0:\n                dp1[a1] = 1\n                dp2[a2] = 1\n        \n        # Iterate through the rest of the elements\n        for i in range(1, n):\n            new_dp1 = [0] * (max_sum + 1)\n            new_dp2 = [0] * (max_sum + 1)\n            a1_max = nums[i]\n            for a1 in range(a1_max + 1):\n                a2 = nums[i] - a1\n                if a2 < 0:\n                    continue\n                # Find the number of ways where arr1[i-1] <= a1 and arr2[i-1] >= a2\n                count1 = sum(dp1[:a1 + 1]) % MOD  # arr1 is non-decreasing\n                count2 = sum(dp2[a2:]) % MOD      # arr2 is non-increasing\n                # The total ways for this pair is count1 * count2\n                new_dp1[a1] = (new_dp1[a1] + count1 * count2) % MOD\n                new_dp2[a2] = (new_dp2[a2] + count1 * count2) % MOD\n            dp1, dp2 = new_dp1, new_dp2\n        \n        # The total count is the sum of all possible ways\n        total = sum(dp1) % MOD\n        return total",
+    "from typing import List\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_sum = max(nums)\n        \n        # Initialize dp arrays\n        # dp1[a1]: number of ways to form arr1 up to current index with arr1[i] == a1\n        # dp2[a2]: number of ways to form arr2 up to current index with arr2[i] == a2\n        dp1 = [0] * (max_sum + 1)\n        dp2 = [0] * (max_sum + 1)\n        \n        # Initialize for the first element\n        a1_max = nums[0]\n        for a1 in range(a1_max + 1):\n            a2 = nums[0] - a1\n            if a2 >= 0:\n                dp1[a1] = 1\n                dp2[a2] = 1\n        \n        # Prefix sums for faster range queries\n        prefix_dp1 = [0] * (max_sum + 2)\n        prefix_dp2 = [0] * (max_sum + 2)\n        for a1 in range(max_sum + 1):\n            prefix_dp1[a1 + 1] = (prefix_dp1[a1] + dp1[a1]) % MOD\n            prefix_dp2[a1 + 1] = (prefix_dp2[a1] + dp2[a1]) % MOD\n        \n        # Iterate through the rest of the elements\n        for i in range(1, n):\n            new_dp1 = [0] * (max_sum + 1)\n            new_dp2 = [0] * (max_sum + 1)\n            a1_max = nums[i]\n            for a1 in range(a1_max + 1):\n                a2 = nums[i] - a1\n                if a2 < 0:\n                    continue\n                # Find the number of ways where arr1[i-1] <= a1 and arr2[i-1] >= a2\n                count1 = prefix_dp1[a1 + 1]  # arr1 is non-decreasing\n                count2 = prefix_dp2[a2 + 1] - prefix_dp2[0]  # arr2 is non-increasing\n                # The total ways for this pair is count1 * count2\n                new_dp1[a1] = (new_dp1[a1] + count1 * count2) % MOD\n                new_dp2[a2] = (new_dp2[a2] + count1 * count2) % MOD\n            dp1, dp2 = new_dp1, new_dp2\n            # Update prefix sums for the next iteration\n            for a1 in range(max_sum + 1):\n                prefix_dp1[a1 + 1] = (prefix_dp1[a1] + dp1[a1]) % MOD\n                prefix_dp2[a1 + 1] = (prefix_dp2[a1] + dp2[a1]) % MOD\n        \n        # The total count is the sum of all possible ways\n        total = sum(dp1) % MOD\n        return total",
+    "from typing import List\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_sum = max(nums)\n        \n        # Initialize dp arrays\n        # dp1[a1]: number of ways to form arr1 with arr1[i] == a1\n        # dp2[a2]: number of ways to form arr2 with arr2[i] == a2\n        dp1 = [0] * (max_sum + 1)\n        dp2 = [0] * (max_sum + 1)\n        \n        # Initialize for the first element\n        a1_max = nums[0]\n        for a1 in range(a1_max + 1):\n            a2 = nums[0] - a1\n            if a2 >= 0:\n                dp1[a1] = 1\n                dp2[a2] = 1\n        \n        # Prefix sums for efficient range queries\n        prefix_dp1 = [0] * (max_sum + 2)\n        prefix_dp2 = [0] * (max_sum + 2)\n        for a1 in range(max_sum + 1):\n            prefix_dp1[a1 + 1] = (prefix_dp1[a1] + dp1[a1]) % MOD\n            prefix_dp2[a1 + 1] = (prefix_dp2[a1 + 1] + dp2[a1]) % MOD\n        for a1 in range(max_sum, -1, -1):\n            prefix_dp2[a1] = (prefix_dp2[a1 + 1] + dp2[a1]) % MOD\n        \n        # Iterate through the rest of the elements\n        for i in range(1, n):\n            new_dp1 = [0] * (max_sum + 1)\n            new_dp2 = [0] * (max_sum + 1)\n            a1_max = nums[i]\n            for a1 in range(a1_max + 1):\n                a2 = nums[i] - a1\n                if a2 < 0:\n                    continue\n                # Find the number of ways where arr1[i-1] <= a1 and arr2[i-1] >= a2\n                count1 = prefix_dp1[a1 + 1]  # sum(dp1[0] to dp1[a1])\n                count2 = prefix_dp2[a2 + 1]  # sum(dp2[a2] to dp2[max_sum])\n                # The total ways for this pair is count1 * count2\n                new_dp1[a1] = (new_dp1[a1] + count1 * count2) % MOD\n                new_dp2[a2] = (new_dp2[a2] + count1 * count2) % MOD\n            dp1, dp2 = new_dp1, new_dp2\n            # Update prefix sums for the next iteration\n            for a1 in range(max_sum + 1):\n                prefix_dp1[a1 + 1] = (prefix_dp1[a1] + dp1[a1]) % MOD\n                prefix_dp2[a1 + 1] = (prefix_dp2[a1 + 1] + dp2[a1]) % MOD\n            for a1 in range(max_sum, -1, -1):\n                prefix_dp2[a1] = (prefix_dp2[a1 + 1] + dp2[a1]) % MOD\n        \n        # The total count is the sum of all possible ways\n        total = sum(dp1) % MOD\n        return total",
+    "from typing import List\n\n        class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                max_sum = max(nums)\n                \n                # Initialize dp arrays with prefix sums\n                dp1 = [0] * (max_sum + 1)\n                dp2 = [0] * (max_sum + 1)\n                \n                # Initialize for the first element\n                for a1 in range(nums[0] + 1):\n                    a2 = nums[0] - a1\n                    if a2 >= 0:\n                        dp1[a1] = 1\n                        dp2[a2] = 1\n                \n                # Compute prefix sums for dp1 and dp2\n                prefix_sum_dp1 = [0] * (max_sum + 2)\n                prefix_sum_dp2 = [0] * (max_sum + 2)\n                for i in range(max_sum + 1):\n                    prefix_sum_dp1[i + 1] = (prefix_sum_dp1[i] + dp1[i]) % MOD\n                    prefix_sum_dp2[i + 1] = (prefix_sum_dp2[i] + dp2[i]) % MOD\n                \n                # Iterate through the rest of the elements\n                for i in range(1, n):\n                    new_dp1 = [0] * (max_sum + 1)\n                    new_dp2 = [0] * (max_sum + 1)\n                    for a1 in range(nums[i] + 1):\n                        a2 = nums[i] - a1\n                        if a2 < 0:\n                            continue\n                        # Update dp1: arr1 should be non-decreasing\n                        # Sum of dp1 from 0 to a1\n                        count1 = prefix_sum_dp1[a1 + 1]\n                        # Update dp2: arr2 should be non-increasing\n                        # Sum of dp2 from a2 to max_sum\n                        count2 = (prefix_sum_dp2[max_sum + 1] - prefix_sum_dp2[a2]) % MOD\n                        # The total ways for this pair is count1 * count2\n                        new_dp1[a1] = (new_dp1[a1] + count1 * count2) % MOD\n                        new_dp2[a2] = (new_dp2[a2] + count1 * count2) % MOD\n                    dp1, dp2 = new_dp1, new_dp2\n                    # Update prefix sums for new dp1 and dp2\n                    for j in range(max_sum + 1):\n                        prefix_sum_dp1[j + 1] = (prefix_sum_dp1[j] + dp1[j]) % MOD\n                        prefix_sum_dp2[j + 1] = (prefix_sum_dp2[j] + dp2[j]) % MOD\n                \n                # The total count is the sum of all possible ways\n                total = sum(dp1) % MOD\n                return total",
+    "from typing import List\n\n        class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                max_sum = max(nums)\n                \n                # Initialize dp arrays with prefix sums\n                dp1 = [0] * (max_sum + 1)\n                dp2 = [0] * (max_sum + 1)\n                \n                # Initialize for the first element\n                for a1 in range(nums[0] + 1):\n                    a2 = nums[0] - a1\n                    if a2 >= 0:\n                        dp1[a1] = 1\n                        dp2[a2] = 1\n                \n                # Compute prefix sums for dp1 and dp2\n                prefix_sum_dp1 = [0] * (max_sum + 2)\n                prefix_sum_dp2 = [0] * (max_sum + 2)\n                for i in range(max_sum + 1):\n                    prefix_sum_dp1[i + 1] = (prefix_sum_dp1[i] + dp1[i]) % MOD\n                    prefix_sum_dp2[i + 1] = (prefix_sum_dp2[i] + dp2[i]) % MOD\n                \n                # Iterate through the rest of the elements\n                for i in range(1, n):\n                    new_dp1 = [0] * (max_sum + 1)\n                    new_dp2 = [0] * (max_sum + 1)\n                    for a1 in range(nums[i] + 1):\n                        a2 = nums[i] - a1\n                        if a2 < 0:\n                            continue\n                        # Update dp1: arr1 should be non-decreasing\n                        # Sum of dp1 from 0 to a1\n                        count1 = prefix_sum_dp1[a1 + 1]\n                        # Update dp2: arr2 should be non-increasing\n                        # Sum of dp2 from a2 to max_sum\n                        count2 = (prefix_sum_dp2[max_sum + 1] - prefix_sum_dp2[a2]) % MOD\n                        # The total ways for this pair is count1 * count2\n                        new_dp1[a1] = (new_dp1[a1] + count1 * count2) % MOD\n                        new_dp2[a2] = (new_dp2[a2] + count1 * count2) % MOD\n                    dp1, dp2 = new_dp1, new_dp2\n                    # Update prefix sums for new dp1 and dp2\n                    for j in range(max_sum + 1):\n                        prefix_sum_dp1[j + 1] = (prefix_sum_dp1[j] + dp1[j]) % MOD\n                        prefix_sum_dp2[j + 1] = (prefix_sum_dp2[j] + dp2[j]) % MOD\n                \n                # The total count is the sum of all possible ways\n                total = sum(dp1) % MOD\n                return total",
+    "from typing import List\n\n        class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                max_sum = max(nums)\n                \n                # Initialize dp arrays with prefix sums\n                dp1 = [0] * (max_sum + 1)\n                dp2 = [0] * (max_sum + 1)\n                \n                # Initialize for the first element\n                for a1 in range(nums[0] + 1):\n                    a2 = nums[0] - a1\n                    if a2 >= 0:\n                        dp1[a1] = 1\n                        dp2[a2] = 1\n                \n                # Compute prefix sums for dp1 and dp2\n                prefix_sum_dp1 = [0] * (max_sum + 2)\n                prefix_sum_dp2 = [0] * (max_sum + 2)\n                for i in range(max_sum + 1):\n                    prefix_sum_dp1[i + 1] = (prefix_sum_dp1[i] + dp1[i]) % MOD\n                    prefix_sum_dp2[i + 1] = (prefix_sum_dp2[i] + dp2[i]) % MOD\n                \n                # Iterate through the rest of the elements\n                for i in range(1, n):\n                    new_dp1 = [0] * (max_sum + 1)\n                    new_dp2 = [0] * (max_sum + 1)\n                    for a1 in range(nums[i] + 1):\n                        a2 = nums[i] - a1\n                        if a2 < 0:\n                            continue\n                        # Update dp1: arr1 should be non-decreasing\n                        # Sum of dp1 from 0 to a1\n                        count1 = prefix_sum_dp1[a1 + 1]\n                        # Update dp2: arr2 should be non-increasing\n                        # Sum of dp2 from a2 to max_sum\n                        count2 = (prefix_sum_dp2[max_sum + 1] - prefix_sum_dp2[a2]) % MOD\n                        # The total ways for this pair is count1 * count2\n                        new_dp1[a1] = (new_dp1[a1] + count1 * count2) % MOD\n                        new_dp2[a2] = (new_dp2[a2] + count1 * count2) % MOD\n                    dp1, dp2 = new_dp1, new_dp2\n                    # Update prefix sums for new dp1 and dp2\n                    for j in range(max_sum + 1):\n                        prefix_sum_dp1[j + 1] = (prefix_sum_dp1[j] + dp1[j]) % MOD\n                        prefix_sum_dp2[j + 1] = (prefix_sum_dp2[j] + dp2[j]) % MOD\n                \n                # The total count is the sum of all possible ways\n                total = sum(dp1) % MOD\n                return total",
+    "from typing import List\n\n        class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                max_sum = max(nums)\n                \n                # Initialize dp arrays with prefix sums\n                dp1 = [0] * (max_sum + 1)\n                dp2 = [0] * (max_sum + 1)\n                \n                # Initialize for the first element\n                for a1 in range(nums[0] + 1):\n                    a2 = nums[0] - a1\n                    if a2 >= 0:\n                        dp1[a1] = 1\n                        dp2[a2] = 1\n                \n                # Compute prefix sums for dp1 and dp2\n                prefix_sum_dp1 = [0] * (max_sum + 2)\n                prefix_sum_dp2 = [0] * (max_sum + 2)\n                for i in range(max_sum + 1):\n                    prefix_sum_dp1[i + 1] = (prefix_sum_dp1[i] + dp1[i]) % MOD\n                    prefix_sum_dp2[i + 1] = (prefix_sum_dp2[i] + dp2[i]) % MOD\n                \n                # Iterate through the rest of the elements\n                for i in range(1, n):\n                    new_dp1 = [0] * (max_sum + 1)\n                    new_dp2 = [0] * (max_sum + 1)\n                    for a1 in range(nums[i] + 1):\n                        a2 = nums[i] - a1\n                        if a2 < 0:\n                            continue\n                        # Update dp1: arr1 should be non-decreasing\n                        # Sum of dp1 from 0 to a1\n                        count1 = prefix_sum_dp1[a1 + 1]\n                        # Update dp2: arr2 should be non-increasing\n                        # Sum of dp2 from a2 to max_sum\n                        count2 = (prefix_sum_dp2[max_sum + 1] - prefix_sum_dp2[a2]) % MOD\n                        # The total ways for this pair is count1 * count2\n                        new_dp1[a1] = (new_dp1[a1] + count1 * count2) % MOD\n                        new_dp2[a2] = (new_dp2[a2] + count1 * count2) % MOD\n                    dp1, dp2 = new_dp1, new_dp2\n                    # Update prefix sums for new dp1 and dp2\n                    for j in range(max_sum + 1):\n                        prefix_sum_dp1[j + 1] = (prefix_sum_dp1[j] + dp1[j]) % MOD\n                        prefix_sum_dp2[j + 1] = (prefix_sum_dp2[j] + dp2[j]) % MOD\n                \n                # The total count is the sum of all possible ways\n                total = sum(dp1) % MOD\n                return total",
+    "from typing import List\n\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_sum = max(nums)\n        \n        # Initialize DP: dp[a1][a2] = number of ways to form arr1 and arr2 up to previous index\n        # with arr1 ending with a1 and arr2 ending with a2.\n        # But since a1 and a2 are up to max_sum, we need an efficient way to handle this.\n        \n        # Optimize by only keeping track of the previous state\n        prev_dp = {}\n        for a1 in range(nums[0] + 1):\n            a2 = nums[0] - a1\n            if a2 >= 0:\n                prev_dp[(a1, a2)] = 1\n        \n        for i in range(1, n):\n            new_dp = {}\n            for a1 in range(nums[i] + 1):\n                a2 = nums[i] - a1\n                if a2 < 0:\n                    continue\n                # Count the number of ways where previous a1 <= current a1 and previous a2 >= current a2\n                count = 0\n                for prev_a1, prev_a2 in prev_dp:\n                    if prev_a1 <= a1 and prev_a2 >= a2:\n                        count = (count + prev_dp[(prev_a1, prev_a2)]) % MOD\n                if count:\n                    new_dp[(a1, a2)] = count\n            prev_dp = new_dp\n        \n        # Sum up all the ways for the last element\n        total = 0\n        for count in prev_dp.values():\n            total = (total + count) % MOD\n        return total"
+  ],
+  "total_candidates": 10,
+  "nodes_explored": 10,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                max_sum = max(nums)\n                \n                # Initialize dp arrays\n                dp1 = [0] * (max_sum + 1)\n                dp2 = [0] * (max_sum + 1)\n                \n                # Initialize for the first element\n                for a1 in range(nums[0] + 1):\n                    a2 = nums[0] - a1\n                    if a2 >= 0:\n                        dp1[a1] += 1\n                        dp2[a2] += 1\n                \n                # Iterate through the rest of the elements\n                for i in range(1, n):\n                    new_dp1 = [0] * (max_sum + 1)\n                    new_dp2 = [0] * (max_sum + 1)\n                    for a1 in range(nums[i] + 1):\n                        a2 = nums[i] - a1\n                        if a2 < 0:\n                            continue\n                        # Update dp1: arr1 should be non-decreasing\n                        count1 = sum(dp1[:a1+1]) % MOD\n                        # Update dp2: arr2 should be non-increasing\n                        count2 = sum(dp2[a2:]) % MOD\n                        # The total ways for this pair is count1 * count2\n                        new_dp1[a1] = (new_dp1[a1] + count1 * count2) % MOD\n                        new_dp2[a2] = (new_dp2[a2] + count1 * count2) % MOD\n                    dp1, dp2 = new_dp1, new_dp2\n                \n                # The total count is the sum of all possible ways\n                total = sum(dp1) % MOD\n                return total",
+      "solution_hash": "0b460defc93242e4b6d5b8e8811789c5fc0cbe31ca64b259853a2bc9a8bfdd40",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmpc50lmbsd.py\", line 230, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21926555/tmpc50lmbsd.py\", line 122, in check\n    assert candidate(nums = [3, 3, 3, 3, 3, 3]) == 84\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpc50lmbsd.py` failed. (See above for error)\n",
+        "execution_time": 15.608137607574463,
+        "failed_tests": [
+          {
+            "input": "nums = [3, 3, 3, 3, 3, 3]",
+            "expected": "84",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmpc50lmbsd.py\", line 230, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/21926555/tmpc50lmbsd.py\", line 122, in check\n    assert candidate(nums = [3, 3, 3, 3, 3, 3]) == 84\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpc50lmbsd.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5",
+        "1_9"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 10,
+    "candidates_generated": 10,
+    "tests_passed": 1,
+    "tests_failed": 9,
+    "test_errors": 0,
+    "execution_times": [
+      15.608137607574463,
+      18.872612714767456,
+      17.10930061340332,
+      15.672728776931763,
+      15.488039255142212,
+      13.778700351715088,
+      13.778700351715088,
+      13.778700351715088,
+      13.778700351715088,
+      16.431484699249268
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 7,
+      "unique_ratio": 0.7,
+      "similarity_score": 0.0,
+      "solution_lengths": {
+        "min": 1431,
+        "max": 2466,
+        "avg": 2086.8
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "nums = [3, 3, 3, 3, 3, 3]": 2,
+        "nums = [50, 1, 50, 1, 50]": 2
+      },
+      "first_failing_tests": {
+        "nums = [3, 3, 3, 3, 3, 3]": 2,
+        "nums = [50, 1, 50, 1, 50]": 2
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 3,
+          "improvements": 2,
+          "solved": 1
+        },
+        "2": {
+          "attempts": 6,
+          "improvements": 0,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "assertion_failure": {
+          "attempts": 1,
+          "improvements": 3
+        },
+        "other_error": {
+          "attempts": 2,
+          "improvements": 0
+        }
+      },
+      "test_case_improvements": {
+        "nums = [3, 3, 3, 3, 3, 3]": 2
+      },
+      "error_transitions": {
+        "assertion_failure->other_error": 2,
+        "other_error->assertion_failure": 3,
+        "other_error->other_error": 3,
+        "assertion_failure->unknown": 1
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.5,
+        "solutions_per_depth": {
+          "0": 1,
+          "1": 3,
+          "2": 6
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 1,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.18181818181818188,
+        "pass@3": 0.49090909090909096,
+        "pass@5": 0.7272727272727273,
+        "pass@10": 1.0
+      },
+      "solutions_evaluated": 11,
+      "passing_solution_depths": {
+        "min": 1,
+        "max": 1,
+        "avg": 1.0
+      }
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.1,
+        "branch_success_rate": 0.1
+      },
+      "error_recovery": {
+        "total_attempts": 3,
+        "total_improvements": 3,
+        "recovery_rate": 1.0
+      },
+      "top_errors": [
+        [
+          "other_error",
+          2
+        ],
+        [
+          "assertion_failure",
+          1
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "nums = [3, 3, 3, 3, 3, 3]",
+          2
+        ],
+        [
+          "nums = [50, 1, 50, 1, 50]",
+          2
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 649.3881180286407,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.18181818181818188,
+      "pass@3": 0.49090909090909096,
+      "pass@5": 0.7272727272727273,
+      "pass@10": 1.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 10
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 11,
+    "test_cases": 1
+  }
+}

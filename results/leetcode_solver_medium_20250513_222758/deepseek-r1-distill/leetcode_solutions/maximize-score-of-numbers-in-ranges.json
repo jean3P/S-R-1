@@ -1,0 +1,593 @@
+{
+  "problem_id": "maximize-score-of-numbers-in-ranges",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "solved",
+  "best_solution": "import bisect\n\nclass Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = [(s, s + d) for s in start]\n        intervals.sort()\n        \n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n        \n        while left <= right:\n            mid = (left + right) // 2\n            prev = intervals[0][0]\n            possible = True\n            \n            for i in range(1, len(intervals)):\n                s, e = intervals[i]\n                lower = prev + mid\n                if lower <= e:\n                    prev = lower\n                else:\n                    prev = s\n                    if prev < lower:\n                        possible = False\n                        break\n                if prev > e:\n                    possible = False\n                    break\n            \n            if possible:\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        \n        return max_score",
+  "passed_solutions": [
+    "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        n = len(intervals)\n        \n        def is_possible(gap):\n            prev = intervals[0][0]\n            for i in range(1, n):\n                current_start, current_end = intervals[i]\n                earliest = max(current_start, prev + gap)\n                if earliest > current_end:\n                    return False\n                prev = earliest\n            return True\n        \n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n        \n        while left <= right:\n            mid = (left + right) // 2\n            if is_possible(mid):\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        return max_score",
+    "import bisect\n\nclass Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = [(s, s + d) for s in start]\n        intervals.sort()\n        \n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n        \n        while left <= right:\n            mid = (left + right) // 2\n            prev = intervals[0][0]\n            possible = True\n            \n            for i in range(1, len(intervals)):\n                s, e = intervals[i]\n                lower = prev + mid\n                if lower <= e:\n                    prev = lower\n                else:\n                    prev = s\n                    if prev < lower:\n                        possible = False\n                        break\n                if prev > e:\n                    possible = False\n                    break\n            \n            if possible:\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        \n        return max_score",
+    "import bisect\n\nclass Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = [(s, s + d) for s in start]\n        intervals.sort()\n        \n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n        \n        while left <= right:\n            mid = (left + right) // 2\n            prev = intervals[0][0]\n            possible = True\n            \n            for i in range(1, len(intervals)):\n                s, e = intervals[i]\n                lower = prev + mid\n                if lower <= e:\n                    prev = lower\n                else:\n                    if s >= prev + mid:\n                        prev = s\n                    else:\n                        possible = False\n                        break\n            \n            if possible:\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        \n        return max_score",
+    "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = [(s, s + d) for s in start]\n        intervals.sort()\n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n\n        def is_possible(mid):\n            prev = intervals[0][0]\n            for i in range(1, len(intervals)):\n                lower, upper = intervals[i]\n                if lower >= prev + mid:\n                    prev = lower\n                elif upper >= prev + mid:\n                    prev = prev + mid\n                else:\n                    return False\n            return True\n\n        while left <= right:\n            mid = (left + right) // 2\n            if is_possible(mid):\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        return max_score"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        start.sort()\n        prev = start[0] + d\n        max_score = 0\n        for i in range(1, len(start)):\n            current_min = start[i]\n            if current_min >= prev:\n                max_score = max(max_score, current_min - prev)\n                prev = current_min\n            else:\n                current_max = start[i] + d\n                if current_max >= prev:\n                    max_score = max(max_score, prev - current_max)\n                    prev = current_max\n                else:\n                    max_score = max(max_score, current_max - prev)\n                    prev = current_max\n        return max_score",
+    "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        prev_end = intervals[0][1]\n        max_score = 0\n        for i in range(1, len(intervals)):\n            current_start, current_end = intervals[i]\n            if current_start > prev_end:\n                max_score = max(max_score, current_start - prev_end)\n                prev_end = current_end\n            else:\n                prev_end = max(prev_end, current_end)\n        return max_score",
+    "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        selected = []\n        for s, e in intervals:\n            if not selected:\n                selected.append(s)\n            else:\n                prev = selected[-1]\n                if s >= prev:\n                    selected.append(s)\n                else:\n                    selected.append(e)\n        max_score = float('inf')\n        for i in range(1, len(selected)):\n            diff = selected[i] - selected[i-1]\n            if diff < max_score:\n                max_score = diff\n        return max_score if max_score != float('inf') else 0",
+    "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        prev = intervals[0][1]\n        max_score = 0\n        for i in range(1, len(intervals)):\n            current_start, current_end = intervals[i]\n            if current_start > prev:\n                max_score = max(max_score, current_start - prev)\n                prev = current_end\n            else:\n                prev = max(prev, current_end)\n        return max_score",
+    "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        selected = []\n        for s, e in intervals:\n            if not selected:\n                selected.append(s)\n            else:\n                prev = selected[-1]\n                if s > prev:\n                    selected.append(s)\n                else:\n                    selected.append(e)\n        min_diff = float('inf')\n        for i in range(len(selected)):\n            for j in range(i + 1, len(selected)):\n                diff = abs(selected[i] - selected[j])\n                if diff < min_diff:\n                    min_diff = diff\n                    if min_diff == 0:\n                        break\n            if min_diff == 0:\n                break\n        return min_diff",
+    "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        prev = intervals[0][1]\n        max_score = 0\n        for i in range(1, len(intervals)):\n            current_start, current_end = intervals[i]\n            earliest = max(current_start, prev + max_score)\n            if earliest <= current_end:\n                max_score = earliest - prev\n                prev = earliest\n            else:\n                prev = current_end\n        return max_score",
+    "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        n = len(intervals)\n        \n        def is_possible(gap):\n            prev = intervals[0][0]\n            for i in range(1, n):\n                current_start, current_end = intervals[i]\n                earliest = max(current_start, prev + gap)\n                if earliest > current_end:\n                    return False\n                prev = earliest\n            return True\n        \n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n        \n        while left <= right:\n            mid = (left + right) // 2\n            if is_possible(mid):\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        return max_score",
+    "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        if not intervals:\n            return 0\n        prev = intervals[0][1]\n        max_score = 0\n        for i in range(1, len(intervals)):\n            current_start, current_end = intervals[i]\n            earliest = max(current_start, prev + max_score)\n            if earliest <= current_end:\n                max_score = earliest - prev\n                prev = earliest\n            else:\n                prev = current_end\n        return max_score",
+    "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        prev = intervals[0][1]\n        max_score = 0\n        for i in range(1, len(intervals)):\n            current_start, current_end = intervals[i]\n            earliest = max(current_start, prev - max_score)\n            if earliest <= current_end:\n                max_score = earliest - prev\n                prev = earliest\n            else:\n                prev = current_end\n        return max_score",
+    "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        prev = intervals[0][1]\n        max_score = 0\n        for i in range(1, len(intervals)):\n            current_start, current_end = intervals[i]\n            if current_start >= prev:\n                max_score = max(max_score, current_start - prev)\n                prev = current_start\n            else:\n                if current_end >= prev:\n                    max_score = max(max_score, prev - current_end)\n                    prev = current_end\n                else:\n                    max_score = max(max_score, current_end - prev)\n                    prev = current_end\n        return max_score",
+    "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        selected = []\n        for s, e in intervals:\n            if not selected:\n                selected.append(s)\n            else:\n                selected.append(e)\n        max_score = float('inf')\n        for i in range(1, len(selected)):\n            diff = selected[i] - selected[i-1]\n            if diff < max_score:\n                max_score = diff\n        return max_score if max_score != float('inf') else 0",
+    "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        selected = []\n        for s, e in intervals:\n            if not selected:\n                selected.append(e)\n            else:\n                if s >= selected[-1]:\n                    selected.append(s)\n                else:\n                    selected.append(e)\n        max_score = float('inf')\n        for i in range(1, len(selected)):\n            diff = selected[i] - selected[i-1]\n            if diff < max_score:\n                max_score = diff\n        return max_score",
+    "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        prev = intervals[0][1]\n        max_score = 0\n        for i in range(1, len(intervals)):\n            current_start, current_end = intervals[i]\n            if current_start >= prev:\n                current = current_start\n                max_score = max(max_score, current - prev)\n                prev = current\n            else:\n                if current_end >= prev:\n                    current = prev\n                    max_score = max(max_score, current - prev)\n                    prev = current\n                else:\n                    current = current_end\n                    max_score = max(max_score, current - prev)\n                    prev = current\n        return max_score",
+    "import bisect\n\nclass Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = [(s, s + d) for s in start]\n        intervals.sort()\n        \n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n        \n        while left <= right:\n            mid = (left + right) // 2\n            prev = intervals[0][0]\n            possible = True\n            \n            for i in range(1, len(intervals)):\n                s, e = intervals[i]\n                lower = prev + mid\n                if lower <= e:\n                    prev = lower\n                else:\n                    lower = s\n                    if lower > prev:\n                        prev = lower\n                    else:\n                        possible = False\n                        break\n            \n            if possible:\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        \n        return max_score",
+    "import bisect\n\nclass Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = [(s, s + d) for s in start]\n        intervals.sort()\n        \n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n        \n        while left <= right:\n            mid = (left + right) // 2\n            prev = intervals[0][0]\n            possible = True\n            \n            for i in range(1, len(intervals)):\n                s, e = intervals[i]\n                lower = prev + mid\n                if lower <= e:\n                    prev = lower\n                else:\n                    prev = s\n                    if prev < lower:\n                        possible = False\n                        break\n                if prev > e:\n                    possible = False\n                    break\n            \n            if possible:\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        \n        return max_score",
+    "import bisect\n\nclass Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = [(s, s + d) for s in start]\n        intervals.sort()\n        \n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n        \n        while left <= right:\n            mid = (left + right) // 2\n            prev = intervals[0][0]\n            possible = True\n            \n            for i in range(1, len(intervals)):\n                s, e = intervals[i]\n                lower = prev + mid\n                if lower <= e:\n                    prev = lower\n                else:\n                    if s >= prev + mid:\n                        prev = s\n                    else:\n                        possible = False\n                        break\n            \n            if possible:\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        \n        return max_score",
+    "import bisect\n\nclass Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = [(s, s + d) for s in start]\n        intervals.sort()\n        \n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n        \n        while left <= right:\n            mid = (left + right) // 2\n            prev = intervals[0][0]\n            possible = True\n            \n            for i in range(1, len(intervals)):\n                s, e = intervals[i]\n                lower = prev + mid\n                if lower <= e:\n                    prev = lower\n                else:\n                    lower = s\n                    if lower > prev:\n                        prev = lower\n                    else:\n                        possible = False\n                        break\n            \n            if possible:\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        \n        return max_score",
+    "import bisect\n\nclass Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = [(s, s + d) for s in start]\n        intervals.sort()\n        \n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n        \n        def is_possible(mid):\n            prev = intervals[0][0]\n            for i in range(1, len(intervals)):\n                s, e = intervals[i]\n                lower = prev + mid\n                if lower <= e:\n                    prev = lower\n                else:\n                    if s > prev:\n                        prev = s\n                    else:\n                        return False\n            return True\n        \n        while left <= right:\n            mid = (left + right) // 2\n            if is_possible(mid):\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        \n        return max_score",
+    "import bisect\n\nclass Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([s + d for s in start])\n        n = len(intervals)\n        left = 0\n        right = intervals[-1] - intervals[0]\n        max_score = 0\n        \n        while left <= right:\n            mid = (left + right) // 2\n            prev = intervals[0]\n            possible = True\n            \n            for i in range(1, n):\n                current = intervals[i]\n                if current >= prev + mid:\n                    prev = current\n                else:\n                    possible = False\n                    break\n            \n            if possible:\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        \n        return max_score",
+    "import bisect\n\nclass Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = [(s, s + d) for s in start]\n        intervals.sort()\n        \n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n        \n        while left <= right:\n            mid = (left + right) // 2\n            prev = intervals[0][0]\n            possible = True\n            \n            for i in range(1, len(intervals)):\n                s, e = intervals[i]\n                # The earliest we can place the current number is prev + mid\n                lower = prev + mid\n                if lower <= e:\n                    prev = lower\n                else:\n                    # Try to place as low as possible within the interval\n                    lower = s\n                    if lower > prev:\n                        prev = lower\n                    else:\n                        # If even the start of the interval is <= prev, it's impossible\n                        possible = False\n                        break\n            \n            if possible:\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        \n        return max_score",
+    "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = [(s, s + d) for s in start]\n        intervals.sort()\n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n\n        def is_possible(mid):\n            prev = intervals[0][0]\n            for i in range(1, len(intervals)):\n                lower, upper = intervals[i]\n                if lower >= prev + mid:\n                    prev = lower\n                elif upper >= prev + mid:\n                    prev = prev + mid\n                else:\n                    return False\n            return True\n\n        while left <= right:\n            mid = (left + right) // 2\n            if is_possible(mid):\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        return max_score"
+  ],
+  "total_candidates": 21,
+  "nodes_explored": 21,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        start.sort()\n        prev = start[0] + d\n        max_score = 0\n        for i in range(1, len(start)):\n            current_min = start[i]\n            if current_min >= prev:\n                max_score = max(max_score, current_min - prev)\n                prev = current_min\n            else:\n                current_max = start[i] + d\n                if current_max >= prev:\n                    max_score = max(max_score, prev - current_max)\n                    prev = current_max\n                else:\n                    max_score = max(max_score, current_max - prev)\n                    prev = current_max\n        return max_score",
+      "solution_hash": "0f39914ccb3acb896969459e252a34afa740ad628add66cc01fd96cab7ee3191",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp5rkptk81.py\", line 214, in <module>\n    check(Solution().maxPossibleScore)\n  File \"/scratch/local/21419949/tmp5rkptk81.py\", line 103, in check\n    assert candidate(start = [5, 10, 15, 20, 25],d = 4) == 6\nAssertionError\n",
+        "execution_time": 0.0673830509185791
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        prev_end = intervals[0][1]\n        max_score = 0\n        for i in range(1, len(intervals)):\n            current_start, current_end = intervals[i]\n            if current_start > prev_end:\n                max_score = max(max_score, current_start - prev_end)\n                prev_end = current_end\n            else:\n                prev_end = max(prev_end, current_end)\n        return max_score",
+          "solution_hash": "e55b6a307171fdc930b2c96498b285ba1cc9097836f3379f277c4fcffb5ced21",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpi6yyxid7.py\", line 208, in <module>\n    check(Solution().maxPossibleScore)\n  File \"/scratch/local/21419949/tmpi6yyxid7.py\", line 97, in check\n    assert candidate(start = [5, 10, 15, 20, 25],d = 4) == 6\nAssertionError\n",
+            "execution_time": 0.06673598289489746
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_2",
+              "solution": "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        selected = []\n        for s, e in intervals:\n            if not selected:\n                selected.append(s)\n            else:\n                prev = selected[-1]\n                if s >= prev:\n                    selected.append(s)\n                else:\n                    selected.append(e)\n        max_score = float('inf')\n        for i in range(1, len(selected)):\n            diff = selected[i] - selected[i-1]\n            if diff < max_score:\n                max_score = diff\n        return max_score if max_score != float('inf') else 0",
+              "solution_hash": "7c7bb3283af6763c5555882f8a5b1b51a4263631a850385c3ab025a6a76deb02",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp3hrp_kzk.py\", line 214, in <module>\n    check(Solution().maxPossibleScore)\n  File \"/scratch/local/21419949/tmp3hrp_kzk.py\", line 103, in check\n    assert candidate(start = [5, 10, 15, 20, 25],d = 4) == 6\nAssertionError\n",
+                "execution_time": 0.0667412281036377
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_3",
+              "solution": "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        prev = intervals[0][1]\n        max_score = 0\n        for i in range(1, len(intervals)):\n            current_start, current_end = intervals[i]\n            if current_start > prev:\n                max_score = max(max_score, current_start - prev)\n                prev = current_end\n            else:\n                prev = max(prev, current_end)\n        return max_score",
+              "solution_hash": "142115f3af4e5bae234aeb15f9c1f3131e4e845c0bba02d255fa9b42389db5a7",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpgmnfnydy.py\", line 208, in <module>\n    check(Solution().maxPossibleScore)\n  File \"/scratch/local/21419949/tmpgmnfnydy.py\", line 97, in check\n    assert candidate(start = [5, 10, 15, 20, 25],d = 4) == 6\nAssertionError\n",
+                "execution_time": 0.06598281860351562
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        selected = []\n        for s, e in intervals:\n            if not selected:\n                selected.append(s)\n            else:\n                prev = selected[-1]\n                if s > prev:\n                    selected.append(s)\n                else:\n                    selected.append(e)\n        min_diff = float('inf')\n        for i in range(len(selected)):\n            for j in range(i + 1, len(selected)):\n                diff = abs(selected[i] - selected[j])\n                if diff < min_diff:\n                    min_diff = diff\n                    if min_diff == 0:\n                        break\n            if min_diff == 0:\n                break\n        return min_diff",
+              "solution_hash": "6770a01d8a76551a0d8068265065cd0641c3648f9a72abcb535cc388d47a62d7",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp_kgh2d3v.py\", line 219, in <module>\n    check(Solution().maxPossibleScore)\n  File \"/scratch/local/21419949/tmp_kgh2d3v.py\", line 108, in check\n    assert candidate(start = [5, 10, 15, 20, 25],d = 4) == 6\nAssertionError\n",
+                "execution_time": 0.06570816040039062
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_5",
+          "solution": "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        prev = intervals[0][1]\n        max_score = 0\n        for i in range(1, len(intervals)):\n            current_start, current_end = intervals[i]\n            earliest = max(current_start, prev + max_score)\n            if earliest <= current_end:\n                max_score = earliest - prev\n                prev = earliest\n            else:\n                prev = current_end\n        return max_score",
+          "solution_hash": "02408a0748a114c53410ac468a0ad97b8372c6b3764a0d04e1984eb4f3775842",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpk5l97unq.py\", line 209, in <module>\n    check(Solution().maxPossibleScore)\n  File \"/scratch/local/21419949/tmpk5l97unq.py\", line 98, in check\n    assert candidate(start = [5, 10, 15, 20, 25],d = 4) == 6\nAssertionError\n",
+            "execution_time": 0.06580305099487305
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_6",
+              "solution": "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        n = len(intervals)\n        \n        def is_possible(gap):\n            prev = intervals[0][0]\n            for i in range(1, n):\n                current_start, current_end = intervals[i]\n                earliest = max(current_start, prev + gap)\n                if earliest > current_end:\n                    return False\n                prev = earliest\n            return True\n        \n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n        \n        while left <= right:\n            mid = (left + right) // 2\n            if is_possible(mid):\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        return max_score",
+              "solution_hash": "fcff1d25f14bc409e927028e032a3798b6e0eab9be5c8dd8a9baae8d43822444",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.08612942695617676
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_7",
+              "solution": "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        if not intervals:\n            return 0\n        prev = intervals[0][1]\n        max_score = 0\n        for i in range(1, len(intervals)):\n            current_start, current_end = intervals[i]\n            earliest = max(current_start, prev + max_score)\n            if earliest <= current_end:\n                max_score = earliest - prev\n                prev = earliest\n            else:\n                prev = current_end\n        return max_score",
+              "solution_hash": "320517487d631b33e891efbebdc177b16db06f437bef236847a44c762c68d75e",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp1a7mgemz.py\", line 211, in <module>\n    check(Solution().maxPossibleScore)\n  File \"/scratch/local/21419949/tmp1a7mgemz.py\", line 100, in check\n    assert candidate(start = [5, 10, 15, 20, 25],d = 4) == 6\nAssertionError\n",
+                "execution_time": 0.06787729263305664
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        prev = intervals[0][1]\n        max_score = 0\n        for i in range(1, len(intervals)):\n            current_start, current_end = intervals[i]\n            earliest = max(current_start, prev - max_score)\n            if earliest <= current_end:\n                max_score = earliest - prev\n                prev = earliest\n            else:\n                prev = current_end\n        return max_score",
+              "solution_hash": "17a44438c45b59cee0133f05310ba7d3bd638de07738441bdd2eac5f630b6712",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpt13kowqy.py\", line 209, in <module>\n    check(Solution().maxPossibleScore)\n  File \"/scratch/local/21419949/tmpt13kowqy.py\", line 98, in check\n    assert candidate(start = [5, 10, 15, 20, 25],d = 4) == 6\nAssertionError\n",
+                "execution_time": 0.06527519226074219
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_9",
+          "solution": "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        prev = intervals[0][1]\n        max_score = 0\n        for i in range(1, len(intervals)):\n            current_start, current_end = intervals[i]\n            if current_start >= prev:\n                max_score = max(max_score, current_start - prev)\n                prev = current_start\n            else:\n                if current_end >= prev:\n                    max_score = max(max_score, prev - current_end)\n                    prev = current_end\n                else:\n                    max_score = max(max_score, current_end - prev)\n                    prev = current_end\n        return max_score",
+          "solution_hash": "128f27605bd533a3e4d1f95e849e52cb85ad8552eadb2f17ac0eb50060b0e65c",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpkyyevsx4.py\", line 213, in <module>\n    check(Solution().maxPossibleScore)\n  File \"/scratch/local/21419949/tmpkyyevsx4.py\", line 102, in check\n    assert candidate(start = [5, 10, 15, 20, 25],d = 4) == 6\nAssertionError\n",
+            "execution_time": 0.06586027145385742
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_10",
+              "solution": "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        selected = []\n        for s, e in intervals:\n            if not selected:\n                selected.append(s)\n            else:\n                selected.append(e)\n        max_score = float('inf')\n        for i in range(1, len(selected)):\n            diff = selected[i] - selected[i-1]\n            if diff < max_score:\n                max_score = diff\n        return max_score if max_score != float('inf') else 0",
+              "solution_hash": "b02b90c9b3c02eb3b96a6506d4a93e85676a649cab1727f9b307a02a50e8c1bb",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpycv64krr.py\", line 210, in <module>\n    check(Solution().maxPossibleScore)\n  File \"/scratch/local/21419949/tmpycv64krr.py\", line 99, in check\n    assert candidate(start = [5, 10, 15, 20, 25],d = 4) == 6\nAssertionError\n",
+                "execution_time": 0.06622791290283203
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_11",
+              "solution": "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        selected = []\n        for s, e in intervals:\n            if not selected:\n                selected.append(e)\n            else:\n                if s >= selected[-1]:\n                    selected.append(s)\n                else:\n                    selected.append(e)\n        max_score = float('inf')\n        for i in range(1, len(selected)):\n            diff = selected[i] - selected[i-1]\n            if diff < max_score:\n                max_score = diff\n        return max_score",
+              "solution_hash": "18e2274172a126bfd1158a3d43915c4cf7399a11447afc263d1e1339f82f8f36",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpa79935zt.py\", line 213, in <module>\n    check(Solution().maxPossibleScore)\n  File \"/scratch/local/21419949/tmpa79935zt.py\", line 102, in check\n    assert candidate(start = [5, 10, 15, 20, 25],d = 4) == 6\nAssertionError\n",
+                "execution_time": 0.06717491149902344
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_12",
+              "solution": "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([(s, s + d) for s in start])\n        prev = intervals[0][1]\n        max_score = 0\n        for i in range(1, len(intervals)):\n            current_start, current_end = intervals[i]\n            if current_start >= prev:\n                current = current_start\n                max_score = max(max_score, current - prev)\n                prev = current\n            else:\n                if current_end >= prev:\n                    current = prev\n                    max_score = max(max_score, current - prev)\n                    prev = current\n                else:\n                    current = current_end\n                    max_score = max(max_score, current - prev)\n                    prev = current\n        return max_score",
+              "solution_hash": "f406da439cd46cf21446e53e9d63eb97e2b41514e3af825846939424ba8d24e7",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpuzprggsc.py\", line 216, in <module>\n    check(Solution().maxPossibleScore)\n  File \"/scratch/local/21419949/tmpuzprggsc.py\", line 105, in check\n    assert candidate(start = [5, 10, 15, 20, 25],d = 4) == 6\nAssertionError\n",
+                "execution_time": 0.06765437126159668
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "import bisect\n\nclass Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = [(s, s + d) for s in start]\n        intervals.sort()\n        \n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n        \n        while left <= right:\n            mid = (left + right) // 2\n            prev = intervals[0][0]\n            possible = True\n            \n            for i in range(1, len(intervals)):\n                s, e = intervals[i]\n                lower = prev + mid\n                if lower <= e:\n                    prev = lower\n                else:\n                    lower = s\n                    if lower > prev:\n                        prev = lower\n                    else:\n                        possible = False\n                        break\n            \n            if possible:\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        \n        return max_score",
+      "solution_hash": "216a4f3630b3f2139f5327991ef7d6205a434bb27f568787919e400f8f8bd3bf",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpbnyxxez5.py\", line 231, in <module>\n    check(Solution().maxPossibleScore)\n  File \"/scratch/local/21419949/tmpbnyxxez5.py\", line 120, in check\n    assert candidate(start = [5, 10, 15, 20, 25],d = 4) == 6\nAssertionError\n",
+        "execution_time": 0.07125544548034668
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_14",
+          "solution": "import bisect\n\nclass Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = [(s, s + d) for s in start]\n        intervals.sort()\n        \n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n        \n        while left <= right:\n            mid = (left + right) // 2\n            prev = intervals[0][0]\n            possible = True\n            \n            for i in range(1, len(intervals)):\n                s, e = intervals[i]\n                lower = prev + mid\n                if lower <= e:\n                    prev = lower\n                else:\n                    prev = s\n                    if prev < lower:\n                        possible = False\n                        break\n                if prev > e:\n                    possible = False\n                    break\n            \n            if possible:\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        \n        return max_score",
+          "solution_hash": "87e1a75bc3372a4e6284c1f5bad122c1e97fea940a0f71c99682ac1d9a34251c",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.06704044342041016
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_15",
+          "solution": "import bisect\n\nclass Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = [(s, s + d) for s in start]\n        intervals.sort()\n        \n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n        \n        while left <= right:\n            mid = (left + right) // 2\n            prev = intervals[0][0]\n            possible = True\n            \n            for i in range(1, len(intervals)):\n                s, e = intervals[i]\n                lower = prev + mid\n                if lower <= e:\n                    prev = lower\n                else:\n                    if s >= prev + mid:\n                        prev = s\n                    else:\n                        possible = False\n                        break\n            \n            if possible:\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        \n        return max_score",
+          "solution_hash": "f6f22c33bbaeaac5e21cc10b4fb193ae86731c421f122ab84458ff9994888586",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07154655456542969
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_16",
+          "solution": "import bisect\n\nclass Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = [(s, s + d) for s in start]\n        intervals.sort()\n        \n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n        \n        while left <= right:\n            mid = (left + right) // 2\n            prev = intervals[0][0]\n            possible = True\n            \n            for i in range(1, len(intervals)):\n                s, e = intervals[i]\n                lower = prev + mid\n                if lower <= e:\n                    prev = lower\n                else:\n                    lower = s\n                    if lower > prev:\n                        prev = lower\n                    else:\n                        possible = False\n                        break\n            \n            if possible:\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        \n        return max_score",
+          "solution_hash": "216a4f3630b3f2139f5327991ef7d6205a434bb27f568787919e400f8f8bd3bf",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpem_99_xb.py\", line 231, in <module>\n    check(Solution().maxPossibleScore)\n  File \"/scratch/local/21419949/tmpem_99_xb.py\", line 120, in check\n    assert candidate(start = [5, 10, 15, 20, 25],d = 4) == 6\nAssertionError\n",
+            "execution_time": 0.07082986831665039
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_17",
+              "solution": "import bisect\n\nclass Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = [(s, s + d) for s in start]\n        intervals.sort()\n        \n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n        \n        def is_possible(mid):\n            prev = intervals[0][0]\n            for i in range(1, len(intervals)):\n                s, e = intervals[i]\n                lower = prev + mid\n                if lower <= e:\n                    prev = lower\n                else:\n                    if s > prev:\n                        prev = s\n                    else:\n                        return False\n            return True\n        \n        while left <= right:\n            mid = (left + right) // 2\n            if is_possible(mid):\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        \n        return max_score",
+              "solution_hash": "67953dcfc1ce48db4614e96934ce34569a9997f384a39b3e461888dcb6e660dd",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmprb8cgki4.py\", line 229, in <module>\n    check(Solution().maxPossibleScore)\n  File \"/scratch/local/21419949/tmprb8cgki4.py\", line 118, in check\n    assert candidate(start = [5, 10, 15, 20, 25],d = 4) == 6\nAssertionError\n",
+                "execution_time": 0.06786537170410156
+              },
+              "depth": 2,
+              "parent_id": "1_16",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_18",
+              "solution": "import bisect\n\nclass Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = sorted([s + d for s in start])\n        n = len(intervals)\n        left = 0\n        right = intervals[-1] - intervals[0]\n        max_score = 0\n        \n        while left <= right:\n            mid = (left + right) // 2\n            prev = intervals[0]\n            possible = True\n            \n            for i in range(1, n):\n                current = intervals[i]\n                if current >= prev + mid:\n                    prev = current\n                else:\n                    possible = False\n                    break\n            \n            if possible:\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        \n        return max_score",
+              "solution_hash": "f4314add584ee818fef46b209e0521fdb6ab93759cd7222bd82a7834f0628fb1",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp_aau7_ev.py\", line 225, in <module>\n    check(Solution().maxPossibleScore)\n  File \"/scratch/local/21419949/tmp_aau7_ev.py\", line 114, in check\n    assert candidate(start = [5, 10, 15, 20, 25],d = 4) == 6\nAssertionError\n",
+                "execution_time": 0.06731128692626953
+              },
+              "depth": 2,
+              "parent_id": "1_16",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_19",
+              "solution": "import bisect\n\nclass Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = [(s, s + d) for s in start]\n        intervals.sort()\n        \n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n        \n        while left <= right:\n            mid = (left + right) // 2\n            prev = intervals[0][0]\n            possible = True\n            \n            for i in range(1, len(intervals)):\n                s, e = intervals[i]\n                # The earliest we can place the current number is prev + mid\n                lower = prev + mid\n                if lower <= e:\n                    prev = lower\n                else:\n                    # Try to place as low as possible within the interval\n                    lower = s\n                    if lower > prev:\n                        prev = lower\n                    else:\n                        # If even the start of the interval is <= prev, it's impossible\n                        possible = False\n                        break\n            \n            if possible:\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        \n        return max_score",
+              "solution_hash": "216a4f3630b3f2139f5327991ef7d6205a434bb27f568787919e400f8f8bd3bf",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpem_99_xb.py\", line 231, in <module>\n    check(Solution().maxPossibleScore)\n  File \"/scratch/local/21419949/tmpem_99_xb.py\", line 120, in check\n    assert candidate(start = [5, 10, 15, 20, 25],d = 4) == 6\nAssertionError\n",
+                "execution_time": 0.07082986831665039
+              },
+              "depth": 2,
+              "parent_id": "1_16",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def maxPossibleScore(self, start: List[int], d: int) -> int:\n        intervals = [(s, s + d) for s in start]\n        intervals.sort()\n        left = 0\n        right = intervals[-1][1] - intervals[0][0]\n        max_score = 0\n\n        def is_possible(mid):\n            prev = intervals[0][0]\n            for i in range(1, len(intervals)):\n                lower, upper = intervals[i]\n                if lower >= prev + mid:\n                    prev = lower\n                elif upper >= prev + mid:\n                    prev = prev + mid\n                else:\n                    return False\n            return True\n\n        while left <= right:\n            mid = (left + right) // 2\n            if is_possible(mid):\n                max_score = mid\n                left = mid + 1\n            else:\n                right = mid - 1\n        return max_score",
+      "solution_hash": "9032a649cee792497b785a0ad1e52f8e630a14d1bfff754e3119c55a9489de5e",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.06750249862670898
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    }
+  ],
+  "stats": {
+    "nodes_explored": 21,
+    "candidates_generated": 21,
+    "tests_passed": 4,
+    "tests_failed": 17,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 920.8295531272888,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.2272727272727273,
+      "pass@3": 0.5584415584415585,
+      "pass@5": 0.7650186071238703,
+      "pass@10": 0.9699248120300752
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 21
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 22,
+    "test_cases": 1
+  }
+}

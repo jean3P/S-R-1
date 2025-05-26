@@ -1,0 +1,354 @@
+{
+  "problem_id": "minimum-number-of-valid-strings-to-form-target-i",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "solved",
+  "best_solution": "class Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        max_len = max(len(word) for word in words) if words else 0\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0\n        \n        # Preprocess each word to find all possible prefixes\n        prefix_map = {}\n        for word in words:\n            for i in range(1, len(word)+1):\n                prefix = word[:i]\n                if prefix not in prefix_map:\n                    prefix_map[prefix] = i\n        \n        # Now, for each position in target, check all possible prefixes\n        for i in range(n):\n            if dp[i] == float('inf'):\n                continue\n            # Check all possible prefixes starting at i\n            for j in range(i+1, min(i + max_len + 1, n+1)):\n                current_prefix = target[i:j]\n                if current_prefix in prefix_map:\n                    length = prefix_map[current_prefix]\n                    if j <= n and dp[j] > dp[i] + 1:\n                        dp[j] = dp[i] + 1\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+  "passed_solutions": [
+    "from typing import List\nimport math\n\nclass Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        max_len = len(target)\n        dp = [math.inf] * (max_len + 1)\n        dp[0] = 0  # base case: empty string requires 0 words\n        \n        # Preprocess each word to find all possible prefixes that match parts of the target\n        prefix_map = {}\n        for word in words:\n            max_possible = min(len(word), max_len)\n            for i in range(1, max_possible + 1):\n                prefix = word[:i]\n                if prefix not in prefix_map:\n                    prefix_map[prefix] = i  # store the maximum possible length for this prefix\n        \n        # Now, for each position in target, check all possible prefixes\n        for i in range(max_len):\n            if dp[i] == math.inf:\n                continue  # can't reach this position, skip\n            # Check all possible prefixes starting at position i\n            for j in range(i + 1, min(i + max_len, max_len) + 1):\n                current_prefix = target[i:j]\n                if current_prefix in prefix_map:\n                    # The length used is (j - i), not the stored max length\n                    next_pos = j\n                    if next_pos > max_len:\n                        continue\n                    if dp[next_pos] > dp[i] + 1:\n                        dp[next_pos] = dp[i] + 1\n        \n        return dp[max_len] if dp[max_len] != math.inf else -1",
+    "from typing import List\nimport math\n\nclass Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        n = len(target)\n        max_prefix = [0] * (n + 1)\n        \n        # Precompute the maximum possible prefix length for each position in the target\n        for i in range(n + 1):\n            max_len = 0\n            for word in words:\n                word_len = len(word)\n                possible = min(word_len, n - i)\n                for j in range(possible, 0, -1):\n                    if target[i:i+j] == word[:j]:\n                        if j > max_len:\n                            max_len = j\n                        break  # No need to check smaller j once a match is found\n            max_prefix[i] = max_len\n        \n        # Initialize DP array\n        dp = [math.inf] * (n + 1)\n        dp[0] = 0\n        \n        # Fill DP array\n        for i in range(n + 1):\n            if dp[i] == math.inf:\n                continue\n            current_max = max_prefix[i]\n            for j in range(1, current_max + 1):\n                if i + j > n:\n                    continue\n                if dp[i + j] > dp[i] + 1:\n                    dp[i + j] = dp[i] + 1\n        \n        return dp[n] if dp[n] != math.inf else -1",
+    "class Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        max_len = max(len(word) for word in words) if words else 0\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0\n        \n        # Preprocess each word to find all possible prefixes\n        prefix_map = {}\n        for word in words:\n            for i in range(1, len(word)+1):\n                prefix = word[:i]\n                if prefix not in prefix_map:\n                    prefix_map[prefix] = i\n        \n        # Now, for each position in target, check all possible prefixes\n        for i in range(n):\n            if dp[i] == float('inf'):\n                continue\n            # Check all possible prefixes starting at i\n            for j in range(i+1, min(i + max_len + 1, n+1)):\n                current_prefix = target[i:j]\n                if current_prefix in prefix_map:\n                    length = prefix_map[current_prefix]\n                    if j <= n and dp[j] > dp[i] + 1:\n                        dp[j] = dp[i] + 1\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        # Preprocess each word to find all possible prefixes and their maximum lengths\n        max_prefix = {}\n        for word in words:\n            for i in range(1, len(word)+1):\n                prefix = word[:i]\n                if prefix not in max_prefix or i > max_prefix[prefix]:\n                    max_prefix[prefix] = i\n        \n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0\n        \n        for i in range(1, n+1):\n            for j in range(1, i+1):\n                current_prefix = target[i-j:i]\n                if current_prefix in max_prefix:\n                    max_len = max_prefix[current_prefix]\n                    if j <= max_len:\n                        dp[i] = min(dp[i], dp[i-j] + 1)\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        # Preprocess each word to find all possible prefixes and their maximum lengths\n        max_prefix = {}\n        for word in words:\n            for i in range(1, len(word) + 1):\n                prefix = word[:i]\n                if prefix not in max_prefix or i > max_prefix[prefix]:\n                    max_prefix[prefix] = i\n        \n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0\n        \n        for i in range(n):\n            if dp[i] == float('inf'):\n                continue\n            current = \"\"\n            for j in range(i, n):\n                current += target[j]\n                if current in max_prefix:\n                    max_len = max_prefix[current]\n                    if j + 1 <= n:\n                        if dp[j + 1] > dp[i] + 1:\n                            dp[j + 1] = dp[i] + 1\n                else:\n                    break  # No need to proceed further as longer prefixes won't exist\n        \n        return dp[n] if dp[n] != float('inf') else -1"
+  ],
+  "all_solutions": [
+    "</think>\n\n## Problem Analysis\nWe need to find the minimum number of valid strings (prefixes of words) that can be concatenated to form the target string. If it's not possible, return -1.\n\n## Solution Approach\n1. **Preprocessing**: For each word, determine all possible prefixes and store the maximum length of each prefix for each position in the target string.\n2. **Dynamic Programming (DP)**: Use a DP array where `dp[i]` represents the minimum number of valid strings needed to form the first `i` characters of the target. Initialize `dp[0]` to 0 (base case) and others to infinity.\n3. **Transition**: For each position `i` in the target, check all possible prefixes from the preprocessed data and update `dp[i + length]` if a shorter path is found.\n4. **Result**: The answer is the value at `dp[len(target)]`, or -1 if it remains infinity.\n\n## Code Solution",
+    "from typing import List\nimport math\n\nclass Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        max_len = len(target)\n        dp = [math.inf] * (max_len + 1)\n        dp[0] = 0  # base case: empty string requires 0 words\n        \n        # Preprocess each word to find all possible prefixes that match parts of the target\n        prefix_map = {}\n        for word in words:\n            max_possible = min(len(word), max_len)\n            for i in range(1, max_possible + 1):\n                prefix = word[:i]\n                if prefix not in prefix_map:\n                    prefix_map[prefix] = i\n        \n        # Now, for each position in target, check all possible prefixes\n        for i in range(max_len):\n            if dp[i] == math.inf:\n                continue  # can't reach this position, skip\n            # Check all possible prefixes starting at position i\n            for j in range(i + 1, min(i + max_len, max_len) + 1):\n                current_prefix = target[i:j]\n                if current_prefix in prefix_map:\n                    length = prefix_map[current_prefix]\n                    if j + length - 1 > max_len:\n                        continue  # prefix is longer than needed, skip\n                    # Update dp[j + length - 1] if this path is better\n                    if dp[j + length - 1] > dp[i] + 1:\n                        dp[j + length - 1] = dp[i] + 1\n        \n        return dp[max_len] if dp[max_len] != math.inf else -1",
+    "from typing import List\nimport math\n\nclass Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        max_len = len(target)\n        dp = [math.inf] * (max_len + 1)\n        dp[0] = 0  # base case: empty string requires 0 words\n        \n        # Preprocess each word to find all possible prefixes that match parts of the target\n        prefix_map = {}\n        for word in words:\n            max_possible = min(len(word), max_len)\n            for i in range(1, max_possible + 1):\n                prefix = word[:i]\n                if prefix not in prefix_map:\n                    prefix_map[prefix] = i  # Store the maximum possible length for this prefix\n        \n        # Now, for each position in target, check all possible prefixes\n        for i in range(max_len):\n            if dp[i] == math.inf:\n                continue  # can't reach this position, skip\n            # Check all possible prefixes starting at position i\n            for j in range(i + 1, min(i + max_len, max_len) + 1):\n                current_prefix = target[i:j]\n                if current_prefix in prefix_map:\n                    # The length to jump is the length of the current prefix in the target\n                    jump = j - i\n                    if j + jump - 1 > max_len:\n                        continue  # prefix is longer than needed, skip\n                    # Update dp[j + jump - 1] if this path is better\n                    if dp[j + jump - 1] > dp[i] + 1:\n                        dp[j + jump - 1] = dp[i] + 1\n        \n        return dp[max_len] if dp[max_len] != math.inf else -1",
+    "from typing import List\nimport math\n\nclass Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        max_len = len(target)\n        dp = [math.inf] * (max_len + 1)\n        dp[0] = 0  # base case: empty string requires 0 words\n        \n        # Preprocess each word to find all possible prefixes that can contribute to the target\n        prefix_map = {}\n        for word in words:\n            max_possible = min(len(word), max_len)\n            for i in range(1, max_possible + 1):\n                prefix = word[:i]\n                if prefix not in prefix_map:\n                    prefix_map[prefix] = i\n        \n        # Iterate through each position in the target to build up the solution\n        for i in range(max_len):\n            if dp[i] == math.inf:\n                continue  # can't reach this position, skip\n            # Check all possible prefixes starting at position i\n            for j in range(i + 1, min(i + max_len, max_len) + 1):\n                current_prefix = target[i:j]\n                if current_prefix in prefix_map:\n                    # The length of the prefix in the word is prefix_map[current_prefix]\n                    # We can move j steps ahead, but need to ensure it doesn't exceed target length\n                    if j + (prefix_map[current_prefix] - 1) > max_len:\n                        continue  # prefix is longer than needed, skip\n                    # Update dp[j] if this path is better\n                    if dp[j] > dp[i] + 1:\n                        dp[j] = dp[i] + 1\n        \n        return dp[max_len] if dp[max_len] != math.inf else -1",
+    "from typing import List\nimport math\n\nclass Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        max_len = len(target)\n        dp = [math.inf] * (max_len + 1)\n        dp[0] = 0  # base case: empty string requires 0 words\n        \n        # Preprocess each word to find all possible prefixes that match parts of the target\n        prefix_map = {}\n        for word in words:\n            max_possible = min(len(word), max_len)\n            for i in range(1, max_possible + 1):\n                prefix = word[:i]\n                if prefix not in prefix_map:\n                    prefix_map[prefix] = i  # store the maximum possible length for this prefix\n        \n        # Now, for each position in target, check all possible prefixes\n        for i in range(max_len):\n            if dp[i] == math.inf:\n                continue  # can't reach this position, skip\n            # Check all possible prefixes starting at position i\n            for j in range(i + 1, min(i + max_len, max_len) + 1):\n                current_prefix = target[i:j]\n                if current_prefix in prefix_map:\n                    # The length used is (j - i), not the stored max length\n                    next_pos = j\n                    if next_pos > max_len:\n                        continue\n                    if dp[next_pos] > dp[i] + 1:\n                        dp[next_pos] = dp[i] + 1\n        \n        return dp[max_len] if dp[max_len] != math.inf else -1",
+    "from typing import List\nimport math\n\nclass Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        n = len(target)\n        max_len = [0] * (n + 1)\n        \n        # Preprocess each word to find the maximum prefix length for each position\n        for word in words:\n            max_possible = min(len(word), n)\n            for i in range(1, max_possible + 1):\n                if target[:i] == word[:i]:\n                    if i > max_len[i]:\n                        max_len[i] = i\n        \n        # Initialize DP array\n        dp = [math.inf] * (n + 1)\n        dp[0] = 0\n        \n        # Iterate through each position in the target\n        for i in range(n + 1):\n            if dp[i] == math.inf:\n                continue\n            # Check all possible prefix lengths starting at i\n            for j in range(1, max_len[i] + 1):\n                if i + j > n:\n                    continue\n                if dp[i + j] > dp[i] + 1:\n                    dp[i + j] = dp[i] + 1\n        \n        return dp[n] if dp[n] != math.inf else -1",
+    "from typing import List\nimport math\n\nclass Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        n = len(target)\n        max_prefix = [0] * (n + 1)\n        \n        # Precompute the maximum possible prefix length for each position in the target\n        for i in range(n + 1):\n            max_len = 0\n            for word in words:\n                word_len = len(word)\n                possible = min(word_len, n - i)\n                for j in range(possible, 0, -1):\n                    if target[i:i+j] == word[:j]:\n                        if j > max_len:\n                            max_len = j\n                        break  # No need to check smaller j once a match is found\n            max_prefix[i] = max_len\n        \n        # Initialize DP array\n        dp = [math.inf] * (n + 1)\n        dp[0] = 0\n        \n        # Fill DP array\n        for i in range(n + 1):\n            if dp[i] == math.inf:\n                continue\n            current_max = max_prefix[i]\n            for j in range(1, current_max + 1):\n                if i + j > n:\n                    continue\n                if dp[i + j] > dp[i] + 1:\n                    dp[i + j] = dp[i] + 1\n        \n        return dp[n] if dp[n] != math.inf else -1",
+    "from typing import List\nimport math\n\nclass Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        n = len(target)\n        max_prefix = [0] * (n + 1)\n        \n        # Preprocess each word to find all possible valid prefixes for each position\n        for word in words:\n            max_possible = min(len(word), n)\n            for i in range(1, max_possible + 1):\n                if target[:i] == word[:i]:\n                    if i > max_prefix[i]:\n                        max_prefix[i] = i\n        \n        # Initialize DP array\n        dp = [math.inf] * (n + 1)\n        dp[0] = 0\n        \n        # Iterate through each position in the target\n        for i in range(n + 1):\n            if dp[i] == math.inf:\n                continue\n            # Check all possible prefix lengths starting at i\n            for j in range(1, max_prefix[i] + 1):\n                if i + j > n:\n                    continue\n                if dp[i + j] > dp[i] + 1:\n                    dp[i + j] = dp[i] + 1\n        \n        return dp[n] if dp[n] != math.inf else -1",
+    "from typing import List\nimport math\n\nclass Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        n = len(target)\n        max_prefix = [0] * (n + 1)\n        \n        # Preprocess each position in the target to find the maximum possible prefix length\n        for i in range(1, n + 1):\n            max_len = 0\n            for word in words:\n                word_len = len(word)\n                if word_len < i:\n                    continue\n                if target[:i] == word[:i]:\n                    max_len = max(max_len, i)\n            max_prefix[i] = max_len\n        \n        # Initialize DP array\n        dp = [math.inf] * (n + 1)\n        dp[0] = 0\n        \n        # Iterate through each position in the target\n        for i in range(n + 1):\n            if dp[i] == math.inf:\n                continue\n            # Check all possible prefix lengths starting at i\n            for j in range(1, max_prefix[i] + 1):\n                if i + j > n:\n                    continue\n                if dp[i + j] > dp[i] + 1:\n                    dp[i + j] = dp[i] + 1\n        \n        return dp[n] if dp[n] != math.inf else -1",
+    "class Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        max_len = max(len(word) for word in words) if words else 0\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0\n        \n        # Preprocess each word to find all possible prefixes\n        prefix_map = {}\n        for word in words:\n            for i in range(1, len(word)+1):\n                prefix = word[:i]\n                if prefix not in prefix_map:\n                    prefix_map[prefix] = i\n        \n        # Now, for each position in target, check all possible prefixes\n        for i in range(n):\n            if dp[i] == float('inf'):\n                continue\n            # Check all possible prefixes starting at i\n            for j in range(i+1, min(i + max_len + 1, n+1)):\n                current_prefix = target[i:j]\n                if current_prefix in prefix_map:\n                    length = prefix_map[current_prefix]\n                    if j <= n and dp[j] > dp[i] + 1:\n                        dp[j] = dp[i] + 1\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        # Preprocess each word to find all possible prefixes and their maximum lengths\n        max_prefix = {}\n        for word in words:\n            for i in range(1, len(word)+1):\n                prefix = word[:i]\n                if prefix not in max_prefix or i > max_prefix[prefix]:\n                    max_prefix[prefix] = i\n        \n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0\n        \n        for i in range(1, n+1):\n            for j in range(1, i+1):\n                current_prefix = target[i-j:i]\n                if current_prefix in max_prefix:\n                    max_len = max_prefix[current_prefix]\n                    if j <= max_len:\n                        dp[i] = min(dp[i], dp[i-j] + 1)\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+    "class Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        # Preprocess each word to find all possible prefixes and their maximum lengths\n        max_prefix = {}\n        for word in words:\n            for i in range(1, len(word) + 1):\n                prefix = word[:i]\n                if prefix not in max_prefix or i > max_prefix[prefix]:\n                    max_prefix[prefix] = i\n        \n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0\n        \n        for i in range(n):\n            if dp[i] == float('inf'):\n                continue\n            current = \"\"\n            for j in range(i, n):\n                current += target[j]\n                if current in max_prefix:\n                    max_len = max_prefix[current]\n                    if j + 1 <= n:\n                        if dp[j + 1] > dp[i] + 1:\n                            dp[j + 1] = dp[i] + 1\n                else:\n                    break  # No need to proceed further as longer prefixes won't exist\n        \n        return dp[n] if dp[n] != float('inf') else -1"
+  ],
+  "total_candidates": 12,
+  "nodes_explored": 12,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "</think>\n\n## Problem Analysis\nWe need to find the minimum number of valid strings (prefixes of words) that can be concatenated to form the target string. If it's not possible, return -1.\n\n## Solution Approach\n1. **Preprocessing**: For each word, determine all possible prefixes and store the maximum length of each prefix for each position in the target string.\n2. **Dynamic Programming (DP)**: Use a DP array where `dp[i]` represents the minimum number of valid strings needed to form the first `i` characters of the target. Initialize `dp[0]` to 0 (base case) and others to infinity.\n3. **Transition**: For each position `i` in the target, check all possible prefixes from the preprocessed data and update `dp[i + length]` if a shorter path is found.\n4. **Result**: The answer is the value at `dp[len(target)]`, or -1 if it remains infinity.\n\n## Code Solution",
+      "solution_hash": "20a4957d5efdab1b3a1469cefd0a887123a3468e11d6e8b85c8f0d54cd0df851",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "  File \"/scratch/local/21419949/tmp5d2dje3s.py\", line 81\n    </think>\n    ^\nSyntaxError: invalid syntax\n",
+        "execution_time": 0.05443143844604492
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "from typing import List\nimport math\n\nclass Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        max_len = len(target)\n        dp = [math.inf] * (max_len + 1)\n        dp[0] = 0  # base case: empty string requires 0 words\n        \n        # Preprocess each word to find all possible prefixes that match parts of the target\n        prefix_map = {}\n        for word in words:\n            max_possible = min(len(word), max_len)\n            for i in range(1, max_possible + 1):\n                prefix = word[:i]\n                if prefix not in prefix_map:\n                    prefix_map[prefix] = i\n        \n        # Now, for each position in target, check all possible prefixes\n        for i in range(max_len):\n            if dp[i] == math.inf:\n                continue  # can't reach this position, skip\n            # Check all possible prefixes starting at position i\n            for j in range(i + 1, min(i + max_len, max_len) + 1):\n                current_prefix = target[i:j]\n                if current_prefix in prefix_map:\n                    length = prefix_map[current_prefix]\n                    if j + length - 1 > max_len:\n                        continue  # prefix is longer than needed, skip\n                    # Update dp[j + length - 1] if this path is better\n                    if dp[j + length - 1] > dp[i] + 1:\n                        dp[j + length - 1] = dp[i] + 1\n        \n        return dp[max_len] if dp[max_len] != math.inf else -1",
+          "solution_hash": "6a940942e03e11e91ec4a8bded3ed110666d79e4994b28cfa42da4d6ee0630f1",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpzn3dns70.py\", line 271, in <module>\n    check(Solution().minValidStrings)\n  File \"/scratch/local/21419949/tmpzn3dns70.py\", line 128, in check\n    assert candidate(words = ['prefix', 'pre', 'fix'],target = \"prefixfix\") == 2\nAssertionError\n",
+            "execution_time": 0.06832575798034668
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_2",
+              "solution": "from typing import List\nimport math\n\nclass Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        max_len = len(target)\n        dp = [math.inf] * (max_len + 1)\n        dp[0] = 0  # base case: empty string requires 0 words\n        \n        # Preprocess each word to find all possible prefixes that match parts of the target\n        prefix_map = {}\n        for word in words:\n            max_possible = min(len(word), max_len)\n            for i in range(1, max_possible + 1):\n                prefix = word[:i]\n                if prefix not in prefix_map:\n                    prefix_map[prefix] = i  # Store the maximum possible length for this prefix\n        \n        # Now, for each position in target, check all possible prefixes\n        for i in range(max_len):\n            if dp[i] == math.inf:\n                continue  # can't reach this position, skip\n            # Check all possible prefixes starting at position i\n            for j in range(i + 1, min(i + max_len, max_len) + 1):\n                current_prefix = target[i:j]\n                if current_prefix in prefix_map:\n                    # The length to jump is the length of the current prefix in the target\n                    jump = j - i\n                    if j + jump - 1 > max_len:\n                        continue  # prefix is longer than needed, skip\n                    # Update dp[j + jump - 1] if this path is better\n                    if dp[j + jump - 1] > dp[i] + 1:\n                        dp[j + jump - 1] = dp[i] + 1\n        \n        return dp[max_len] if dp[max_len] != math.inf else -1",
+              "solution_hash": "c75c559d60edee1aa86912b8841ea600e1892f1deb0db424b0ef62d70be34959",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpzsjo1l2f.py\", line 272, in <module>\n    check(Solution().minValidStrings)\n  File \"/scratch/local/21419949/tmpzsjo1l2f.py\", line 129, in check\n    assert candidate(words = ['prefix', 'pre', 'fix'],target = \"prefixfix\") == 2\nAssertionError\n",
+                "execution_time": 0.06721925735473633
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_3",
+              "solution": "from typing import List\nimport math\n\nclass Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        max_len = len(target)\n        dp = [math.inf] * (max_len + 1)\n        dp[0] = 0  # base case: empty string requires 0 words\n        \n        # Preprocess each word to find all possible prefixes that can contribute to the target\n        prefix_map = {}\n        for word in words:\n            max_possible = min(len(word), max_len)\n            for i in range(1, max_possible + 1):\n                prefix = word[:i]\n                if prefix not in prefix_map:\n                    prefix_map[prefix] = i\n        \n        # Iterate through each position in the target to build up the solution\n        for i in range(max_len):\n            if dp[i] == math.inf:\n                continue  # can't reach this position, skip\n            # Check all possible prefixes starting at position i\n            for j in range(i + 1, min(i + max_len, max_len) + 1):\n                current_prefix = target[i:j]\n                if current_prefix in prefix_map:\n                    # The length of the prefix in the word is prefix_map[current_prefix]\n                    # We can move j steps ahead, but need to ensure it doesn't exceed target length\n                    if j + (prefix_map[current_prefix] - 1) > max_len:\n                        continue  # prefix is longer than needed, skip\n                    # Update dp[j] if this path is better\n                    if dp[j] > dp[i] + 1:\n                        dp[j] = dp[i] + 1\n        \n        return dp[max_len] if dp[max_len] != math.inf else -1",
+              "solution_hash": "c8371759181f6422ccf94b4a29cc1deac933af576123f4759b0b06e0ec787f59",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp2643t_ol.py\", line 272, in <module>\n    check(Solution().minValidStrings)\n  File \"/scratch/local/21419949/tmp2643t_ol.py\", line 119, in check\n    assert candidate(words = ['abc'],target = \"abcabc\") == 2\nAssertionError\n",
+                "execution_time": 0.06645965576171875
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "from typing import List\nimport math\n\nclass Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        max_len = len(target)\n        dp = [math.inf] * (max_len + 1)\n        dp[0] = 0  # base case: empty string requires 0 words\n        \n        # Preprocess each word to find all possible prefixes that match parts of the target\n        prefix_map = {}\n        for word in words:\n            max_possible = min(len(word), max_len)\n            for i in range(1, max_possible + 1):\n                prefix = word[:i]\n                if prefix not in prefix_map:\n                    prefix_map[prefix] = i  # store the maximum possible length for this prefix\n        \n        # Now, for each position in target, check all possible prefixes\n        for i in range(max_len):\n            if dp[i] == math.inf:\n                continue  # can't reach this position, skip\n            # Check all possible prefixes starting at position i\n            for j in range(i + 1, min(i + max_len, max_len) + 1):\n                current_prefix = target[i:j]\n                if current_prefix in prefix_map:\n                    # The length used is (j - i), not the stored max length\n                    next_pos = j\n                    if next_pos > max_len:\n                        continue\n                    if dp[next_pos] > dp[i] + 1:\n                        dp[next_pos] = dp[i] + 1\n        \n        return dp[max_len] if dp[max_len] != math.inf else -1",
+              "solution_hash": "dee50a9f29f1fb7b9ba7d58ddec3a1030957bf7c4ef25a32be3e5cae39e10660",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.07034921646118164
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": true
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_5",
+          "solution": "from typing import List\nimport math\n\nclass Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        n = len(target)\n        max_len = [0] * (n + 1)\n        \n        # Preprocess each word to find the maximum prefix length for each position\n        for word in words:\n            max_possible = min(len(word), n)\n            for i in range(1, max_possible + 1):\n                if target[:i] == word[:i]:\n                    if i > max_len[i]:\n                        max_len[i] = i\n        \n        # Initialize DP array\n        dp = [math.inf] * (n + 1)\n        dp[0] = 0\n        \n        # Iterate through each position in the target\n        for i in range(n + 1):\n            if dp[i] == math.inf:\n                continue\n            # Check all possible prefix lengths starting at i\n            for j in range(1, max_len[i] + 1):\n                if i + j > n:\n                    continue\n                if dp[i + j] > dp[i] + 1:\n                    dp[i + j] = dp[i] + 1\n        \n        return dp[n] if dp[n] != math.inf else -1",
+          "solution_hash": "5d5a24506f510013f82d42dd539457b8bb8994937670e3d521e6523b2a309ca9",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpxws295ya.py\", line 269, in <module>\n    check(Solution().minValidStrings)\n  File \"/scratch/local/21419949/tmpxws295ya.py\", line 116, in check\n    assert candidate(words = ['abc'],target = \"abcabc\") == 2\nAssertionError\n",
+            "execution_time": 0.07158231735229492
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_6",
+              "solution": "from typing import List\nimport math\n\nclass Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        n = len(target)\n        max_prefix = [0] * (n + 1)\n        \n        # Precompute the maximum possible prefix length for each position in the target\n        for i in range(n + 1):\n            max_len = 0\n            for word in words:\n                word_len = len(word)\n                possible = min(word_len, n - i)\n                for j in range(possible, 0, -1):\n                    if target[i:i+j] == word[:j]:\n                        if j > max_len:\n                            max_len = j\n                        break  # No need to check smaller j once a match is found\n            max_prefix[i] = max_len\n        \n        # Initialize DP array\n        dp = [math.inf] * (n + 1)\n        dp[0] = 0\n        \n        # Fill DP array\n        for i in range(n + 1):\n            if dp[i] == math.inf:\n                continue\n            current_max = max_prefix[i]\n            for j in range(1, current_max + 1):\n                if i + j > n:\n                    continue\n                if dp[i + j] > dp[i] + 1:\n                    dp[i + j] = dp[i] + 1\n        \n        return dp[n] if dp[n] != math.inf else -1",
+              "solution_hash": "0d973ece3cd1c686d747bbf13a223f562ef6e2724bbbc65f2fef712898b013a3",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.07372164726257324
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_7",
+              "solution": "from typing import List\nimport math\n\nclass Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        n = len(target)\n        max_prefix = [0] * (n + 1)\n        \n        # Preprocess each word to find all possible valid prefixes for each position\n        for word in words:\n            max_possible = min(len(word), n)\n            for i in range(1, max_possible + 1):\n                if target[:i] == word[:i]:\n                    if i > max_prefix[i]:\n                        max_prefix[i] = i\n        \n        # Initialize DP array\n        dp = [math.inf] * (n + 1)\n        dp[0] = 0\n        \n        # Iterate through each position in the target\n        for i in range(n + 1):\n            if dp[i] == math.inf:\n                continue\n            # Check all possible prefix lengths starting at i\n            for j in range(1, max_prefix[i] + 1):\n                if i + j > n:\n                    continue\n                if dp[i + j] > dp[i] + 1:\n                    dp[i + j] = dp[i] + 1\n        \n        return dp[n] if dp[n] != math.inf else -1",
+              "solution_hash": "dffa428ef43f2f4ac86bc2aa6751cab63f21703b8aa58ed6bf318a930b1994ea",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp7fv6nprv.py\", line 269, in <module>\n    check(Solution().minValidStrings)\n  File \"/scratch/local/21419949/tmp7fv6nprv.py\", line 116, in check\n    assert candidate(words = ['abc'],target = \"abcabc\") == 2\nAssertionError\n",
+                "execution_time": 0.0699465274810791
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "from typing import List\nimport math\n\nclass Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        n = len(target)\n        max_prefix = [0] * (n + 1)\n        \n        # Preprocess each position in the target to find the maximum possible prefix length\n        for i in range(1, n + 1):\n            max_len = 0\n            for word in words:\n                word_len = len(word)\n                if word_len < i:\n                    continue\n                if target[:i] == word[:i]:\n                    max_len = max(max_len, i)\n            max_prefix[i] = max_len\n        \n        # Initialize DP array\n        dp = [math.inf] * (n + 1)\n        dp[0] = 0\n        \n        # Iterate through each position in the target\n        for i in range(n + 1):\n            if dp[i] == math.inf:\n                continue\n            # Check all possible prefix lengths starting at i\n            for j in range(1, max_prefix[i] + 1):\n                if i + j > n:\n                    continue\n                if dp[i + j] > dp[i] + 1:\n                    dp[i + j] = dp[i] + 1\n        \n        return dp[n] if dp[n] != math.inf else -1",
+              "solution_hash": "07f5afb5b4483dd16a366cdd5881096025509d29dccb562a251fc6b88c5a1a55",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpkcl4emz5.py\", line 272, in <module>\n    check(Solution().minValidStrings)\n  File \"/scratch/local/21419949/tmpkcl4emz5.py\", line 119, in check\n    assert candidate(words = ['abc'],target = \"abcabc\") == 2\nAssertionError\n",
+                "execution_time": 0.0660254955291748
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_9",
+          "solution": "class Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        max_len = max(len(word) for word in words) if words else 0\n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0\n        \n        # Preprocess each word to find all possible prefixes\n        prefix_map = {}\n        for word in words:\n            for i in range(1, len(word)+1):\n                prefix = word[:i]\n                if prefix not in prefix_map:\n                    prefix_map[prefix] = i\n        \n        # Now, for each position in target, check all possible prefixes\n        for i in range(n):\n            if dp[i] == float('inf'):\n                continue\n            # Check all possible prefixes starting at i\n            for j in range(i+1, min(i + max_len + 1, n+1)):\n                current_prefix = target[i:j]\n                if current_prefix in prefix_map:\n                    length = prefix_map[current_prefix]\n                    if j <= n and dp[j] > dp[i] + 1:\n                        dp[j] = dp[i] + 1\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+          "solution_hash": "b2107c7c61d22e73d5c90c4a79764e40e413ae89cd6f7f25e0ca4783b9e4a4fa",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.06840991973876953
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [],
+          "passed": true
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        # Preprocess each word to find all possible prefixes and their maximum lengths\n        max_prefix = {}\n        for word in words:\n            for i in range(1, len(word)+1):\n                prefix = word[:i]\n                if prefix not in max_prefix or i > max_prefix[prefix]:\n                    max_prefix[prefix] = i\n        \n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0\n        \n        for i in range(1, n+1):\n            for j in range(1, i+1):\n                current_prefix = target[i-j:i]\n                if current_prefix in max_prefix:\n                    max_len = max_prefix[current_prefix]\n                    if j <= max_len:\n                        dp[i] = min(dp[i], dp[i-j] + 1)\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+      "solution_hash": "cb19d45a00ae6bf4f1fcbc22fb7ae55b3c4203ff3d402084e6c9de1bea0d8adf",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.07491493225097656
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def minValidStrings(self, words: List[str], target: str) -> int:\n        # Preprocess each word to find all possible prefixes and their maximum lengths\n        max_prefix = {}\n        for word in words:\n            for i in range(1, len(word) + 1):\n                prefix = word[:i]\n                if prefix not in max_prefix or i > max_prefix[prefix]:\n                    max_prefix[prefix] = i\n        \n        n = len(target)\n        dp = [float('inf')] * (n + 1)\n        dp[0] = 0\n        \n        for i in range(n):\n            if dp[i] == float('inf'):\n                continue\n            current = \"\"\n            for j in range(i, n):\n                current += target[j]\n                if current in max_prefix:\n                    max_len = max_prefix[current]\n                    if j + 1 <= n:\n                        if dp[j + 1] > dp[i] + 1:\n                            dp[j + 1] = dp[i] + 1\n                else:\n                    break  # No need to proceed further as longer prefixes won't exist\n        \n        return dp[n] if dp[n] != float('inf') else -1",
+      "solution_hash": "14bdd3ee67c0a87a3cfa6976f41a995c0f718d372b59fac3a6fac7bbbf11e961",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.0731515884399414
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    }
+  ],
+  "stats": {
+    "nodes_explored": 12,
+    "candidates_generated": 12,
+    "tests_passed": 5,
+    "tests_failed": 7,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 552.8912863731384,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.46153846153846156,
+      "pass@3": 0.8776223776223776,
+      "pass@5": 0.9836829836829837,
+      "pass@10": 1.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: invalid syntax (<string>, line 95)",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 12
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 13,
+    "test_cases": 1
+  }
+}

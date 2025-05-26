@@ -1,0 +1,514 @@
+{
+  "problem_id": "find-a-safe-walk-through-a-grid",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "solved",
+  "best_solution": "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Use a max-heap by pushing negative health\n        heap = []\n        heapq.heappush(heap, (-(health - grid[0][0]), 0, 0))\n        \n        # Visited matrix to track the maximum health at each cell\n        visited = [[-float('inf') for _ in range(n)] for _ in range(m)]\n        visited[0][0] = health - grid[0][0]\n        \n        while heap:\n            neg_current_health, i, j = heapq.heappop(heap)\n            current_health = -neg_current_health\n            \n            if i == m - 1 and j == n - 1:\n                return current_health >= 1\n            \n            if current_health < visited[i][j]:\n                continue\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    new_health = current_health - grid[x][y]\n                    if new_health > visited[x][y]:\n                        visited[x][y] = new_health\n                        heapq.heappush(heap, (-new_health, x, y))\n        \n        return False",
+  "passed_solutions": [
+    "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Use a max-heap by pushing negative health\n        heap = []\n        heapq.heappush(heap, (-(health - grid[0][0]), 0, 0))\n        \n        # Visited matrix to track the maximum health at each cell\n        visited = [[-float('inf') for _ in range(n)] for _ in range(m)]\n        visited[0][0] = health - grid[0][0]\n        \n        while heap:\n            neg_current_health, i, j = heapq.heappop(heap)\n            current_health = -neg_current_health\n            \n            if i == m - 1 and j == n - 1:\n                return current_health >= 1\n            \n            if current_health < visited[i][j]:\n                continue\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    new_health = current_health - grid[x][y]\n                    if new_health > visited[x][y]:\n                        visited[x][y] = new_health\n                        heapq.heappush(heap, (-new_health, x, y))\n        \n        return False",
+    "from collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        queue = deque()\n        initial_health = health - grid[0][0]\n        if initial_health <= 0:\n            return False\n        queue.append((0, 0, initial_health))\n        \n        visited = [[-1 for _ in range(n)] for _ in range(m)]\n        visited[0][0] = initial_health\n        \n        while queue:\n            i, j, current_health = queue.popleft()\n            \n            if i == m - 1 and j == n - 1:\n                return current_health >= 1\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    new_health = current_health - grid[x][y]\n                    if new_health > visited[x][y] and new_health > 0:\n                        visited[x][y] = new_health\n                        queue.append((x, y, new_health))\n        \n        return False",
+    "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        heap = []\n        initial_health = health - grid[0][0]\n        heapq.heappush(heap, (-initial_health, 0, 0))\n        \n        visited = [[-float('inf') for _ in range(n)] for _ in range(m)]\n        visited[0][0] = initial_health\n        \n        while heap:\n            neg_current_health, i, j = heapq.heappop(heap)\n            current_health = -neg_current_health\n            \n            if i == m - 1 and j == n - 1:\n                return current_health >= 1\n            \n            if current_health < visited[i][j]:\n                continue\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    new_health = current_health - grid[x][y]\n                    if new_health > visited[x][y]:\n                        visited[x][y] = new_health\n                        heapq.heappush(heap, (-new_health, x, y))\n        \n        return False",
+    "import heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        # Directions: up, down, left, right\n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-current_health, i, j)\n        # Using negative for min-heap to simulate max-heap\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited set to keep track of (i, j, health)\n        visited = set()\n        visited.add((0, 0, health))\n        \n        while heap:\n            current_health, i, j = heapq.heappop(heap)\n            current_health = -current_health  # Convert back to positive\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            for dx, dy in directions:\n                ni, nj = i + dx, j + dy\n                if 0 <= ni < m and 0 <= nj < n:\n                    new_health = current_health - grid[ni][nj]\n                    if new_health >= 1:\n                        if (ni, nj, new_health) not in visited:\n                            heapq.heappush(heap, (-new_health, ni, nj))\n                            visited.add((ni, nj, new_health))\n        \n        return False"
+  ],
+  "all_solutions": [
+    "import heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        # Directions: up, down, left, right\n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (current_health, i, j)\n        heap = []\n        heapq.heappush(heap, (health - grid[0][0], 0, 0))\n        \n        # Visited matrix to keep track of the maximum health at each cell\n        visited = [[-inf for _ in range(n)] for _ in range(m)]\n        visited[0][0] = health - grid[0][0]\n        \n        while heap:\n            current_health, i, j = heapq.heappop(heap)\n            \n            # If we reach the destination, check if health is at least 1\n            if i == m - 1 and j == n - 1:\n                return current_health >= 1\n            \n            # If current health is worse than the recorded, skip\n            if current_health < visited[i][j]:\n                continue\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    new_health = current_health - grid[x][y]\n                    # Only proceed if new_health is better than the recorded health for (x,y)\n                    if new_health > visited[x][y]:\n                        visited[x][y] = new_health\n                        heapq.heappush(heap, (new_health, x, y))\n        \n        # If we exit the loop, destination is unreachable with sufficient health\n        return False",
+    "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Use a max-heap by pushing negative health\n        heap = []\n        heapq.heappush(heap, (-(health - grid[0][0]), 0, 0))\n        \n        # Visited matrix to track the maximum health at each cell\n        visited = [[-float('inf') for _ in range(n)] for _ in range(m)]\n        visited[0][0] = health - grid[0][0]\n        \n        while heap:\n            neg_current_health, i, j = heapq.heappop(heap)\n            current_health = -neg_current_health\n            \n            if i == m - 1 and j == n - 1:\n                return current_health >= 1\n            \n            if current_health < visited[i][j]:\n                continue\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    new_health = current_health - grid[x][y]\n                    if new_health > visited[x][y]:\n                        visited[x][y] = new_health\n                        heapq.heappush(heap, (-new_health, x, y))\n        \n        return False",
+    "from collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        queue = deque()\n        initial_health = health - grid[0][0]\n        if initial_health <= 0:\n            return False\n        queue.append((0, 0, initial_health))\n        \n        visited = [[-1 for _ in range(n)] for _ in range(m)]\n        visited[0][0] = initial_health\n        \n        while queue:\n            i, j, current_health = queue.popleft()\n            \n            if i == m - 1 and j == n - 1:\n                return current_health >= 1\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    new_health = current_health - grid[x][y]\n                    if new_health > visited[x][y] and new_health > 0:\n                        visited[x][y] = new_health\n                        queue.append((x, y, new_health))\n        \n        return False",
+    "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        heap = []\n        initial_health = health - grid[0][0]\n        heapq.heappush(heap, (-initial_health, 0, 0))\n        \n        visited = [[-float('inf') for _ in range(n)] for _ in range(m)]\n        visited[0][0] = initial_health\n        \n        while heap:\n            neg_current_health, i, j = heapq.heappop(heap)\n            current_health = -neg_current_health\n            \n            if i == m - 1 and j == n - 1:\n                return current_health >= 1\n            \n            if current_health < visited[i][j]:\n                continue\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    new_health = current_health - grid[x][y]\n                    if new_health > visited[x][y]:\n                        visited[x][y] = new_health\n                        heapq.heappush(heap, (-new_health, x, y))\n        \n        return False",
+    "import heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        # Directions: up, down, left, right\n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-remaining_health, i, j)\n        # Using max-heap by storing negative health\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited set to keep track of (i, j) and the maximum health seen so far\n        visited = {}\n        \n        while heap:\n            current_health, i, j = heapq.heappop(heap)\n            current_health = -current_health  # Convert back to positive\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            # If current cell is unsafe, reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue  # Can't proceed further\n            \n            # Check if we've already visited this cell with higher or equal health\n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Explore all four directions\n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    # Calculate the health after moving to (x, y)\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        # If we exhausted all possibilities without reaching the end\n        return False",
+    "import heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-remaining_health, i, j)\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited dictionary to track the maximum health for each cell\n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            # If current cell is unsafe, reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue\n            \n            # Check if this cell has been visited with higher or equal health\n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Explore all four directions\n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    # Calculate the health after moving to (x, y)\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        return False",
+    "import heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-remaining_health, i, j)\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited dictionary to track the maximum health for each cell\n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            # If current cell is unsafe, reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue\n            \n            # Check if this cell has been visited with higher or equal health\n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Explore all four directions\n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    # Calculate the health after moving to (x, y)\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        return False",
+    "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-remaining_health, i, j)\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited dictionary to track the maximum health for each cell\n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            # If current cell is unsafe, reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue\n            \n            # Check if this cell has been visited with higher or equal health\n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Explore all four directions\n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    # Calculate the health after moving to (x, y)\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        return False",
+    "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-remaining_health, i, j)\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited dictionary to track the maximum health for each cell\n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            # If current cell is unsafe, reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue\n            \n            # Check if this cell has been visited with higher or equal health\n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Explore all four directions\n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    # Calculate the health after moving to (x, y)\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        return False",
+    "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-remaining_health, i, j)\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited dictionary to track the maximum health at each cell\n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            # If current cell is unsafe, reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue  # Can't proceed further\n            \n            # Check if we've already visited this cell with higher or equal health\n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Explore all four directions\n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    # Calculate the health after moving to (x, y)\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        # If we exhausted all possibilities without reaching the end\n        return False",
+    "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-remaining_health, i, j)\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited dictionary to track the maximum health at each cell\n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            # If current cell is unsafe, reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue  # Can't proceed further\n            \n            # Check if we've already visited this cell with higher or equal health\n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Explore all four directions\n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    # Calculate the health after moving to (x, y)\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        # If we exhausted all possibilities without reaching the end\n        return False",
+    "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-remaining_health, i, j)\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited dictionary to track the maximum health at each cell\n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            # If current cell is unsafe, reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue  # Can't proceed further\n            \n            # Check if we've already visited this cell with higher or equal health\n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Explore all four directions\n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    # Calculate the health after moving to (x, y)\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        # If we exhausted all possibilities without reaching the end\n        return False",
+    "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-remaining_health, i, j)\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited dictionary to track the maximum health at each cell\n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            # If current cell is unsafe, reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue  # Can't proceed further\n            \n            # Check if we've already visited this cell with higher or equal health\n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Explore all four directions\n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    # Calculate the health after moving to (x, y)\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        # If we exhausted all possibilities without reaching the end\n        return False",
+    "import heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        visited = {}\n        \n        while heap:\n            current_health, i, j = heapq.heappop(heap)\n            current_health = -current_health\n            \n            if i == m - 1 and j == n - 1:\n                return True\n            \n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Check if current cell is unsafe and reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        return False",
+    "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        visited = {}\n        \n        while heap:\n            current_health, i, j = heapq.heappop(heap)\n            current_health = -current_health\n            \n            if i == m - 1 and j == n - 1:\n                return True\n            \n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Check if current cell is unsafe and reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        return False",
+    "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))  # Using max-heap by pushing negative health\n        \n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            if i == m - 1 and j == n - 1:\n                return True\n            \n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Check if current cell is unsafe and reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        return False",
+    "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))  # Using max-heap by negating health\n        \n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            if i == m - 1 and j == n - 1:\n                return True\n            \n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Check if current cell is unsafe and reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        return False",
+    "import heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        # Directions: up, down, left, right\n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-current_health, i, j)\n        # Using negative for min-heap to simulate max-heap\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited set to keep track of (i, j, health)\n        visited = set()\n        visited.add((0, 0, health))\n        \n        while heap:\n            current_health, i, j = heapq.heappop(heap)\n            current_health = -current_health  # Convert back to positive\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            for dx, dy in directions:\n                ni, nj = i + dx, j + dy\n                if 0 <= ni < m and 0 <= nj < n:\n                    new_health = current_health - grid[ni][nj]\n                    if new_health >= 1:\n                        if (ni, nj, new_health) not in visited:\n                            heapq.heappush(heap, (-new_health, ni, nj))\n                            visited.add((ni, nj, new_health))\n        \n        return False"
+  ],
+  "total_candidates": 18,
+  "nodes_explored": 18,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "import heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        # Directions: up, down, left, right\n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (current_health, i, j)\n        heap = []\n        heapq.heappush(heap, (health - grid[0][0], 0, 0))\n        \n        # Visited matrix to keep track of the maximum health at each cell\n        visited = [[-inf for _ in range(n)] for _ in range(m)]\n        visited[0][0] = health - grid[0][0]\n        \n        while heap:\n            current_health, i, j = heapq.heappop(heap)\n            \n            # If we reach the destination, check if health is at least 1\n            if i == m - 1 and j == n - 1:\n                return current_health >= 1\n            \n            # If current health is worse than the recorded, skip\n            if current_health < visited[i][j]:\n                continue\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    new_health = current_health - grid[x][y]\n                    # Only proceed if new_health is better than the recorded health for (x,y)\n                    if new_health > visited[x][y]:\n                        visited[x][y] = new_health\n                        heapq.heappush(heap, (new_health, x, y))\n        \n        # If we exit the loop, destination is unreachable with sufficient health\n        return False",
+      "solution_hash": "0cdb7ffc7657cc7bcf97c66872d95bcc58c83d353c37991b4651624730c1b550",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpuauh1zld.py\", line 212, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmpuauh1zld.py\", line 127, in check\n    assert candidate(grid = [[0, 1, 0, 0, 0], [0, 1, 0, 1, 0], [0, 0, 0, 1, 0]],health = 1) == True\nAssertionError\n",
+        "execution_time": 0.0688786506652832
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Use a max-heap by pushing negative health\n        heap = []\n        heapq.heappush(heap, (-(health - grid[0][0]), 0, 0))\n        \n        # Visited matrix to track the maximum health at each cell\n        visited = [[-float('inf') for _ in range(n)] for _ in range(m)]\n        visited[0][0] = health - grid[0][0]\n        \n        while heap:\n            neg_current_health, i, j = heapq.heappop(heap)\n            current_health = -neg_current_health\n            \n            if i == m - 1 and j == n - 1:\n                return current_health >= 1\n            \n            if current_health < visited[i][j]:\n                continue\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    new_health = current_health - grid[x][y]\n                    if new_health > visited[x][y]:\n                        visited[x][y] = new_health\n                        heapq.heappush(heap, (-new_health, x, y))\n        \n        return False",
+          "solution_hash": "c27ee712366950202a88175f1c38289f582133fbdeb76e281f47b8f0133a310f",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07251405715942383
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_2",
+          "solution": "from collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        queue = deque()\n        initial_health = health - grid[0][0]\n        if initial_health <= 0:\n            return False\n        queue.append((0, 0, initial_health))\n        \n        visited = [[-1 for _ in range(n)] for _ in range(m)]\n        visited[0][0] = initial_health\n        \n        while queue:\n            i, j, current_health = queue.popleft()\n            \n            if i == m - 1 and j == n - 1:\n                return current_health >= 1\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    new_health = current_health - grid[x][y]\n                    if new_health > visited[x][y] and new_health > 0:\n                        visited[x][y] = new_health\n                        queue.append((x, y, new_health))\n        \n        return False",
+          "solution_hash": "819c3b2a734d82a4a5b58c4eba7f992f70bc291523b27cb32b6967ac7dcc2ee1",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07793807983398438
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_3",
+          "solution": "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        heap = []\n        initial_health = health - grid[0][0]\n        heapq.heappush(heap, (-initial_health, 0, 0))\n        \n        visited = [[-float('inf') for _ in range(n)] for _ in range(m)]\n        visited[0][0] = initial_health\n        \n        while heap:\n            neg_current_health, i, j = heapq.heappop(heap)\n            current_health = -neg_current_health\n            \n            if i == m - 1 and j == n - 1:\n                return current_health >= 1\n            \n            if current_health < visited[i][j]:\n                continue\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    new_health = current_health - grid[x][y]\n                    if new_health > visited[x][y]:\n                        visited[x][y] = new_health\n                        heapq.heappush(heap, (-new_health, x, y))\n        \n        return False",
+          "solution_hash": "f5de19a45a6c08fab76ebdf787b330c3da7947287d9ca3a4d8373bb8e3bc2faf",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07649683952331543
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [],
+          "passed": true
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "import heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        # Directions: up, down, left, right\n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-remaining_health, i, j)\n        # Using max-heap by storing negative health\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited set to keep track of (i, j) and the maximum health seen so far\n        visited = {}\n        \n        while heap:\n            current_health, i, j = heapq.heappop(heap)\n            current_health = -current_health  # Convert back to positive\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            # If current cell is unsafe, reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue  # Can't proceed further\n            \n            # Check if we've already visited this cell with higher or equal health\n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Explore all four directions\n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    # Calculate the health after moving to (x, y)\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        # If we exhausted all possibilities without reaching the end\n        return False",
+      "solution_hash": "45ae5d258e5a59d92584867802e011a2740e6964ec616109f1305ba14ff75be0",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpake45ede.py\", line 221, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmpake45ede.py\", line 138, in check\n    assert candidate(grid = [[1, 1, 1], [1, 0, 1], [1, 1, 1]],health = 5) == True\nAssertionError\n",
+        "execution_time": 0.07373523712158203
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_5",
+          "solution": "import heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-remaining_health, i, j)\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited dictionary to track the maximum health for each cell\n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            # If current cell is unsafe, reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue\n            \n            # Check if this cell has been visited with higher or equal health\n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Explore all four directions\n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    # Calculate the health after moving to (x, y)\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        return False",
+          "solution_hash": "f3efd197f817e52e7a14df8386ac97ccd193bf9058a654bdbbe00029c1ba452b",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpp4bxvdwp.py\", line 220, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmpp4bxvdwp.py\", line 137, in check\n    assert candidate(grid = [[1, 1, 1], [1, 0, 1], [1, 1, 1]],health = 5) == True\nAssertionError\n",
+            "execution_time": 0.15494155883789062
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_6",
+              "solution": "import heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-remaining_health, i, j)\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited dictionary to track the maximum health for each cell\n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            # If current cell is unsafe, reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue\n            \n            # Check if this cell has been visited with higher or equal health\n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Explore all four directions\n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    # Calculate the health after moving to (x, y)\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        return False",
+              "solution_hash": "f3efd197f817e52e7a14df8386ac97ccd193bf9058a654bdbbe00029c1ba452b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpp4bxvdwp.py\", line 220, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmpp4bxvdwp.py\", line 137, in check\n    assert candidate(grid = [[1, 1, 1], [1, 0, 1], [1, 1, 1]],health = 5) == True\nAssertionError\n",
+                "execution_time": 0.15494155883789062
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_7",
+              "solution": "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-remaining_health, i, j)\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited dictionary to track the maximum health for each cell\n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            # If current cell is unsafe, reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue\n            \n            # Check if this cell has been visited with higher or equal health\n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Explore all four directions\n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    # Calculate the health after moving to (x, y)\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        return False",
+              "solution_hash": "1f2fbeb1ff02453a7047ced1887dd817cbbad15cd4b519049d2daa3c2358fa1b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpx52125wi.py\", line 221, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmpx52125wi.py\", line 138, in check\n    assert candidate(grid = [[1, 1, 1], [1, 0, 1], [1, 1, 1]],health = 5) == True\nAssertionError\n",
+                "execution_time": 0.069122314453125
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-remaining_health, i, j)\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited dictionary to track the maximum health for each cell\n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            # If current cell is unsafe, reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue\n            \n            # Check if this cell has been visited with higher or equal health\n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Explore all four directions\n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    # Calculate the health after moving to (x, y)\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        return False",
+              "solution_hash": "1f2fbeb1ff02453a7047ced1887dd817cbbad15cd4b519049d2daa3c2358fa1b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpx52125wi.py\", line 221, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmpx52125wi.py\", line 138, in check\n    assert candidate(grid = [[1, 1, 1], [1, 0, 1], [1, 1, 1]],health = 5) == True\nAssertionError\n",
+                "execution_time": 0.069122314453125
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_9",
+          "solution": "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-remaining_health, i, j)\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited dictionary to track the maximum health at each cell\n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            # If current cell is unsafe, reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue  # Can't proceed further\n            \n            # Check if we've already visited this cell with higher or equal health\n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Explore all four directions\n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    # Calculate the health after moving to (x, y)\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        # If we exhausted all possibilities without reaching the end\n        return False",
+          "solution_hash": "1f2fbeb1ff02453a7047ced1887dd817cbbad15cd4b519049d2daa3c2358fa1b",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpx52125wi.py\", line 221, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmpx52125wi.py\", line 138, in check\n    assert candidate(grid = [[1, 1, 1], [1, 0, 1], [1, 1, 1]],health = 5) == True\nAssertionError\n",
+            "execution_time": 0.069122314453125
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_10",
+              "solution": "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-remaining_health, i, j)\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited dictionary to track the maximum health at each cell\n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            # If current cell is unsafe, reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue  # Can't proceed further\n            \n            # Check if we've already visited this cell with higher or equal health\n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Explore all four directions\n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    # Calculate the health after moving to (x, y)\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        # If we exhausted all possibilities without reaching the end\n        return False",
+              "solution_hash": "1f2fbeb1ff02453a7047ced1887dd817cbbad15cd4b519049d2daa3c2358fa1b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpx52125wi.py\", line 221, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmpx52125wi.py\", line 138, in check\n    assert candidate(grid = [[1, 1, 1], [1, 0, 1], [1, 1, 1]],health = 5) == True\nAssertionError\n",
+                "execution_time": 0.069122314453125
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_11",
+              "solution": "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-remaining_health, i, j)\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited dictionary to track the maximum health at each cell\n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            # If current cell is unsafe, reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue  # Can't proceed further\n            \n            # Check if we've already visited this cell with higher or equal health\n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Explore all four directions\n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    # Calculate the health after moving to (x, y)\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        # If we exhausted all possibilities without reaching the end\n        return False",
+              "solution_hash": "1f2fbeb1ff02453a7047ced1887dd817cbbad15cd4b519049d2daa3c2358fa1b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpx52125wi.py\", line 221, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmpx52125wi.py\", line 138, in check\n    assert candidate(grid = [[1, 1, 1], [1, 0, 1], [1, 1, 1]],health = 5) == True\nAssertionError\n",
+                "execution_time": 0.069122314453125
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_12",
+              "solution": "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        if m == 0:\n            return False\n        n = len(grid[0])\n        if n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-remaining_health, i, j)\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited dictionary to track the maximum health at each cell\n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            # If current cell is unsafe, reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue  # Can't proceed further\n            \n            # Check if we've already visited this cell with higher or equal health\n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Explore all four directions\n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    # Calculate the health after moving to (x, y)\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        # If we exhausted all possibilities without reaching the end\n        return False",
+              "solution_hash": "1f2fbeb1ff02453a7047ced1887dd817cbbad15cd4b519049d2daa3c2358fa1b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpx52125wi.py\", line 221, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmpx52125wi.py\", line 138, in check\n    assert candidate(grid = [[1, 1, 1], [1, 0, 1], [1, 1, 1]],health = 5) == True\nAssertionError\n",
+                "execution_time": 0.069122314453125
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_13",
+          "solution": "import heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        visited = {}\n        \n        while heap:\n            current_health, i, j = heapq.heappop(heap)\n            current_health = -current_health\n            \n            if i == m - 1 and j == n - 1:\n                return True\n            \n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Check if current cell is unsafe and reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        return False",
+          "solution_hash": "04bf80335e083dadfd3acade73f04ea8659f1ce066e3ee6b0b89b1ec64679795",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpzipbrp0k.py\", line 211, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmpzipbrp0k.py\", line 128, in check\n    assert candidate(grid = [[1, 1, 1], [1, 0, 1], [1, 1, 1]],health = 5) == True\nAssertionError\n",
+            "execution_time": 0.06872963905334473
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_14",
+              "solution": "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        visited = {}\n        \n        while heap:\n            current_health, i, j = heapq.heappop(heap)\n            current_health = -current_health\n            \n            if i == m - 1 and j == n - 1:\n                return True\n            \n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Check if current cell is unsafe and reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        return False",
+              "solution_hash": "38bfa06c613d74328b199ddc9d5d0919d0b9802426d32ef4913870b253c86ad8",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpxlxaatp1.py\", line 212, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmpxlxaatp1.py\", line 129, in check\n    assert candidate(grid = [[1, 1, 1], [1, 0, 1], [1, 1, 1]],health = 5) == True\nAssertionError\n",
+                "execution_time": 0.06843709945678711
+              },
+              "depth": 2,
+              "parent_id": "1_13",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_15",
+              "solution": "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))  # Using max-heap by pushing negative health\n        \n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            if i == m - 1 and j == n - 1:\n                return True\n            \n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Check if current cell is unsafe and reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        return False",
+              "solution_hash": "b10234bfbcc3148f1e8826b56f45b63e03e48c79160ee372ad49f3a4c0d5081f",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp7g6wg_xn.py\", line 212, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmp7g6wg_xn.py\", line 129, in check\n    assert candidate(grid = [[1, 1, 1], [1, 0, 1], [1, 1, 1]],health = 5) == True\nAssertionError\n",
+                "execution_time": 0.06792163848876953
+              },
+              "depth": 2,
+              "parent_id": "1_13",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_16",
+              "solution": "import heapq\nfrom typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))  # Using max-heap by negating health\n        \n        visited = {}\n        \n        while heap:\n            current_health_neg, i, j = heapq.heappop(heap)\n            current_health = -current_health_neg\n            \n            if i == m - 1 and j == n - 1:\n                return True\n            \n            if (i, j) in visited:\n                if visited[(i, j)] >= current_health:\n                    continue\n            visited[(i, j)] = current_health\n            \n            # Check if current cell is unsafe and reduce health\n            if grid[i][j] == 1:\n                current_health -= 1\n                if current_health < 1:\n                    continue\n            \n            for dx, dy in directions:\n                x = i + dx\n                y = j + dy\n                if 0 <= x < m and 0 <= y < n:\n                    next_health = current_health - grid[x][y]\n                    if next_health >= 1:\n                        heapq.heappush(heap, (-next_health, x, y))\n        \n        return False",
+              "solution_hash": "b10234bfbcc3148f1e8826b56f45b63e03e48c79160ee372ad49f3a4c0d5081f",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp7g6wg_xn.py\", line 212, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmp7g6wg_xn.py\", line 129, in check\n    assert candidate(grid = [[1, 1, 1], [1, 0, 1], [1, 1, 1]],health = 5) == True\nAssertionError\n",
+                "execution_time": 0.06792163848876953
+              },
+              "depth": 2,
+              "parent_id": "1_13",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "import heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m = len(grid)\n        n = len(grid[0]) if m > 0 else 0\n        if m == 0 or n == 0:\n            return False\n        \n        # Directions: up, down, left, right\n        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]\n        \n        # Priority queue: (-current_health, i, j)\n        # Using negative for min-heap to simulate max-heap\n        heap = []\n        heapq.heappush(heap, (-health, 0, 0))\n        \n        # Visited set to keep track of (i, j, health)\n        visited = set()\n        visited.add((0, 0, health))\n        \n        while heap:\n            current_health, i, j = heapq.heappop(heap)\n            current_health = -current_health  # Convert back to positive\n            \n            # Check if we've reached the destination\n            if i == m - 1 and j == n - 1:\n                return True\n            \n            for dx, dy in directions:\n                ni, nj = i + dx, j + dy\n                if 0 <= ni < m and 0 <= nj < n:\n                    new_health = current_health - grid[ni][nj]\n                    if new_health >= 1:\n                        if (ni, nj, new_health) not in visited:\n                            heapq.heappush(heap, (-new_health, ni, nj))\n                            visited.add((ni, nj, new_health))\n        \n        return False",
+      "solution_hash": "ca6043ffcc28faa89363f7f50cf61206a233b0f044ee8a9e00725c0352c0f78f",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.07380390167236328
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    }
+  ],
+  "stats": {
+    "nodes_explored": 18,
+    "candidates_generated": 18,
+    "tests_passed": 4,
+    "tests_failed": 14,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 1159.6639242172241,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.21052631578947367,
+      "pass@3": 0.5304437564499485,
+      "pass@5": 0.7417440660474717,
+      "pass@10": 0.9674922600619195
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: name 'pairwise' is not defined",
+            "completion_id": 18
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 19,
+    "test_cases": 1
+  }
+}

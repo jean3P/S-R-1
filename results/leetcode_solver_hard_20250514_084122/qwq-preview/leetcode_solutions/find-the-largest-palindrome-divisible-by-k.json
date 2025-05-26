@@ -1,0 +1,717 @@
+{
+  "problem_id": "find-the-largest-palindrome-divisible-by-k",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            return str(9 // k * k)\n        \n        upper_limit = 10**n - 1\n        lower_limit = 10**(n-1)\n        \n        # Start from the largest possible n-digit number\n        for num in range(upper_limit, lower_limit - 1, -1):\n            # Convert number to string to check palindrome\n            num_str = str(num)\n            # Create palindrome by mirroring the first half\n            if n % 2 == 0:\n                prefix = num_str[:n//2]\n                palindrome_str = prefix + prefix[::-1]\n            else:\n                prefix = num_str[:n//2 + 1]\n                palindrome_str = prefix + prefix[:-1][::-1]\n            \n            palindrome = int(palindrome_str)\n            if palindrome % k == 0:\n                return palindrome_str\n        \n        return \"\"",
+    "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            return str(9 // k * k)\n        \n        # Function to create the largest palindrome less than or equal to 'upper'\n        def create_palindrome(half):\n            str_half = str(half)\n            if n % 2 == 0:\n                return int(str_half + str_half[::-1])\n            else:\n                return int(str_half + str_half[-2::-1])\n        \n        # Start from the largest possible first half\n        upper_limit = 10**(n // 2 + n % 2) - 1\n        lower_limit = 10**(n // 2) if n > 1 else 0\n        \n        for first_half in range(upper_limit, lower_limit - 1, -1):\n            palindrome = create_palindrome(first_half)\n            if palindrome < 10**(n-1):\n                continue  # Skip palindromes with fewer digits\n            if palindrome % k == 0:\n                return str(palindrome)\n        \n        return \"\"",
+    "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            # For single-digit numbers, find the largest digit <= 9 that is divisible by k\n            return str(k if k <= 9 else 0)\n        \n        # Function to create the largest palindrome less than or equal to 'upper'\n        def create_palindrome(half):\n            str_half = str(half)\n            if n % 2 == 0:\n                return int(str_half + str_half[::-1])\n            else:\n                return int(str_half + str_half[-2::-1])\n        \n        # Start from the largest possible first half\n        upper_limit = 10**(n // 2 + n % 2) - 1\n        lower_limit = 10**(n // 2) - 1 if n > 1 else 0\n        \n        for first_half in range(upper_limit, lower_limit, -1):\n            palindrome = create_palindrome(first_half)\n            if palindrome < 10**(n-1):\n                continue  # Skip palindromes with fewer digits\n            if palindrome % k == 0:\n                return str(palindrome)\n        \n        return \"\"",
+    "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            return str(9 // k * k)\n        \n        # Function to create palindrome from first half\n        def create_palindrome(first_half):\n            str_half = str(first_half)\n            if n % 2 == 0:\n                return int(str_half + str_half[::-1])\n            else:\n                return int(str_half + str_half[-2::-1])\n        \n        # Start from the largest possible first half\n        upper_limit = 10**(n // 2 + n % 2) - 1\n        lower_limit = 10**(n // 2) if n > 1 else 0\n        \n        # Find the largest palindrome divisible by k\n        for first_half in range(upper_limit, lower_limit - 1, -1):\n            palindrome = create_palindrome(first_half)\n            if palindrome < 10**(n-1):\n                continue  # Skip palindromes with fewer digits\n            if palindrome % k == 0:\n                return str(palindrome)\n            # Adjust the palindrome downwards and check divisibility\n            adjustment = (k - palindrome % k) % k\n            if adjustment != 0:\n                next_palindrome = palindrome - adjustment\n                if next_palindrome >= 10**(n-1):\n                    return str(next_palindrome)\n        \n        return \"\"",
+    "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            return str(9 // k * k)\n        \n        # Function to create the largest palindrome less than or equal to 'upper'\n        def create_palindrome(half):\n            str_half = str(half)\n            if n % 2 == 0:\n                return int(str_half + str_half[::-1])\n            else:\n                return int(str_half + str_half[-2::-1])\n        \n        # Start from the largest possible first half\n        upper_limit = 10**(n // 2 + n % 2) - 1\n        lower_limit = 10**(n // 2) if n > 1 else 0\n        \n        # Generate the largest possible n-digit number\n        max_num = 10**n - 1\n        min_num = 10**(n-1)\n        \n        # Function to make a number palindrome\n        def make_palindrome(num_str):\n            n = len(num_str)\n            if n % 2 == 0:\n                left = num_str[:n//2]\n                right = left[::-1]\n            else:\n                left = num_str[:n//2 + 1]\n                right = left[:-1][::-1]\n            return int(left + right)\n        \n        # Start from the largest n-digit number and go downwards\n        num = min(max_num, int(str(upper_limit) + str(upper_limit)[:(n//2)]))\n        while num >= min_num:\n            palindrome = make_palindrome(str(num))\n            if palindrome % k == 0:\n                return str(palindrome)\n            num -= 1\n            # Ensure num doesn't drop below min_num\n            if num < min_num:\n                break\n        return \"\"",
+    "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    return str(9 // k * k)\n                \n                upper_limit = 10**n - 1\n                lower_limit = 10**(n-1)\n                \n                # Function to create palindrome from prefix\n                def create_palindrome(prefix):\n                    if n % 2 == 0:\n                        return int(prefix + prefix[::-1])\n                    else:\n                        return int(prefix + prefix[:-1][::-1])\n                \n                # Start from the largest possible prefix\n                max_prefix = 10**(n // 2) - 1\n                min_prefix = 10**(n // 2 - 1) if n % 2 == 0 else 10**(n // 2 - 1) * 10\n                \n                # Iterate from max to min prefix\n                for prefix in range(max_prefix, min_prefix - 1, -1):\n                    palindrome = create_palindrome(str(prefix))\n                    if palindrome >= lower_limit and palindrome <= upper_limit:\n                        # Check divisibility by k\n                        if palindrome % k == 0:\n                            return str(palindrome)\n                        else:\n                            # Adjust the palindrome to the next possible divisible value\n                            remainder = palindrome % k\n                            difference = k - remainder if remainder != 0 else 0\n                            adjusted_palindrome = palindrome - difference\n                            if adjusted_palindrome >= lower_limit:\n                                return str(adjusted_palindrome)\n                \n                return \"\"",
+    "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    return str(9 // k * k)\n                \n                upper_limit = 10**n - 1\n                lower_limit = 10**(n-1)\n                \n                # Function to create palindrome from prefix\n                def create_palindrome(prefix_str):\n                    if n % 2 == 0:\n                        return int(prefix_str + prefix_str[::-1])\n                    else:\n                        return int(prefix_str + prefix_str[-2::-1])\n                \n                # Start from the largest possible prefix\n                max_prefix = 10**(n // 2) - 1\n                min_prefix = 10**(n // 2 - 1) if n % 2 == 0 else 10**(n // 2 - 1)\n                \n                # Iterate from max to min prefix\n                for prefix in range(max_prefix, min_prefix - 1, -1):\n                    prefix_str = str(prefix)\n                    palindrome = create_palindrome(prefix_str)\n                    if palindrome >= lower_limit:\n                        # Check divisibility by k\n                        if palindrome % k == 0:\n                            return str(palindrome)\n                        else:\n                            # Calculate the difference to make it divisible by k\n                            remainder = palindrome % k\n                            difference = k - remainder if remainder != 0 else 0\n                            adjusted_palindrome = palindrome - difference\n                            # Ensure the adjusted palindrome is still an n-digit number\n                            if adjusted_palindrome >= lower_limit and str(adjusted_palindrome).startswith(prefix_str):\n                                return str(adjusted_palindrome)\n                \n                return \"\"",
+    "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    # For single-digit numbers, find the largest digit divisible by k\n                    return str(9 // k * k)\n                \n                upper_limit = 10**n - 1\n                lower_limit = 10**(n-1)\n                \n                # Function to create palindrome from prefix\n                def create_palindrome(prefix_str):\n                    if n % 2 == 0:\n                        return int(prefix_str + prefix_str[::-1])\n                    else:\n                        return int(prefix_str + prefix_str[-2::-1])\n                \n                # Start from the largest possible prefix\n                max_prefix = 10**(n // 2) - 1\n                min_prefix = 10**(n // 2 - 1) if n % 2 == 0 else 10**(n // 2 - 1) * 10\n                \n                # Iterate from max to min prefix\n                for prefix in range(max_prefix, min_prefix - 1, -1):\n                    palindrome = create_palindrome(str(prefix))\n                    if palindrome >= lower_limit:\n                        # Check divisibility by k\n                        if palindrome % k == 0:\n                            return str(palindrome)\n                \n                return \"\"",
+    "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            # For single-digit numbers, find the largest digit <= 9 that is divisible by k\n            return str(9 // k * k)\n        \n        upper_limit = 10**n - 1\n        lower_limit = 10**(n-1)\n        \n        # Function to create palindrome from prefix\n        def create_palindrome(prefix_str):\n            if n % 2 == 0:\n                return int(prefix_str + prefix_str[::-1])\n            else:\n                return int(prefix_str + prefix_str[-2::-1])\n        \n        # Start from the largest possible prefix\n        max_prefix = 10**(n // 2) - 1\n        min_prefix = 10**(n // 2 - 1)\n        \n        # Iterate from max to min prefix\n        for prefix in range(max_prefix, min_prefix - 1, -1):\n            prefix_str = str(prefix)\n            palindrome = create_palindrome(prefix_str)\n            if palindrome >= lower_limit:\n                # Check divisibility by k\n                if palindrome % k == 0:\n                    return str(palindrome)\n                else:\n                    # Adjust the palindrome to the next possible divisible value\n                    remainder = palindrome % k\n                    difference = k - remainder if remainder != 0 else 0\n                    adjusted_palindrome = palindrome - difference\n                    # Ensure the adjusted value is still a palindrome and within limits\n                    if adjusted_palindrome >= lower_limit and str(adjusted_palindrome) == str(adjusted_palindrome)[::-1]:\n                        return str(adjusted_palindrome)\n        \n        return \"\"",
+    "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            return str(9 // k * k)\n        \n        # Function to create the largest palindrome less than or equal to 'upper'\n        def create_palindrome(prefix, n):\n            if n % 2 == 0:\n                return int(prefix + prefix[::-1])\n            else:\n                return int(prefix + prefix[-2::-1])\n        \n        upper_limit = 10**n - 1\n        lower_limit = 10**(n-1)\n        \n        # Start with the largest possible prefix for n digits\n        max_prefix = 10**(n // 2) - 1\n        min_prefix = 10**(n // 2 - 1)\n        \n        # Iterate over possible prefixes to find the largest palindrome divisible by k\n        for prefix in range(max_prefix, min_prefix - 1, -1):\n            palindrome = create_palindrome(str(prefix), n)\n            if palindrome < lower_limit:\n                continue\n            # Find the largest palindrome <= palindrome that is divisible by k\n            remainder = palindrome % k\n            if remainder == 0:\n                return str(palindrome)\n            # Adjust palindrome to make it divisible by k\n            adjustment = k - remainder\n            candidate = palindrome - remainder\n            if candidate >= lower_limit:\n                return str(candidate)\n        \n        return \"\"",
+    "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    return str(9 // k * k)\n                \n                # Function to create the largest palindrome less than or equal to 'upper'\n                def create_palindrome(prefix, n):\n                    if n % 2 == 0:\n                        return int(prefix + prefix[::-1])\n                    else:\n                        return int(prefix + prefix[-2::-1])\n                \n                upper_limit = 10**n - 1\n                lower_limit = 10**(n-1)\n                \n                # Start with the largest possible prefix for n digits\n                max_prefix = 10**(n // 2) - 1\n                min_prefix = 10**(n // 2 - 1)\n                \n                # Iterate over possible prefixes to find the largest palindrome divisible by k\n                for prefix in range(max_prefix, min_prefix - 1, -1):\n                    palindrome = create_palindrome(str(prefix), n)\n                    if palindrome < lower_limit:\n                        continue\n                    # Find the largest palindrome <= palindrome that is divisible by k\n                    remainder = palindrome % k\n                    if remainder == 0:\n                        return str(palindrome)\n                    # Adjust palindrome to make it divisible by k\n                    adjustment = k - remainder\n                    candidate = palindrome - remainder\n                    if candidate >= lower_limit:\n                        return str(candidate)\n                \n                return \"\"",
+    "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            # For single-digit numbers, find the largest digit <= 9 that is divisible by k\n            return str(9 // k * k)\n        \n        # Function to create the largest palindrome less than or equal to 'upper'\n        def create_palindrome(prefix, n):\n            if n % 2 == 0:\n                return int(prefix + prefix[::-1])\n            else:\n                return int(prefix + prefix[-2::-1])\n        \n        upper_limit = 10**n - 1\n        lower_limit = 10**(n-1)\n        \n        # Start with the largest possible prefix for n digits\n        max_prefix = 10**(n // 2) - 1\n        min_prefix = 10**(n // 2 - 1)\n        \n        # Iterate over possible prefixes to find the largest palindrome divisible by k\n        for prefix in range(max_prefix, min_prefix - 1, -1):\n            palindrome = create_palindrome(str(prefix), n)\n            if palindrome < lower_limit:\n                continue\n            # Find the largest palindrome <= palindrome that is divisible by k\n            remainder = palindrome % k\n            if remainder == 0:\n                return str(palindrome)\n            # Adjust palindrome to make it divisible by k\n            adjustment = k - remainder\n            candidate = palindrome - remainder\n            if candidate >= lower_limit:\n                return str(candidate)\n        \n        return \"\"",
+    "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    # For single digit, find the largest digit <= 9 that is divisible by k\n                    return str(9 // k * k)\n                \n                # Function to create the largest palindrome less than or equal to 'upper'\n                def create_palindrome(prefix, n):\n                    if n % 2 == 0:\n                        return int(prefix + prefix[::-1])\n                    else:\n                        return int(prefix + prefix[-2::-1])\n                \n                upper_limit = 10**n - 1\n                lower_limit = 10**(n-1)\n                \n                # Start with the largest possible prefix for n digits\n                max_prefix = 10**(n // 2) - 1\n                min_prefix = 10**(n // 2 - 1)\n                \n                # Iterate over possible prefixes to find the largest palindrome divisible by k\n                for prefix in range(max_prefix, min_prefix - 1, -1):\n                    palindrome = create_palindrome(str(prefix), n)\n                    if palindrome < lower_limit:\n                        continue\n                    # Find the largest palindrome <= palindrome that is divisible by k\n                    remainder = palindrome % k\n                    if remainder == 0:\n                        return str(palindrome)\n                    # Adjust palindrome to make it divisible by k\n                    adjustment = k - remainder\n                    candidate = palindrome - remainder\n                    # Ensure the adjusted number is still a palindrome and within n digits\n                    candidate_str = str(candidate)\n                    if len(candidate_str) == n and candidate_str == candidate_str[::-1]:\n                        return candidate_str\n                    # If adjustment makes it not a palindrome, try the next lower palindrome\n                return \"\"",
+    "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    # For single-digit palindromes, find the largest digit <= k and divisible by k\n                    for d in range(9, -1, -1):\n                        if d % k == 0:\n                            return str(d)\n                    return \"\"\n                \n                # Function to check if a string is a palindrome\n                def is_palindrome(s):\n                    return s == s[::-1]\n                \n                # Start with the largest possible n-digit number\n                start = '9' * n\n                # Convert to integer for easier manipulation\n                num = int(start)\n                \n                # Iterate downwards until we find a palindrome divisible by k\n                while True:\n                    num_str = str(num)\n                    if is_palindrome(num_str) and int(num_str) % k == 0:\n                        return num_str\n                    num -= 1\n                    # Avoid numbers with leading zeros\n                    if '0' in num_str[:-1]:\n                        continue\n                    # Ensure the number still has n digits\n                    if len(num_str) < n:\n                        break\n                \n                return \"\"",
+    "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            for d in range(9, -1, -1):\n                if d % k == 0:\n                    return str(d)\n            return \"\"\n        \n        # Function to create palindrome from left half\n        def create_palindrome(left):\n            s = str(left)\n            if n % 2 == 0:\n                return s + s[::-1]\n            else:\n                return s + s[-2::-1]\n        \n        # Start with the largest possible left half\n        max_left = 10**(n // 2) - 1\n        min_left = 10**(n // 2 - 1)\n        \n        # Iterate from largest to smallest left half\n        for left in range(max_left, min_left - 1, -1):\n            palindrome_str = create_palindrome(left)\n            palindrome = int(palindrome_str)\n            # Check divisibility by k\n            if palindrome % k == 0:\n                return palindrome_str\n            # Otherwise, decrease the left half and try again\n            # Adjust the palindrome to the next possible divisible number\n            remainder = palindrome % k\n            decrement = remainder if remainder <= palindrome - int('9'*(n-1)) else remainder - k\n            palindrome -= decrement\n            # Ensure the adjusted number is still a palindrome and has n digits\n            adjusted_str = str(palindrome)\n            if len(adjusted_str) == n and adjusted_str == adjusted_str[::-1]:\n                return adjusted_str\n        \n        return \"\"",
+    "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            for d in range(9, -1, -1):\n                if d % k == 0:\n                    return str(d)\n            return \"\"\n        \n        # Function to create palindrome from left half\n        def create_palindrome(left):\n            s = str(left)\n            if n % 2 == 0:\n                return s + s[::-1]\n            else:\n                return s + s[-2::-1]\n        \n        # Start with the largest possible left half\n        max_left = 10**(n // 2) - 1\n        min_left = 10**(n // 2 - 1)\n        \n        # Iterate from largest to smallest left half\n        for left in range(max_left, min_left - 1, -1):\n            palindrome_str = create_palindrome(left)\n            palindrome = int(palindrome_str)\n            # Check divisibility by k\n            if palindrome % k == 0:\n                return palindrome_str\n        \n        return \"\"",
+    "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    for d in range(9, -1, -1):\n                        if d % k == 0:\n                            return str(d)\n                    return \"\"\n                \n                # Function to create palindrome from left half\n                def create_palindrome(left_half):\n                    if n % 2 == 0:\n                        return left_half + left_half[::-1]\n                    else:\n                        return left_half + left_half[-2::-1]\n                \n                # Start with the largest possible left half\n                max_left = 10**(n // 2) - 1\n                min_left = 10**(n // 2 - 1)\n                \n                # Iterate from largest to smallest left half\n                for left in range(max_left, min_left - 1, -1):\n                    palindrome_str = create_palindrome(str(left))\n                    # Check divisibility by k\n                    if int(palindrome_str) % k == 0:\n                        return palindrome_str\n                \n                return \"\"",
+    "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            for d in range(9, -1, -1):\n                if d % k == 0:\n                    return str(d)\n            return \"\"\n        \n        # Function to create palindrome from left half\n        def create_palindrome(left):\n            s = str(left)\n            if n % 2 == 0:\n                return s + s[::-1]\n            else:\n                return s + s[-2::-1]\n        \n        # Function to check if a number is divisible by k\n        def is_divisible(num_str, k):\n            num = int(num_str)\n            return num % k == 0\n        \n        # Define the range for the left half\n        max_left = 10**(n // 2) - 1\n        min_left = 10**(n // 2 - 1)\n        \n        # Binary search for the largest valid palindrome\n        low = min_left\n        high = max_left\n        result = \"\"\n        while low <= high:\n            mid = (low + high) // 2\n            palindrome_str = create_palindrome(mid)\n            if is_divisible(palindrome_str, k):\n                result = palindrome_str\n                low = mid + 1  # Try to find a larger one\n            else:\n                high = mid - 1  # Try a smaller one\n        \n        return result",
+    "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            for d in range(9, -1, -1):\n                if d % k == 0:\n                    return str(d)\n            return \"\"\n        \n        # Function to create palindrome from left half\n        def create_palindrome(left):\n            s = str(left)\n            if n % 2 == 0:\n                return s + s[::-1]\n            else:\n                return s + s[-2::-1]\n        \n        # Start with the largest possible left half\n        start = 10**(n // 2) - 1\n        while start >= 10**(n // 2 - 1):\n            palindrome_str = create_palindrome(start)\n            palindrome_int = int(palindrome_str)\n            if palindrome_int % k == 0:\n                return palindrome_str\n            start -= 1\n        return \"\"",
+    "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            for d in range(9, -1, -1):\n                if d % k == 0:\n                    return str(d)\n            return \"\"\n        \n        # Helper function to create palindrome from left half\n        def create_palindrome(left):\n            s = str(left)\n            if n % 2 == 0:\n                return s + s[::-1]\n            else:\n                return s + s[-2::-1]\n        \n        # Function to check if a string is a palindrome\n        def is_palindrome(s):\n            return s == s[::-1]\n        \n        # Binary search for the largest palindrome divisible by k\n        high = 10**(n // 2) - 1\n        low = 10**((n // 2) - 1)\n        \n        while low <= high:\n            mid = (low + high) // 2\n            palindrome_str = create_palindrome(mid)\n            palindrome_int = int(palindrome_str)\n            if palindrome_int % k == 0:\n                return palindrome_str\n            elif palindrome_int % k < k / 2:\n                high = mid - 1\n            else:\n                low = mid + 1\n        \n        # Fallback to brute-force if binary search fails\n        start = high\n        while start >= low:\n            palindrome_str = create_palindrome(start)\n            palindrome_int = int(palindrome_str)\n            if palindrome_int % k == 0:\n                return palindrome_str\n            start -= 1\n        \n        return \"\"",
+    "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    for d in range(9, -1, -1):\n                        if d % k == 0:\n                            return str(d)\n                    return \"\"\n                \n                # Function to create palindrome from left half\n                def create_palindrome(left):\n                    s = str(left)\n                    if n % 2 == 0:\n                        return s + s[::-1]\n                    else:\n                        # For odd lengths, don't duplicate the last digit of the left half\n                        return s + s[-2::-1]\n                \n                # Start with the largest possible left half\n                start = 10**(n // 2) - 1\n                while start >= 10**((n-1) // 2):\n                    palindrome_str = create_palindrome(start)\n                    palindrome_int = int(palindrome_str)\n                    if palindrome_int % k == 0:\n                        return palindrome_str\n                    start -= 1\n                return \"\"",
+    "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            for d in range(9, -1, -1):\n                if d % k == 0:\n                    return str(d)\n            return \"\"\n        \n        # Upper and lower limits for n-digit numbers\n        upper_limit = 10**n - 1\n        lower_limit = 10**(n-1)\n        \n        # Function to create palindrome from left half\n        def create_palindrome(left):\n            s = str(left)\n            if n % 2 == 0:\n                return s + s[::-1]\n            else:\n                return s + s[-2::-1]\n        \n        # Start with the largest possible left half\n        start = upper_limit // (10**(n // 2))\n        while start >= 10**(n // 2 - 1):\n            palindrome_str = create_palindrome(start)\n            palindrome_int = int(palindrome_str)\n            if palindrome_int >= lower_limit and palindrome_int % k == 0:\n                return palindrome_str\n            start -= 1\n        return \"\"",
+    "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            for d in range(9, -1, -1):\n                if d % k == 0:\n                    return str(d)\n            return \"\"\n        \n        # Function to create palindrome from left half\n        def create_palindrome(left):\n            s = str(left)\n            if n % 2 == 0:\n                return s + s[::-1]\n            else:\n                return s + s[-2::-1]\n        \n        # Start with the largest possible left half\n        max_left = 10**(n // 2) - 1\n        min_left = 10**(n // 2 - 1)\n        \n        # Iterate from largest to smallest left half\n        for left in range(max_left, min_left - 1, -1):\n            palindrome_str = create_palindrome(left)\n            palindrome = int(palindrome_str)\n            # Check divisibility by k\n            if palindrome % k == 0:\n                return palindrome_str\n            # Otherwise, decrease the palindrome and check again\n            decrement = k - (palindrome % k) if palindrome % k != 0 else k\n            adjust = int(str(palindrome - decrement))\n            # Ensure the adjusted number is still an n-digit number\n            if len(str(adjust)) == n:\n                if str(adjust) == str(adjust)[::-1]:\n                    return str(adjust)\n        \n        return \"\"",
+    "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    for d in range(9, -1, -1):\n                        if d % k == 0:\n                            return str(d)\n                    return \"\"\n                \n                # Function to create palindrome from left half\n                def create_palindrome(left):\n                    s = str(left)\n                    if n % 2 == 0:\n                        return s + s[::-1]\n                    else:\n                        return s + s[-2::-1]\n                \n                # Start with the largest possible left half\n                max_left = 10**(n // 2) - 1\n                min_left = 10**(n // 2 - 1)\n                \n                # Iterate from largest to smallest left half\n                for left in range(max_left, min_left - 1, -1):\n                    palindrome_str = create_palindrome(left)\n                    palindrome = int(palindrome_str)\n                    # Check divisibility by k\n                    if palindrome % k == 0:\n                        return palindrome_str\n                \n                return \"\"",
+    "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    for d in range(9, -1, -1):\n                        if d % k == 0:\n                            return str(d)\n                    return \"\"\n                \n                # Function to create palindrome from left half\n                def create_palindrome(left):\n                    s = str(left)\n                    if n % 2 == 0:\n                        return s + s[::-1]\n                    else:\n                        return s + s[-2::-1]\n                \n                # Start with the largest possible left half\n                max_left = 10**(n // 2) - 1\n                min_left = 10**(n // 2 - 1)\n                \n                # Iterate from largest to smallest left half\n                for left in range(max_left, min_left - 1, -1):\n                    palindrome_str = create_palindrome(left)\n                    palindrome = int(palindrome_str)\n                    # Check divisibility by k\n                    if palindrome % k == 0:\n                        return palindrome_str\n                \n                return \"\"",
+    "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    for d in range(9, -1, -1):\n                        if d % k == 0:\n                            return str(d)\n                    return \"\"\n                \n                # Function to create palindrome from left half\n                def create_palindrome(left):\n                    s = str(left)\n                    if n % 2 == 0:\n                        return s + s[::-1]\n                    else:\n                        return s + s[-2::-1]\n                \n                # Define the range for the left half of the palindrome\n                max_left = 10**(n // 2) - 1\n                min_left = 10**(n // 2 - 1)\n                \n                # Binary search over the left half\n                left = max_left\n                right = min_left - 1\n                best = -1\n                while left > right:\n                    mid = (left + right + 1) // 2\n                    palindrome_str = create_palindrome(mid)\n                    palindrome = int(palindrome_str)\n                    if palindrome % k == 0:\n                        best = palindrome\n                        right = mid - 1  # Look for a larger palindrome\n                    else:\n                        left = mid - 1\n                \n                if best == -1:\n                    return \"\"\n                else:\n                    return str(best)"
+  ],
+  "total_candidates": 26,
+  "nodes_explored": 26,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            return str(9 // k * k)\n        \n        upper_limit = 10**n - 1\n        lower_limit = 10**(n-1)\n        \n        # Start from the largest possible n-digit number\n        for num in range(upper_limit, lower_limit - 1, -1):\n            # Convert number to string to check palindrome\n            num_str = str(num)\n            # Create palindrome by mirroring the first half\n            if n % 2 == 0:\n                prefix = num_str[:n//2]\n                palindrome_str = prefix + prefix[::-1]\n            else:\n                prefix = num_str[:n//2 + 1]\n                palindrome_str = prefix + prefix[:-1][::-1]\n            \n            palindrome = int(palindrome_str)\n            if palindrome % k == 0:\n                return palindrome_str\n        \n        return \"\"",
+      "solution_hash": "6164b408facf6307002362364626698bbf02cb98561f1b02212bdfb9281a791f",
+      "test_result": {
+        "status": "timeout",
+        "error_message": "Test execution timed out after 10 seconds"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            return str(9 // k * k)\n        \n        # Function to create the largest palindrome less than or equal to 'upper'\n        def create_palindrome(half):\n            str_half = str(half)\n            if n % 2 == 0:\n                return int(str_half + str_half[::-1])\n            else:\n                return int(str_half + str_half[-2::-1])\n        \n        # Start from the largest possible first half\n        upper_limit = 10**(n // 2 + n % 2) - 1\n        lower_limit = 10**(n // 2) if n > 1 else 0\n        \n        for first_half in range(upper_limit, lower_limit - 1, -1):\n            palindrome = create_palindrome(first_half)\n            if palindrome < 10**(n-1):\n                continue  # Skip palindromes with fewer digits\n            if palindrome % k == 0:\n                return str(palindrome)\n        \n        return \"\"",
+          "solution_hash": "63031b38e75e11cc643976b52afa2144df68947b9de5fa00a180399347c296d8",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpj5qe4ob_.py\", line 162, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmpj5qe4ob_.py\", line 110, in check\n    assert candidate(n = 6,k = 9) == \"999999\"\nAssertionError\n",
+            "execution_time": 0.07824420928955078
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_2",
+              "solution": "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            # For single-digit numbers, find the largest digit <= 9 that is divisible by k\n            return str(k if k <= 9 else 0)\n        \n        # Function to create the largest palindrome less than or equal to 'upper'\n        def create_palindrome(half):\n            str_half = str(half)\n            if n % 2 == 0:\n                return int(str_half + str_half[::-1])\n            else:\n                return int(str_half + str_half[-2::-1])\n        \n        # Start from the largest possible first half\n        upper_limit = 10**(n // 2 + n % 2) - 1\n        lower_limit = 10**(n // 2) - 1 if n > 1 else 0\n        \n        for first_half in range(upper_limit, lower_limit, -1):\n            palindrome = create_palindrome(first_half)\n            if palindrome < 10**(n-1):\n                continue  # Skip palindromes with fewer digits\n            if palindrome % k == 0:\n                return str(palindrome)\n        \n        return \"\"",
+              "solution_hash": "de1e71b92fdc9ba69e7484feb97400ef1c89d277e351c11f24755cb7652d7a21",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpz1i2ibhm.py\", line 163, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmpz1i2ibhm.py\", line 110, in check\n    assert candidate(n = 1,k = 4) == \"8\"\nAssertionError\n",
+                "execution_time": 0.07764148712158203
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_3",
+              "solution": "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            return str(9 // k * k)\n        \n        # Function to create palindrome from first half\n        def create_palindrome(first_half):\n            str_half = str(first_half)\n            if n % 2 == 0:\n                return int(str_half + str_half[::-1])\n            else:\n                return int(str_half + str_half[-2::-1])\n        \n        # Start from the largest possible first half\n        upper_limit = 10**(n // 2 + n % 2) - 1\n        lower_limit = 10**(n // 2) if n > 1 else 0\n        \n        # Find the largest palindrome divisible by k\n        for first_half in range(upper_limit, lower_limit - 1, -1):\n            palindrome = create_palindrome(first_half)\n            if palindrome < 10**(n-1):\n                continue  # Skip palindromes with fewer digits\n            if palindrome % k == 0:\n                return str(palindrome)\n            # Adjust the palindrome downwards and check divisibility\n            adjustment = (k - palindrome % k) % k\n            if adjustment != 0:\n                next_palindrome = palindrome - adjustment\n                if next_palindrome >= 10**(n-1):\n                    return str(next_palindrome)\n        \n        return \"\"",
+              "solution_hash": "9c602c47d53d546d77b4536412a70491286ee77973ad776b41ddb6a72d890f0e",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpk0_gt0xu.py\", line 169, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmpk0_gt0xu.py\", line 117, in check\n    assert candidate(n = 6,k = 9) == \"999999\"\nAssertionError\n",
+                "execution_time": 0.07696318626403809
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            return str(9 // k * k)\n        \n        # Function to create the largest palindrome less than or equal to 'upper'\n        def create_palindrome(half):\n            str_half = str(half)\n            if n % 2 == 0:\n                return int(str_half + str_half[::-1])\n            else:\n                return int(str_half + str_half[-2::-1])\n        \n        # Start from the largest possible first half\n        upper_limit = 10**(n // 2 + n % 2) - 1\n        lower_limit = 10**(n // 2) if n > 1 else 0\n        \n        # Generate the largest possible n-digit number\n        max_num = 10**n - 1\n        min_num = 10**(n-1)\n        \n        # Function to make a number palindrome\n        def make_palindrome(num_str):\n            n = len(num_str)\n            if n % 2 == 0:\n                left = num_str[:n//2]\n                right = left[::-1]\n            else:\n                left = num_str[:n//2 + 1]\n                right = left[:-1][::-1]\n            return int(left + right)\n        \n        # Start from the largest n-digit number and go downwards\n        num = min(max_num, int(str(upper_limit) + str(upper_limit)[:(n//2)]))\n        while num >= min_num:\n            palindrome = make_palindrome(str(num))\n            if palindrome % k == 0:\n                return str(palindrome)\n            num -= 1\n            # Ensure num doesn't drop below min_num\n            if num < min_num:\n                break\n        return \"\"",
+              "solution_hash": "c287441b2adf919e4536f6f47164e0d3ba23e432f4aab9ebc4e280c283722817",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_5",
+          "solution": "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    return str(9 // k * k)\n                \n                upper_limit = 10**n - 1\n                lower_limit = 10**(n-1)\n                \n                # Function to create palindrome from prefix\n                def create_palindrome(prefix):\n                    if n % 2 == 0:\n                        return int(prefix + prefix[::-1])\n                    else:\n                        return int(prefix + prefix[:-1][::-1])\n                \n                # Start from the largest possible prefix\n                max_prefix = 10**(n // 2) - 1\n                min_prefix = 10**(n // 2 - 1) if n % 2 == 0 else 10**(n // 2 - 1) * 10\n                \n                # Iterate from max to min prefix\n                for prefix in range(max_prefix, min_prefix - 1, -1):\n                    palindrome = create_palindrome(str(prefix))\n                    if palindrome >= lower_limit and palindrome <= upper_limit:\n                        # Check divisibility by k\n                        if palindrome % k == 0:\n                            return str(palindrome)\n                        else:\n                            # Adjust the palindrome to the next possible divisible value\n                            remainder = palindrome % k\n                            difference = k - remainder if remainder != 0 else 0\n                            adjusted_palindrome = palindrome - difference\n                            if adjusted_palindrome >= lower_limit:\n                                return str(adjusted_palindrome)\n                \n                return \"\"",
+          "solution_hash": "7eb9881c910868d3a38d84fbc6daa65b7dacb195f52619a5cb349d3d41026ba9",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpd05c6_v9.py\", line 172, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmpd05c6_v9.py\", line 122, in check\n    assert candidate(n = 3,k = 5) == \"595\"\nAssertionError\n",
+            "execution_time": 0.08048200607299805
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_6",
+              "solution": "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    return str(9 // k * k)\n                \n                upper_limit = 10**n - 1\n                lower_limit = 10**(n-1)\n                \n                # Function to create palindrome from prefix\n                def create_palindrome(prefix_str):\n                    if n % 2 == 0:\n                        return int(prefix_str + prefix_str[::-1])\n                    else:\n                        return int(prefix_str + prefix_str[-2::-1])\n                \n                # Start from the largest possible prefix\n                max_prefix = 10**(n // 2) - 1\n                min_prefix = 10**(n // 2 - 1) if n % 2 == 0 else 10**(n // 2 - 1)\n                \n                # Iterate from max to min prefix\n                for prefix in range(max_prefix, min_prefix - 1, -1):\n                    prefix_str = str(prefix)\n                    palindrome = create_palindrome(prefix_str)\n                    if palindrome >= lower_limit:\n                        # Check divisibility by k\n                        if palindrome % k == 0:\n                            return str(palindrome)\n                        else:\n                            # Calculate the difference to make it divisible by k\n                            remainder = palindrome % k\n                            difference = k - remainder if remainder != 0 else 0\n                            adjusted_palindrome = palindrome - difference\n                            # Ensure the adjusted palindrome is still an n-digit number\n                            if adjusted_palindrome >= lower_limit and str(adjusted_palindrome).startswith(prefix_str):\n                                return str(adjusted_palindrome)\n                \n                return \"\"",
+              "solution_hash": "39f97637e8933c7ff506669a74b750f75a6641d6f6902aa46b2d2ea01e493df6",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp_6xkaiae.py\", line 174, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmp_6xkaiae.py\", line 124, in check\n    assert candidate(n = 3,k = 5) == \"595\"\nAssertionError\n",
+                "execution_time": 0.07757163047790527
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_7",
+              "solution": "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    # For single-digit numbers, find the largest digit divisible by k\n                    return str(9 // k * k)\n                \n                upper_limit = 10**n - 1\n                lower_limit = 10**(n-1)\n                \n                # Function to create palindrome from prefix\n                def create_palindrome(prefix_str):\n                    if n % 2 == 0:\n                        return int(prefix_str + prefix_str[::-1])\n                    else:\n                        return int(prefix_str + prefix_str[-2::-1])\n                \n                # Start from the largest possible prefix\n                max_prefix = 10**(n // 2) - 1\n                min_prefix = 10**(n // 2 - 1) if n % 2 == 0 else 10**(n // 2 - 1) * 10\n                \n                # Iterate from max to min prefix\n                for prefix in range(max_prefix, min_prefix - 1, -1):\n                    palindrome = create_palindrome(str(prefix))\n                    if palindrome >= lower_limit:\n                        # Check divisibility by k\n                        if palindrome % k == 0:\n                            return str(palindrome)\n                \n                return \"\"",
+              "solution_hash": "23b1dd003c2e58bd7d6026d0ce45c7e4dceb8d66bba800e79573a0915064e24d",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpgbub7wmm.py\", line 166, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmpgbub7wmm.py\", line 116, in check\n    assert candidate(n = 3,k = 5) == \"595\"\nAssertionError\n",
+                "execution_time": 0.07732677459716797
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            # For single-digit numbers, find the largest digit <= 9 that is divisible by k\n            return str(9 // k * k)\n        \n        upper_limit = 10**n - 1\n        lower_limit = 10**(n-1)\n        \n        # Function to create palindrome from prefix\n        def create_palindrome(prefix_str):\n            if n % 2 == 0:\n                return int(prefix_str + prefix_str[::-1])\n            else:\n                return int(prefix_str + prefix_str[-2::-1])\n        \n        # Start from the largest possible prefix\n        max_prefix = 10**(n // 2) - 1\n        min_prefix = 10**(n // 2 - 1)\n        \n        # Iterate from max to min prefix\n        for prefix in range(max_prefix, min_prefix - 1, -1):\n            prefix_str = str(prefix)\n            palindrome = create_palindrome(prefix_str)\n            if palindrome >= lower_limit:\n                # Check divisibility by k\n                if palindrome % k == 0:\n                    return str(palindrome)\n                else:\n                    # Adjust the palindrome to the next possible divisible value\n                    remainder = palindrome % k\n                    difference = k - remainder if remainder != 0 else 0\n                    adjusted_palindrome = palindrome - difference\n                    # Ensure the adjusted value is still a palindrome and within limits\n                    if adjusted_palindrome >= lower_limit and str(adjusted_palindrome) == str(adjusted_palindrome)[::-1]:\n                        return str(adjusted_palindrome)\n        \n        return \"\"",
+              "solution_hash": "a258854909dcf90f2530accf679e2a67693331b1df846d36a613143afe6a6905",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp51vojgu0.py\", line 175, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmp51vojgu0.py\", line 125, in check\n    assert candidate(n = 3,k = 5) == \"595\"\nAssertionError\n",
+                "execution_time": 0.07807779312133789
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_9",
+          "solution": "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            return str(9 // k * k)\n        \n        # Function to create the largest palindrome less than or equal to 'upper'\n        def create_palindrome(prefix, n):\n            if n % 2 == 0:\n                return int(prefix + prefix[::-1])\n            else:\n                return int(prefix + prefix[-2::-1])\n        \n        upper_limit = 10**n - 1\n        lower_limit = 10**(n-1)\n        \n        # Start with the largest possible prefix for n digits\n        max_prefix = 10**(n // 2) - 1\n        min_prefix = 10**(n // 2 - 1)\n        \n        # Iterate over possible prefixes to find the largest palindrome divisible by k\n        for prefix in range(max_prefix, min_prefix - 1, -1):\n            palindrome = create_palindrome(str(prefix), n)\n            if palindrome < lower_limit:\n                continue\n            # Find the largest palindrome <= palindrome that is divisible by k\n            remainder = palindrome % k\n            if remainder == 0:\n                return str(palindrome)\n            # Adjust palindrome to make it divisible by k\n            adjustment = k - remainder\n            candidate = palindrome - remainder\n            if candidate >= lower_limit:\n                return str(candidate)\n        \n        return \"\"",
+          "solution_hash": "51f5857084ddc9ef7e9f577c88b105671c841fcdc80ad8a9c830fa7721257394",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp9fjey178.py\", line 172, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmp9fjey178.py\", line 122, in check\n    assert candidate(n = 3,k = 5) == \"595\"\nAssertionError\n",
+            "execution_time": 0.07813382148742676
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_10",
+              "solution": "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    return str(9 // k * k)\n                \n                # Function to create the largest palindrome less than or equal to 'upper'\n                def create_palindrome(prefix, n):\n                    if n % 2 == 0:\n                        return int(prefix + prefix[::-1])\n                    else:\n                        return int(prefix + prefix[-2::-1])\n                \n                upper_limit = 10**n - 1\n                lower_limit = 10**(n-1)\n                \n                # Start with the largest possible prefix for n digits\n                max_prefix = 10**(n // 2) - 1\n                min_prefix = 10**(n // 2 - 1)\n                \n                # Iterate over possible prefixes to find the largest palindrome divisible by k\n                for prefix in range(max_prefix, min_prefix - 1, -1):\n                    palindrome = create_palindrome(str(prefix), n)\n                    if palindrome < lower_limit:\n                        continue\n                    # Find the largest palindrome <= palindrome that is divisible by k\n                    remainder = palindrome % k\n                    if remainder == 0:\n                        return str(palindrome)\n                    # Adjust palindrome to make it divisible by k\n                    adjustment = k - remainder\n                    candidate = palindrome - remainder\n                    if candidate >= lower_limit:\n                        return str(candidate)\n                \n                return \"\"",
+              "solution_hash": "51f5857084ddc9ef7e9f577c88b105671c841fcdc80ad8a9c830fa7721257394",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp9fjey178.py\", line 172, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmp9fjey178.py\", line 122, in check\n    assert candidate(n = 3,k = 5) == \"595\"\nAssertionError\n",
+                "execution_time": 0.07813382148742676
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_11",
+              "solution": "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            # For single-digit numbers, find the largest digit <= 9 that is divisible by k\n            return str(9 // k * k)\n        \n        # Function to create the largest palindrome less than or equal to 'upper'\n        def create_palindrome(prefix, n):\n            if n % 2 == 0:\n                return int(prefix + prefix[::-1])\n            else:\n                return int(prefix + prefix[-2::-1])\n        \n        upper_limit = 10**n - 1\n        lower_limit = 10**(n-1)\n        \n        # Start with the largest possible prefix for n digits\n        max_prefix = 10**(n // 2) - 1\n        min_prefix = 10**(n // 2 - 1)\n        \n        # Iterate over possible prefixes to find the largest palindrome divisible by k\n        for prefix in range(max_prefix, min_prefix - 1, -1):\n            palindrome = create_palindrome(str(prefix), n)\n            if palindrome < lower_limit:\n                continue\n            # Find the largest palindrome <= palindrome that is divisible by k\n            remainder = palindrome % k\n            if remainder == 0:\n                return str(palindrome)\n            # Adjust palindrome to make it divisible by k\n            adjustment = k - remainder\n            candidate = palindrome - remainder\n            if candidate >= lower_limit:\n                return str(candidate)\n        \n        return \"\"",
+              "solution_hash": "51f5857084ddc9ef7e9f577c88b105671c841fcdc80ad8a9c830fa7721257394",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp9fjey178.py\", line 172, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmp9fjey178.py\", line 122, in check\n    assert candidate(n = 3,k = 5) == \"595\"\nAssertionError\n",
+                "execution_time": 0.07813382148742676
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_12",
+              "solution": "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    # For single digit, find the largest digit <= 9 that is divisible by k\n                    return str(9 // k * k)\n                \n                # Function to create the largest palindrome less than or equal to 'upper'\n                def create_palindrome(prefix, n):\n                    if n % 2 == 0:\n                        return int(prefix + prefix[::-1])\n                    else:\n                        return int(prefix + prefix[-2::-1])\n                \n                upper_limit = 10**n - 1\n                lower_limit = 10**(n-1)\n                \n                # Start with the largest possible prefix for n digits\n                max_prefix = 10**(n // 2) - 1\n                min_prefix = 10**(n // 2 - 1)\n                \n                # Iterate over possible prefixes to find the largest palindrome divisible by k\n                for prefix in range(max_prefix, min_prefix - 1, -1):\n                    palindrome = create_palindrome(str(prefix), n)\n                    if palindrome < lower_limit:\n                        continue\n                    # Find the largest palindrome <= palindrome that is divisible by k\n                    remainder = palindrome % k\n                    if remainder == 0:\n                        return str(palindrome)\n                    # Adjust palindrome to make it divisible by k\n                    adjustment = k - remainder\n                    candidate = palindrome - remainder\n                    # Ensure the adjusted number is still a palindrome and within n digits\n                    candidate_str = str(candidate)\n                    if len(candidate_str) == n and candidate_str == candidate_str[::-1]:\n                        return candidate_str\n                    # If adjustment makes it not a palindrome, try the next lower palindrome\n                return \"\"",
+              "solution_hash": "66d77458a40f2c2e685f232cf6d3af33cdf237a6e050642ba7d965ef4e7858ee",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpn4km_ug3.py\", line 175, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmpn4km_ug3.py\", line 125, in check\n    assert candidate(n = 3,k = 5) == \"595\"\nAssertionError\n",
+                "execution_time": 0.07757568359375
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    # For single-digit palindromes, find the largest digit <= k and divisible by k\n                    for d in range(9, -1, -1):\n                        if d % k == 0:\n                            return str(d)\n                    return \"\"\n                \n                # Function to check if a string is a palindrome\n                def is_palindrome(s):\n                    return s == s[::-1]\n                \n                # Start with the largest possible n-digit number\n                start = '9' * n\n                # Convert to integer for easier manipulation\n                num = int(start)\n                \n                # Iterate downwards until we find a palindrome divisible by k\n                while True:\n                    num_str = str(num)\n                    if is_palindrome(num_str) and int(num_str) % k == 0:\n                        return num_str\n                    num -= 1\n                    # Avoid numbers with leading zeros\n                    if '0' in num_str[:-1]:\n                        continue\n                    # Ensure the number still has n digits\n                    if len(num_str) < n:\n                        break\n                \n                return \"\"",
+      "solution_hash": "7a67661d774c6273694367dbb9167df6a4348a0c42b35c2beb9959837cffe1c2",
+      "test_result": {
+        "status": "timeout",
+        "error_message": "Test execution timed out after 10 seconds"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_14",
+          "solution": "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            for d in range(9, -1, -1):\n                if d % k == 0:\n                    return str(d)\n            return \"\"\n        \n        # Function to create palindrome from left half\n        def create_palindrome(left):\n            s = str(left)\n            if n % 2 == 0:\n                return s + s[::-1]\n            else:\n                return s + s[-2::-1]\n        \n        # Start with the largest possible left half\n        max_left = 10**(n // 2) - 1\n        min_left = 10**(n // 2 - 1)\n        \n        # Iterate from largest to smallest left half\n        for left in range(max_left, min_left - 1, -1):\n            palindrome_str = create_palindrome(left)\n            palindrome = int(palindrome_str)\n            # Check divisibility by k\n            if palindrome % k == 0:\n                return palindrome_str\n            # Otherwise, decrease the left half and try again\n            # Adjust the palindrome to the next possible divisible number\n            remainder = palindrome % k\n            decrement = remainder if remainder <= palindrome - int('9'*(n-1)) else remainder - k\n            palindrome -= decrement\n            # Ensure the adjusted number is still a palindrome and has n digits\n            adjusted_str = str(palindrome)\n            if len(adjusted_str) == n and adjusted_str == adjusted_str[::-1]:\n                return adjusted_str\n        \n        return \"\"",
+          "solution_hash": "43683b149eff29807b9559612007fa85ff3e79be92110429b36f004b9d962f08",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpsh03v9u8.py\", line 175, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmpsh03v9u8.py\", line 125, in check\n    assert candidate(n = 3,k = 5) == \"595\"\nAssertionError\n",
+            "execution_time": 0.07846784591674805
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_15",
+              "solution": "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            for d in range(9, -1, -1):\n                if d % k == 0:\n                    return str(d)\n            return \"\"\n        \n        # Function to create palindrome from left half\n        def create_palindrome(left):\n            s = str(left)\n            if n % 2 == 0:\n                return s + s[::-1]\n            else:\n                return s + s[-2::-1]\n        \n        # Start with the largest possible left half\n        max_left = 10**(n // 2) - 1\n        min_left = 10**(n // 2 - 1)\n        \n        # Iterate from largest to smallest left half\n        for left in range(max_left, min_left - 1, -1):\n            palindrome_str = create_palindrome(left)\n            palindrome = int(palindrome_str)\n            # Check divisibility by k\n            if palindrome % k == 0:\n                return palindrome_str\n        \n        return \"\"",
+              "solution_hash": "afdd07d2ada7f590d64d664971ec274fa3911d662467d575f05573fb4d87d299",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmph6070src.py\", line 166, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmph6070src.py\", line 116, in check\n    assert candidate(n = 3,k = 5) == \"595\"\nAssertionError\n",
+                "execution_time": 0.07755422592163086
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_16",
+              "solution": "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    for d in range(9, -1, -1):\n                        if d % k == 0:\n                            return str(d)\n                    return \"\"\n                \n                # Function to create palindrome from left half\n                def create_palindrome(left_half):\n                    if n % 2 == 0:\n                        return left_half + left_half[::-1]\n                    else:\n                        return left_half + left_half[-2::-1]\n                \n                # Start with the largest possible left half\n                max_left = 10**(n // 2) - 1\n                min_left = 10**(n // 2 - 1)\n                \n                # Iterate from largest to smallest left half\n                for left in range(max_left, min_left - 1, -1):\n                    palindrome_str = create_palindrome(str(left))\n                    # Check divisibility by k\n                    if int(palindrome_str) % k == 0:\n                        return palindrome_str\n                \n                return \"\"",
+              "solution_hash": "81a87e73b4268691108b0bb597f9750c21a0f0ef174aa3848846beb2418e541f",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp8q7zkmcz.py\", line 164, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmp8q7zkmcz.py\", line 114, in check\n    assert candidate(n = 3,k = 5) == \"595\"\nAssertionError\n",
+                "execution_time": 0.07750582695007324
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_17",
+              "solution": "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            for d in range(9, -1, -1):\n                if d % k == 0:\n                    return str(d)\n            return \"\"\n        \n        # Function to create palindrome from left half\n        def create_palindrome(left):\n            s = str(left)\n            if n % 2 == 0:\n                return s + s[::-1]\n            else:\n                return s + s[-2::-1]\n        \n        # Function to check if a number is divisible by k\n        def is_divisible(num_str, k):\n            num = int(num_str)\n            return num % k == 0\n        \n        # Define the range for the left half\n        max_left = 10**(n // 2) - 1\n        min_left = 10**(n // 2 - 1)\n        \n        # Binary search for the largest valid palindrome\n        low = min_left\n        high = max_left\n        result = \"\"\n        while low <= high:\n            mid = (low + high) // 2\n            palindrome_str = create_palindrome(mid)\n            if is_divisible(palindrome_str, k):\n                result = palindrome_str\n                low = mid + 1  # Try to find a larger one\n            else:\n                high = mid - 1  # Try a smaller one\n        \n        return result",
+              "solution_hash": "b0ac3fd2ccc557bc60dcb3e904ddbb808b4b69540f9ae800e785fa7e0ee861d7",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpvb3eckw_.py\", line 176, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmpvb3eckw_.py\", line 124, in check\n    assert candidate(n = 6,k = 9) == \"999999\"\nAssertionError\n",
+                "execution_time": 0.0768895149230957
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_18",
+          "solution": "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            for d in range(9, -1, -1):\n                if d % k == 0:\n                    return str(d)\n            return \"\"\n        \n        # Function to create palindrome from left half\n        def create_palindrome(left):\n            s = str(left)\n            if n % 2 == 0:\n                return s + s[::-1]\n            else:\n                return s + s[-2::-1]\n        \n        # Start with the largest possible left half\n        start = 10**(n // 2) - 1\n        while start >= 10**(n // 2 - 1):\n            palindrome_str = create_palindrome(start)\n            palindrome_int = int(palindrome_str)\n            if palindrome_int % k == 0:\n                return palindrome_str\n            start -= 1\n        return \"\"",
+          "solution_hash": "4780aa69e7caaada2b8777e7dd488029ae2dcb7851f01c09dc678d5b75024c03",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpp674zt61.py\", line 162, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmpp674zt61.py\", line 112, in check\n    assert candidate(n = 3,k = 5) == \"595\"\nAssertionError\n",
+            "execution_time": 0.07650041580200195
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_19",
+              "solution": "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            for d in range(9, -1, -1):\n                if d % k == 0:\n                    return str(d)\n            return \"\"\n        \n        # Helper function to create palindrome from left half\n        def create_palindrome(left):\n            s = str(left)\n            if n % 2 == 0:\n                return s + s[::-1]\n            else:\n                return s + s[-2::-1]\n        \n        # Function to check if a string is a palindrome\n        def is_palindrome(s):\n            return s == s[::-1]\n        \n        # Binary search for the largest palindrome divisible by k\n        high = 10**(n // 2) - 1\n        low = 10**((n // 2) - 1)\n        \n        while low <= high:\n            mid = (low + high) // 2\n            palindrome_str = create_palindrome(mid)\n            palindrome_int = int(palindrome_str)\n            if palindrome_int % k == 0:\n                return palindrome_str\n            elif palindrome_int % k < k / 2:\n                high = mid - 1\n            else:\n                low = mid + 1\n        \n        # Fallback to brute-force if binary search fails\n        start = high\n        while start >= low:\n            palindrome_str = create_palindrome(start)\n            palindrome_int = int(palindrome_str)\n            if palindrome_int % k == 0:\n                return palindrome_str\n            start -= 1\n        \n        return \"\"",
+              "solution_hash": "638aecd6a9798430ab8ce5abf4a83b2defad75e2053ed2b934a0a0cd7c0633a1",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpfnojshz1.py\", line 182, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmpfnojshz1.py\", line 130, in check\n    assert candidate(n = 6,k = 9) == \"999999\"\nAssertionError\n",
+                "execution_time": 0.07813882827758789
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_20",
+              "solution": "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    for d in range(9, -1, -1):\n                        if d % k == 0:\n                            return str(d)\n                    return \"\"\n                \n                # Function to create palindrome from left half\n                def create_palindrome(left):\n                    s = str(left)\n                    if n % 2 == 0:\n                        return s + s[::-1]\n                    else:\n                        # For odd lengths, don't duplicate the last digit of the left half\n                        return s + s[-2::-1]\n                \n                # Start with the largest possible left half\n                start = 10**(n // 2) - 1\n                while start >= 10**((n-1) // 2):\n                    palindrome_str = create_palindrome(start)\n                    palindrome_int = int(palindrome_str)\n                    if palindrome_int % k == 0:\n                        return palindrome_str\n                    start -= 1\n                return \"\"",
+              "solution_hash": "0736da8c78c2cbb28e0d1d4a0803a7c8724719cf21bf7e1ceb41d37716a344d3",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmpeffybae0.py\", line 163, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmpeffybae0.py\", line 113, in check\n    assert candidate(n = 3,k = 5) == \"595\"\nAssertionError\n",
+                "execution_time": 0.07713818550109863
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_21",
+              "solution": "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            for d in range(9, -1, -1):\n                if d % k == 0:\n                    return str(d)\n            return \"\"\n        \n        # Upper and lower limits for n-digit numbers\n        upper_limit = 10**n - 1\n        lower_limit = 10**(n-1)\n        \n        # Function to create palindrome from left half\n        def create_palindrome(left):\n            s = str(left)\n            if n % 2 == 0:\n                return s + s[::-1]\n            else:\n                return s + s[-2::-1]\n        \n        # Start with the largest possible left half\n        start = upper_limit // (10**(n // 2))\n        while start >= 10**(n // 2 - 1):\n            palindrome_str = create_palindrome(start)\n            palindrome_int = int(palindrome_str)\n            if palindrome_int >= lower_limit and palindrome_int % k == 0:\n                return palindrome_str\n            start -= 1\n        return \"\"",
+              "solution_hash": "5e4ced8cf3f1a640478d2f789f30fa2a8f7da47cb08bb86aa58842ea831d1df0",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_22",
+          "solution": "class Solution:\n    def largestPalindrome(self, n: int, k: int) -> str:\n        if n == 1:\n            for d in range(9, -1, -1):\n                if d % k == 0:\n                    return str(d)\n            return \"\"\n        \n        # Function to create palindrome from left half\n        def create_palindrome(left):\n            s = str(left)\n            if n % 2 == 0:\n                return s + s[::-1]\n            else:\n                return s + s[-2::-1]\n        \n        # Start with the largest possible left half\n        max_left = 10**(n // 2) - 1\n        min_left = 10**(n // 2 - 1)\n        \n        # Iterate from largest to smallest left half\n        for left in range(max_left, min_left - 1, -1):\n            palindrome_str = create_palindrome(left)\n            palindrome = int(palindrome_str)\n            # Check divisibility by k\n            if palindrome % k == 0:\n                return palindrome_str\n            # Otherwise, decrease the palindrome and check again\n            decrement = k - (palindrome % k) if palindrome % k != 0 else k\n            adjust = int(str(palindrome - decrement))\n            # Ensure the adjusted number is still an n-digit number\n            if len(str(adjust)) == n:\n                if str(adjust) == str(adjust)[::-1]:\n                    return str(adjust)\n        \n        return \"\"",
+          "solution_hash": "a7b56f138169f4792ed4ad1b95167c3f7c16a73a3393709e85ecd6c2f32cca8b",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmp0yvzqshq.py\", line 173, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmp0yvzqshq.py\", line 123, in check\n    assert candidate(n = 3,k = 5) == \"595\"\nAssertionError\n",
+            "execution_time": 0.07976651191711426
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_23",
+              "solution": "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    for d in range(9, -1, -1):\n                        if d % k == 0:\n                            return str(d)\n                    return \"\"\n                \n                # Function to create palindrome from left half\n                def create_palindrome(left):\n                    s = str(left)\n                    if n % 2 == 0:\n                        return s + s[::-1]\n                    else:\n                        return s + s[-2::-1]\n                \n                # Start with the largest possible left half\n                max_left = 10**(n // 2) - 1\n                min_left = 10**(n // 2 - 1)\n                \n                # Iterate from largest to smallest left half\n                for left in range(max_left, min_left - 1, -1):\n                    palindrome_str = create_palindrome(left)\n                    palindrome = int(palindrome_str)\n                    # Check divisibility by k\n                    if palindrome % k == 0:\n                        return palindrome_str\n                \n                return \"\"",
+              "solution_hash": "afdd07d2ada7f590d64d664971ec274fa3911d662467d575f05573fb4d87d299",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmph6070src.py\", line 166, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmph6070src.py\", line 116, in check\n    assert candidate(n = 3,k = 5) == \"595\"\nAssertionError\n",
+                "execution_time": 0.07755422592163086
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_24",
+              "solution": "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    for d in range(9, -1, -1):\n                        if d % k == 0:\n                            return str(d)\n                    return \"\"\n                \n                # Function to create palindrome from left half\n                def create_palindrome(left):\n                    s = str(left)\n                    if n % 2 == 0:\n                        return s + s[::-1]\n                    else:\n                        return s + s[-2::-1]\n                \n                # Start with the largest possible left half\n                max_left = 10**(n // 2) - 1\n                min_left = 10**(n // 2 - 1)\n                \n                # Iterate from largest to smallest left half\n                for left in range(max_left, min_left - 1, -1):\n                    palindrome_str = create_palindrome(left)\n                    palindrome = int(palindrome_str)\n                    # Check divisibility by k\n                    if palindrome % k == 0:\n                        return palindrome_str\n                \n                return \"\"",
+              "solution_hash": "afdd07d2ada7f590d64d664971ec274fa3911d662467d575f05573fb4d87d299",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419950/tmph6070src.py\", line 166, in <module>\n    check(Solution().largestPalindrome)\n  File \"/scratch/local/21419950/tmph6070src.py\", line 116, in check\n    assert candidate(n = 3,k = 5) == \"595\"\nAssertionError\n",
+                "execution_time": 0.07755422592163086
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_25",
+              "solution": "class Solution:\n            def largestPalindrome(self, n: int, k: int) -> str:\n                if n == 1:\n                    for d in range(9, -1, -1):\n                        if d % k == 0:\n                            return str(d)\n                    return \"\"\n                \n                # Function to create palindrome from left half\n                def create_palindrome(left):\n                    s = str(left)\n                    if n % 2 == 0:\n                        return s + s[::-1]\n                    else:\n                        return s + s[-2::-1]\n                \n                # Define the range for the left half of the palindrome\n                max_left = 10**(n // 2) - 1\n                min_left = 10**(n // 2 - 1)\n                \n                # Binary search over the left half\n                left = max_left\n                right = min_left - 1\n                best = -1\n                while left > right:\n                    mid = (left + right + 1) // 2\n                    palindrome_str = create_palindrome(mid)\n                    palindrome = int(palindrome_str)\n                    if palindrome % k == 0:\n                        best = palindrome\n                        right = mid - 1  # Look for a larger palindrome\n                    else:\n                        left = mid - 1\n                \n                if best == -1:\n                    return \"\"\n                else:\n                    return str(best)",
+              "solution_hash": "2cd0d0a91dc439694c6b89532ad1394a997c49015b9a19cf47892b570b8a8ca3",
+              "test_result": {
+                "status": "timeout",
+                "error_message": "Test execution timed out after 10 seconds"
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 26,
+    "candidates_generated": 26,
+    "tests_passed": 0,
+    "tests_failed": 21,
+    "test_errors": 5,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 888.3316180706024,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.0,
+      "pass@3": 0.0,
+      "pass@5": 0.0,
+      "pass@10": 0.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: invalid syntax (<string>, line 97)",
+            "completion_id": 26
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 27,
+    "test_cases": 1
+  }
+}

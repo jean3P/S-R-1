@@ -1,0 +1,423 @@
+{
+  "problem_id": "find-a-safe-walk-through-a-grid",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "unsolved",
+  "best_solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        max_health_remaining = [[-1] * n for _ in range(m)]\n        max_health_remaining[0][0] = health - grid[0][0]\n        queue = deque([(0, 0, health - grid[0][0])])\n        \n        while queue:\n            x, y, current_health = queue.popleft()\n            \n            if (x, y) == (m - 1, n - 1) and current_health >= 1:\n                return True\n            \n            if current_health <= 0:\n                continue\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = current_health - grid[nx][ny]\n                    if new_health > max_health_remaining[nx][ny]:\n                        max_health_remaining[nx][ny] = new_health\n                        queue.append((nx, ny, new_health))\n        \n        return False",
+  "passed_solutions": [
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        visited = {(0, 0): health}\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0:\n                        if (nx, ny) not in visited or visited[(nx, ny)] < new_health:\n                            visited[(nx, ny)] = new_health\n                            queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        max_health_at_node = {(0, 0): health}\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0:\n                        if (nx, ny) not in max_health_at_node or new_health > max_health_at_node[(nx, ny)]:\n                            max_health_at_node[(nx, ny)] = new_health\n                            queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        # Dictionary to store the minimum health required to reach each cell\n        min_health_required = {(0, 0): health}\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0:\n                        # Only add to queue if this path provides more health than previously recorded\n                        if (nx, ny) not in min_health_required or new_health > min_health_required[(nx, ny)]:\n                            min_health_required[(nx, ny)] = new_health\n                            queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        visited = [[-1] * n for _ in range(m)]  # Track the minimum health required to reach each cell\n        queue = deque([(0, 0, health)])\n        \n        while queue:\n            x, y, current_health = queue.popleft()\n            \n            if (x, y) == (m - 1, n - 1) and current_health >= 1:\n                return True\n            \n            if current_health <= 0 or (visited[x][y] != -1 and visited[x][y] >= current_health):\n                continue\n            \n            visited[x][y] = current_health\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = current_health - grid[nx][ny]\n                    queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        visited = [[-1] * n for _ in range(m)]  # Track the minimum health required to reach each cell\n        queue = deque([(0, 0, health)])\n        \n        while queue:\n            x, y, current_health = queue.popleft()\n            \n            if (x, y) == (m - 1, n - 1) and current_health >= 1:\n                return True\n            \n            if current_health <= 0 or (visited[x][y] != -1 and visited[x][y] >= current_health):\n                continue\n            \n            visited[x][y] = current_health\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = current_health - grid[nx][ny]\n                    queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        max_health_remaining = [[-1] * n for _ in range(m)]\n        max_health_remaining[0][0] = health - grid[0][0]\n        queue = deque([(0, 0, health - grid[0][0])])\n        \n        while queue:\n            x, y, current_health = queue.popleft()\n            \n            if (x, y) == (m - 1, n - 1) and current_health >= 1:\n                return True\n            \n            if current_health <= 0:\n                continue\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = current_health - grid[nx][ny]\n                    if new_health > max_health_remaining[nx][ny]:\n                        max_health_remaining[nx][ny] = new_health\n                        queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        # Priority queue to store (negative health, x, y) to simulate max-heap behavior\n        pq = [(-health, 0, 0)]\n        visited = set()\n        \n        while pq:\n            current_health, x, y = heapq.heappop(pq)\n            current_health = -current_health  # Convert back to positive\n            \n            if (x, y) == (m - 1, n - 1) and current_health >= 1:\n                return True\n            \n            if (x, y) in visited or current_health <= 0:\n                continue\n            \n            visited.add((x, y))\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = current_health - grid[nx][ny]\n                    if new_health > 0:\n                        heapq.heappush(pq, (-new_health, nx, ny))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        visited = set((0, 0, health))\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0 and (nx, ny, new_health) not in visited:\n                        visited.add((nx, ny, new_health))\n                        queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        from collections import deque\n        \n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        max_health = [[-float('inf')] * n for _ in range(m)]\n        max_health[0][0] = health\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = h - grid[nx][ny]\n                    if new_health > max_health[nx][ny]:\n                        max_health[nx][ny] = new_health\n                        if new_health > 0:\n                            queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        # Dictionary to store the maximum health at each cell\n        max_health_at_cell = {(0, 0): health}\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0:\n                        # Only add to queue if this path provides more health than previously recorded\n                        if (nx, ny) not in max_health_at_cell or new_health > max_health_at_cell[(nx, ny)]:\n                            max_health_at_cell[(nx, ny)] = new_health\n                            queue.append((nx, ny, new_health))\n        \n        return False"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        from collections import deque\n        \n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        visited = set((0, 0))\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n and (nx, ny) not in visited:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0:\n                        visited.add((nx, ny))\n                        queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        visited = {(0, 0): health}\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0:\n                        if (nx, ny) not in visited or visited[(nx, ny)] < new_health:\n                            visited[(nx, ny)] = new_health\n                            queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        max_health_at_node = {(0, 0): health}\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0:\n                        if (nx, ny) not in max_health_at_node or new_health > max_health_at_node[(nx, ny)]:\n                            max_health_at_node[(nx, ny)] = new_health\n                            queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        # Dictionary to store the minimum health required to reach each cell\n        min_health_required = {(0, 0): health}\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0:\n                        # Only add to queue if this path provides more health than previously recorded\n                        if (nx, ny) not in min_health_required or new_health > min_health_required[(nx, ny)]:\n                            min_health_required[(nx, ny)] = new_health\n                            queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        visited = set()\n        queue = deque([(0, 0, health)])\n        \n        while queue:\n            x, y, current_health = queue.popleft()\n            \n            if (x, y) == (m - 1, n - 1) and current_health >= 1:\n                return True\n            \n            if (x, y) in visited or current_health <= 0:\n                continue\n            \n            visited.add((x, y))\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n and (nx, ny) not in visited:\n                    new_health = current_health - grid[nx][ny]\n                    queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        visited = [[-1] * n for _ in range(m)]  # Track the minimum health required to reach each cell\n        queue = deque([(0, 0, health)])\n        \n        while queue:\n            x, y, current_health = queue.popleft()\n            \n            if (x, y) == (m - 1, n - 1) and current_health >= 1:\n                return True\n            \n            if current_health <= 0 or (visited[x][y] != -1 and visited[x][y] >= current_health):\n                continue\n            \n            visited[x][y] = current_health\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = current_health - grid[nx][ny]\n                    queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        visited = [[-1] * n for _ in range(m)]  # Track the minimum health required to reach each cell\n        queue = deque([(0, 0, health)])\n        \n        while queue:\n            x, y, current_health = queue.popleft()\n            \n            if (x, y) == (m - 1, n - 1) and current_health >= 1:\n                return True\n            \n            if current_health <= 0 or (visited[x][y] != -1 and visited[x][y] >= current_health):\n                continue\n            \n            visited[x][y] = current_health\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = current_health - grid[nx][ny]\n                    queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        min_health_needed = [[float('inf')] * n for _ in range(m)]\n        min_health_needed[0][0] = health - grid[0][0]\n        queue = deque([(0, 0, health - grid[0][0])])\n        \n        while queue:\n            x, y, current_health = queue.popleft()\n            \n            if (x, y) == (m - 1, n - 1) and current_health >= 1:\n                return True\n            \n            if current_health <= 0:\n                continue\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = current_health - grid[nx][ny]\n                    if new_health > min_health_needed[nx][ny]:\n                        min_health_needed[nx][ny] = new_health\n                        queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        memo = {}\n        \n        def dfs(x, y, current_health):\n            if x == m - 1 and y == n - 1:\n                return current_health - grid[x][y] >= 1\n            \n            if current_health <= 0:\n                return False\n            \n            if (x, y, current_health) in memo:\n                return memo[(x, y, current_health)]\n            \n            result = False\n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    if dfs(nx, ny, current_health - grid[nx][ny]):\n                        result = True\n                        break\n            \n            memo[(x, y, current_health)] = result\n            return result\n        \n        return dfs(0, 0, health)",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        max_health_remaining = [[-1] * n for _ in range(m)]\n        max_health_remaining[0][0] = health - grid[0][0]\n        queue = deque([(0, 0, health - grid[0][0])])\n        \n        while queue:\n            x, y, current_health = queue.popleft()\n            \n            if (x, y) == (m - 1, n - 1) and current_health >= 1:\n                return True\n            \n            if current_health <= 0:\n                continue\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = current_health - grid[nx][ny]\n                    if new_health > max_health_remaining[nx][ny]:\n                        max_health_remaining[nx][ny] = new_health\n                        queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        # Priority queue to store (negative health, x, y) to simulate max-heap behavior\n        pq = [(-health, 0, 0)]\n        visited = set()\n        \n        while pq:\n            current_health, x, y = heapq.heappop(pq)\n            current_health = -current_health  # Convert back to positive\n            \n            if (x, y) == (m - 1, n - 1) and current_health >= 1:\n                return True\n            \n            if (x, y) in visited or current_health <= 0:\n                continue\n            \n            visited.add((x, y))\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = current_health - grid[nx][ny]\n                    if new_health > 0:\n                        heapq.heappush(pq, (-new_health, nx, ny))\n        \n        return False",
+    "class Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        from collections import deque\n        \n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        visited = set((0, 0))\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n and (nx, ny) not in visited:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0:\n                        visited.add((nx, ny))\n                        queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        visited = set((0, 0, health))\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0 and (nx, ny, new_health) not in visited:\n                        visited.add((nx, ny, new_health))\n                        queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        from collections import deque\n        \n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        max_health = [[-float('inf')] * n for _ in range(m)]\n        max_health[0][0] = health\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = h - grid[nx][ny]\n                    if new_health > max_health[nx][ny]:\n                        max_health[nx][ny] = new_health\n                        if new_health > 0:\n                            queue.append((nx, ny, new_health))\n        \n        return False",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        # Dictionary to store the maximum health at each cell\n        max_health_at_cell = {(0, 0): health}\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0:\n                        # Only add to queue if this path provides more health than previously recorded\n                        if (nx, ny) not in max_health_at_cell or new_health > max_health_at_cell[(nx, ny)]:\n                            max_health_at_cell[(nx, ny)] = new_health\n                            queue.append((nx, ny, new_health))\n        \n        return False"
+  ],
+  "total_candidates": 15,
+  "nodes_explored": 15,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        from collections import deque\n        \n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        visited = set((0, 0))\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n and (nx, ny) not in visited:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0:\n                        visited.add((nx, ny))\n                        queue.append((nx, ny, new_health))\n        \n        return False",
+      "solution_hash": "a70f9a4e753b865e61d8e6f8ccb44df9becb156579aa21c29e0cc08d8a0f8302",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmptzx2rgs0.py\", line 193, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmptzx2rgs0.py\", line 144, in check\n    assert candidate(grid = [[0, 1, 1, 1, 0, 0, 1, 0], [1, 0, 0, 0, 1, 0, 1, 1], [0, 0, 1, 0, 0, 0, 0, 0], [1, 0, 1, 0, 1, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0, 1]],health = 5) == True\nAssertionError\n",
+        "execution_time": 0.06812548637390137
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        visited = {(0, 0): health}\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0:\n                        if (nx, ny) not in visited or visited[(nx, ny)] < new_health:\n                            visited[(nx, ny)] = new_health\n                            queue.append((nx, ny, new_health))\n        \n        return False",
+          "solution_hash": "a4c0b9164c76835aebd7bcad899084e7c82e8ddd63bc760faaf13c1a1e7db1a6",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07550382614135742
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_2",
+          "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        max_health_at_node = {(0, 0): health}\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0:\n                        if (nx, ny) not in max_health_at_node or new_health > max_health_at_node[(nx, ny)]:\n                            max_health_at_node[(nx, ny)] = new_health\n                            queue.append((nx, ny, new_health))\n        \n        return False",
+          "solution_hash": "b4b379306b7435ca5f378989cea7f2c011388292a47104c5ca8206d0793bc389",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07984757423400879
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_3",
+          "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        # Dictionary to store the minimum health required to reach each cell\n        min_health_required = {(0, 0): health}\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0:\n                        # Only add to queue if this path provides more health than previously recorded\n                        if (nx, ny) not in min_health_required or new_health > min_health_required[(nx, ny)]:\n                            min_health_required[(nx, ny)] = new_health\n                            queue.append((nx, ny, new_health))\n        \n        return False",
+          "solution_hash": "d244e28ff21606c0fb845a488d07ea7819250aa14c68261340a419a5faf246b7",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.08075714111328125
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [],
+          "passed": true
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        visited = set()\n        queue = deque([(0, 0, health)])\n        \n        while queue:\n            x, y, current_health = queue.popleft()\n            \n            if (x, y) == (m - 1, n - 1) and current_health >= 1:\n                return True\n            \n            if (x, y) in visited or current_health <= 0:\n                continue\n            \n            visited.add((x, y))\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n and (nx, ny) not in visited:\n                    new_health = current_health - grid[nx][ny]\n                    queue.append((nx, ny, new_health))\n        \n        return False",
+      "solution_hash": "bbd2330101b817aa2ca9edeb3bec52d4b760df8bd46c19a7eabdf1496ad67575",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpc345ugog.py\", line 197, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmpc345ugog.py\", line 148, in check\n    assert candidate(grid = [[0, 1, 1, 1, 0, 0, 1, 0], [1, 0, 0, 0, 1, 0, 1, 1], [0, 0, 1, 0, 0, 0, 0, 0], [1, 0, 1, 0, 1, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0, 1]],health = 5) == True\nAssertionError\n",
+        "execution_time": 0.07264065742492676
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_5",
+          "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        visited = [[-1] * n for _ in range(m)]  # Track the minimum health required to reach each cell\n        queue = deque([(0, 0, health)])\n        \n        while queue:\n            x, y, current_health = queue.popleft()\n            \n            if (x, y) == (m - 1, n - 1) and current_health >= 1:\n                return True\n            \n            if current_health <= 0 or (visited[x][y] != -1 and visited[x][y] >= current_health):\n                continue\n            \n            visited[x][y] = current_health\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = current_health - grid[nx][ny]\n                    queue.append((nx, ny, new_health))\n        \n        return False",
+          "solution_hash": "2ef3665aea903323ac03b20722f4098be0853dc71f91bdf365d7c7f7d1832ad6",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07698869705200195
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_6",
+          "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        visited = [[-1] * n for _ in range(m)]  # Track the minimum health required to reach each cell\n        queue = deque([(0, 0, health)])\n        \n        while queue:\n            x, y, current_health = queue.popleft()\n            \n            if (x, y) == (m - 1, n - 1) and current_health >= 1:\n                return True\n            \n            if current_health <= 0 or (visited[x][y] != -1 and visited[x][y] >= current_health):\n                continue\n            \n            visited[x][y] = current_health\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = current_health - grid[nx][ny]\n                    queue.append((nx, ny, new_health))\n        \n        return False",
+          "solution_hash": "2ef3665aea903323ac03b20722f4098be0853dc71f91bdf365d7c7f7d1832ad6",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07698869705200195
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_7",
+          "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        min_health_needed = [[float('inf')] * n for _ in range(m)]\n        min_health_needed[0][0] = health - grid[0][0]\n        queue = deque([(0, 0, health - grid[0][0])])\n        \n        while queue:\n            x, y, current_health = queue.popleft()\n            \n            if (x, y) == (m - 1, n - 1) and current_health >= 1:\n                return True\n            \n            if current_health <= 0:\n                continue\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = current_health - grid[nx][ny]\n                    if new_health > min_health_needed[nx][ny]:\n                        min_health_needed[nx][ny] = new_health\n                        queue.append((nx, ny, new_health))\n        \n        return False",
+          "solution_hash": "cc347070a50e6efe7fd755fd99a43b4594ad5e1b5536aca7c63edec2ab04e6ed",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpuualx97_.py\", line 198, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmpuualx97_.py\", line 113, in check\n    assert candidate(grid = [[0, 1, 0, 0, 0], [0, 1, 0, 1, 0], [0, 0, 0, 1, 0]],health = 1) == True\nAssertionError\n",
+            "execution_time": 0.07077527046203613
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_8",
+              "solution": "from typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        memo = {}\n        \n        def dfs(x, y, current_health):\n            if x == m - 1 and y == n - 1:\n                return current_health - grid[x][y] >= 1\n            \n            if current_health <= 0:\n                return False\n            \n            if (x, y, current_health) in memo:\n                return memo[(x, y, current_health)]\n            \n            result = False\n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    if dfs(nx, ny, current_health - grid[nx][ny]):\n                        result = True\n                        break\n            \n            memo[(x, y, current_health)] = result\n            return result\n        \n        return dfs(0, 0, health)",
+              "solution_hash": "c4baf86f56985d80eb060e82448de69e5f24acb72999797229b7d128d3a4f20a",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp_3ztdafc.py\", line 199, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmp_3ztdafc.py\", line 114, in check\n    assert candidate(grid = [[0, 1, 0, 0, 0], [0, 1, 0, 1, 0], [0, 0, 0, 1, 0]],health = 1) == True\n  File \"/scratch/local/21419949/tmp_3ztdafc.py\", line 110, in findSafeWalk\n    return dfs(0, 0, health)\n  File \"/scratch/local/21419949/tmp_3ztdafc.py\", line 103, in dfs\n    if dfs(nx, ny, current_health - grid[nx][ny]):\n  File \"/scratch/local/21419949/tmp_3ztdafc.py\", line 103, in dfs\n    if dfs(nx, ny, current_health - grid[nx][ny]):\n  File \"/scratch/local/21419949/tmp_3ztdafc.py\", line 103, in dfs\n    if dfs(nx, ny, current_health - grid[nx][ny]):\n  [Previous line repeated 993 more times]\n  File \"/scratch/local/21419949/tmp_3ztdafc.py\", line 90, in dfs\n    if x == m - 1 and y == n - 1:\nRecursionError: maximum recursion depth exceeded in comparison\n",
+                "execution_time": 0.06865787506103516
+              },
+              "depth": 2,
+              "parent_id": "1_7",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_9",
+              "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        max_health_remaining = [[-1] * n for _ in range(m)]\n        max_health_remaining[0][0] = health - grid[0][0]\n        queue = deque([(0, 0, health - grid[0][0])])\n        \n        while queue:\n            x, y, current_health = queue.popleft()\n            \n            if (x, y) == (m - 1, n - 1) and current_health >= 1:\n                return True\n            \n            if current_health <= 0:\n                continue\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = current_health - grid[nx][ny]\n                    if new_health > max_health_remaining[nx][ny]:\n                        max_health_remaining[nx][ny] = new_health\n                        queue.append((nx, ny, new_health))\n        \n        return False",
+              "solution_hash": "143545e78b908ae5922e4c90b1f2233478b623fd4b964b5f11d52a9a29912968",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.07352781295776367
+              },
+              "depth": 2,
+              "parent_id": "1_7",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_10",
+              "solution": "from typing import List\nimport heapq\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        # Priority queue to store (negative health, x, y) to simulate max-heap behavior\n        pq = [(-health, 0, 0)]\n        visited = set()\n        \n        while pq:\n            current_health, x, y = heapq.heappop(pq)\n            current_health = -current_health  # Convert back to positive\n            \n            if (x, y) == (m - 1, n - 1) and current_health >= 1:\n                return True\n            \n            if (x, y) in visited or current_health <= 0:\n                continue\n            \n            visited.add((x, y))\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = current_health - grid[nx][ny]\n                    if new_health > 0:\n                        heapq.heappush(pq, (-new_health, nx, ny))\n        \n        return False",
+              "solution_hash": "31e871033a31869f74949dbfff1f9e963cb6246b559f4f7135a846fd559c846e",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.0781700611114502
+              },
+              "depth": 2,
+              "parent_id": "1_7",
+              "children": [],
+              "passed": true
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        from collections import deque\n        \n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        visited = set((0, 0))\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n and (nx, ny) not in visited:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0:\n                        visited.add((nx, ny))\n                        queue.append((nx, ny, new_health))\n        \n        return False",
+      "solution_hash": "a70f9a4e753b865e61d8e6f8ccb44df9becb156579aa21c29e0cc08d8a0f8302",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpfhotl6ly.py\", line 193, in <module>\n    check(Solution().findSafeWalk)\n  File \"/scratch/local/21419949/tmpfhotl6ly.py\", line 144, in check\n    assert candidate(grid = [[0, 1, 1, 1, 0, 0, 1, 0], [1, 0, 0, 0, 1, 0, 1, 1], [0, 0, 1, 0, 0, 0, 0, 0], [1, 0, 1, 0, 1, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0, 1]],health = 5) == True\nAssertionError\n",
+        "execution_time": 0.07188868522644043
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_12",
+          "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        visited = set((0, 0, health))\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0 and (nx, ny, new_health) not in visited:\n                        visited.add((nx, ny, new_health))\n                        queue.append((nx, ny, new_health))\n        \n        return False",
+          "solution_hash": "1bb79c87e6662727f89fdc0c011aa1624094ad15d8d243049d41d6ed97ad09f6",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.08390164375305176
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_13",
+          "solution": "from typing import List\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        from collections import deque\n        \n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        max_health = [[-float('inf')] * n for _ in range(m)]\n        max_health[0][0] = health\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = h - grid[nx][ny]\n                    if new_health > max_health[nx][ny]:\n                        max_health[nx][ny] = new_health\n                        if new_health > 0:\n                            queue.append((nx, ny, new_health))\n        \n        return False",
+          "solution_hash": "033f10c536632bee2cc075865ea83c90e55249c21c5084d4c22007764f25f443",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07635641098022461
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [],
+          "passed": true
+        },
+        {
+          "node_id": "1_14",
+          "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findSafeWalk(self, grid: List[List[int]], health: int) -> bool:\n        m, n = len(grid), len(grid[0])\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        queue = deque([(0, 0, health)])\n        # Dictionary to store the maximum health at each cell\n        max_health_at_cell = {(0, 0): health}\n        \n        while queue:\n            x, y, h = queue.popleft()\n            \n            if x == m - 1 and y == n - 1 and h >= 1:\n                return True\n            \n            for dx, dy in directions:\n                nx, ny = x + dx, y + dy\n                if 0 <= nx < m and 0 <= ny < n:\n                    new_health = h - grid[nx][ny]\n                    if new_health > 0:\n                        # Only add to queue if this path provides more health than previously recorded\n                        if (nx, ny) not in max_health_at_cell or new_health > max_health_at_cell[(nx, ny)]:\n                            max_health_at_cell[(nx, ny)] = new_health\n                            queue.append((nx, ny, new_health))\n        \n        return False",
+          "solution_hash": "76d413aa9cdae3f4c31ea4f9d4abf4a5727a81acb7505056fcc0cc32447d0ac1",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07921099662780762
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [],
+          "passed": true
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 15,
+    "candidates_generated": 15,
+    "tests_passed": 10,
+    "tests_failed": 5,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 329.31429076194763,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.625,
+      "pass@3": 0.9642857142857143,
+      "pass@5": 0.9986263736263736,
+      "pass@10": 1.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: maximum recursion depth exceeded in comparison",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: name 'pairwise' is not defined",
+            "completion_id": 15
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 16,
+    "test_cases": 1
+  }
+}

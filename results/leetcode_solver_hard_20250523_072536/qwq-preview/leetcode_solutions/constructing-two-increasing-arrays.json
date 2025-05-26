@@ -1,0 +1,591 @@
+{
+  "problem_id": "constructing-two-increasing-arrays",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        import heapq\n        even = []\n        odd = []\n        for num in nums1:\n            if num == 0:\n                even.append(0)\n            else:\n                odd.append(0)\n        for num in nums2:\n            if num == 0:\n                even.append(1)\n            else:\n                odd.append(1)\n        even_h = []\n        odd_h = []\n        even_last = -1\n        odd_last = -1\n        for e, o in zip_longest(even, odd, fillvalue=-1):\n            if e != -1:\n                if e == 0:\n                    while even_h and even_h[0] <= even_last:\n                        heapq.heappop(even_h)\n                    if even_h:\n                        even_last = heapq.heappop(even_h)\n                    else:\n                        even_last = even_last + 2 if even_last % 2 == 0 else even_last + 1\n                else:\n                    even_last = even_last + 2 if even_last % 2 == 0 else even_last + 1\n            if o != -1:\n                if o == 0:\n                    while odd_h and odd_h[0] <= odd_last:\n                        heapq.heappop(odd_h)\n                    if odd_h:\n                        odd_last = heapq.heappop(odd_h)\n                    else:\n                        odd_last = odd_last + 2 if odd_last % 2 == 1 else odd_last + 1\n                else:\n                    odd_last = odd_last + 2 if odd_last % 2 == 1 else odd_last + 1\n            if e != -1 and o != -1:\n                if e == 0 and o == 0:\n                    even_last = max(even_last, odd_last)\n                    odd_last = even_last + 1\n                    even_last = even_last + 2 if even_last % 2 == 0 else even_last + 1\n                elif e == 0:\n                    even_last = max(even_last, odd_last)\n                    even_last = even_last + 2 if even_last % 2 == 0 else even_last + 1\n                elif o == 0:\n                    odd_last = max(odd_last, even_last)\n                    odd_last = odd_last + 2 if odd_last % 2 == 1 else odd_last + 1\n                else:\n                    even_last = max(even_last, odd_last)\n                    odd_last = even_last + 1\n                    even_last = even_last + 2 if even_last % 2 == 0 else even_last + 1\n            elif e != -1:\n                if e == 0:\n                    even_last = even_last + 2 if even_last % 2 == 0 else even_last + 1\n                else:\n                    even_last = even_last + 2 if even_last % 2 == 0 else even_last + 1\n            elif o != -1:\n                if o == 0:\n                    odd_last = odd_last + 2 if odd_last % 2 == 1 else odd_last + 1\n                else:\n                    odd_last = odd_last + 2 if odd_last % 2 == 1 else odd_last + 1\n            if e != -1 and e == 0:\n                heapq.heappush(even_h, even_last + 2 if even_last % 2 == 0 else even_last + 1)\n            if o != -1 and o == 0:\n                heapq.heappush(odd_h, odd_last + 2 if odd_last % 2 == 1 else odd_last + 1)\n        return max(even_last, odd_last)",
+    "from typing import List\n\n        class Solution:\n            def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n                # Initialize variables to track the last assigned values for each array\n                last1 = -1\n                last2 = -1\n                # Initialize counters for even and odd numbers\n                even = 0\n                odd = 1\n                # Combine the arrays with their indices and sort based on values in nums1 and nums2\n                combined = []\n                for i, num in enumerate(nums1):\n                    combined.append((i, num, 1))\n                for i, num in enumerate(nums2):\n                    combined.append((i, num, 2))\n                combined.sort(key=lambda x: (x[0], x[1]))\n                \n                # Assign values to each position\n                for idx, num, array_id in combined:\n                    if array_id == 1:\n                        if num == 0:\n                            # Assign the smallest even number greater than last1\n                            if even > last1:\n                                last1 = even\n                                even += 2\n                            else:\n                                last1 += 2\n                        else:\n                            # Assign the smallest odd number greater than last1\n                            if odd > last1:\n                                last1 = odd\n                                odd += 2\n                            else:\n                                last1 += 2\n                                if last1 % 2 == 0:\n                                    last1 += 1\n                        # Ensure it doesn't conflict with last2\n                        while last1 <= last2:\n                            last1 += 2\n                    else:\n                        if num == 0:\n                            # Assign the smallest even number greater than last2\n                            if even > last2:\n                                last2 = even\n                                even += 2\n                            else:\n                                last2 += 2\n                        else:\n                            # Assign the smallest odd number greater than last2\n                            if odd > last2:\n                                last2 = odd\n                                odd += 2\n                            else:\n                                last2 += 2\n                                if last2 % 2 == 0:\n                                    last2 += 1\n                        # Ensure it doesn't conflict with last1\n                        while last2 <= last1:\n                            last2 += 2\n                # Return the maximum of last1 and last2\n                return max(last1, last2)",
+    "from typing import List\n\n        class Solution:\n            def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n                # Initialize variables to track the last assigned values for each array\n                last1 = -1\n                last2 = -1\n                # Initialize counters for even and odd numbers\n                even = 0\n                odd = 1\n                # Combine the arrays with their indices and sort based on positions\n                combined = []\n                for i, num in enumerate(nums1):\n                    combined.append((i, num, 1))\n                for i, num in enumerate(nums2):\n                    combined.append((i, num, 2))\n                combined.sort(key=lambda x: (x[0], x[1]))\n                \n                # Assign values to each position\n                for idx, num, array_id in combined:\n                    if array_id == 1:\n                        if num == 0:\n                            # Assign the smallest even number greater than last1\n                            if even > last1:\n                                last1 = even\n                                even += 2\n                            else:\n                                last1 += 2\n                                even = max(even, last1 + 2)\n                        else:\n                            # Assign the smallest odd number greater than last1\n                            if odd > last1:\n                                last1 = odd\n                                odd += 2\n                            else:\n                                last1 += 2\n                                if last1 % 2 == 0:\n                                    last1 += 1\n                                odd = max(odd, last1 + 2)\n                        # Ensure it doesn't conflict with last2\n                        while last1 <= last2:\n                            last1 += 2\n                            if last1 % 2 == 0:\n                                even = max(even, last1 + 2)\n                            else:\n                                odd = max(odd, last1 + 2)\n                    else:\n                        if num == 0:\n                            # Assign the smallest even number greater than last2\n                            if even > last2:\n                                last2 = even\n                                even += 2\n                            else:\n                                last2 += 2\n                                even = max(even, last2 + 2)\n                        else:\n                            # Assign the smallest odd number greater than last2\n                            if odd > last2:\n                                last2 = odd\n                                odd += 2\n                            else:\n                                last2 += 2\n                                if last2 % 2 == 0:\n                                    last2 += 1\n                                odd = max(odd, last2 + 2)\n                        # Ensure it doesn't conflict with last1\n                        while last2 <= last1:\n                            last2 += 2\n                            if last2 % 2 == 0:\n                                even = max(even, last2 + 2)\n                            else:\n                                odd = max(odd, last2 + 2)\n                # Return the maximum of last1 and last2\n                return max(last1, last2)",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Initialize the last assigned values for each array\n        last1 = -1\n        last2 = -1\n        # Initialize counters for even and odd numbers\n        even = 0\n        odd = 1\n        # Combine the arrays with their indices and sort based on indices\n        combined = []\n        for i, num in enumerate(nums1):\n            combined.append((i, num, 1))\n        for i, num in enumerate(nums2):\n            combined.append((i, num, 2))\n        combined.sort(key=lambda x: x[0])\n        \n        # Assign values to each position\n        for idx, num, array_id in combined:\n            if array_id == 1:\n                if num == 0:\n                    # Assign the smallest even number greater than last1\n                    if even > last1:\n                        last1 = even\n                        even += 2\n                    else:\n                        last1 = last1 + 2 if last1 + 2 > even else even + 2\n                        even = last1 + 2\n                else:\n                    # Assign the smallest odd number greater than last1\n                    if odd > last1:\n                        last1 = odd\n                        odd += 2\n                    else:\n                        last1 = last1 + 1 if last1 + 1 > odd else odd + 2\n                        odd = last1 + 2\n                # Ensure it doesn't conflict with last2\n                while last1 <= last2:\n                    last1 += 2\n                    if last1 % 2 == 0:\n                        even = max(even, last1 + 2)\n                    else:\n                        odd = max(odd, last1 + 2)\n            else:\n                if num == 0:\n                    # Assign the smallest even number greater than last2\n                    if even > last2:\n                        last2 = even\n                        even += 2\n                    else:\n                        last2 = last2 + 2 if last2 + 2 > even else even + 2\n                        even = last2 + 2\n                else:\n                    # Assign the smallest odd number greater than last2\n                    if odd > last2:\n                        last2 = odd\n                        odd += 2\n                    else:\n                        last2 = last2 + 1 if last2 + 1 > odd else odd + 2\n                        odd = last2 + 2\n                # Ensure it doesn't conflict with last1\n                while last2 <= last1:\n                    last2 += 2\n                    if last2 % 2 == 0:\n                        even = max(even, last2 + 2)\n                    else:\n                        odd = max(odd, last2 + 2)\n        # Return the maximum of last1 and last2\n        return max(last1, last2)",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Initialize variables to track the last assigned values for each array\n        last1 = -1\n        last2 = -1\n        # Initialize counters for even and odd numbers\n        even = 0\n        odd = 1\n        # Combine the arrays with their indices and sort based on positions\n        combined = []\n        for i, num in enumerate(nums1):\n            combined.append((i, num, 1))\n        for i, num in enumerate(nums2):\n            combined.append((i, num, 2))\n        combined.sort(key=lambda x: (x[0], x[1]))\n        \n        # Assign values to each position\n        for idx, num, array_id in combined:\n            if array_id == 1:\n                if num == 0:\n                    # Assign the smallest even number greater than last1\n                    if even > last1:\n                        last1 = even\n                        even += 2\n                    else:\n                        last1 += 2\n                        even = last1 + 2\n                else:\n                    # Assign the smallest odd number greater than last1\n                    if odd > last1:\n                        last1 = odd\n                        odd += 2\n                    else:\n                        last1 += 2\n                        if last1 % 2 == 0:\n                            last1 += 1\n                        odd = last1 + 2\n                # Ensure it doesn't conflict with last2\n                while last1 <= last2:\n                    last1 += 2\n                    if last1 % 2 == 0:\n                        even = last1 + 2\n                    else:\n                        odd = last1 + 2\n            else:\n                if num == 0:\n                    # Assign the smallest even number greater than last2\n                    if even > last2:\n                        last2 = even\n                        even += 2\n                    else:\n                        last2 += 2\n                        even = last2 + 2\n                else:\n                    # Assign the smallest odd number greater than last2\n                    if odd > last2:\n                        last2 = odd\n                        odd += 2\n                    else:\n                        last2 += 2\n                        if last2 % 2 == 0:\n                            last2 += 1\n                        odd = last2 + 2\n                # Ensure it doesn't conflict with last1\n                while last2 <= last1:\n                    last2 += 2\n                    if last2 % 2 == 0:\n                        even = last2 + 2\n                    else:\n                        odd = last2 + 2\n        # Return the maximum of last1 and last2\n        return max(last1, last2)",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        import heapq\n        n1, n2 = len(nums1), len(nums2)\n        i = j = 0\n        even = []\n        odd = []\n        heapq.heapify(even)\n        heapq.heapify(odd)\n        for num in range(2, 2*(n1 + n2) + 1):\n            if num % 2 == 0:\n                heapq.heappush(even, num)\n            else:\n                heapq.heappush(odd, num)\n        \n        prev1 = prev2 = 1\n        max_num = 1\n        while i < n1 or j < n2:\n            if i < n1:\n                if nums1[i] == 0:\n                    while even and even[0] <= prev1:\n                        heapq.heappop(even)\n                    if even:\n                        curr1 = heapq.heappop(even)\n                    else:\n                        curr1 = prev1 + 2 if prev1 % 2 == 0 else prev1 + 1\n                else:\n                    while odd and odd[0] <= prev1:\n                        heapq.heappop(odd)\n                    if odd:\n                        curr1 = heapq.heappop(odd)\n                    else:\n                        curr1 = prev1 + 2 if prev1 % 2 == 1 else prev1 + 1\n                prev1 = curr1\n                max_num = max(max_num, curr1)\n                i += 1\n            if j < n2:\n                if nums2[j] == 0:\n                    while even and even[0] <= prev2:\n                        heapq.heappop(even)\n                    if even:\n                        curr2 = heapq.heappop(even)\n                    else:\n                        curr2 = prev2 + 2 if prev2 % 2 == 0 else prev2 + 1\n                else:\n                    while odd and odd[0] <= prev2:\n                        heapq.heappop(odd)\n                    if odd:\n                        curr2 = heapq.heappop(odd)\n                    else:\n                        curr2 = prev2 + 2 if prev2 % 2 == 1 else prev2 + 1\n                prev2 = curr2\n                max_num = max(max_num, curr2)\n                j += 1\n            if i < n1 and j < n2:\n                if curr1 >= curr2:\n                    prev1 = curr1\n                    prev2 = curr2\n                else:\n                    prev1 = curr1\n                    prev2 = curr2\n        return max_num",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        import heapq\n        n1, n2 = len(nums1), len(nums2)\n        i = j = 0\n        even = []\n        odd = []\n        for num in range(2, 2*(n1 + n2) + 2, 2):\n            even.append(num)\n        for num in range(1, 2*(n1 + n2) + 2, 2):\n            odd.append(num)\n        heapq.heapify(even)\n        heapq.heapify(odd)\n        \n        prev1 = prev2 = 0\n        max_num = 0\n        while i < n1 or j < n2:\n            if i < n1:\n                if nums1[i] == 0:\n                    while even and even[0] <= prev1:\n                        heapq.heappop(even)\n                    if even:\n                        curr1 = heapq.heappop(even)\n                    else:\n                        curr1 = prev1 + 2 if prev1 % 2 == 0 else prev1 + 1\n                else:\n                    while odd and odd[0] <= prev1:\n                        heapq.heappop(odd)\n                    if odd:\n                        curr1 = heapq.heappop(odd)\n                    else:\n                        curr1 = prev1 + 2 if prev1 % 2 == 1 else prev1 + 1\n                prev1 = curr1\n                max_num = max(max_num, curr1)\n                i += 1\n            if j < n2:\n                if nums2[j] == 0:\n                    while even and even[0] <= prev2:\n                        heapq.heappop(even)\n                    if even:\n                        curr2 = heapq.heappop(even)\n                    else:\n                        curr2 = prev2 + 2 if prev2 % 2 == 0 else prev2 + 1\n                else:\n                    while odd and odd[0] <= prev2:\n                        heapq.heappop(odd)\n                    if odd:\n                        curr2 = heapq.heappop(odd)\n                    else:\n                        curr2 = prev2 + 2 if prev2 % 2 == 1 else prev2 + 1\n                prev2 = curr2\n                max_num = max(max_num, curr2)\n                j += 1\n            if i < n1 and j < n2:\n                if curr1 >= curr2:\n                    prev1 = curr1\n                    prev2 = curr2\n                else:\n                    prev1 = curr1\n                    prev2 = curr2\n        return max_num",
+    "from typing import List\n        import heapq\n\n        class Solution:\n            def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n                n1, n2 = len(nums1), len(nums2)\n                i, j = 0, 0\n                even = list(range(2, 2*(n1 + n2) + 1, 2))\n                odd = list(range(1, 2*(n1 + n2) + 1, 2))\n                heapq.heapify(even)\n                heapq.heapify(odd)\n                \n                prev1 = prev2 = 0\n                max_num = 0\n                while i < n1 or j < n2:\n                    if i < n1 and (j >= n2 or nums1[i] < nums2[j]):\n                        if nums1[i] == 0:\n                            while even and even[0] <= prev1:\n                                heapq.heappop(even)\n                            if even:\n                                curr1 = heapq.heappop(even)\n                            else:\n                                curr1 = prev1 + 2 if prev1 % 2 == 0 else prev1 + 1\n                        else:\n                            while odd and odd[0] <= prev1:\n                                heapq.heappop(odd)\n                            if odd:\n                                curr1 = heapq.heappop(odd)\n                            else:\n                                curr1 = prev1 + 2 if prev1 % 2 == 1 else prev1 + 1\n                        prev1 = curr1\n                        max_num = max(max_num, curr1)\n                        i += 1\n                    else:\n                        if nums2[j] == 0:\n                            while even and even[0] <= prev2:\n                                heapq.heappop(even)\n                            if even:\n                                curr2 = heapq.heappop(even)\n                            else:\n                                curr2 = prev2 + 2 if prev2 % 2 == 0 else prev2 + 1\n                        else:\n                            while odd and odd[0] <= prev2:\n                                heapq.heappop(odd)\n                            if odd:\n                                curr2 = heapq.heappop(odd)\n                            else:\n                                curr2 = prev2 + 2 if prev2 % 2 == 1 else prev2 + 1\n                        prev2 = curr2\n                        max_num = max(max_num, curr2)\n                        j += 1\n                return max_num",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        import heapq\n        \n        # Initialize variables\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        last1, last2 = 0, 0\n        used = set()\n        even_candidate = 2\n        odd_candidate = 1\n        max_num = 0\n        \n        while i < n1 or j < n2:\n            # Determine which array to process\n            if i < n1 and (j >= n2 or i <= j):\n                # Process nums1\n                if nums1[i] == 0:\n                    # Need even number greater than last1 and not used\n                    while even_candidate <= last1 or even_candidate in used:\n                        even_candidate += 2\n                    assigned = even_candidate\n                    even_candidate += 2\n                else:\n                    # Need odd number greater than last1 and not used\n                    while odd_candidate <= last1 or odd_candidate in used:\n                        odd_candidate += 2\n                    assigned = odd_candidate\n                    odd_candidate += 2\n                # Assign and update\n                used.add(assigned)\n                last1 = assigned\n                max_num = max(max_num, assigned)\n                i += 1\n            else:\n                # Process nums2\n                if nums2[j] == 0:\n                    # Need even number greater than last2 and not used\n                    while even_candidate <= last2 or even_candidate in used:\n                        even_candidate += 2\n                    assigned = even_candidate\n                    even_candidate += 2\n                else:\n                    # Need odd number greater than last2 and not used\n                    while odd_candidate <= last2 or odd_candidate in used:\n                        odd_candidate += 2\n                    assigned = odd_candidate\n                    odd_candidate += 2\n                # Assign and update\n                used.add(assigned)\n                last2 = assigned\n                max_num = max(max_num, assigned)\n                j += 1\n            # Ensure no overlap\n            while even_candidate in used:\n                even_candidate += 2\n            while odd_candidate in used:\n                odd_candidate += 2\n            # Ensure last1 and last2 do not conflict\n            while last1 >= last2:\n                last2 = max(last2, last1 + 1)\n                # Assign next available number to last2\n                if nums2[j] == 0:\n                    while even_candidate <= last2 or even_candidate in used:\n                        even_candidate += 2\n                    last2 = even_candidate\n                    even_candidate += 2\n                else:\n                    while odd_candidate <= last2 or odd_candidate in used:\n                        odd_candidate += 2\n                    last2 = odd_candidate\n                    odd_candidate += 2\n                used.add(last2)\n                max_num = max(max_num, last2)\n        \n        return max_num",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        import heapq\n        \n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        last1, last2 = 0, 0\n        used = set()\n        even_candidate = 2\n        odd_candidate = 1\n        max_num = 0\n        \n        while i < n1 or j < n2:\n            # Determine which array to process next\n            if i < n1 and (j >= n2 or nums1[i] < nums2[j]):\n                # Process nums1\n                if nums1[i] == 0:\n                    # Need even number greater than last1 and not used\n                    while even_candidate <= last1 or even_candidate in used:\n                        even_candidate += 2\n                    assigned = even_candidate\n                    even_candidate += 2\n                else:\n                    # Need odd number greater than last1 and not used\n                    while odd_candidate <= last1 or odd_candidate in used:\n                        odd_candidate += 2\n                    assigned = odd_candidate\n                    odd_candidate += 2\n                # Assign and update\n                used.add(assigned)\n                last1 = assigned\n                max_num = max(max_num, assigned)\n                i += 1\n            else:\n                # Process nums2\n                if nums2[j] == 0:\n                    # Need even number greater than last2 and not used\n                    while even_candidate <= last2 or even_candidate in used:\n                        even_candidate += 2\n                    assigned = even_candidate\n                    even_candidate += 2\n                else:\n                    # Need odd number greater than last2 and not used\n                    while odd_candidate <= last2 or odd_candidate in used:\n                        odd_candidate += 2\n                    assigned = odd_candidate\n                    odd_candidate += 2\n                # Assign and update\n                used.add(assigned)\n                last2 = assigned\n                max_num = max(max_num, assigned)\n                j += 1\n            # Ensure no overlap after assignment\n            while even_candidate in used:\n                even_candidate += 2\n            while odd_candidate in used:\n                odd_candidate += 2\n            # Adjust last1 and last2 to avoid conflicts\n            while last1 >= last2:\n                last2 = max(last2, last1 + 1)\n                # Assign next available number to last2\n                if j < n2 and nums2[j] == 0:\n                    while even_candidate <= last2 or even_candidate in used:\n                        even_candidate += 2\n                    last2 = even_candidate\n                    even_candidate += 2\n                else:\n                    while odd_candidate <= last2 or odd_candidate in used:\n                        odd_candidate += 2\n                    last2 = odd_candidate\n                    odd_candidate += 2\n                used.add(last2)\n                max_num = max(max_num, last2)\n            while last2 >= last1:\n                last1 = max(last1, last2 + 1)\n                # Assign next available number to last1\n                if i < n1 and nums1[i] == 0:\n                    while even_candidate <= last1 or even_candidate in used:\n                        even_candidate += 2\n                    last1 = even_candidate\n                    even_candidate += 2\n                else:\n                    while odd_candidate <= last1 or odd_candidate in used:\n                        odd_candidate += 2\n                    last1 = odd_candidate\n                    odd_candidate += 2\n                used.add(last1)\n                max_num = max(max_num, last1)\n        \n        return max_num",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        import heapq\n        \n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        last1, last2 = 0, 0\n        used = set()\n        even_candidate = 2\n        odd_candidate = 1\n        max_num = 0\n        \n        while i < n1 or j < n2:\n            # Determine which array to process next\n            if i < n1 and (j >= n2 or nums1[i] < nums2[j]):\n                # Process nums1\n                if nums1[i] == 0:\n                    # Need even number greater than last1 and not used\n                    while even_candidate <= last1 or even_candidate in used:\n                        even_candidate += 2\n                    assigned = even_candidate\n                    even_candidate += 2\n                else:\n                    # Need odd number greater than last1 and not used\n                    while odd_candidate <= last1 or odd_candidate in used:\n                        odd_candidate += 2\n                    assigned = odd_candidate\n                    odd_candidate += 2\n                # Assign and update\n                used.add(assigned)\n                last1 = assigned\n                max_num = max(max_num, assigned)\n                i += 1\n            else:\n                # Process nums2\n                if nums2[j] == 0:\n                    # Need even number greater than last2 and not used\n                    while even_candidate <= last2 or even_candidate in used:\n                        even_candidate += 2\n                    assigned = even_candidate\n                    even_candidate += 2\n                else:\n                    # Need odd number greater than last2 and not used\n                    while odd_candidate <= last2 or odd_candidate in used:\n                        odd_candidate += 2\n                    assigned = odd_candidate\n                    odd_candidate += 2\n                # Assign and update\n                used.add(assigned)\n                last2 = assigned\n                max_num = max(max_num, assigned)\n                j += 1\n            # Ensure no overlap after assignment\n            while even_candidate in used:\n                even_candidate += 2\n            while odd_candidate in used:\n                odd_candidate += 2\n            # Adjust last1 and last2 to avoid conflicts\n            while last1 >= last2:\n                last2 = max(last2, last1 + 1)\n                # Assign next available number to last2\n                if j < n2 and nums2[j] == 0:\n                    while even_candidate <= last2 or even_candidate in used:\n                        even_candidate += 2\n                    last2 = even_candidate\n                    even_candidate += 2\n                else:\n                    while odd_candidate <= last2 or odd_candidate in used:\n                        odd_candidate += 2\n                    last2 = odd_candidate\n                    odd_candidate += 2\n                used.add(last2)\n                max_num = max(max_num, last2)\n            while last2 >= last1:\n                last1 = max(last1, last2 + 1)\n                # Assign next available number to last1\n                if i < n1 and nums1[i] == 0:\n                    while even_candidate <= last1 or even_candidate in used:\n                        even_candidate += 2\n                    last1 = even_candidate\n                    even_candidate += 2\n                else:\n                    while odd_candidate <= last1 or odd_candidate in used:\n                        odd_candidate += 2\n                    last1 = odd_candidate\n                    odd_candidate += 2\n                used.add(last1)\n                max_num = max(max_num, last1)\n        \n        return max_num",
+    "from typing import List\n        import heapq\n\n        class Solution:\n            def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n                # Initialize variables to track the last values in each array\n                last1 = 0\n                last2 = 0\n                # Use a heap to keep track of available even and odd numbers\n                even_available = [2]\n                odd_available = [1]\n                # Set to keep track of used numbers\n                used = set()\n                # Maximum number used\n                max_num = 0\n\n                # Function to get the next available even number greater than last\n                def next_even(last):\n                    while even_available and even_available[0] <= last:\n                        heapq.heappop(even_available)\n                    if not even_available:\n                        # Generate new even number\n                        new_even = last + 1 if last % 2 == 0 else last + 2\n                        while new_even in used:\n                            new_even += 2\n                        heapq.heappush(even_available, new_even)\n                    next_num = even_available[0]\n                    used.add(next_num)\n                    heapq.heappop(even_available)\n                    return next_num\n\n                # Function to get the next available odd number greater than last\n                def next_odd(last):\n                    while odd_available and odd_available[0] <= last:\n                        heapq.heappop(odd_available)\n                    if not odd_available:\n                        # Generate new odd number\n                        new_odd = last + 1 if last % 2 == 1 else last + 2\n                        while new_odd in used:\n                            new_odd += 2\n                        heapq.heappush(odd_available, new_odd)\n                    next_num = odd_available[0]\n                    used.add(next_num)\n                    heapq.heappop(odd_available)\n                    return next_num\n\n                # Iterate through both arrays simultaneously\n                i, j = 0, 0\n                while i < len(nums1) or j < len(nums2):\n                    # Determine which array to process next\n                    if i < len(nums1) and (j >= len(nums2) or nums1[i] < nums2[j]):\n                        # Process nums1\n                        if nums1[i] == 0:\n                            assigned = next_even(last1)\n                        else:\n                            assigned = next_odd(last1)\n                        last1 = assigned\n                        max_num = max(max_num, assigned)\n                        i += 1\n                    else:\n                        # Process nums2\n                        if nums2[j] == 0:\n                            assigned = next_even(last2)\n                        else:\n                            assigned = next_odd(last2)\n                        last2 = assigned\n                        max_num = max(max_num, assigned)\n                        j += 1\n                    # Ensure no overlap after assignment\n                    while even_available and even_available[0] in used:\n                        heapq.heappop(even_available)\n                    while odd_available and odd_available[0] in used:\n                        heapq.heappop(odd_available)\n                    # Adjust last1 and last2 to avoid conflicts\n                    while last1 >= last2:\n                        last2 = last1 + 1\n                        if j < len(nums2) and nums2[j] == 0:\n                            last2 = next_even(last2)\n                        else:\n                            last2 = next_odd(last2)\n                    while last2 >= last1:\n                        last1 = last2 + 1\n                        if i < len(nums1) and nums1[i] == 0:\n                            last1 = next_even(last1)\n                        else:\n                            last1 = next_odd(last1)\n                return max_num",
+    "from typing import List\n\n        class Solution:\n            def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n                n1, n2 = len(nums1), len(nums2)\n                i, j = 0, 0\n                last1, last2 = 0, 0\n                used = set()\n                even_candidate = 2\n                odd_candidate = 1\n                max_num = 0\n\n                while i < n1 or j < n2:\n                    # Determine which array to process\n                    if (i < n1 and (j >= n2 or i <= j)):\n                        # Process nums1\n                        if nums1[i] == 0:\n                            # Need even number greater than last1 and not used\n                            while even_candidate <= last1 or even_candidate in used:\n                                even_candidate += 2\n                            assigned = even_candidate\n                            even_candidate += 2\n                        else:\n                            # Need odd number greater than last1 and not used\n                            while odd_candidate <= last1 or odd_candidate in used:\n                                odd_candidate += 2\n                            assigned = odd_candidate\n                            odd_candidate += 2\n                        # Assign and update\n                        used.add(assigned)\n                        last1 = assigned\n                        max_num = max(max_num, assigned)\n                        i += 1\n                    else:\n                        # Process nums2\n                        if nums2[j] == 0:\n                            # Need even number greater than last2 and not used\n                            while even_candidate <= last2 or even_candidate in used:\n                                even_candidate += 2\n                            assigned = even_candidate\n                            even_candidate += 2\n                        else:\n                            # Need odd number greater than last2 and not used\n                            while odd_candidate <= last2 or odd_candidate in used:\n                                odd_candidate += 2\n                            assigned = odd_candidate\n                            odd_candidate += 2\n                        # Assign and update\n                        used.add(assigned)\n                        last2 = assigned\n                        max_num = max(max_num, assigned)\n                        j += 1\n                    # Ensure no overlap and maintain increasing order\n                    while even_candidate in used:\n                        even_candidate += 2\n                    while odd_candidate in used:\n                        odd_candidate += 2\n                    # Ensure last1 and last2 do not conflict\n                    while last1 >= last2:\n                        last2 = max(last2 + 1, last1 + 1)\n                        # Assign next available number to last2\n                        if nums2[j] == 0:\n                            while even_candidate <= last2 or even_candidate in used:\n                                even_candidate += 2\n                            last2 = even_candidate\n                            even_candidate += 2\n                        else:\n                            while odd_candidate <= last2 or odd_candidate in used:\n                                odd_candidate += 2\n                            last2 = odd_candidate\n                            odd_candidate += 2\n                        used.add(last2)\n                        max_num = max(max_num, last2)\n                return max_num",
+    "from typing import List\n\n        class Solution:\n            def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n                n1, n2 = len(nums1), len(nums2)\n                i, j = 0, 0\n                last1, last2 = 0, 0\n                used = set()\n                even_candidate = 2\n                odd_candidate = 1\n                max_num = 0\n\n                while i < n1 or j < n2:\n                    # Determine which array to process\n                    if (i < n1 and (j >= n2 or i <= j)):\n                        # Process nums1\n                        if nums1[i] == 0:\n                            # Need even number greater than last1 and not used\n                            while even_candidate <= last1 or even_candidate in used:\n                                even_candidate += 2\n                            assigned = even_candidate\n                            even_candidate += 2\n                        else:\n                            # Need odd number greater than last1 and not used\n                            while odd_candidate <= last1 or odd_candidate in used:\n                                odd_candidate += 2\n                            assigned = odd_candidate\n                            odd_candidate += 2\n                        # Assign and update\n                        used.add(assigned)\n                        last1 = assigned\n                        max_num = max(max_num, assigned)\n                        i += 1\n                    else:\n                        # Process nums2\n                        if nums2[j] == 0:\n                            # Need even number greater than last2 and not used\n                            while even_candidate <= last2 or even_candidate in used:\n                                even_candidate += 2\n                            assigned = even_candidate\n                            even_candidate += 2\n                        else:\n                            # Need odd number greater than last2 and not used\n                            while odd_candidate <= last2 or odd_candidate in used:\n                                odd_candidate += 2\n                            assigned = odd_candidate\n                            odd_candidate += 2\n                        # Assign and update\n                        used.add(assigned)\n                        last2 = assigned\n                        max_num = max(max_num, assigned)\n                        j += 1\n                    # Ensure no overlap and maintain increasing order\n                    while even_candidate in used:\n                        even_candidate += 2\n                    while odd_candidate in used:\n                        odd_candidate += 2\n                    # Ensure last1 and last2 do not conflict\n                    while last1 >= last2:\n                        last2 = max(last2 + 1, last1 + 1)\n                        # Assign next available number to last2\n                        if nums2[j] == 0:\n                            while even_candidate <= last2 or even_candidate in used:\n                                even_candidate += 2\n                            last2 = even_candidate\n                            even_candidate += 2\n                        else:\n                            while odd_candidate <= last2 or odd_candidate in used:\n                                odd_candidate += 2\n                            last2 = odd_candidate\n                            odd_candidate += 2\n                        used.add(last2)\n                        max_num = max(max_num, last2)\n                return max_num",
+    "from typing import List\n\n        class Solution:\n            def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n                n1, n2 = len(nums1), len(nums2)\n                i, j = 0, 0\n                last1, last2 = 0, 0\n                used = set()\n                even_candidate = 2\n                odd_candidate = 1\n                max_num = 0\n\n                while i < n1 or j < n2:\n                    # Determine which array to process\n                    if (i < n1 and (j >= n2 or i <= j)):\n                        # Process nums1\n                        if nums1[i] == 0:\n                            # Need even number greater than last1 and not used\n                            while even_candidate <= last1 or even_candidate in used:\n                                even_candidate += 2\n                            assigned = even_candidate\n                            even_candidate += 2\n                        else:\n                            # Need odd number greater than last1 and not used\n                            while odd_candidate <= last1 or odd_candidate in used:\n                                odd_candidate += 2\n                            assigned = odd_candidate\n                            odd_candidate += 2\n                        # Assign and update\n                        used.add(assigned)\n                        last1 = assigned\n                        max_num = max(max_num, assigned)\n                        i += 1\n                    else:\n                        # Process nums2\n                        if nums2[j] == 0:\n                            # Need even number greater than last2 and not used\n                            while even_candidate <= last2 or even_candidate in used:\n                                even_candidate += 2\n                            assigned = even_candidate\n                            even_candidate += 2\n                        else:\n                            # Need odd number greater than last2 and not used\n                            while odd_candidate <= last2 or odd_candidate in used:\n                                odd_candidate += 2\n                            assigned = odd_candidate\n                            odd_candidate += 2\n                        # Assign and update\n                        used.add(assigned)\n                        last2 = assigned\n                        max_num = max(max_num, assigned)\n                        j += 1\n                    # Ensure no overlap and maintain increasing order\n                    while even_candidate in used:\n                        even_candidate += 2\n                    while odd_candidate in used:\n                        odd_candidate += 2\n                    # Ensure last1 and last2 do not conflict\n                    while last1 >= last2:\n                        last2 = max(last2 + 1, last1 + 1)\n                        # Assign next available number to last2\n                        if nums2[j] == 0:\n                            while even_candidate <= last2 or even_candidate in used:\n                                even_candidate += 2\n                            last2 = even_candidate\n                            even_candidate += 2\n                        else:\n                            while odd_candidate <= last2 or odd_candidate in used:\n                                odd_candidate += 2\n                            last2 = odd_candidate\n                            odd_candidate += 2\n                        used.add(last2)\n                        max_num = max(max_num, last2)\n                return max_num",
+    "from typing import List\n\n        class Solution:\n            def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n                n1, n2 = len(nums1), len(nums2)\n                i, j = 0, 0\n                last1, last2 = 0, 0\n                used = set()\n                even_candidate = 2\n                odd_candidate = 1\n                max_num = 0\n\n                while i < n1 or j < n2:\n                    # Determine which array to process\n                    if (i < n1 and (j >= n2 or i <= j)):\n                        # Process nums1\n                        if nums1[i] == 0:\n                            # Need even number greater than last1 and not used\n                            while even_candidate <= last1 or even_candidate in used:\n                                even_candidate += 2\n                            assigned = even_candidate\n                            even_candidate += 2\n                        else:\n                            # Need odd number greater than last1 and not used\n                            while odd_candidate <= last1 or odd_candidate in used:\n                                odd_candidate += 2\n                            assigned = odd_candidate\n                            odd_candidate += 2\n                        # Assign and update\n                        used.add(assigned)\n                        last1 = assigned\n                        max_num = max(max_num, assigned)\n                        i += 1\n                    else:\n                        # Process nums2\n                        if nums2[j] == 0:\n                            # Need even number greater than last2 and not used\n                            while even_candidate <= last2 or even_candidate in used:\n                                even_candidate += 2\n                            assigned = even_candidate\n                            even_candidate += 2\n                        else:\n                            # Need odd number greater than last2 and not used\n                            while odd_candidate <= last2 or odd_candidate in used:\n                                odd_candidate += 2\n                            assigned = odd_candidate\n                            odd_candidate += 2\n                        # Assign and update\n                        used.add(assigned)\n                        last2 = assigned\n                        max_num = max(max_num, assigned)\n                        j += 1\n                    # Ensure no overlap and maintain increasing order\n                    while even_candidate in used:\n                        even_candidate += 2\n                    while odd_candidate in used:\n                        odd_candidate += 2\n                    # Ensure last1 and last2 do not conflict\n                    while last1 >= last2:\n                        last2 = max(last2 + 1, last1 + 1)\n                        # Assign next available number to last2\n                        if nums2[j] == 0:\n                            while even_candidate <= last2 or even_candidate in used:\n                                even_candidate += 2\n                            last2 = even_candidate\n                            even_candidate += 2\n                        else:\n                            while odd_candidate <= last2 or odd_candidate in used:\n                                odd_candidate += 2\n                            last2 = odd_candidate\n                            odd_candidate += 2\n                        used.add(last2)\n                        max_num = max(max_num, last2)\n                return max_num",
+    "class Solution:\n            def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n                # Helper function to get the next available even or odd number\n                def next_num(is_odd, used, last):\n                    start = last + 1 if last >= 0 else 1\n                    if is_odd:\n                        if start % 2 == 0:\n                            start += 1\n                    else:\n                        if start % 2 == 1:\n                            start += 1\n                    while start in used:\n                        start += 2\n                    return start\n\n                # Combine both arrays and sort by index\n                combined = []\n                for i, num in enumerate(nums1):\n                    combined.append((i, 0, num))\n                for i, num in enumerate(nums2):\n                    combined.append((i, 1, num))\n                combined.sort(key=lambda x: x[0])\n\n                # Track used numbers and previous values in each array\n                used = set()\n                prev = [-1, -1]  # Previous values for nums1 and nums2\n\n                for idx, arr_id, val in combined:\n                    is_odd = val == 1\n                    # Find the next available number that is not used and satisfies parity\n                    next_val = next_num(is_odd, used, prev[arr_id])\n                    # Assign this number to the current position\n                    prev[arr_id] = next_val\n                    used.add(next_val)\n\n                # The largest number used is the answer\n                return max(used)",
+    "class Solution:\n            def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n                # Check for both arrays being empty\n                if not nums1 and not nums2:\n                    return 0\n                \n                # Helper function to get the next available even or odd number\n                def next_num(is_odd, used, last):\n                    start = last + 1 if last >= 0 else 1\n                    if is_odd:\n                        if start % 2 == 0:\n                            start += 1\n                    else:\n                        if start % 2 == 1:\n                            start += 1\n                    while start in used:\n                        start += 2\n                    return start\n                \n                # Combine both arrays and sort by index\n                combined = []\n                for i, num in enumerate(nums1):\n                    combined.append((i, 0, num))\n                for i, num in enumerate(nums2):\n                    combined.append((i, 1, num))\n                combined.sort(key=lambda x: x[0])\n                \n                # Track used numbers and previous values in each array\n                used = set()\n                prev = [-1, -1]  # Previous values for nums1 and nums2\n                \n                for idx, arr_id, val in combined:\n                    is_odd = val == 1\n                    # Find the next available number that is not used and satisfies parity\n                    next_val = next_num(is_odd, used, prev[arr_id])\n                    # Assign this number to the current position\n                    prev[arr_id] = next_val\n                    used.add(next_val)\n                \n                # The largest number used is the answer\n                return max(used)",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Check for both arrays being empty\n        if not nums1 and not nums2:\n            return 0\n        \n        # Helper function to get the next available even or odd number\n        def next_num(is_odd, used, last):\n            start = last + 1 if last >= 0 else 1\n            if is_odd:\n                if start % 2 == 0:\n                    start += 1\n            else:\n                if start % 2 == 1:\n                    start += 1\n            while start in used:\n                start += 2\n            return start\n        \n        # Combine both arrays and sort by index\n        combined = []\n        for i, num in enumerate(nums1):\n            combined.append((i, 0, num))\n        for i, num in enumerate(nums2):\n            combined.append((i, 1, num))\n        combined.sort(key=lambda x: x[0])\n        \n        # Track used numbers and previous values in each array\n        used = set()\n        prev = [-1, -1]  # Previous values for nums1 and nums2\n        \n        for idx, arr_id, val in combined:\n            is_odd = val == 1\n            # Find the next available number that is not used and satisfies parity\n            next_val = next_num(is_odd, used, prev[arr_id])\n            # Assign this number to the current position\n            prev[arr_id] = next_val\n            used.add(next_val)\n        \n        # The largest number used is the answer\n        return max(used)",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        import heapq\n        if not nums1 and not nums2:\n            return 0\n        \n        # Initialize heaps for available even and odd numbers\n        even_heap = [(2, 2)]\n        odd_heap = [(1, 1)]\n        \n        # Function to push next even or odd number\n        def push_next_even(last):\n            next_even = last + 2\n            heapq.heappush(even_heap, (next_even, next_even))\n        \n        def push_next_odd(last):\n            next_odd = last + 2\n            heapq.heappush(odd_heap, (next_odd, next_odd))\n        \n        # Track used numbers\n        used = set()\n        \n        # Track previous values for nums1 and nums2\n        prev1 = -1\n        prev2 = -1\n        \n        # Combine indices of both arrays\n        combined = []\n        for i in range(len(nums1)):\n            combined.append((i, 0, nums1[i]))\n        for i in range(len(nums2)):\n            combined.append((i, 1, nums2[i]))\n        combined.sort(key=lambda x: (x[0], x[1]))  # Sort by index and array ID\n        \n        for idx, arr_id, val in combined:\n            if arr_id == 0:\n                prev = prev1\n            else:\n                prev = prev2\n            \n            if val == 0:\n                # Need even number greater than prev\n                while even_heap and even_heap[0][0] <= prev:\n                    _, num = heapq.heappop(even_heap)\n                    push_next_even(num)\n                if not even_heap:\n                    return -1  # No valid number found\n                next_num, num = heapq.heappop(even_heap)\n                if num in used:\n                    push_next_even(num)\n                    continue\n                used.add(num)\n                if arr_id == 0:\n                    prev1 = num\n                else:\n                    prev2 = num\n            else:\n                # Need odd number greater than prev\n                while odd_heap and odd_heap[0][0] <= prev:\n                    _, num = heapq.heappop(odd_heap)\n                    push_next_odd(num)\n                if not odd_heap:\n                    return -1  # No valid number found\n                next_num, num = heapq.heappop(odd_heap)\n                if num in used:\n                    push_next_odd(num)\n                    continue\n                used.add(num)\n                if arr_id == 0:\n                    prev1 = num\n                else:\n                    prev2 = num\n        \n        return max(used)",
+    "from typing import List\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        if not nums1 and not nums2:\n            return 0\n        \n        # Combine indices from both arrays\n        combined = []\n        for idx, val in enumerate(nums1):\n            combined.append((idx, 0, val))\n        for idx, val in enumerate(nums2):\n            combined.append((idx, 1, val))\n        # Sort combined list by index\n        combined.sort()\n        \n        # Track used numbers and previous values in each array\n        used = set()\n        prev = [-1, -1]  # Previous values for nums1 and nums2\n        max_num = 0\n        \n        for _, arr_id, val in combined:\n            is_odd = val == 1\n            start = prev[arr_id] + 1 if prev[arr_id] >= 0 else 1\n            if is_odd:\n                if start % 2 == 0:\n                    start += 1\n            else:\n                if start % 2 == 1:\n                    start += 1\n            # Find the smallest available number that satisfies the conditions\n            while start in used:\n                start += 2\n            used.add(start)\n            prev[arr_id] = start\n            max_num = max(max_num, start)\n        \n        return max_num",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Check if both arrays are empty\n        if not nums1 and not nums2:\n            return 0\n        \n        # Helper function to get the next available even or odd number\n        def next_num(is_odd, used, last):\n            start = last + 1 if last >= 0 else 1\n            if is_odd:\n                if start % 2 == 0:\n                    start += 1\n            else:\n                if start % 2 == 1:\n                    start += 1\n            while start in used:\n                start += 2\n            return start\n\n        # Combine both arrays and sort by index\n        combined = []\n        for i, num in enumerate(nums1):\n            combined.append((i, 0, num))\n        for i, num in enumerate(nums2):\n            combined.append((i, 1, num))\n        combined.sort(key=lambda x: x[0])\n\n        # Track used numbers and previous values in each array\n        used = set()\n        prev = [-1, -1]  # Previous values for nums1 and nums2\n\n        for idx, arr_id, val in combined:\n            is_odd = val == 1\n            # Find the next available number that is not used and satisfies parity\n            next_val = next_num(is_odd, used, prev[arr_id])\n            # Assign this number to the current position\n            prev[arr_id] = next_val\n            used.add(next_val)\n\n        # The largest number used is the answer\n        return max(used)",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        import heapq\n        if not nums1 and not nums2:\n            return 0\n        \n        n1, n2 = len(nums1), len(nums2)\n        i = j = 0\n        prev1 = prev2 = 0\n        heap = []\n        used = set()\n        \n        while i < n1 or j < n2:\n            if i < n1:\n                val1 = nums1[i]\n                is_odd1 = val1 == 1\n                min_val1 = prev1 + 1 if prev1 % 2 == is_odd1 else prev1 + 2 - prev1 % 2\n                while min_val1 in used:\n                    min_val1 += 2\n            else:\n                min_val1 = float('inf')\n            \n            if j < n2:\n                val2 = nums2[j]\n                is_odd2 = val2 == 1\n                min_val2 = prev2 + 1 if prev2 % 2 == is_odd2 else prev2 + 2 - prev2 % 2\n                while min_val2 in used:\n                    min_val2 += 2\n            else:\n                min_val2 = float('inf')\n            \n            if min_val1 < min_val2:\n                used.add(min_val1)\n                prev1 = min_val1\n                i += 1\n            else:\n                used.add(min_val2)\n                prev2 = min_val2\n                j += 1\n        \n        return max(used)",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        import heapq\n        from typing import List\n\n        if not nums1 and not nums2:\n            return 0\n\n        # Initialize heaps for available even and odd numbers\n        even = []\n        odd = []\n        for i in range(1, 2001):\n            if i % 2 == 0:\n                heapq.heappush(even, i)\n            else:\n                heapq.heappush(odd, i)\n\n        def assign(arr, prev, pool):\n            assigned = []\n            for num in arr:\n                parity_pool = odd if num == 1 else even\n                while pool and (pool[0] <= prev or pool[0] in assigned):\n                    heapq.heappop(pool)\n                if not pool:\n                    return False, []\n                assigned.append(heapq.heappop(pool))\n                prev = assigned[-1]\n            return True, assigned\n\n        # Binary search for the minimal largest number\n        left, right = 1, 2000\n        while left < right:\n            mid = (left + right) // 2\n            even_pool = even.copy()\n            odd_pool = odd.copy()\n            # Assign numbers to nums1\n            success1, assigned1 = assign(nums1, -1, even_pool if nums1 and nums1[0] == 0 else odd_pool)\n            if not success1:\n                left = mid + 1\n                continue\n            # Assign numbers to nums2 with updated pools\n            success2, assigned2 = assign(nums2, -1, even_pool if nums2 and nums2[0] == 0 else odd_pool)\n            if not success2:\n                left = mid + 1\n                continue\n            # Check if all assigned numbers are <= mid and unique\n            all_assigned = assigned1 + assigned2\n            if all(x <= mid for x in all_assigned) and len(set(all_assigned)) == len(all_assigned):\n                right = mid\n            else:\n                left = mid + 1\n\n        return left",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        if not nums1 and not nums2:\n            return 0\n        \n        # Combine indices for both arrays\n        combined = []\n        for idx, val in enumerate(nums1):\n            combined.append((idx, 0, val))\n        for idx, val in enumerate(nums2):\n            combined.append((idx, 1, val))\n        # Sort combined list by index\n        combined.sort()\n        \n        # Track used numbers and previous values in each array\n        used = set()\n        prev = [-1, -1]  # Previous values for nums1 and nums2\n        max_num = 0\n        \n        for _, arr_id, val in combined:\n            is_odd = val == 1\n            start = prev[arr_id] + 1 if prev[arr_id] >= 0 else 1\n            if is_odd:\n                if start % 2 == 0:\n                    start += 1\n            else:\n                if start % 2 == 1:\n                    start += 1\n            # Find the smallest available number that satisfies the conditions\n            while start in used:\n                start += 2\n            # Assign this number to the current position\n            prev[arr_id] = start\n            used.add(start)\n            # Update the maximum number used\n            if start > max_num:\n                max_num = start\n        \n        return max_num",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Check for both arrays being empty\n        if not nums1 and not nums2:\n            return 0\n        \n        # Helper function to get the next available even or odd number\n        def next_num(is_odd, used, last):\n            start = last + 1 if last >= 0 else 1\n            if is_odd:\n                if start % 2 == 0:\n                    start += 1\n            else:\n                if start % 2 == 1:\n                    start += 1\n            while start in used:\n                start += 2\n            return start\n\n        # Combine both arrays and sort by index\n        combined = []\n        for i, num in enumerate(nums1):\n            combined.append((i, 0, num))\n        for i, num in enumerate(nums2):\n            combined.append((i, 1, num))\n        combined.sort(key=lambda x: x[0])\n\n        # Track used numbers and previous values in each array\n        used = set()\n        prev = [-1, -1]  # Previous values for nums1 and nums2\n\n        for idx, arr_id, val in combined:\n            is_odd = val == 1\n            # Find the next available number that is not used and satisfies parity\n            next_val = next_num(is_odd, used, prev[arr_id])\n            # Assign this number to the current position\n            prev[arr_id] = next_val\n            used.add(next_val)\n\n        # The largest number used is the answer\n        return max(used)",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        import heapq\n        from typing import List\n\n        if not nums1 and not nums2:\n            return 0\n\n        # Initialize heaps for available even and odd numbers\n        even = []\n        odd = []\n        for i in range(1, 2001):\n            if i % 2 == 0:\n                heapq.heappush(even, i)\n            else:\n                heapq.heappush(odd, i)\n\n        def assign_value(is_odd, prev_val):\n            if is_odd:\n                while odd and odd[0] <= prev_val:\n                    heapq.heappop(odd)\n                if odd:\n                    return heapq.heappop(odd)\n                else:\n                    return None\n            else:\n                while even and even[0] <= prev_val:\n                    heapq.heappop(even)\n                if even:\n                    return heapq.heappop(even)\n                else:\n                    return None\n\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        prev1, prev2 = 0, 0\n        max_val = 0\n\n        while i < n1 or j < n2:\n            if i < n1:\n                is_odd1 = nums1[i] == 1\n                val1 = assign_value(is_odd1, prev1)\n            else:\n                val1 = float('inf')\n\n            if j < n2:\n                is_odd2 = nums2[j] == 1\n                val2 = assign_value(is_odd2, prev2)\n            else:\n                val2 = float('inf')\n\n            if val1 < val2:\n                prev1 = val1\n                i += 1\n            else:\n                prev2 = val2\n                j += 1\n\n            max_val = max(max_val, min(val1, val2))\n\n        return max_val",
+    "from typing import List\n\n        class Solution:\n            def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n                # Helper function to get the next available even or odd number\n                def next_num(is_odd, last):\n                    start = last + 1 if last >= 0 else 1\n                    if is_odd:\n                        return start + 1 if start % 2 == 0 else start\n                    else:\n                        return start + 1 if start % 2 == 1 else start\n\n                # Initialize variables to track used numbers and previous values\n                used = set()\n                prev1, prev2 = -1, -1\n                max_num = 0\n\n                # Iterate through both arrays simultaneously\n                i, j = 0, 0\n                while i < len(nums1) or j < len(nums2):\n                    # Determine the next positions to process\n                    if i < len(nums1) and (j >= len(nums2) or i <= j):\n                        # Process nums1\n                        is_odd = nums1[i] == 1\n                        next_val = next_num(is_odd, prev1)\n                        while next_val in used or (j < len(nums2) and next_val <= prev2):\n                            next_val += 2\n                        used.add(next_val)\n                        prev1 = next_val\n                        i += 1\n                    else:\n                        # Process nums2\n                        is_odd = nums2[j] == 1\n                        next_val = next_num(is_odd, prev2)\n                        while next_val in used or (i < len(nums1) and next_val <= prev1):\n                            next_val += 2\n                        used.add(next_val)\n                        prev2 = next_val\n                        j += 1\n                    # Update the maximum number used\n                    max_num = max(max_num, next_val)\n\n                return max_num",
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        if not nums1 and not nums2:\n            return 0\n        \n        # Helper function to get the next available even or odd number\n        def next_num(is_odd, used, last):\n            start = last + 1 if last >= 0 else 1\n            if is_odd:\n                if start % 2 == 0:\n                    start += 1\n            else:\n                if start % 2 == 1:\n                    start += 1\n            while start in used:\n                start += 2\n            return start\n        \n        # Combine indices of both arrays\n        idx1, idx2 = 0, 0\n        len1, len2 = len(nums1), len(nums2)\n        used = set()\n        prev1, prev2 = -1, -1  # Previous values for nums1 and nums2\n        max_val = 0\n        \n        while idx1 < len1 or idx2 < len2:\n            # Determine the current array to process\n            if idx1 < len1 and (idx2 >= len2 or idx1 <= idx2):\n                val = nums1[idx1]\n                is_odd = val == 1\n                next_val = next_num(is_odd, used, prev1)\n                if prev1 >= 0 and next_val <= prev1:\n                    next_val = next_num(is_odd, used, prev1)\n                used.add(next_val)\n                prev1 = next_val\n                idx1 += 1\n            else:\n                val = nums2[idx2]\n                is_odd = val == 1\n                next_val = next_num(is_odd, used, prev2)\n                if prev2 >= 0 and next_val <= prev2:\n                    next_val = next_num(is_odd, used, prev2)\n                used.add(next_val)\n                prev2 = next_val\n                idx2 += 1\n            max_val = max(max_val, next_val)\n        \n        return max_val"
+  ],
+  "total_candidates": 29,
+  "nodes_explored": 29,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        import heapq\n        even = []\n        odd = []\n        for num in nums1:\n            if num == 0:\n                even.append(0)\n            else:\n                odd.append(0)\n        for num in nums2:\n            if num == 0:\n                even.append(1)\n            else:\n                odd.append(1)\n        even_h = []\n        odd_h = []\n        even_last = -1\n        odd_last = -1\n        for e, o in zip_longest(even, odd, fillvalue=-1):\n            if e != -1:\n                if e == 0:\n                    while even_h and even_h[0] <= even_last:\n                        heapq.heappop(even_h)\n                    if even_h:\n                        even_last = heapq.heappop(even_h)\n                    else:\n                        even_last = even_last + 2 if even_last % 2 == 0 else even_last + 1\n                else:\n                    even_last = even_last + 2 if even_last % 2 == 0 else even_last + 1\n            if o != -1:\n                if o == 0:\n                    while odd_h and odd_h[0] <= odd_last:\n                        heapq.heappop(odd_h)\n                    if odd_h:\n                        odd_last = heapq.heappop(odd_h)\n                    else:\n                        odd_last = odd_last + 2 if odd_last % 2 == 1 else odd_last + 1\n                else:\n                    odd_last = odd_last + 2 if odd_last % 2 == 1 else odd_last + 1\n            if e != -1 and o != -1:\n                if e == 0 and o == 0:\n                    even_last = max(even_last, odd_last)\n                    odd_last = even_last + 1\n                    even_last = even_last + 2 if even_last % 2 == 0 else even_last + 1\n                elif e == 0:\n                    even_last = max(even_last, odd_last)\n                    even_last = even_last + 2 if even_last % 2 == 0 else even_last + 1\n                elif o == 0:\n                    odd_last = max(odd_last, even_last)\n                    odd_last = odd_last + 2 if odd_last % 2 == 1 else odd_last + 1\n                else:\n                    even_last = max(even_last, odd_last)\n                    odd_last = even_last + 1\n                    even_last = even_last + 2 if even_last % 2 == 0 else even_last + 1\n            elif e != -1:\n                if e == 0:\n                    even_last = even_last + 2 if even_last % 2 == 0 else even_last + 1\n                else:\n                    even_last = even_last + 2 if even_last % 2 == 0 else even_last + 1\n            elif o != -1:\n                if o == 0:\n                    odd_last = odd_last + 2 if odd_last % 2 == 1 else odd_last + 1\n                else:\n                    odd_last = odd_last + 2 if odd_last % 2 == 1 else odd_last + 1\n            if e != -1 and e == 0:\n                heapq.heappush(even_h, even_last + 2 if even_last % 2 == 0 else even_last + 1)\n            if o != -1 and o == 0:\n                heapq.heappush(odd_h, odd_last + 2 if odd_last % 2 == 1 else odd_last + 1)\n        return max(even_last, odd_last)",
+      "solution_hash": "a51006103fa021dd2a67fb4f3cd9f0fcd15db19dfe56c8efd66bb5a71681e6cd",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmp6rjd6v7k.py\", line 279, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21926555/tmp6rjd6v7k.py\", line 154, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmp6rjd6v7k.py` failed. (See above for error)\n",
+        "execution_time": 18.215931177139282,
+        "failed_tests": [
+          {
+            "input": "nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]",
+            "expected": "8",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmp6rjd6v7k.py\", line 279, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21926555/tmp6rjd6v7k.py\", line 154, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmp6rjd6v7k.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        import heapq\n        \n        # Initialize variables\n        n1, n2 = len(nums1), len(nums2)\n        i, j = 0, 0\n        last1, last2 = 0, 0\n        used = set()\n        even_candidate = 2\n        odd_candidate = 1\n        max_num = 0\n        \n        while i < n1 or j < n2:\n            # Determine which array to process\n            if i < n1 and (j >= n2 or i <= j):\n                # Process nums1\n                if nums1[i] == 0:\n                    # Need even number greater than last1 and not used\n                    while even_candidate <= last1 or even_candidate in used:\n                        even_candidate += 2\n                    assigned = even_candidate\n                    even_candidate += 2\n                else:\n                    # Need odd number greater than last1 and not used\n                    while odd_candidate <= last1 or odd_candidate in used:\n                        odd_candidate += 2\n                    assigned = odd_candidate\n                    odd_candidate += 2\n                # Assign and update\n                used.add(assigned)\n                last1 = assigned\n                max_num = max(max_num, assigned)\n                i += 1\n            else:\n                # Process nums2\n                if nums2[j] == 0:\n                    # Need even number greater than last2 and not used\n                    while even_candidate <= last2 or even_candidate in used:\n                        even_candidate += 2\n                    assigned = even_candidate\n                    even_candidate += 2\n                else:\n                    # Need odd number greater than last2 and not used\n                    while odd_candidate <= last2 or odd_candidate in used:\n                        odd_candidate += 2\n                    assigned = odd_candidate\n                    odd_candidate += 2\n                # Assign and update\n                used.add(assigned)\n                last2 = assigned\n                max_num = max(max_num, assigned)\n                j += 1\n            # Ensure no overlap\n            while even_candidate in used:\n                even_candidate += 2\n            while odd_candidate in used:\n                odd_candidate += 2\n            # Ensure last1 and last2 do not conflict\n            while last1 >= last2:\n                last2 = max(last2, last1 + 1)\n                # Assign next available number to last2\n                if nums2[j] == 0:\n                    while even_candidate <= last2 or even_candidate in used:\n                        even_candidate += 2\n                    last2 = even_candidate\n                    even_candidate += 2\n                else:\n                    while odd_candidate <= last2 or odd_candidate in used:\n                        odd_candidate += 2\n                    last2 = odd_candidate\n                    odd_candidate += 2\n                used.add(last2)\n                max_num = max(max_num, last2)\n        \n        return max_num",
+      "solution_hash": "7485f404415f20ccdd644e8d86379369ed7d74aa02a61f0c234122c107fbcd53",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmpma3up9jv.py\", line 285, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21926555/tmpma3up9jv.py\", line 160, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpma3up9jv.py` failed. (See above for error)\n",
+        "execution_time": 13.74702262878418,
+        "failed_tests": [
+          {
+            "input": "nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]",
+            "expected": "8",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmpma3up9jv.py\", line 285, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21926555/tmpma3up9jv.py\", line 160, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmpma3up9jv.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_9",
+        "1_12"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n            def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n                # Helper function to get the next available even or odd number\n                def next_num(is_odd, used, last):\n                    start = last + 1 if last >= 0 else 1\n                    if is_odd:\n                        if start % 2 == 0:\n                            start += 1\n                    else:\n                        if start % 2 == 1:\n                            start += 1\n                    while start in used:\n                        start += 2\n                    return start\n\n                # Combine both arrays and sort by index\n                combined = []\n                for i, num in enumerate(nums1):\n                    combined.append((i, 0, num))\n                for i, num in enumerate(nums2):\n                    combined.append((i, 1, num))\n                combined.sort(key=lambda x: x[0])\n\n                # Track used numbers and previous values in each array\n                used = set()\n                prev = [-1, -1]  # Previous values for nums1 and nums2\n\n                for idx, arr_id, val in combined:\n                    is_odd = val == 1\n                    # Find the next available number that is not used and satisfies parity\n                    next_val = next_num(is_odd, used, prev[arr_id])\n                    # Assign this number to the current position\n                    prev[arr_id] = next_val\n                    used.add(next_val)\n\n                # The largest number used is the answer\n                return max(used)",
+      "solution_hash": "a15dbab43090092b5d70a2d2adb5f304bcce2158f76d50d06025d7633fdd79d3",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmp48x23af4.py\", line 246, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21926555/tmp48x23af4.py\", line 130, in check\n    assert candidate(nums1 = [],nums2 = []) == 0\n  File \"/scratch/local/21926555/tmp48x23af4.py\", line 117, in minLargest\n    return max(used)\nValueError: max() arg is an empty sequence\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmp48x23af4.py` failed. (See above for error)\n",
+        "execution_time": 18.187185764312744,
+        "failed_tests": [
+          {
+            "input": "nums1 = [],nums2 = []",
+            "expected": "0",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/21926555/tmp48x23af4.py\", line 246, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/21926555/tmp48x23af4.py\", line 130, in check\n    assert candidate(nums1 = [],nums2 = []) == 0\n  File \"/scratch/local/21926555/tmp48x23af4.py\", line 117, in minLargest\n    return max(used)\nValueError: max() arg is an empty sequence\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/21926555/tmp48x23af4.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_17",
+        "1_21",
+        "1_25"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 29,
+    "candidates_generated": 29,
+    "tests_passed": 0,
+    "tests_failed": 29,
+    "test_errors": 0,
+    "execution_times": [
+      18.215931177139282,
+      18.378769159317017,
+      16.458552837371826,
+      14.045135021209717,
+      14.084550619125366,
+      16.48352074623108,
+      17.31719660758972,
+      13.950674772262573,
+      13.74702262878418,
+      17.601796865463257,
+      17.601796865463257,
+      15.943370342254639,
+      13.846725463867188,
+      13.846725463867188,
+      13.846725463867188,
+      13.846725463867188,
+      18.187185764312744,
+      16.583367109298706,
+      14.200995922088623,
+      16.042623281478882,
+      13.751410961151123,
+      16.583367109298706,
+      16.406627893447876,
+      16.6632182598114,
+      16.376629114151,
+      16.583367109298706,
+      14.832228422164917,
+      13.803928136825562,
+      16.541749954223633
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 23,
+      "unique_ratio": 0.7931034482758621,
+      "similarity_score": 0.0,
+      "solution_lengths": {
+        "min": 1239,
+        "max": 4030,
+        "avg": 2484.793103448276
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]": 10,
+        "nums1 = [0, 1, 0, 1, 0, 1, 0, 1],nums2 = [1, 0, 1, 0, 1, 0]": 8,
+        "nums1 = [],nums2 = []": 1,
+        "nums1 = [],nums2 = [1, 0, 1, 1]": 1
+      },
+      "first_failing_tests": {
+        "nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]": 10,
+        "nums1 = [0, 1, 0, 1, 0, 1, 0, 1],nums2 = [1, 0, 1, 0, 1, 0]": 8,
+        "nums1 = [],nums2 = []": 1,
+        "nums1 = [],nums2 = [1, 0, 1, 1]": 1
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 7,
+          "improvements": 2,
+          "solved": 0
+        },
+        "2": {
+          "attempts": 19,
+          "improvements": 3,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "assertion_failure": {
+          "attempts": 7,
+          "improvements": 5
+        },
+        "other_error": {
+          "attempts": 2,
+          "improvements": 0
+        },
+        "value_error": {
+          "attempts": 1,
+          "improvements": 0
+        }
+      },
+      "test_case_improvements": {
+        "nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]": 4,
+        "nums1 = [0, 1, 0, 1, 0, 1, 0, 1],nums2 = [1, 0, 1, 0, 1, 0]": 1
+      },
+      "error_transitions": {
+        "assertion_failure->other_error": 5,
+        "other_error->other_error": 4,
+        "other_error->assertion_failure": 2,
+        "assertion_failure->assertion_failure": 12,
+        "value_error->assertion_failure": 3
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.5517241379310345,
+        "solutions_per_depth": {
+          "0": 3,
+          "1": 7,
+          "2": 19
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 0,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.033333333333333326,
+        "pass@3": 0.09999999999999998,
+        "pass@5": 0.16666666666666663,
+        "pass@10": 0.33333333333333326
+      },
+      "solutions_evaluated": 30
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.0,
+        "branch_success_rate": 0.0
+      },
+      "error_recovery": {
+        "total_attempts": 10,
+        "total_improvements": 5,
+        "recovery_rate": 0.5
+      },
+      "top_errors": [
+        [
+          "assertion_failure",
+          7
+        ],
+        [
+          "other_error",
+          2
+        ],
+        [
+          "value_error",
+          1
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]",
+          10
+        ],
+        [
+          "nums1 = [0, 1, 0, 1, 0, 1, 0, 1],nums2 = [1, 0, 1, 0, 1, 0]",
+          8
+        ],
+        [
+          "nums1 = [],nums2 = []",
+          1
+        ],
+        [
+          "nums1 = [],nums2 = [1, 0, 1, 1]",
+          1
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 2337.604323387146,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.033333333333333326,
+      "pass@3": 0.09999999999999998,
+      "pass@5": 0.16666666666666663,
+      "pass@10": 0.33333333333333326
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: max() arg is an empty sequence",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 26
+          }
+        ],
+        [
+          27,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 27
+          }
+        ],
+        [
+          28,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 28
+          }
+        ],
+        [
+          29,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 29
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 30,
+    "test_cases": 1
+  }
+}

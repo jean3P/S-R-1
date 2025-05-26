@@ -1,0 +1,670 @@
+{
+  "problem_id": "find-the-power-of-k-size-subarrays-ii",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "solved",
+  "best_solution": "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        for i in range(n - k + 1):\n            is_consecutive = True\n            for j in range(i, i + k - 1):\n                if nums[j + 1] != nums[j] + 1:\n                    is_consecutive = False\n                    break\n            if is_consecutive:\n                results.append(nums[i + k - 1])  # maximum element in the window\n            else:\n                results.append(-1)\n        return results",
+  "passed_solutions": [
+    "class Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        for i in range(n - k + 1):\n            window = nums[i:i+k]\n            is_sorted = all(window[j] < window[j+1] for j in range(len(window)-1))\n            is_consecutive = all(window[j+1] - window[j] == 1 for j in range(len(window)-1))\n            if is_sorted and is_consecutive:\n                results.append(max(window))\n            else:\n                results.append(-1)\n        return results",
+    "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        for i in range(n - k + 1):\n            is_consecutive = True\n            for j in range(i, i + k - 1):\n                if nums[j + 1] != nums[j] + 1:\n                    is_consecutive = False\n                    break\n            if is_consecutive:\n                results.append(nums[i + k - 1])  # maximum element in the window\n            else:\n                results.append(-1)\n        return results",
+    "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        \n        # Initialize frequency dictionary for the first window\n        freq = {}\n        for i in range(k):\n            freq[nums[i]] = freq.get(nums[i], 0) + 1\n        \n        # Check the first window\n        if self.isConsecutiveAndSorted(nums[:k], freq):\n            results.append(max(nums[:k]))\n        else:\n            results.append(-1)\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq[outgoing] -= 1\n            if freq[outgoing] == 0:\n                del freq[outgoing]\n            \n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq[incoming] = freq.get(incoming, 0) + 1\n            \n            # Check if the new window is consecutive and sorted\n            if self.isConsecutiveAndSorted(nums[i - k + 1:i + 1], freq):\n                results.append(max(nums[i - k + 1:i + 1]))\n            else:\n                results.append(-1)\n        \n        return results\n    \n    def isConsecutiveAndSorted(self, window: List[int], freq: dict) -> bool:\n        # Check if the window is sorted in ascending order\n        if window != sorted(window):\n            return False\n        # Check if elements are consecutive\n        min_val = min(window)\n        max_val = max(window)\n        expected_count = max_val - min_val + 1\n        if expected_count != len(window):\n            return False\n        # Check if all elements are unique and fit in the range\n        return len(freq) == expected_count and all(freq[val] == 1 for val in range(min_val, max_val + 1))",
+    "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        \n        # Precompute the maximum value in each subarray of size k\n        max_values = []\n        max_val = float('-inf')\n        for i in range(n):\n            max_val = max(max_val, nums[i])\n            if i >= k:\n                if nums[i - k] == max_val:\n                    max_val = max(nums[i - k + 1:i + 1])\n            if i >= k - 1:\n                max_values.append(max_val)\n        \n        # Check if each subarray is consecutive and sorted\n        for i in range(n - k + 1):\n            subarray = nums[i:i+k]\n            if self.is_consecutive_and_sorted(subarray):\n                results.append(max_values[i])\n            else:\n                results.append(-1)\n        return results\n    \n    def is_consecutive_and_sorted(self, subarray: List[int]) -> bool:\n        for i in range(1, len(subarray)):\n            if subarray[i] - subarray[i-1] != 1:\n                return False\n        return True",
+    "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        for i in range(n - k + 1):\n            subarray = nums[i:i+k]\n            is_consecutive = all(subarray[j] == subarray[j-1] + 1 for j in range(1, k))\n            if is_consecutive:\n                results.append(subarray[-1])  # Since it's sorted, the last element is the max\n            else:\n                results.append(-1)\n        return results"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        for i in range(n - k + 1):\n            window = nums[i:i+k]\n            is_sorted = all(window[j] < window[j+1] for j in range(len(window)-1))\n            is_consecutive = all(window[j+1] - window[j] == 1 for j in range(len(window)-1))\n            if is_sorted and is_consecutive:\n                results.append(max(window))\n            else:\n                results.append(-1)\n        return results",
+    "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                for i in range(n - k + 1):\n                    window = nums[i:i+k]\n                    if len(set(window)) == k and max(window) - min(window) == k - 1 and window == sorted(window):\n                        results.append(max(window))\n                    else:\n                        results.append(-1)\n                return results",
+    "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                for i in range(n - k + 1):\n                    window = nums[i:i+k]\n                    if all(window[j] == window[j-1] + 1 for j in range(1, k)):\n                        results.append(window[-1])\n                    else:\n                        results.append(-1)\n                return results",
+    "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        \n        # Initialize frequency dictionary for the first window\n        freq = {}\n        for i in range(k):\n            if nums[i] in freq:\n                freq[nums[i]] += 1\n            else:\n                freq[nums[i]] = 1\n        \n        # Check the first window\n        min_val = min(nums[:k])\n        max_val = max(nums[:k])\n        if len(freq) == k and max_val - min_val == k - 1:\n            # Check if all elements are consecutive and sorted\n            expected = list(range(min_val, max_val + 1))\n            if sorted(nums[:k]) == expected:\n                results.append(max_val)\n            else:\n                results.append(-1)\n        else:\n            results.append(-1)\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq[outgoing] -= 1\n            if freq[outgoing] == 0:\n                del freq[outgoing]\n            \n            # Add the new element coming into the window\n            incoming = nums[i]\n            if incoming in freq:\n                freq[incoming] += 1\n            else:\n                freq[incoming] = 1\n            \n            # Check the current window\n            min_val = min(nums[i - k + 1:i + 1])\n            max_val = max(nums[i - k + 1:i + 1])\n            if len(freq) == k and max_val - min_val == k - 1:\n                # Check if all elements are consecutive and sorted\n                expected = list(range(min_val, max_val + 1))\n                if sorted(nums[i - k + 1:i + 1]) == expected:\n                    results.append(max_val)\n                else:\n                    results.append(-1)\n            else:\n                results.append(-1)\n        \n        return results",
+    "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                freq = {}\n                min_val = float('inf')\n                max_val = float('-inf')\n                \n                # Initialize the frequency map for the first window\n                for i in range(k):\n                    num = nums[i]\n                    freq[num] = freq.get(num, 0) + 1\n                    if num < min_val:\n                        min_val = num\n                    if num > max_val:\n                        max_val = num\n                \n                # Check the first window\n                if max_val - min_val == k - 1 and all(freq.get(num, 0) == 1 for num in range(min_val, max_val + 1)):\n                    results.append(max_val)\n                else:\n                    results.append(-1)\n                \n                # Slide the window\n                for i in range(k, n):\n                    # Remove the element going out of the window\n                    outgoing = nums[i - k]\n                    freq[outgoing] -= 1\n                    if freq[outgoing] == 0:\n                        del freq[outgoing]\n                    if outgoing == min_val:\n                        # Find new min_val\n                        min_val = min(freq.keys())\n                    elif outgoing == max_val:\n                        # Find new max_val\n                        max_val = max(freq.keys())\n                    \n                    # Add the new element into the window\n                    incoming = nums[i]\n                    freq[incoming] = freq.get(incoming, 0) + 1\n                    if incoming < min_val:\n                        min_val = incoming\n                    if incoming > max_val:\n                        max_val = incoming\n                    \n                    # Check the current window\n                    if max_val - min_val == k - 1 and all(freq.get(num, 0) == 1 for num in range(min_val, max_val + 1)):\n                        results.append(max_val)\n                    else:\n                        results.append(-1)\n                \n                return results",
+    "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                freq = [0] * 1000001  # Assuming nums[i] <= 10^6\n                max_val = max(nums[:k])\n                min_val = min(nums[:k])\n                window = nums[:k]\n                if all(window[j] == window[j-1] + 1 for j in range(1, k)):\n                    results.append(max_val)\n                else:\n                    results.append(-1)\n                for i in range(k, n):\n                    outgoing = nums[i - k]\n                    incoming = nums[i]\n                    if incoming == outgoing + 1 and max_val == outgoing:\n                        max_val = incoming\n                        min_val = outgoing + 1\n                        results.append(max_val)\n                    else:\n                        results.append(-1)\n                return results",
+    "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                for i in range(n - k + 1):\n                    window = nums[i:i+k]\n                    if len(set(window)) == k:\n                        window_sorted = sorted(window)\n                        if window_sorted == window and window_sorted[-1] - window_sorted[0] == k - 1:\n                            results.append(window_sorted[-1])\n                        else:\n                            results.append(-1)\n                    else:\n                        results.append(-1)\n                return results",
+    "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                for i in range(n - k + 1):\n                    window = nums[i:i+k]\n                    if len(set(window)) == k:\n                        window_sorted = sorted(window)\n                        if window_sorted == window and window_sorted[-1] - window_sorted[0] == k - 1:\n                            results.append(window_sorted[-1])\n                        else:\n                            results.append(-1)\n                    else:\n                        results.append(-1)\n                return results",
+    "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                max_window = []\n                min_window = []\n                for i in range(n):\n                    while max_window and nums[i] > nums[max_window[-1]]:\n                        max_window.pop()\n                    max_window.append(i)\n                    while min_window and nums[i] < nums[min_window[-1]]:\n                        min_window.pop()\n                    min_window.append(i)\n                    if i >= k - 1:\n                        max_val = nums[max_window[0]]\n                        min_val = nums[min_window[0]]\n                        if max_val - min_val == k - 1:\n                            # Check if all elements are unique in the window\n                            window_set = set(nums[i - k + 1:i + 1])\n                            if len(window_set) == k:\n                                results.append(max_val)\n                            else:\n                                results.append(-1)\n                        else:\n                            results.append(-1)\n                        # Remove elements that are out of the current window\n                        if i - k + 1 == max_window[0]:\n                            max_window.pop(0)\n                        if i - k + 1 == min_window[0]:\n                            min_window.pop(0)\n                return results",
+    "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        for i in range(n - k + 1):\n            is_consecutive = True\n            for j in range(i, i + k - 1):\n                if nums[j + 1] != nums[j] + 1:\n                    is_consecutive = False\n                    break\n            if is_consecutive:\n                results.append(nums[i + k - 1])  # maximum element in the window\n            else:\n                results.append(-1)\n        return results",
+    "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        \n        # Initialize frequency dictionary for the first window\n        freq = {}\n        for i in range(k):\n            freq[nums[i]] = freq.get(nums[i], 0) + 1\n        \n        # Check the first window\n        if self.isConsecutiveAndSorted(nums[:k], freq):\n            results.append(max(nums[:k]))\n        else:\n            results.append(-1)\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq[outgoing] -= 1\n            if freq[outgoing] == 0:\n                del freq[outgoing]\n            \n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq[incoming] = freq.get(incoming, 0) + 1\n            \n            # Check if the new window is consecutive and sorted\n            if self.isConsecutiveAndSorted(nums[i - k + 1:i + 1], freq):\n                results.append(max(nums[i - k + 1:i + 1]))\n            else:\n                results.append(-1)\n        \n        return results\n    \n    def isConsecutiveAndSorted(self, window: List[int], freq: dict) -> bool:\n        # Check if the window is sorted in ascending order\n        if window != sorted(window):\n            return False\n        # Check if elements are consecutive\n        min_val = min(window)\n        max_val = max(window)\n        expected_count = max_val - min_val + 1\n        if expected_count != len(window):\n            return False\n        # Check if all elements are unique and fit in the range\n        return len(freq) == expected_count and all(freq[val] == 1 for val in range(min_val, max_val + 1))",
+    "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                for i in range(n - k + 1):\n                    subarray = nums[i:i+k]\n                    if self.is_consecutive_and_sorted(subarray):\n                        results.append(max(subarray))\n                    else:\n                        results.append(-1)\n                return results\n            \n            def is_consecutive_and_sorted(self, subarray: List[int]) -> bool:\n                sorted_subarray = sorted(subarray)\n                for i in range(1, len(sorted_subarray)):\n                    if sorted_subarray[i] - sorted_subarray[i-1] != 1:\n                        return False\n                return True",
+    "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                for i in range(n - k + 1):\n                    subarray = nums[i:i+k]\n                    if self.is_consecutive_and_sorted(subarray):\n                        results.append(max(subarray))\n                    else:\n                        results.append(-1)\n                return results\n            \n            def is_consecutive_and_sorted(self, subarray: List[int]) -> bool:\n                min_val = min(subarray)\n                max_val = max(subarray)\n                if max_val - min_val != k - 1:\n                    return False\n                unique_elements = set(subarray)\n                if len(unique_elements) != k:\n                    return False\n                return True",
+    "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                freq = {}\n                \n                left = 0\n                for right in range(n):\n                    # Add the new element to frequency dictionary\n                    freq[nums[right]] = freq.get(nums[right], 0) + 1\n                    \n                    # Remove elements that are out of the current window\n                    if right >= k:\n                        freq[nums[left]] -= 1\n                        if freq[nums[left]] == 0:\n                            del freq[nums[left]]\n                        left += 1\n                    \n                    # Check if the window size is k\n                    if right >= k - 1:\n                        # Check if all elements are consecutive and sorted\n                        if self.is_consecutive_and_sorted(nums[left:right+1], freq):\n                            results.append(max(nums[left:right+1]))\n                        else:\n                            results.append(-1)\n                return results\n            \n            def is_consecutive_and_sorted(self, subarray: List[int], freq: dict) -> bool:\n                min_val = min(subarray)\n                max_val = max(subarray)\n                # Check if the difference between max and min is k-1\n                if max_val - min_val != len(subarray) - 1:\n                    return False\n                # Check if all elements are unique and consecutive\n                for num in range(min_val, max_val + 1):\n                    if freq.get(num, 0) != 1:\n                        return False\n                return True",
+    "from typing import List\n        from collections import deque\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                max_deque = deque()\n                for i in range(n):\n                    # Maintain the deque to have elements in decreasing order\n                    while max_deque and nums[i] > nums[max_deque[-1]]:\n                        max_deque.pop()\n                    max_deque.append(i)\n                    # Remove elements that are out of the current window\n                    if i - max_deque[0] >= k:\n                        max_deque.popleft()\n                    # Check if the current window is of size k\n                    if i >= k - 1:\n                        # Check if the subarray is consecutive and sorted\n                        if self.is_consecutive_and_sorted(nums, i - k + 1, i):\n                            results.append(nums[max_deque[0]])\n                        else:\n                            results.append(-1)\n                return results\n            \n            def is_consecutive_and_sorted(self, nums: List[int], start: int, end: int) -> bool:\n                # Check if the subarray is sorted\n                for i in range(start, end):\n                    if nums[i] >= nums[i + 1]:\n                        return False\n                # Check if the elements are consecutive\n                min_val = nums[start]\n                max_val = nums[end]\n                if max_val - min_val != end - start:\n                    return False\n                # Check for uniqueness\n                seen = set()\n                for i in range(start, end + 1):\n                    if nums[i] in seen:\n                        return False\n                    seen.add(nums[i])\n                return True",
+    "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                if k == 1:\n                    return nums\n                for i in range(n - k + 1):\n                    subarray = nums[i:i+k]\n                    if self.is_consecutive_and_sorted(subarray):\n                        results.append(max(subarray))\n                    else:\n                        results.append(-1)\n                return results\n            \n            def is_consecutive_and_sorted(self, subarray: List[int]) -> bool:\n                min_val = min(subarray)\n                max_val = max(subarray)\n                if max_val - min_val != k - 1:\n                    return False\n                unique_elements = set(subarray)\n                if len(unique_elements) != k:\n                    return False\n                # Check if elements are sorted\n                for j in range(k):\n                    if subarray[j] != min_val + j:\n                        return False\n                return True",
+    "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                for i in range(n - k + 1):\n                    subarray = nums[i:i+k]\n                    if self.is_consecutive_and_sorted(subarray):\n                        results.append(max(subarray))\n                    else:\n                        results.append(-1)\n                return results\n            \n            def is_consecutive_and_sorted(self, subarray: List[int]) -> bool:\n                for i in range(1, len(subarray)):\n                    if subarray[i] - subarray[i-1] != 1:\n                        return False\n                return True",
+    "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        \n        # Precompute the maximum value in each subarray of size k\n        max_values = []\n        max_val = float('-inf')\n        for i in range(n):\n            max_val = max(max_val, nums[i])\n            if i >= k:\n                if nums[i - k] == max_val:\n                    max_val = max(nums[i - k + 1:i + 1])\n            if i >= k - 1:\n                max_values.append(max_val)\n        \n        # Check if each subarray is consecutive and sorted\n        for i in range(n - k + 1):\n            subarray = nums[i:i+k]\n            if self.is_consecutive_and_sorted(subarray):\n                results.append(max_values[i])\n            else:\n                results.append(-1)\n        return results\n    \n    def is_consecutive_and_sorted(self, subarray: List[int]) -> bool:\n        for i in range(1, len(subarray)):\n            if subarray[i] - subarray[i-1] != 1:\n                return False\n        return True",
+    "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                max_val = float('-inf')\n                min_val = float('inf')\n                for i in range(n - k + 1):\n                    subarray = nums[i:i+k]\n                    if max(subarray) - min(subarray) == k - 1 and subarray == sorted(subarray):\n                        results.append(max(subarray))\n                    else:\n                        results.append(-1)\n                return results",
+    "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        \n        # Precompute differences between consecutive elements\n        diffs = [nums[i] - nums[i-1] for i in range(1, n)]\n        \n        # Check the first window\n        is_consecutive = all(d == 1 for d in diffs[:k-1])\n        if is_consecutive:\n            results.append(nums[k-1])\n        else:\n            results.append(-1)\n        \n        # Slide the window\n        for i in range(1, n - k + 1):\n            # Remove the outgoing difference and add the new one\n            outgoing_diff = diffs[i-1]\n            incoming_diff = diffs[i+k-1] if i+k-1 < n else None\n            if outgoing_diff == 1 and incoming_diff == 1:\n                is_consecutive = True\n            else:\n                is_consecutive = False\n            if is_consecutive:\n                results.append(nums[i+k-1])\n            else:\n                results.append(-1)\n        \n        return results",
+    "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                for i in range(n - k + 1):\n                    subarray = nums[i:i+k]\n                    if self.is_consecutive_and_sorted(subarray):\n                        results.append(max(subarray))\n                    else:\n                        results.append(-1)\n                return results\n            \n            def is_consecutive_and_sorted(self, subarray: List[int]) -> bool:\n                min_val = min(subarray)\n                max_val = max(subarray)\n                if max_val - min_val != k - 1:\n                    return False\n                unique_elements = set(subarray)\n                if len(unique_elements) != k:\n                    return False\n                return True",
+    "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        for i in range(n - k + 1):\n            subarray = nums[i:i+k]\n            is_consecutive = all(subarray[j] == subarray[j-1] + 1 for j in range(1, k))\n            if is_consecutive:\n                results.append(subarray[-1])  # Since it's sorted, the last element is the max\n            else:\n                results.append(-1)\n        return results",
+    "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                freq = {}\n                \n                left = 0\n                for right in range(n):\n                    # Add the new element to frequency dictionary\n                    freq[nums[right]] = freq.get(nums[right], 0) + 1\n                    \n                    # Remove elements that are out of the current window\n                    if right - left + 1 > k:\n                        freq[nums[left]] -= 1\n                        if freq[nums[left]] == 0:\n                            del freq[nums[left]]\n                        left += 1\n                    \n                    # When window size reaches k\n                    if right - left + 1 == k:\n                        # Check if all elements are consecutive and sorted\n                        if max(nums[left:right+1]) - min(nums[left:right+1]) == k - 1 and len(freq) == k:\n                            results.append(max(nums[left:right+1]))\n                        else:\n                            results.append(-1)\n                \n                return results",
+    "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                for i in range(n - k + 1):\n                    subarray = nums[i:i+k]\n                    if self.is_consecutive_and_sorted(subarray):\n                        results.append(max(subarray))\n                    else:\n                        results.append(-1)\n                return results\n            \n            def is_consecutive_and_sorted(self, subarray: List[int]) -> bool:\n                min_val = min(subarray)\n                max_val = max(subarray)\n                if max_val - min_val != k - 1:\n                    return False\n                unique_elements = set(subarray)\n                if len(unique_elements) != k:\n                    return False\n                return True"
+  ],
+  "total_candidates": 24,
+  "nodes_explored": 24,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        for i in range(n - k + 1):\n            window = nums[i:i+k]\n            is_sorted = all(window[j] < window[j+1] for j in range(len(window)-1))\n            is_consecutive = all(window[j+1] - window[j] == 1 for j in range(len(window)-1))\n            if is_sorted and is_consecutive:\n                results.append(max(window))\n            else:\n                results.append(-1)\n        return results",
+      "solution_hash": "25a6750b0d376bacd31f74236fa7ac08ea24fab7ac5c8da219e7c694da48c0b7",
+      "test_result": {
+        "status": "pass",
+        "execution_time": 0.07061457633972168
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": true
+    },
+    {
+      "node_id": "0_1",
+      "solution": "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                for i in range(n - k + 1):\n                    window = nums[i:i+k]\n                    if len(set(window)) == k and max(window) - min(window) == k - 1 and window == sorted(window):\n                        results.append(max(window))\n                    else:\n                        results.append(-1)\n                return results",
+      "solution_hash": "d3193e514c450e3fab3d3d5ca418a644665baae4e56fe0d3a8f1f0704fa2524a",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "  File \"/scratch/local/21419949/tmpv83rd6b1.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+        "execution_time": 0.05674338340759277
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_2",
+          "solution": "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                for i in range(n - k + 1):\n                    window = nums[i:i+k]\n                    if all(window[j] == window[j-1] + 1 for j in range(1, k)):\n                        results.append(window[-1])\n                    else:\n                        results.append(-1)\n                return results",
+          "solution_hash": "4e3d19f48db42cacb8ae31b5c713b7c14f71427cd2acd48afd210aafcc2c6257",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmphmhlh_tx.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+            "execution_time": 0.053942203521728516
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_3",
+              "solution": "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        \n        # Initialize frequency dictionary for the first window\n        freq = {}\n        for i in range(k):\n            if nums[i] in freq:\n                freq[nums[i]] += 1\n            else:\n                freq[nums[i]] = 1\n        \n        # Check the first window\n        min_val = min(nums[:k])\n        max_val = max(nums[:k])\n        if len(freq) == k and max_val - min_val == k - 1:\n            # Check if all elements are consecutive and sorted\n            expected = list(range(min_val, max_val + 1))\n            if sorted(nums[:k]) == expected:\n                results.append(max_val)\n            else:\n                results.append(-1)\n        else:\n            results.append(-1)\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq[outgoing] -= 1\n            if freq[outgoing] == 0:\n                del freq[outgoing]\n            \n            # Add the new element coming into the window\n            incoming = nums[i]\n            if incoming in freq:\n                freq[incoming] += 1\n            else:\n                freq[incoming] = 1\n            \n            # Check the current window\n            min_val = min(nums[i - k + 1:i + 1])\n            max_val = max(nums[i - k + 1:i + 1])\n            if len(freq) == k and max_val - min_val == k - 1:\n                # Check if all elements are consecutive and sorted\n                expected = list(range(min_val, max_val + 1))\n                if sorted(nums[i - k + 1:i + 1]) == expected:\n                    results.append(max_val)\n                else:\n                    results.append(-1)\n            else:\n                results.append(-1)\n        \n        return results",
+              "solution_hash": "1f5d215b75af282698704c990ff8945fcaee7f783a71e963b948aef2db08a09b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp19rmi7iz.py\", line 285, in <module>\n    check(Solution().resultsArray)\n  File \"/scratch/local/21419949/tmp19rmi7iz.py\", line 145, in check\n    assert candidate(nums = [10, 9, 8, 7, 6],k = 2) == [-1, -1, -1, -1]\nAssertionError\n",
+                "execution_time": 0.06838274002075195
+              },
+              "depth": 2,
+              "parent_id": "1_2",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                freq = {}\n                min_val = float('inf')\n                max_val = float('-inf')\n                \n                # Initialize the frequency map for the first window\n                for i in range(k):\n                    num = nums[i]\n                    freq[num] = freq.get(num, 0) + 1\n                    if num < min_val:\n                        min_val = num\n                    if num > max_val:\n                        max_val = num\n                \n                # Check the first window\n                if max_val - min_val == k - 1 and all(freq.get(num, 0) == 1 for num in range(min_val, max_val + 1)):\n                    results.append(max_val)\n                else:\n                    results.append(-1)\n                \n                # Slide the window\n                for i in range(k, n):\n                    # Remove the element going out of the window\n                    outgoing = nums[i - k]\n                    freq[outgoing] -= 1\n                    if freq[outgoing] == 0:\n                        del freq[outgoing]\n                    if outgoing == min_val:\n                        # Find new min_val\n                        min_val = min(freq.keys())\n                    elif outgoing == max_val:\n                        # Find new max_val\n                        max_val = max(freq.keys())\n                    \n                    # Add the new element into the window\n                    incoming = nums[i]\n                    freq[incoming] = freq.get(incoming, 0) + 1\n                    if incoming < min_val:\n                        min_val = incoming\n                    if incoming > max_val:\n                        max_val = incoming\n                    \n                    # Check the current window\n                    if max_val - min_val == k - 1 and all(freq.get(num, 0) == 1 for num in range(min_val, max_val + 1)):\n                        results.append(max_val)\n                    else:\n                        results.append(-1)\n                \n                return results",
+              "solution_hash": "7bea88314fe40d04eb50437f2fb1f9da4d6aad54376b3b3d1224e9382200d5a7",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmphfij5qhu.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05273699760437012
+              },
+              "depth": 2,
+              "parent_id": "1_2",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_5",
+              "solution": "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                freq = [0] * 1000001  # Assuming nums[i] <= 10^6\n                max_val = max(nums[:k])\n                min_val = min(nums[:k])\n                window = nums[:k]\n                if all(window[j] == window[j-1] + 1 for j in range(1, k)):\n                    results.append(max_val)\n                else:\n                    results.append(-1)\n                for i in range(k, n):\n                    outgoing = nums[i - k]\n                    incoming = nums[i]\n                    if incoming == outgoing + 1 and max_val == outgoing:\n                        max_val = incoming\n                        min_val = outgoing + 1\n                        results.append(max_val)\n                    else:\n                        results.append(-1)\n                return results",
+              "solution_hash": "4859319c38e5877f420e490da78ab34c6e6a065049a62bc88467b5d2591f5294",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpx_0vx7r5.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05247664451599121
+              },
+              "depth": 2,
+              "parent_id": "1_2",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_6",
+          "solution": "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                for i in range(n - k + 1):\n                    window = nums[i:i+k]\n                    if len(set(window)) == k:\n                        window_sorted = sorted(window)\n                        if window_sorted == window and window_sorted[-1] - window_sorted[0] == k - 1:\n                            results.append(window_sorted[-1])\n                        else:\n                            results.append(-1)\n                    else:\n                        results.append(-1)\n                return results",
+          "solution_hash": "c576e63254fd89947678651220a4c69cc9f3e65996b281d7a80182939203b833",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmp5az1zz_s.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+            "execution_time": 0.05204367637634277
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_7",
+              "solution": "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                for i in range(n - k + 1):\n                    window = nums[i:i+k]\n                    if len(set(window)) == k:\n                        window_sorted = sorted(window)\n                        if window_sorted == window and window_sorted[-1] - window_sorted[0] == k - 1:\n                            results.append(window_sorted[-1])\n                        else:\n                            results.append(-1)\n                    else:\n                        results.append(-1)\n                return results",
+              "solution_hash": "c576e63254fd89947678651220a4c69cc9f3e65996b281d7a80182939203b833",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmp5az1zz_s.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05204367637634277
+              },
+              "depth": 2,
+              "parent_id": "1_6",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                max_window = []\n                min_window = []\n                for i in range(n):\n                    while max_window and nums[i] > nums[max_window[-1]]:\n                        max_window.pop()\n                    max_window.append(i)\n                    while min_window and nums[i] < nums[min_window[-1]]:\n                        min_window.pop()\n                    min_window.append(i)\n                    if i >= k - 1:\n                        max_val = nums[max_window[0]]\n                        min_val = nums[min_window[0]]\n                        if max_val - min_val == k - 1:\n                            # Check if all elements are unique in the window\n                            window_set = set(nums[i - k + 1:i + 1])\n                            if len(window_set) == k:\n                                results.append(max_val)\n                            else:\n                                results.append(-1)\n                        else:\n                            results.append(-1)\n                        # Remove elements that are out of the current window\n                        if i - k + 1 == max_window[0]:\n                            max_window.pop(0)\n                        if i - k + 1 == min_window[0]:\n                            min_window.pop(0)\n                return results",
+              "solution_hash": "a4c4939e99d9b599c5e6d8b663e994a9644e7cc7bb6bced0e0e6a703809a413a",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpevgevprk.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05359172821044922
+              },
+              "depth": 2,
+              "parent_id": "1_6",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_9",
+              "solution": "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        for i in range(n - k + 1):\n            is_consecutive = True\n            for j in range(i, i + k - 1):\n                if nums[j + 1] != nums[j] + 1:\n                    is_consecutive = False\n                    break\n            if is_consecutive:\n                results.append(nums[i + k - 1])  # maximum element in the window\n            else:\n                results.append(-1)\n        return results",
+              "solution_hash": "1a9fb97838536f1edc8368195f355676eef7f758c4ad3d736cbb5f408468fc0e",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.06897974014282227
+              },
+              "depth": 2,
+              "parent_id": "1_6",
+              "children": [],
+              "passed": true
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_10",
+          "solution": "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        \n        # Initialize frequency dictionary for the first window\n        freq = {}\n        for i in range(k):\n            freq[nums[i]] = freq.get(nums[i], 0) + 1\n        \n        # Check the first window\n        if self.isConsecutiveAndSorted(nums[:k], freq):\n            results.append(max(nums[:k]))\n        else:\n            results.append(-1)\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq[outgoing] -= 1\n            if freq[outgoing] == 0:\n                del freq[outgoing]\n            \n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq[incoming] = freq.get(incoming, 0) + 1\n            \n            # Check if the new window is consecutive and sorted\n            if self.isConsecutiveAndSorted(nums[i - k + 1:i + 1], freq):\n                results.append(max(nums[i - k + 1:i + 1]))\n            else:\n                results.append(-1)\n        \n        return results\n    \n    def isConsecutiveAndSorted(self, window: List[int], freq: dict) -> bool:\n        # Check if the window is sorted in ascending order\n        if window != sorted(window):\n            return False\n        # Check if elements are consecutive\n        min_val = min(window)\n        max_val = max(window)\n        expected_count = max_val - min_val + 1\n        if expected_count != len(window):\n            return False\n        # Check if all elements are unique and fit in the range\n        return len(freq) == expected_count and all(freq[val] == 1 for val in range(min_val, max_val + 1))",
+          "solution_hash": "023c1b8bf42353bb48e287e5b17a96e30590b6dbc472df04bf1c2696926658c7",
+          "test_result": {
+            "status": "pass",
+            "execution_time": 0.07578110694885254
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [],
+          "passed": true
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                for i in range(n - k + 1):\n                    subarray = nums[i:i+k]\n                    if self.is_consecutive_and_sorted(subarray):\n                        results.append(max(subarray))\n                    else:\n                        results.append(-1)\n                return results\n            \n            def is_consecutive_and_sorted(self, subarray: List[int]) -> bool:\n                sorted_subarray = sorted(subarray)\n                for i in range(1, len(sorted_subarray)):\n                    if sorted_subarray[i] - sorted_subarray[i-1] != 1:\n                        return False\n                return True",
+      "solution_hash": "8271af935a093fbf96dfdbe5c19734f19c16832b2c8ddb9696b52c9fd51f0772",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "  File \"/scratch/local/21419949/tmpnexcjck0.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+        "execution_time": 0.05807638168334961
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_12",
+          "solution": "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                for i in range(n - k + 1):\n                    subarray = nums[i:i+k]\n                    if self.is_consecutive_and_sorted(subarray):\n                        results.append(max(subarray))\n                    else:\n                        results.append(-1)\n                return results\n            \n            def is_consecutive_and_sorted(self, subarray: List[int]) -> bool:\n                min_val = min(subarray)\n                max_val = max(subarray)\n                if max_val - min_val != k - 1:\n                    return False\n                unique_elements = set(subarray)\n                if len(unique_elements) != k:\n                    return False\n                return True",
+          "solution_hash": "225f87fb46b25e54e6871ccfdcfa3c4183cb989b8993f963e905827534bb739b",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmpvspo9qxk.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+            "execution_time": 0.05366921424865723
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_13",
+              "solution": "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                freq = {}\n                \n                left = 0\n                for right in range(n):\n                    # Add the new element to frequency dictionary\n                    freq[nums[right]] = freq.get(nums[right], 0) + 1\n                    \n                    # Remove elements that are out of the current window\n                    if right >= k:\n                        freq[nums[left]] -= 1\n                        if freq[nums[left]] == 0:\n                            del freq[nums[left]]\n                        left += 1\n                    \n                    # Check if the window size is k\n                    if right >= k - 1:\n                        # Check if all elements are consecutive and sorted\n                        if self.is_consecutive_and_sorted(nums[left:right+1], freq):\n                            results.append(max(nums[left:right+1]))\n                        else:\n                            results.append(-1)\n                return results\n            \n            def is_consecutive_and_sorted(self, subarray: List[int], freq: dict) -> bool:\n                min_val = min(subarray)\n                max_val = max(subarray)\n                # Check if the difference between max and min is k-1\n                if max_val - min_val != len(subarray) - 1:\n                    return False\n                # Check if all elements are unique and consecutive\n                for num in range(min_val, max_val + 1):\n                    if freq.get(num, 0) != 1:\n                        return False\n                return True",
+              "solution_hash": "a476be24d05278a132dac27c9ca02af567fb9d37612ea9b05131fd5ba613d4fd",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmph5zcn6ix.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.053507328033447266
+              },
+              "depth": 2,
+              "parent_id": "1_12",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_14",
+              "solution": "from typing import List\n        from collections import deque\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                max_deque = deque()\n                for i in range(n):\n                    # Maintain the deque to have elements in decreasing order\n                    while max_deque and nums[i] > nums[max_deque[-1]]:\n                        max_deque.pop()\n                    max_deque.append(i)\n                    # Remove elements that are out of the current window\n                    if i - max_deque[0] >= k:\n                        max_deque.popleft()\n                    # Check if the current window is of size k\n                    if i >= k - 1:\n                        # Check if the subarray is consecutive and sorted\n                        if self.is_consecutive_and_sorted(nums, i - k + 1, i):\n                            results.append(nums[max_deque[0]])\n                        else:\n                            results.append(-1)\n                return results\n            \n            def is_consecutive_and_sorted(self, nums: List[int], start: int, end: int) -> bool:\n                # Check if the subarray is sorted\n                for i in range(start, end):\n                    if nums[i] >= nums[i + 1]:\n                        return False\n                # Check if the elements are consecutive\n                min_val = nums[start]\n                max_val = nums[end]\n                if max_val - min_val != end - start:\n                    return False\n                # Check for uniqueness\n                seen = set()\n                for i in range(start, end + 1):\n                    if nums[i] in seen:\n                        return False\n                    seen.add(nums[i])\n                return True",
+              "solution_hash": "2232f4e5718151973107acdfe5978f557f2037ed10de93a181e754bb1c7abe32",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmp1flrap5u.py\", line 82\n    from collections import deque\nIndentationError: unexpected indent\n",
+                "execution_time": 0.052083730697631836
+              },
+              "depth": 2,
+              "parent_id": "1_12",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_15",
+              "solution": "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                if k == 1:\n                    return nums\n                for i in range(n - k + 1):\n                    subarray = nums[i:i+k]\n                    if self.is_consecutive_and_sorted(subarray):\n                        results.append(max(subarray))\n                    else:\n                        results.append(-1)\n                return results\n            \n            def is_consecutive_and_sorted(self, subarray: List[int]) -> bool:\n                min_val = min(subarray)\n                max_val = max(subarray)\n                if max_val - min_val != k - 1:\n                    return False\n                unique_elements = set(subarray)\n                if len(unique_elements) != k:\n                    return False\n                # Check if elements are sorted\n                for j in range(k):\n                    if subarray[j] != min_val + j:\n                        return False\n                return True",
+              "solution_hash": "e50dd9c463d76699ed1002a6e4fa11317666c13c9c2e43ca8777feb36634dc4c",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpft7gsmu7.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05191612243652344
+              },
+              "depth": 2,
+              "parent_id": "1_12",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_16",
+          "solution": "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                for i in range(n - k + 1):\n                    subarray = nums[i:i+k]\n                    if self.is_consecutive_and_sorted(subarray):\n                        results.append(max(subarray))\n                    else:\n                        results.append(-1)\n                return results\n            \n            def is_consecutive_and_sorted(self, subarray: List[int]) -> bool:\n                for i in range(1, len(subarray)):\n                    if subarray[i] - subarray[i-1] != 1:\n                        return False\n                return True",
+          "solution_hash": "e10da476580bbbfbc35d3dc3a198751422e6865c643aa2fb601ae6551fe876ee",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmp86oi954j.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+            "execution_time": 0.05298280715942383
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_17",
+              "solution": "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        \n        # Precompute the maximum value in each subarray of size k\n        max_values = []\n        max_val = float('-inf')\n        for i in range(n):\n            max_val = max(max_val, nums[i])\n            if i >= k:\n                if nums[i - k] == max_val:\n                    max_val = max(nums[i - k + 1:i + 1])\n            if i >= k - 1:\n                max_values.append(max_val)\n        \n        # Check if each subarray is consecutive and sorted\n        for i in range(n - k + 1):\n            subarray = nums[i:i+k]\n            if self.is_consecutive_and_sorted(subarray):\n                results.append(max_values[i])\n            else:\n                results.append(-1)\n        return results\n    \n    def is_consecutive_and_sorted(self, subarray: List[int]) -> bool:\n        for i in range(1, len(subarray)):\n            if subarray[i] - subarray[i-1] != 1:\n                return False\n        return True",
+              "solution_hash": "accee57213bf3070a8a9fc1fdaac47749d41b8839ae205f7fc169945440561a0",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.06941390037536621
+              },
+              "depth": 2,
+              "parent_id": "1_16",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_18",
+              "solution": "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                max_val = float('-inf')\n                min_val = float('inf')\n                for i in range(n - k + 1):\n                    subarray = nums[i:i+k]\n                    if max(subarray) - min(subarray) == k - 1 and subarray == sorted(subarray):\n                        results.append(max(subarray))\n                    else:\n                        results.append(-1)\n                return results",
+              "solution_hash": "d52de3458f15ce8bd1fb54a37a230b8c5bbc3035dcfc40f08a86b6d24ea8081f",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpe2whv5zq.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05690169334411621
+              },
+              "depth": 2,
+              "parent_id": "1_16",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_19",
+              "solution": "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        \n        # Precompute differences between consecutive elements\n        diffs = [nums[i] - nums[i-1] for i in range(1, n)]\n        \n        # Check the first window\n        is_consecutive = all(d == 1 for d in diffs[:k-1])\n        if is_consecutive:\n            results.append(nums[k-1])\n        else:\n            results.append(-1)\n        \n        # Slide the window\n        for i in range(1, n - k + 1):\n            # Remove the outgoing difference and add the new one\n            outgoing_diff = diffs[i-1]\n            incoming_diff = diffs[i+k-1] if i+k-1 < n else None\n            if outgoing_diff == 1 and incoming_diff == 1:\n                is_consecutive = True\n            else:\n                is_consecutive = False\n            if is_consecutive:\n                results.append(nums[i+k-1])\n            else:\n                results.append(-1)\n        \n        return results",
+              "solution_hash": "7b0d3db91b080bb1948482fb0c095076d2ac3978e66683007c74557d37663af1",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp5bwgrc89.py\", line 260, in <module>\n    check(Solution().resultsArray)\n  File \"/scratch/local/21419949/tmp5bwgrc89.py\", line 116, in check\n    assert candidate(nums = [100, 101, 102, 103, 104, 105],k = 2) == [101, 102, 103, 104, 105]\n  File \"/scratch/local/21419949/tmp5bwgrc89.py\", line 102, in resultsArray\n    incoming_diff = diffs[i+k-1] if i+k-1 < n else None\nIndexError: list index out of range\n",
+                "execution_time": 0.06651139259338379
+              },
+              "depth": 2,
+              "parent_id": "1_16",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_20",
+          "solution": "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                for i in range(n - k + 1):\n                    subarray = nums[i:i+k]\n                    if self.is_consecutive_and_sorted(subarray):\n                        results.append(max(subarray))\n                    else:\n                        results.append(-1)\n                return results\n            \n            def is_consecutive_and_sorted(self, subarray: List[int]) -> bool:\n                min_val = min(subarray)\n                max_val = max(subarray)\n                if max_val - min_val != k - 1:\n                    return False\n                unique_elements = set(subarray)\n                if len(unique_elements) != k:\n                    return False\n                return True",
+          "solution_hash": "225f87fb46b25e54e6871ccfdcfa3c4183cb989b8993f963e905827534bb739b",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmpvspo9qxk.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+            "execution_time": 0.05366921424865723
+          },
+          "depth": 1,
+          "parent_id": "0_2",
+          "children": [
+            {
+              "node_id": "2_21",
+              "solution": "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        results = []\n        for i in range(n - k + 1):\n            subarray = nums[i:i+k]\n            is_consecutive = all(subarray[j] == subarray[j-1] + 1 for j in range(1, k))\n            if is_consecutive:\n                results.append(subarray[-1])  # Since it's sorted, the last element is the max\n            else:\n                results.append(-1)\n        return results",
+              "solution_hash": "5b6384f62b9e635e1772ee2aaf190033bdac4ce43f7191cbf7752098cb773358",
+              "test_result": {
+                "status": "pass",
+                "execution_time": 0.0693824291229248
+              },
+              "depth": 2,
+              "parent_id": "1_20",
+              "children": [],
+              "passed": true
+            },
+            {
+              "node_id": "2_22",
+              "solution": "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                freq = {}\n                \n                left = 0\n                for right in range(n):\n                    # Add the new element to frequency dictionary\n                    freq[nums[right]] = freq.get(nums[right], 0) + 1\n                    \n                    # Remove elements that are out of the current window\n                    if right - left + 1 > k:\n                        freq[nums[left]] -= 1\n                        if freq[nums[left]] == 0:\n                            del freq[nums[left]]\n                        left += 1\n                    \n                    # When window size reaches k\n                    if right - left + 1 == k:\n                        # Check if all elements are consecutive and sorted\n                        if max(nums[left:right+1]) - min(nums[left:right+1]) == k - 1 and len(freq) == k:\n                            results.append(max(nums[left:right+1]))\n                        else:\n                            results.append(-1)\n                \n                return results",
+              "solution_hash": "f95e5bd564a96e9f4fcf27b9100150853150642e277169622c25ce2e77fadc15",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmp0iefafab.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.056858062744140625
+              },
+              "depth": 2,
+              "parent_id": "1_20",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_23",
+              "solution": "from typing import List\n\n        class Solution:\n            def resultsArray(self, nums: List[int], k: int) -> List[int]:\n                n = len(nums)\n                results = []\n                for i in range(n - k + 1):\n                    subarray = nums[i:i+k]\n                    if self.is_consecutive_and_sorted(subarray):\n                        results.append(max(subarray))\n                    else:\n                        results.append(-1)\n                return results\n            \n            def is_consecutive_and_sorted(self, subarray: List[int]) -> bool:\n                min_val = min(subarray)\n                max_val = max(subarray)\n                if max_val - min_val != k - 1:\n                    return False\n                unique_elements = set(subarray)\n                if len(unique_elements) != k:\n                    return False\n                return True",
+              "solution_hash": "225f87fb46b25e54e6871ccfdcfa3c4183cb989b8993f963e905827534bb739b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpvspo9qxk.py\", line 83\n    class Solution:\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05366921424865723
+              },
+              "depth": 2,
+              "parent_id": "1_20",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 24,
+    "candidates_generated": 24,
+    "tests_passed": 5,
+    "tests_failed": 19,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 497.9647653102875,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.2400000000000001,
+      "pass@3": 0.5786956521739129,
+      "pass@5": 0.7811405985319029,
+      "pass@10": 0.9717391304347827
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: list index out of range",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 24
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 25,
+    "test_cases": 1
+  }
+}

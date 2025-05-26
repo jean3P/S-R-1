@@ -1,0 +1,732 @@
+{
+  "problem_id": "reach-end-of-array-with-max-score",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "class Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [0] * n\n        dp[0] = 0  # Starting point has score 0\n        \n        for i in range(n):\n            max_score = dp[i]\n            for j in range(i + 1, n):\n                score = dp[i] + (j - i) * nums[i]\n                if score > dp[j]:\n                    dp[j] = score\n                # Optimization: If the current jump's score is less than the previous one, break early\n                if (j - i) * nums[i] < (j - i + 1) * nums[i]:\n                    break\n        return dp[-1]",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [0] * n\n        dq = deque()\n        \n        for j in range(1, n):\n            while dq and dp[dq[-1]] + (j - dq[-1]) * nums[dq[-1]] <= dp[j]:\n                dq.pop()\n            dq.append(j)\n            \n            i = 0\n            while i < j:\n                score = dp[i] + (j - i) * nums[i]\n                if dq and dp[dq[0]] + (j - dq[0]) * nums[dq[0]] >= score:\n                    break\n                i += 1\n            dp[j] = max(dp[j], score)\n        \n        return dp[-1]",
+    "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                dp = [0] * n\n                dq = deque()\n                \n                for j in range(1, n):\n                    # Remove indices from the deque that cannot lead to a better score for the current j\n                    while dq and dp[dq[-1]] + (j - dq[-1]) * nums[dq[-1]] <= dp[j]:\n                        dq.pop()\n                    dq.append(j)\n                    \n                    # Calculate the score for jumping to j from the front of the deque\n                    if dq:\n                        i = dq[0]\n                        dp[j] = max(dp[j], dp[i] + (j - i) * nums[i])\n                    \n                    # Remove indices from the deque that are no longer needed\n                    while dq and dq[0] < j - nums[j] + 1:\n                        dq.popleft()\n                \n                return dp[-1]",
+    "from typing import List\n        import sys\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                dp = [0] * n\n                max_queue = []\n                \n                for j in range(1, n):\n                    # Remove indices from the queue that are out of the sliding window\n                    while max_queue and max_queue[0] < j - nums[j - 1]:\n                        max_queue.pop(0)\n                    \n                    # Calculate the score if jumping from the index at the front of the queue\n                    if max_queue:\n                        dp[j] = dp[max_queue[0]] + (j - max_queue[0]) * nums[max_queue[0]]\n                    else:\n                        dp[j] = (j - 0) * nums[0]\n                    \n                    # Maintain the queue to keep indices in decreasing order of their dp[i] - i * nums[i]\n                    while max_queue and dp[i] - i * nums[i] >= dp[max_queue[-1]] - max_queue[-1] * nums[max_queue[-1]]:\n                        max_queue.pop()\n                    max_queue.append(j)\n                \n                return dp[-1]",
+    "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                dp = [0] * n\n                dq = deque()\n                \n                for j in range(1, n):\n                    # Remove indices from the back that are worse than the current j\n                    while dq and dp[dq[-1]] + (j - dq[-1]) * nums[dq[-1]] <= dp[j]:\n                        dq.pop()\n                    dq.append(j)\n                    \n                    # Calculate dp[j] using the best i from the front of the deque\n                    i = dq[0]\n                    dp[j] = dp[i] + (j - i) * nums[i]\n                    \n                    # Remove indices from the front that are no longer needed\n                    while dq and dq[0] < j - nums[i] + 1:\n                        dq.popleft()\n                    \n                return dp[-1]",
+    "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                dp = [0] * n\n                dq = deque()\n                \n                for i in range(n):\n                    while dq and dq[0] < i:\n                        dq.popleft()\n                    \n                    if dq:\n                        dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n                    \n                    while dq and (dp[i] - dq[-1] * nums[dq[-1]]) >= (dp[dq[-1]] - i * nums[dq[-1]]):\n                        dq.pop()\n                    \n                    dq.append(i)\n                \n                return dp[-1]",
+    "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                dp = [0] * n\n                dq = deque()\n                \n                for i in range(n):\n                    while dq and dq[0] < i:\n                        dq.popleft()\n                    \n                    if dq:\n                        dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n                    else:\n                        dp[i] = 0  # or handle base case appropriately\n                    \n                    # Adjust the deque to maintain potential candidates for future jumps\n                    while dq and (dp[i] - i * nums[i]) >= (dp[dq[-1]] - dq[-1] * nums[dq[-1]]):\n                        dq.pop()\n                    \n                    dq.append(i)\n                \n                return dp[-1]",
+    "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                dp = [0] * n\n                dq = deque()\n                \n                for i in range(n):\n                    while dq and dq[0] < i:\n                        dq.popleft()\n                    \n                    if dq:\n                        dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n                    else:\n                        dp[i] = 0  # No jump needed if staying at start\n                    \n                    # Adjust the deque to maintain indices where the score is better\n                    while dq and (dp[i] - i * nums[i]) >= (dp[dq[-1]] - dq[-1] * nums[dq[-1]]):\n                        dq.pop()\n                    \n                    dq.append(i)\n                \n                return dp[-1]",
+    "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                dp = [0] * n\n                dq = deque()\n                \n                for i in range(n):\n                    while dq and dq[0] < i:\n                        dq.popleft()\n                    \n                    if dq:\n                        dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n                    else:\n                        dp[i] = 0  # No jump needed if starting at index 0\n                    \n                    # Maintain the deque to keep indices where the score improvement is better\n                    while dq and (dp[i] - i * nums[i]) >= (dp[dq[-1]] - dq[-1] * nums[dq[-1]]):\n                        dq.pop()\n                    \n                    dq.append(i)\n                \n                return dp[-1]",
+    "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                dp = [0] * n\n                dq = deque()\n\n                for j in range(1, n):\n                    while dq and dq[0] < j:\n                        dq.popleft()\n                    \n                    if dq:\n                        i = dq[0]\n                        dp[j] = dp[i] + (j - i) * nums[i]\n                    \n                    # Maintain the deque with indices where (dp[i] + (j - i) * nums[i]) is maximized\n                    while dq and (dp[dq[-1]] + (j - dq[-1]) * nums[dq[-1]]) <= (dp[j] - (j - i) * nums[i]):\n                        dq.pop()\n                    dq.append(j)\n                \n                return dp[-1]",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [0] * n\n        dq = deque()\n\n        for j in range(1, n):\n            # Remove indices that are out of the jumping range\n            while dq and dq[0] < j - nums[j - 1]:\n                dq.popleft()\n            \n            # Calculate the score if jumping from the index at the front of the deque\n            if dq:\n                i = dq[0]\n                dp[j] = dp[i] + (j - i) * nums[i]\n            else:\n                dp[j] = float('-inf')\n            \n            # Maintain the deque to only contain indices where dp[i] - i * nums[i] is decreasing\n            while dq and dp[dq[-1]] - dq[-1] * nums[dq[-1]] <= dp[j] - j * nums[j]:\n                dq.pop()\n            dq.append(j)\n        \n        return dp[-1]",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [0] * n\n        dq = deque()\n\n        for j in range(1, n):\n            # Remove indices from the front of the deque that are not useful anymore\n            while dq and dq[0] < j - nums[j-1]:\n                dq.popleft()\n            \n            # Calculate the score for jumping to j from the front of the deque\n            if dq:\n                i = dq[0]\n                dp[j] = dp[i] + (j - i) * nums[i]\n            else:\n                dp[j] = (j - 0) * nums[0]  # Jump directly from index 0\n            \n            # Maintain the deque with indices where (dp[i] - nums[i] * i) is maximized\n            # This helps in quickly finding the best previous jump point\n            while dq and dp[dq[-1]] - nums[dq[-1]] * dq[-1] <= dp[j] - nums[j] * j:\n                dq.pop()\n            dq.append(j)\n        \n        return dp[-1]",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [0] * n\n        dq = deque()\n\n        for j in range(1, n):\n            # Remove indices from the front of the deque that are not useful for the current j\n            while dq and dq[0] < j - nums[j-1]:\n                dq.popleft()\n            \n            # Calculate dp[j] using the front of the deque\n            if dq:\n                i = dq[0]\n                dp[j] = dp[i] + (j - i) * nums[i]\n            else:\n                dp[j] = (j - 0) * nums[0]\n            \n            # Maintain the deque with indices where dp[i] - i * nums[i] is maximized\n            # This helps in quickly finding the best previous index for future jumps\n            while dq and dp[dq[-1]] - dq[-1] * nums[dq[-1]] <= dp[j] - j * nums[j]:\n                dq.pop()\n            dq.append(j)\n        \n        return dp[-1]",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        dq.append(0)\n        \n        for i in range(1, n):\n            # Calculate dp[i] using the front of the deque\n            dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n            \n            # Remove indices from the back of the deque if they don't offer a better score\n            while dq and dp[i] - i * nums[i] >= dp[dq[-1]] - dq[-1] * nums[dq[-1]]:\n                dq.pop()\n            \n            # Add current index to the deque\n            dq.append(i)\n            \n            # Remove indices from the front of the deque if they are no longer the best option\n            while dq and dq[0] <= i - n:\n                dq.popleft()\n        \n        return dp[-1]",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        for i in range(n):\n            if dq:\n                dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n            else:\n                dp[i] = 0  # No previous jumps, score is 0\n            \n            # Remove indices from the back of the deque if they don't offer a better score\n            while dq and dp[i] - i * nums[i] >= dp[dq[-1]] - dq[-1] * nums[dq[-1]]:\n                dq.pop()\n            \n            dq.append(i)\n            \n            # Remove indices from the front of the deque if they are no longer the best option\n            # The condition should be based on the current index minus the deque front index\n            # Assuming n is the length, we need to keep indices that are within the array bounds\n            while dq and dq[0] < i - n + 1:\n                dq.popleft()\n        \n        return dp[-1]",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        for i in range(n):\n            if dq:\n                # Calculate the score if jumping from the front of the deque\n                jump_score = (i - dq[0]) * nums[dq[0]]\n                dp[i] = dp[dq[0]] + jump_score\n            else:\n                dp[i] = 0  # No previous jumps, score is 0\n            \n            # Maintain the deque to only keep indices that offer better scores\n            while dq and dp[i] - i * nums[i] >= dp[dq[-1]] - dq[-1] * nums[dq[-1]]:\n                dq.pop()\n            \n            dq.append(i)\n            \n            # Remove indices from the front of the deque if they are no longer reachable or not beneficial\n            while dq and dq[0] < i - n + 1:\n                dq.popleft()\n        \n        return dp[-1]",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        for i in range(n):\n            if dq:\n                # Calculate the score if jumping from the front of the deque\n                jump_from = dq[0]\n                dp[i] = dp[jump_from] + (i - jump_from) * nums[jump_from]\n            else:\n                dp[i] = 0  # No previous jumps, score is 0\n            \n            # Maintain the deque to only contain indices that are beneficial to jump from\n            # Remove indices from the back if they don't offer a better score than the current index\n            while dq and dp[i] - i * nums[i] >= dp[dq[-1]] - dq[-1] * nums[dq[-1]]:\n                dq.pop()\n            \n            dq.append(i)\n            \n            # Remove indices from the front if they are no longer within the bounds\n            # Assuming we need to keep indices that are within the array bounds\n            # Here, we need to decide the condition for removing from the front\n            # For this problem, since we can jump to any index greater than the current,\n            # we don't necessarily need to remove based on i - k, where k is some window size.\n            # Instead, we can keep the deque ordered such that the front always has the best option.\n            # Therefore, no need to remove from the front based on i - n + 1 as in the previous code.\n            # We might need to adjust this based on further understanding of the problem.\n        \n        return dp[-1]",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        for i in range(n):\n            # Calculate dp[i] using the front of the deque\n            if dq:\n                j = dq[0]\n                dp[i] = dp[j] + (i - j) * nums[j]\n            else:\n                dp[i] = 0  # No previous jumps, score is 0\n            \n            # Maintain the deque to keep indices that can offer better scores\n            # Remove indices from the back if they offer worse scores than the current index\n            while dq and dp[i] - i * nums[i] >= dp[dq[-1]] - dq[-1] * nums[dq[-1]]:\n                dq.pop()\n            \n            dq.append(i)\n            \n            # Remove indices from the front if they are no longer within the jumping range\n            # Assuming we can jump to any index greater than the current, no need to remove based on i\n            # If there were constraints on jump distance, we would adjust this part\n        \n        return dp[-1]",
+    "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                if n == 1:\n                    return 0  # No jumps needed, score is 0\n                \n                dp = [0] * n\n                dq = deque()\n                \n                for i in range(n):\n                    # Calculate dp[i] using the front of the deque\n                    if dq:\n                        dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n                    else:\n                        dp[i] = 0  # No previous jumps\n                    \n                    # Remove indices from the back of the deque if they don't offer a better slope\n                    while dq and (dp[i] - dq[i] * nums[i]) >= (dp[dq[-1]] - dq[-1] * nums[dq[-1]]):\n                        dq.pop()\n                    \n                    # Add current index to the deque\n                    dq.append(i)\n                    \n                    # No need to remove from front based on i - n as in previous solution\n                return dp[-1]",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        for i in range(n):\n            # Calculate dp[i] using the front of the deque\n            if dq:\n                dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n            else:\n                dp[i] = 0  # No previous jumps\n            \n            # Remove indices from the back of the deque if they don't offer a better slope\n            while dq and (dp[i] - dp[dq[-1]]) >= (nums[dq[-1]] - nums[i]) * (i - dq[-1]):\n                dq.pop()\n            \n            # Add current index to the deque\n            dq.append(i)\n            \n            # No need to remove from front based on i - n as in previous solution\n        return dp[-1]",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        for i in range(n):\n            # Calculate dp[i] using the front of the deque\n            if dq:\n                dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n            else:\n                dp[i] = 0  # No previous jumps\n            \n            # Remove indices from the back of the deque if they don't offer a better slope\n            while dq and (dp[i] - dp[dq[-1]]) >= (nums[dq[-1]] - nums[i]) * dq[-1]:\n                dq.pop()\n            \n            # Add current index to the deque\n            dq.append(i)\n            \n            # No need to remove from front based on i - n as in previous solution\n        return dp[-1]",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        for i in range(n):\n            # Calculate dp[i] using the front of the deque\n            if dq:\n                dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n            else:\n                dp[i] = 0  # No previous jumps\n            \n            # Remove indices from the back of the deque if they don't offer a better slope\n            while dq and (dp[i] - dp[dq[-1]]) >= (nums[dq[-1]] - nums[i]) * (i - dq[-1]):\n                dq.pop()\n            \n            # Add current index to the deque\n            dq.append(i)\n        \n        return dp[-1]",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        dq.append(0)\n        \n        for i in range(1, n):\n            # Calculate dp[i] using the front of the deque\n            dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n            \n            # Remove indices from the back of the deque if they don't offer a better score\n            while dq and dp[i] - i * nums[i] >= dp[dq[-1]] - dq[-1] * nums[dq[-1]]:\n                dq.pop()\n            \n            # Add current index to the deque\n            dq.append(i)\n            \n            # Remove indices from the front of the deque if they are no longer the best option\n            # Correct condition to remove indices that are too far behind\n            while dq and dq[0] < i - n:\n                dq.popleft()\n        \n        return dp[-1]",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        dq.append(0)\n        \n        for i in range(1, n):\n            # Calculate dp[i] using the front of the deque\n            dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n            \n            # Remove indices from the back of the deque if they don't offer a better score\n            while dq and dp[i] - i * nums[i] >= dp[dq[-1]] - dq[-1] * nums[dq[-1]]:\n                dq.pop()\n            \n            # Add current index to the deque\n            dq.append(i)\n            \n            # Remove indices from the front of the deque if they are no longer the best option\n            # Correct condition to remove indices that are too far behind\n            while dq and dq[0] < i - n:\n                dq.popleft()\n        \n        return dp[-1]",
+    "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        dq.append(0)\n        \n        for i in range(1, n):\n            # Calculate dp[i] using the front of the deque\n            dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n            \n            # Remove indices from the back of the deque if they don't offer a better score\n            while dq and dp[i] - i * nums[i] >= dp[dq[-1]] - dq[-1] * nums[dq[-1]]:\n                dq.pop()\n            \n            # Add current index to the deque\n            dq.append(i)\n            \n            # Remove indices from the front of the deque if they are no longer the best option\n            # Correct condition to remove indices that are too far behind\n            while dq and dq[0] < i - n:\n                dq.popleft()\n        \n        return dp[-1]",
+    "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                if n == 1:\n                    return 0  # No jumps needed, score is 0\n                \n                dp = [0] * n\n                dq = deque()\n                \n                for i in range(n):\n                    # Calculate dp[i] using the front of the deque\n                    if dq:\n                        dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n                    else:\n                        dp[i] = 0  # No previous jumps\n                    \n                    # Maintain the deque to keep potentially optimal indices\n                    # Remove indices from the back if they don't offer a better score\n                    while dq and dp[i] - i * nums[i] >= dp[dq[-1]] - dq[-1] * nums[dq[-1]]:\n                        dq.pop()\n                    \n                    # Add current index to the deque\n                    dq.append(i)\n                    \n                    # Remove indices from the front of the deque if they are no longer the best option\n                    # Correct condition to remove indices that are too far behind\n                    while dq and dq[0] < i - n:\n                        dq.popleft()\n                \n                return dp[-1]"
+  ],
+  "total_candidates": 26,
+  "nodes_explored": 26,
+  "tree_depth": 2,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [0] * n\n        dp[0] = 0  # Starting point has score 0\n        \n        for i in range(n):\n            max_score = dp[i]\n            for j in range(i + 1, n):\n                score = dp[i] + (j - i) * nums[i]\n                if score > dp[j]:\n                    dp[j] = score\n                # Optimization: If the current jump's score is less than the previous one, break early\n                if (j - i) * nums[i] < (j - i + 1) * nums[i]:\n                    break\n        return dp[-1]",
+      "solution_hash": "e679ec15d6dfeeba1507a86d774a9d9bea15b3ec886811f689442b8206a2e8f4",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpxpsu1fxu.py\", line 203, in <module>\n    check(Solution().findMaximumScore)\n  File \"/scratch/local/21419949/tmpxpsu1fxu.py\", line 101, in check\n    assert candidate(nums = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]) == 90\nAssertionError\n",
+        "execution_time": 0.06725096702575684
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_1",
+          "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [0] * n\n        dq = deque()\n        \n        for j in range(1, n):\n            while dq and dp[dq[-1]] + (j - dq[-1]) * nums[dq[-1]] <= dp[j]:\n                dq.pop()\n            dq.append(j)\n            \n            i = 0\n            while i < j:\n                score = dp[i] + (j - i) * nums[i]\n                if dq and dp[dq[0]] + (j - dq[0]) * nums[dq[0]] >= score:\n                    break\n                i += 1\n            dp[j] = max(dp[j], score)\n        \n        return dp[-1]",
+          "solution_hash": "1797c021481cbb707ce343b58dd86081a9eb175ede80558e2cd057e15a01ebe3",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpakynj0yo.py\", line 210, in <module>\n    check(Solution().findMaximumScore)\n  File \"/scratch/local/21419949/tmpakynj0yo.py\", line 107, in check\n    assert candidate(nums = [2, 3, 5, 6, 7, 8]) == 23\nAssertionError\n",
+            "execution_time": 0.06656599044799805
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_2",
+              "solution": "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                dp = [0] * n\n                dq = deque()\n                \n                for j in range(1, n):\n                    # Remove indices from the deque that cannot lead to a better score for the current j\n                    while dq and dp[dq[-1]] + (j - dq[-1]) * nums[dq[-1]] <= dp[j]:\n                        dq.pop()\n                    dq.append(j)\n                    \n                    # Calculate the score for jumping to j from the front of the deque\n                    if dq:\n                        i = dq[0]\n                        dp[j] = max(dp[j], dp[i] + (j - i) * nums[i])\n                    \n                    # Remove indices from the deque that are no longer needed\n                    while dq and dq[0] < j - nums[j] + 1:\n                        dq.popleft()\n                \n                return dp[-1]",
+              "solution_hash": "3f71084203aefb2bb96f957c7ecfa4a1a0fae4da1bec0bd878fd1bf931f6da2c",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpirt1iqn6.py\", line 82\n    from collections import deque\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05654311180114746
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_3",
+              "solution": "from typing import List\n        import sys\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                dp = [0] * n\n                max_queue = []\n                \n                for j in range(1, n):\n                    # Remove indices from the queue that are out of the sliding window\n                    while max_queue and max_queue[0] < j - nums[j - 1]:\n                        max_queue.pop(0)\n                    \n                    # Calculate the score if jumping from the index at the front of the queue\n                    if max_queue:\n                        dp[j] = dp[max_queue[0]] + (j - max_queue[0]) * nums[max_queue[0]]\n                    else:\n                        dp[j] = (j - 0) * nums[0]\n                    \n                    # Maintain the queue to keep indices in decreasing order of their dp[i] - i * nums[i]\n                    while max_queue and dp[i] - i * nums[i] >= dp[max_queue[-1]] - max_queue[-1] * nums[max_queue[-1]]:\n                        max_queue.pop()\n                    max_queue.append(j)\n                \n                return dp[-1]",
+              "solution_hash": "e8f0af9766c8fa08a31972ce88c2703521f78d3ac77b38157c5736db13ebeaf2",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmplj5p40lu.py\", line 82\n    import sys\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05577540397644043
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_4",
+              "solution": "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                dp = [0] * n\n                dq = deque()\n                \n                for j in range(1, n):\n                    # Remove indices from the back that are worse than the current j\n                    while dq and dp[dq[-1]] + (j - dq[-1]) * nums[dq[-1]] <= dp[j]:\n                        dq.pop()\n                    dq.append(j)\n                    \n                    # Calculate dp[j] using the best i from the front of the deque\n                    i = dq[0]\n                    dp[j] = dp[i] + (j - i) * nums[i]\n                    \n                    # Remove indices from the front that are no longer needed\n                    while dq and dq[0] < j - nums[i] + 1:\n                        dq.popleft()\n                    \n                return dp[-1]",
+              "solution_hash": "c488e29ed7f27b5d95a2f32f39444d1651bd570257f277181a0943c06a076ce4",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmprycy3jmh.py\", line 82\n    from collections import deque\nIndentationError: unexpected indent\n",
+                "execution_time": 0.054213523864746094
+              },
+              "depth": 2,
+              "parent_id": "1_1",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_5",
+          "solution": "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                dp = [0] * n\n                dq = deque()\n                \n                for i in range(n):\n                    while dq and dq[0] < i:\n                        dq.popleft()\n                    \n                    if dq:\n                        dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n                    \n                    while dq and (dp[i] - dq[-1] * nums[dq[-1]]) >= (dp[dq[-1]] - i * nums[dq[-1]]):\n                        dq.pop()\n                    \n                    dq.append(i)\n                \n                return dp[-1]",
+          "solution_hash": "4f44a8f359bae817fc7bf689052afbbbee8e123565fe2be036e83e29f3777a0c",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmp199z3jtm.py\", line 82\n    from collections import deque\nIndentationError: unexpected indent\n",
+            "execution_time": 0.0542600154876709
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_6",
+              "solution": "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                dp = [0] * n\n                dq = deque()\n                \n                for i in range(n):\n                    while dq and dq[0] < i:\n                        dq.popleft()\n                    \n                    if dq:\n                        dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n                    else:\n                        dp[i] = 0  # or handle base case appropriately\n                    \n                    # Adjust the deque to maintain potential candidates for future jumps\n                    while dq and (dp[i] - i * nums[i]) >= (dp[dq[-1]] - dq[-1] * nums[dq[-1]]):\n                        dq.pop()\n                    \n                    dq.append(i)\n                \n                return dp[-1]",
+              "solution_hash": "51f444e8c59a1d50ca5924bbc32a7106d9ad45f292c7eadc6fca6a53ef332d4b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpj3bh_sk5.py\", line 82\n    from collections import deque\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05431079864501953
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_7",
+              "solution": "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                dp = [0] * n\n                dq = deque()\n                \n                for i in range(n):\n                    while dq and dq[0] < i:\n                        dq.popleft()\n                    \n                    if dq:\n                        dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n                    else:\n                        dp[i] = 0  # No jump needed if staying at start\n                    \n                    # Adjust the deque to maintain indices where the score is better\n                    while dq and (dp[i] - i * nums[i]) >= (dp[dq[-1]] - dq[-1] * nums[dq[-1]]):\n                        dq.pop()\n                    \n                    dq.append(i)\n                \n                return dp[-1]",
+              "solution_hash": "51f444e8c59a1d50ca5924bbc32a7106d9ad45f292c7eadc6fca6a53ef332d4b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpj3bh_sk5.py\", line 82\n    from collections import deque\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05431079864501953
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_8",
+              "solution": "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                dp = [0] * n\n                dq = deque()\n                \n                for i in range(n):\n                    while dq and dq[0] < i:\n                        dq.popleft()\n                    \n                    if dq:\n                        dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n                    else:\n                        dp[i] = 0  # No jump needed if starting at index 0\n                    \n                    # Maintain the deque to keep indices where the score improvement is better\n                    while dq and (dp[i] - i * nums[i]) >= (dp[dq[-1]] - dq[-1] * nums[dq[-1]]):\n                        dq.pop()\n                    \n                    dq.append(i)\n                \n                return dp[-1]",
+              "solution_hash": "51f444e8c59a1d50ca5924bbc32a7106d9ad45f292c7eadc6fca6a53ef332d4b",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmpj3bh_sk5.py\", line 82\n    from collections import deque\nIndentationError: unexpected indent\n",
+                "execution_time": 0.05431079864501953
+              },
+              "depth": 2,
+              "parent_id": "1_5",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_9",
+          "solution": "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                dp = [0] * n\n                dq = deque()\n\n                for j in range(1, n):\n                    while dq and dq[0] < j:\n                        dq.popleft()\n                    \n                    if dq:\n                        i = dq[0]\n                        dp[j] = dp[i] + (j - i) * nums[i]\n                    \n                    # Maintain the deque with indices where (dp[i] + (j - i) * nums[i]) is maximized\n                    while dq and (dp[dq[-1]] + (j - dq[-1]) * nums[dq[-1]]) <= (dp[j] - (j - i) * nums[i]):\n                        dq.pop()\n                    dq.append(j)\n                \n                return dp[-1]",
+          "solution_hash": "e31edea7a23cb3226f6b92101f591c029078dc9655830272943ea1573021f734",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmpr727v4fb.py\", line 82\n    from collections import deque\nIndentationError: unexpected indent\n",
+            "execution_time": 0.05347752571105957
+          },
+          "depth": 1,
+          "parent_id": "0_0",
+          "children": [
+            {
+              "node_id": "2_10",
+              "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [0] * n\n        dq = deque()\n\n        for j in range(1, n):\n            # Remove indices that are out of the jumping range\n            while dq and dq[0] < j - nums[j - 1]:\n                dq.popleft()\n            \n            # Calculate the score if jumping from the index at the front of the deque\n            if dq:\n                i = dq[0]\n                dp[j] = dp[i] + (j - i) * nums[i]\n            else:\n                dp[j] = float('-inf')\n            \n            # Maintain the deque to only contain indices where dp[i] - i * nums[i] is decreasing\n            while dq and dp[dq[-1]] - dq[-1] * nums[dq[-1]] <= dp[j] - j * nums[j]:\n                dq.pop()\n            dq.append(j)\n        \n        return dp[-1]",
+              "solution_hash": "fd1c62bfb7d8765506014200ea1d613f59d4faec444c593ef556006eede7065f",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpksxopehh.py\", line 214, in <module>\n    check(Solution().findMaximumScore)\n  File \"/scratch/local/21419949/tmpksxopehh.py\", line 111, in check\n    assert candidate(nums = [2, 3, 5, 6, 7, 8]) == 23\nAssertionError\n",
+                "execution_time": 0.06637072563171387
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_11",
+              "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [0] * n\n        dq = deque()\n\n        for j in range(1, n):\n            # Remove indices from the front of the deque that are not useful anymore\n            while dq and dq[0] < j - nums[j-1]:\n                dq.popleft()\n            \n            # Calculate the score for jumping to j from the front of the deque\n            if dq:\n                i = dq[0]\n                dp[j] = dp[i] + (j - i) * nums[i]\n            else:\n                dp[j] = (j - 0) * nums[0]  # Jump directly from index 0\n            \n            # Maintain the deque with indices where (dp[i] - nums[i] * i) is maximized\n            # This helps in quickly finding the best previous jump point\n            while dq and dp[dq[-1]] - nums[dq[-1]] * dq[-1] <= dp[j] - nums[j] * j:\n                dq.pop()\n            dq.append(j)\n        \n        return dp[-1]",
+              "solution_hash": "8c2fef5eb066ab843044c6d28f16dadccc558372eefa2e6ad537aeb06f5a8860",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpinfigyoo.py\", line 215, in <module>\n    check(Solution().findMaximumScore)\n  File \"/scratch/local/21419949/tmpinfigyoo.py\", line 112, in check\n    assert candidate(nums = [2, 3, 5, 6, 7, 8]) == 23\nAssertionError\n",
+                "execution_time": 0.06620168685913086
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_12",
+              "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        dp = [0] * n\n        dq = deque()\n\n        for j in range(1, n):\n            # Remove indices from the front of the deque that are not useful for the current j\n            while dq and dq[0] < j - nums[j-1]:\n                dq.popleft()\n            \n            # Calculate dp[j] using the front of the deque\n            if dq:\n                i = dq[0]\n                dp[j] = dp[i] + (j - i) * nums[i]\n            else:\n                dp[j] = (j - 0) * nums[0]\n            \n            # Maintain the deque with indices where dp[i] - i * nums[i] is maximized\n            # This helps in quickly finding the best previous index for future jumps\n            while dq and dp[dq[-1]] - dq[-1] * nums[dq[-1]] <= dp[j] - j * nums[j]:\n                dq.pop()\n            dq.append(j)\n        \n        return dp[-1]",
+              "solution_hash": "4bc809982f5e02a89319d55dcfd2b4c6d72b1d2763d17c04131eda2e10900c2c",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp1ut6nfg_.py\", line 215, in <module>\n    check(Solution().findMaximumScore)\n  File \"/scratch/local/21419949/tmp1ut6nfg_.py\", line 112, in check\n    assert candidate(nums = [2, 3, 5, 6, 7, 8]) == 23\nAssertionError\n",
+                "execution_time": 0.06583142280578613
+              },
+              "depth": 2,
+              "parent_id": "1_9",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        dq.append(0)\n        \n        for i in range(1, n):\n            # Calculate dp[i] using the front of the deque\n            dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n            \n            # Remove indices from the back of the deque if they don't offer a better score\n            while dq and dp[i] - i * nums[i] >= dp[dq[-1]] - dq[-1] * nums[dq[-1]]:\n                dq.pop()\n            \n            # Add current index to the deque\n            dq.append(i)\n            \n            # Remove indices from the front of the deque if they are no longer the best option\n            while dq and dq[0] <= i - n:\n                dq.popleft()\n        \n        return dp[-1]",
+      "solution_hash": "c9f726e375ddfcf7bd68b77433fc3e748a7e7b5db9318d2aad39b76267ae1478",
+      "test_result": {
+        "status": "fail",
+        "error_message": "Test execution failed with return code 1",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpplc5jdpv.py\", line 217, in <module>\n    check(Solution().findMaximumScore)\n  File \"/scratch/local/21419949/tmpplc5jdpv.py\", line 114, in check\n    assert candidate(nums = [2, 3, 5, 6, 7, 8]) == 23\nAssertionError\n",
+        "execution_time": 0.06596255302429199
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        {
+          "node_id": "1_14",
+          "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        for i in range(n):\n            if dq:\n                dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n            else:\n                dp[i] = 0  # No previous jumps, score is 0\n            \n            # Remove indices from the back of the deque if they don't offer a better score\n            while dq and dp[i] - i * nums[i] >= dp[dq[-1]] - dq[-1] * nums[dq[-1]]:\n                dq.pop()\n            \n            dq.append(i)\n            \n            # Remove indices from the front of the deque if they are no longer the best option\n            # The condition should be based on the current index minus the deque front index\n            # Assuming n is the length, we need to keep indices that are within the array bounds\n            while dq and dq[0] < i - n + 1:\n                dq.popleft()\n        \n        return dp[-1]",
+          "solution_hash": "090d1b226558ae1aff113088bc33080eb30fedef79ae066596e088b590396ea9",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp8htd7h7c.py\", line 218, in <module>\n    check(Solution().findMaximumScore)\n  File \"/scratch/local/21419949/tmp8htd7h7c.py\", line 115, in check\n    assert candidate(nums = [2, 3, 5, 6, 7, 8]) == 23\nAssertionError\n",
+            "execution_time": 0.06643128395080566
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_15",
+              "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        for i in range(n):\n            if dq:\n                # Calculate the score if jumping from the front of the deque\n                jump_score = (i - dq[0]) * nums[dq[0]]\n                dp[i] = dp[dq[0]] + jump_score\n            else:\n                dp[i] = 0  # No previous jumps, score is 0\n            \n            # Maintain the deque to only keep indices that offer better scores\n            while dq and dp[i] - i * nums[i] >= dp[dq[-1]] - dq[-1] * nums[dq[-1]]:\n                dq.pop()\n            \n            dq.append(i)\n            \n            # Remove indices from the front of the deque if they are no longer reachable or not beneficial\n            while dq and dq[0] < i - n + 1:\n                dq.popleft()\n        \n        return dp[-1]",
+              "solution_hash": "a038fd1aa6f77365e19bdd6de799a75702f182a2a43682e437c1c2d22c48ae78",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmprnby_d9i.py\", line 218, in <module>\n    check(Solution().findMaximumScore)\n  File \"/scratch/local/21419949/tmprnby_d9i.py\", line 115, in check\n    assert candidate(nums = [2, 3, 5, 6, 7, 8]) == 23\nAssertionError\n",
+                "execution_time": 0.0671701431274414
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_16",
+              "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        for i in range(n):\n            if dq:\n                # Calculate the score if jumping from the front of the deque\n                jump_from = dq[0]\n                dp[i] = dp[jump_from] + (i - jump_from) * nums[jump_from]\n            else:\n                dp[i] = 0  # No previous jumps, score is 0\n            \n            # Maintain the deque to only contain indices that are beneficial to jump from\n            # Remove indices from the back if they don't offer a better score than the current index\n            while dq and dp[i] - i * nums[i] >= dp[dq[-1]] - dq[-1] * nums[dq[-1]]:\n                dq.pop()\n            \n            dq.append(i)\n            \n            # Remove indices from the front if they are no longer within the bounds\n            # Assuming we need to keep indices that are within the array bounds\n            # Here, we need to decide the condition for removing from the front\n            # For this problem, since we can jump to any index greater than the current,\n            # we don't necessarily need to remove based on i - k, where k is some window size.\n            # Instead, we can keep the deque ordered such that the front always has the best option.\n            # Therefore, no need to remove from the front based on i - n + 1 as in the previous code.\n            # We might need to adjust this based on further understanding of the problem.\n        \n        return dp[-1]",
+              "solution_hash": "5c8c96f87170653edd237b5e0c71949489f2f855babbf506001b57d311650728",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpj7vmbbmo.py\", line 224, in <module>\n    check(Solution().findMaximumScore)\n  File \"/scratch/local/21419949/tmpj7vmbbmo.py\", line 121, in check\n    assert candidate(nums = [2, 3, 5, 6, 7, 8]) == 23\nAssertionError\n",
+                "execution_time": 0.06692337989807129
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_17",
+              "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        for i in range(n):\n            # Calculate dp[i] using the front of the deque\n            if dq:\n                j = dq[0]\n                dp[i] = dp[j] + (i - j) * nums[j]\n            else:\n                dp[i] = 0  # No previous jumps, score is 0\n            \n            # Maintain the deque to keep indices that can offer better scores\n            # Remove indices from the back if they offer worse scores than the current index\n            while dq and dp[i] - i * nums[i] >= dp[dq[-1]] - dq[-1] * nums[dq[-1]]:\n                dq.pop()\n            \n            dq.append(i)\n            \n            # Remove indices from the front if they are no longer within the jumping range\n            # Assuming we can jump to any index greater than the current, no need to remove based on i\n            # If there were constraints on jump distance, we would adjust this part\n        \n        return dp[-1]",
+              "solution_hash": "f20ac3d231dd9319466da8e64c70d942b51c94181d9a62ab056e0a248cf9dc72",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpft179_dd.py\", line 219, in <module>\n    check(Solution().findMaximumScore)\n  File \"/scratch/local/21419949/tmpft179_dd.py\", line 116, in check\n    assert candidate(nums = [2, 3, 5, 6, 7, 8]) == 23\nAssertionError\n",
+                "execution_time": 0.06567049026489258
+              },
+              "depth": 2,
+              "parent_id": "1_14",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_18",
+          "solution": "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                if n == 1:\n                    return 0  # No jumps needed, score is 0\n                \n                dp = [0] * n\n                dq = deque()\n                \n                for i in range(n):\n                    # Calculate dp[i] using the front of the deque\n                    if dq:\n                        dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n                    else:\n                        dp[i] = 0  # No previous jumps\n                    \n                    # Remove indices from the back of the deque if they don't offer a better slope\n                    while dq and (dp[i] - dq[i] * nums[i]) >= (dp[dq[-1]] - dq[-1] * nums[dq[-1]]):\n                        dq.pop()\n                    \n                    # Add current index to the deque\n                    dq.append(i)\n                    \n                    # No need to remove from front based on i - n as in previous solution\n                return dp[-1]",
+          "solution_hash": "15161468ee6436fdaa82a2d7df62708441d615a479c3f5cca5652f5fb6f293ff",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "  File \"/scratch/local/21419949/tmpjt6n2278.py\", line 82\n    from collections import deque\nIndentationError: unexpected indent\n",
+            "execution_time": 0.05313253402709961
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_19",
+              "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        for i in range(n):\n            # Calculate dp[i] using the front of the deque\n            if dq:\n                dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n            else:\n                dp[i] = 0  # No previous jumps\n            \n            # Remove indices from the back of the deque if they don't offer a better slope\n            while dq and (dp[i] - dp[dq[-1]]) >= (nums[dq[-1]] - nums[i]) * (i - dq[-1]):\n                dq.pop()\n            \n            # Add current index to the deque\n            dq.append(i)\n            \n            # No need to remove from front based on i - n as in previous solution\n        return dp[-1]",
+              "solution_hash": "600426254788851c9c3851bd0e0729c4cd00c54feb59f76420df70ea7f54eb91",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpmbjlqgxw.py\", line 215, in <module>\n    check(Solution().findMaximumScore)\n  File \"/scratch/local/21419949/tmpmbjlqgxw.py\", line 113, in check\n    assert candidate(nums = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]) == 90\nAssertionError\n",
+                "execution_time": 0.06623578071594238
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_20",
+              "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        for i in range(n):\n            # Calculate dp[i] using the front of the deque\n            if dq:\n                dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n            else:\n                dp[i] = 0  # No previous jumps\n            \n            # Remove indices from the back of the deque if they don't offer a better slope\n            while dq and (dp[i] - dp[dq[-1]]) >= (nums[dq[-1]] - nums[i]) * dq[-1]:\n                dq.pop()\n            \n            # Add current index to the deque\n            dq.append(i)\n            \n            # No need to remove from front based on i - n as in previous solution\n        return dp[-1]",
+              "solution_hash": "974dc3501bd6802d9e1cea90e694a271757d9ee4c131ce5391e08b78564bb3aa",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpq0gkvn8x.py\", line 215, in <module>\n    check(Solution().findMaximumScore)\n  File \"/scratch/local/21419949/tmpq0gkvn8x.py\", line 113, in check\n    assert candidate(nums = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]) == 90\nAssertionError\n",
+                "execution_time": 0.06647539138793945
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_21",
+              "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        for i in range(n):\n            # Calculate dp[i] using the front of the deque\n            if dq:\n                dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n            else:\n                dp[i] = 0  # No previous jumps\n            \n            # Remove indices from the back of the deque if they don't offer a better slope\n            while dq and (dp[i] - dp[dq[-1]]) >= (nums[dq[-1]] - nums[i]) * (i - dq[-1]):\n                dq.pop()\n            \n            # Add current index to the deque\n            dq.append(i)\n        \n        return dp[-1]",
+              "solution_hash": "600426254788851c9c3851bd0e0729c4cd00c54feb59f76420df70ea7f54eb91",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmpmbjlqgxw.py\", line 215, in <module>\n    check(Solution().findMaximumScore)\n  File \"/scratch/local/21419949/tmpmbjlqgxw.py\", line 113, in check\n    assert candidate(nums = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]) == 90\nAssertionError\n",
+                "execution_time": 0.06623578071594238
+              },
+              "depth": 2,
+              "parent_id": "1_18",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        },
+        {
+          "node_id": "1_22",
+          "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        dq.append(0)\n        \n        for i in range(1, n):\n            # Calculate dp[i] using the front of the deque\n            dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n            \n            # Remove indices from the back of the deque if they don't offer a better score\n            while dq and dp[i] - i * nums[i] >= dp[dq[-1]] - dq[-1] * nums[dq[-1]]:\n                dq.pop()\n            \n            # Add current index to the deque\n            dq.append(i)\n            \n            # Remove indices from the front of the deque if they are no longer the best option\n            # Correct condition to remove indices that are too far behind\n            while dq and dq[0] < i - n:\n                dq.popleft()\n        \n        return dp[-1]",
+          "solution_hash": "805708d5e876e38be1dfbedb0a95dcb89934c8c47fc5241737468a584d9cb194",
+          "test_result": {
+            "status": "fail",
+            "error_message": "Test execution failed with return code 1",
+            "stdout": "",
+            "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp40arkorh.py\", line 218, in <module>\n    check(Solution().findMaximumScore)\n  File \"/scratch/local/21419949/tmp40arkorh.py\", line 115, in check\n    assert candidate(nums = [2, 3, 5, 6, 7, 8]) == 23\nAssertionError\n",
+            "execution_time": 0.066436767578125
+          },
+          "depth": 1,
+          "parent_id": "0_1",
+          "children": [
+            {
+              "node_id": "2_23",
+              "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        dq.append(0)\n        \n        for i in range(1, n):\n            # Calculate dp[i] using the front of the deque\n            dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n            \n            # Remove indices from the back of the deque if they don't offer a better score\n            while dq and dp[i] - i * nums[i] >= dp[dq[-1]] - dq[-1] * nums[dq[-1]]:\n                dq.pop()\n            \n            # Add current index to the deque\n            dq.append(i)\n            \n            # Remove indices from the front of the deque if they are no longer the best option\n            # Correct condition to remove indices that are too far behind\n            while dq and dq[0] < i - n:\n                dq.popleft()\n        \n        return dp[-1]",
+              "solution_hash": "805708d5e876e38be1dfbedb0a95dcb89934c8c47fc5241737468a584d9cb194",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp40arkorh.py\", line 218, in <module>\n    check(Solution().findMaximumScore)\n  File \"/scratch/local/21419949/tmp40arkorh.py\", line 115, in check\n    assert candidate(nums = [2, 3, 5, 6, 7, 8]) == 23\nAssertionError\n",
+                "execution_time": 0.066436767578125
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_24",
+              "solution": "from typing import List\nfrom collections import deque\n\nclass Solution:\n    def findMaximumScore(self, nums: List[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0  # No jumps needed, score is 0\n        \n        dp = [0] * n\n        dq = deque()\n        \n        dq.append(0)\n        \n        for i in range(1, n):\n            # Calculate dp[i] using the front of the deque\n            dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n            \n            # Remove indices from the back of the deque if they don't offer a better score\n            while dq and dp[i] - i * nums[i] >= dp[dq[-1]] - dq[-1] * nums[dq[-1]]:\n                dq.pop()\n            \n            # Add current index to the deque\n            dq.append(i)\n            \n            # Remove indices from the front of the deque if they are no longer the best option\n            # Correct condition to remove indices that are too far behind\n            while dq and dq[0] < i - n:\n                dq.popleft()\n        \n        return dp[-1]",
+              "solution_hash": "805708d5e876e38be1dfbedb0a95dcb89934c8c47fc5241737468a584d9cb194",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/21419949/tmp40arkorh.py\", line 218, in <module>\n    check(Solution().findMaximumScore)\n  File \"/scratch/local/21419949/tmp40arkorh.py\", line 115, in check\n    assert candidate(nums = [2, 3, 5, 6, 7, 8]) == 23\nAssertionError\n",
+                "execution_time": 0.066436767578125
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            },
+            {
+              "node_id": "2_25",
+              "solution": "from typing import List\n        from collections import deque\n\n        class Solution:\n            def findMaximumScore(self, nums: List[int]) -> int:\n                n = len(nums)\n                if n == 1:\n                    return 0  # No jumps needed, score is 0\n                \n                dp = [0] * n\n                dq = deque()\n                \n                for i in range(n):\n                    # Calculate dp[i] using the front of the deque\n                    if dq:\n                        dp[i] = dp[dq[0]] + (i - dq[0]) * nums[dq[0]]\n                    else:\n                        dp[i] = 0  # No previous jumps\n                    \n                    # Maintain the deque to keep potentially optimal indices\n                    # Remove indices from the back if they don't offer a better score\n                    while dq and dp[i] - i * nums[i] >= dp[dq[-1]] - dq[-1] * nums[dq[-1]]:\n                        dq.pop()\n                    \n                    # Add current index to the deque\n                    dq.append(i)\n                    \n                    # Remove indices from the front of the deque if they are no longer the best option\n                    # Correct condition to remove indices that are too far behind\n                    while dq and dq[0] < i - n:\n                        dq.popleft()\n                \n                return dp[-1]",
+              "solution_hash": "b4df1d8c77c6466149eb7d31d7cdbc9470102b0e847604712c95ac74a3524c15",
+              "test_result": {
+                "status": "fail",
+                "error_message": "Test execution failed with return code 1",
+                "stdout": "",
+                "stderr": "  File \"/scratch/local/21419949/tmp9cbputfw.py\", line 82\n    from collections import deque\nIndentationError: unexpected indent\n",
+                "execution_time": 0.054471731185913086
+              },
+              "depth": 2,
+              "parent_id": "1_22",
+              "children": [],
+              "passed": false
+            }
+          ],
+          "passed": false
+        }
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 26,
+    "candidates_generated": 26,
+    "tests_passed": 0,
+    "tests_failed": 26,
+    "test_errors": 0,
+    "execution_times": [],
+    "tree_depth": 0
+  },
+  "processing_time": 943.8803081512451,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.03703703703703698,
+      "pass@3": 0.11111111111111116,
+      "pass@5": 0.18518518518518512,
+      "pass@10": 0.37037037037037035
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 26
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 27,
+    "test_cases": 1
+  }
+}
