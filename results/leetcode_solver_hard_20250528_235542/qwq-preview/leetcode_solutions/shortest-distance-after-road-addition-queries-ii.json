@@ -1,0 +1,614 @@
+{
+  "problem_id": "shortest-distance-after-road-addition-queries-ii",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        import bisect\n\n        # Initialize the segment tree for minimum distances\n        tree = [float('inf')] * (4 * n)\n\n        # Build the initial segment tree with default distances\n        def build(idx, left, right):\n            if left == right:\n                tree[idx] = left\n            else:\n                mid = (left + right) // 2\n                build(2 * idx + 1, left, mid)\n                build(2 * idx + 2, mid + 1, right)\n                tree[idx] = min(tree[2 * idx + 1], tree[2 * idx + 2])\n\n        # Update the segment tree with a new edge\n        def update(idx, left, right, node_left, node_right, value):\n            if node_right < left or node_left > right:\n                return\n            if node_left >= left and node_right <= right:\n                tree[idx] = min(tree[idx], value)\n                return\n            mid = (node_left + node_right) // 2\n            update(2 * idx + 1, left, right, node_left, mid, value)\n            update(2 * idx + 2, left, right, mid + 1, node_right, value)\n            tree[idx] = min(tree[2 * idx + 1], tree[2 * idx + 2])\n\n        # Query the segment tree for the minimum distance in a range\n        def query(idx, left, right, node_left, node_right):\n            if node_right < left or node_left > right:\n                return float('inf')\n            if node_left >= left and node_right <= right:\n                return tree[idx]\n            mid = (node_left + node_right) // 2\n            left_min = query(2 * idx + 1, left, right, node_left, mid)\n            right_min = query(2 * idx + 2, left, right, mid + 1, node_right)\n            return min(left_min, right_min)\n\n        # Initialize the segment tree\n        build(0, 0, n - 1)\n\n        answer = []\n        for ui, vi in queries:\n            # Update the segment tree with the new edge from ui to vi\n            # The distance from ui to vi is 1, so the distance from 0 to vi can be updated\n            min_dist_to_ui = query(0, 0, ui, 0, n - 1)\n            if min_dist_to_ui != float('inf'):\n                update(0, vi, vi, 0, n - 1, min_dist_to_ui + 1)\n            # Query the segment tree for the distance from 0 to n-1\n            min_dist = query(0, 0, n - 1, 0, n - 1)\n            if min_dist == float('inf'):\n                answer.append(-1)\n            else:\n                answer.append(min_dist)\n        return answer",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        import bisect\n\n        # Initialize the list to keep track of the minimum steps to reach each city\n        min_steps = [float('inf')] * n\n        min_steps[0] = 0  # Starting from city 0 with 0 steps\n\n        # Sort queries based on ui in ascending order\n        queries.sort(key=lambda x: x[0])\n\n        answer = []\n        idx = 0\n        for ui, vi in queries:\n            # Update min_steps for all cities from 0 to ui\n            for city in range(ui + 1):\n                if min_steps[city] != float('inf'):\n                    # Update the steps to reach vi from city via ui\n                    steps_to_vi = min_steps[city] + (vi - city)\n                    if steps_to_vi < min_steps[vi]:\n                        min_steps[vi] = steps_to_vi\n\n            # After adding the new road, find the minimum steps to reach n-1\n            min_dist = min_steps[-1]\n            if min_dist == float('inf'):\n                answer.append(-1)\n            else:\n                answer.append(min_dist)\n\n        return answer",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        import bisect\n\n        # Initialize the segment tree for minimum steps\n        tree = [float('inf')] * (4 * n)\n\n        # Build the segment tree\n        def build(o, l, r):\n            if l == r:\n                if l == 0:\n                    tree[o] = 0\n                else:\n                    tree[o] = l\n                return\n            m = (l + r) // 2\n            build(o * 2, l, m)\n            build(o * 2 + 1, m + 1, r)\n            tree[o] = min(tree[o * 2], tree[o * 2 + 1])\n\n        # Update the segment tree\n        def update(o, l, r, idx, val):\n            if l == r:\n                tree[o] = val\n                return\n            m = (l + r) // 2\n            if idx <= m:\n                update(o * 2, l, m, idx, val)\n            else:\n                update(o * 2 + 1, m + 1, r, idx, val)\n            tree[o] = min(tree[o * 2], tree[o * 2 + 1])\n\n        # Query the segment tree for the minimum steps in a range\n        def query(o, l, r, ql, qr):\n            if ql <= l and qr >= r:\n                return tree[o]\n            m = (l + r) // 2\n            res = float('inf')\n            if ql <= m:\n                res = min(res, query(o * 2, l, m, ql, qr))\n            if qr > m:\n                res = min(res, query(o * 2 + 1, m + 1, r, ql, qr))\n            return res\n\n        build(1, 0, n - 1)\n        answer = []\n        for ui, vi in queries:\n            # Update the steps for city vi\n            min_steps = query(1, 0, n - 1, 0, ui) + (vi - ui)\n            if min_steps < query(1, 0, n - 1, vi, vi):\n                update(1, 0, n - 1, vi, min_steps)\n            # Append the minimum steps to reach n-1\n            answer.append(query(1, 0, n - 1, 0, n - 1))\n        return answer",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        import heapq\n\n        # Initialize the graph with initial roads\n        graph = [[] for _ in range(n)]\n        for i in range(n - 1):\n            graph[i].append(i + 1)\n\n        # Add roads from queries\n        for ui, vi in queries:\n            graph[ui].append(vi)\n\n        # Dijkstra's algorithm to find the shortest path from 0 to n-1\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            pq = [(0, 0)]  # (distance, node)\n            while pq:\n                distance, node = heapq.heappop(pq)\n                if distance > dist[node]:\n                    continue\n                for neighbor in graph[node]:\n                    new_distance = distance + 1\n                    if new_distance < dist[neighbor]:\n                        dist[neighbor] = new_distance\n                        heapq.heappush(pq, (new_distance, neighbor))\n            return dist[n - 1]\n\n        # Process queries one by one and record the shortest path after each addition\n        answer = []\n        for i in range(len(queries)):\n            # Add the new road from queries[i]\n            ui, vi = queries[i]\n            graph[ui].append(vi)\n            # Calculate the shortest path after adding this road\n            min_dist = dijkstra()\n            if min_dist == float('inf'):\n                answer.append(-1)\n            else:\n                answer.append(min_dist)\n        return answer",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        import bisect\n\n        # Initialize the segment tree for minimum steps\n        tree = [float('inf')] * (4 * n)\n\n        # Build the initial segment tree with steps from city 0 to each city\n        def build(node, start, end):\n            if start == end:\n                tree[node] = start\n            else:\n                mid = (start + end) // 2\n                build(2 * node + 1, start, mid)\n                build(2 * node + 2, mid + 1, end)\n                tree[node] = min(tree[2 * node + 1], tree[2 * node + 2])\n\n        # Update the segment tree with a new minimum value for a range\n        def update(node, start, end, l, r, val):\n            if l > end or r < start:\n                return\n            if l <= start and end <= r:\n                tree[node] = min(tree[node], val)\n                return\n            mid = (start + end) // 2\n            update(2 * node + 1, start, mid, l, r, val)\n            update(2 * node + 2, mid + 1, end, l, r, val)\n            tree[node] = min(tree[2 * node + 1], tree[2 * node + 2])\n\n        # Query the segment tree for the minimum value in a range\n        def query(node, start, end, l, r):\n            if l > end or r < start:\n                return float('inf')\n            if l <= start and end <= r:\n                return tree[node]\n            mid = (start + end) // 2\n            left = query(2 * node + 1, start, mid, l, r)\n            right = query(2 * node + 2, mid + 1, end, l, r)\n            return min(left, right)\n\n        # Initialize the segment tree\n        build(0, 0, n - 1)\n\n        answer = []\n        for ui, vi in queries:\n            # Update the segment tree for the range from ui to vi\n            steps = query(0, 0, n - 1, 0, ui) + (vi - ui)\n            update(0, 0, n - 1, vi, vi, steps)\n\n            # Query the minimum steps to reach n-1\n            min_dist = query(0, 0, n - 1, 0, n - 1)\n            answer.append(min_dist)\n\n        return answer",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the answer list\n        answer = []\n        \n        # Initialize a list to store the queries in a specific order\n        sorted_queries = sorted(queries, key=lambda x: (x[0], -x[1]))\n        \n        # Initialize a variable to keep track of the current minimum distance\n        min_distance = n - 1\n        \n        # Initialize a list to store the maximum vi for each ui\n        max_vi_for_ui = [0] * n\n        \n        # Process each query\n        for ui, vi in sorted_queries:\n            # Update the maximum vi for this ui\n            if vi > max_vi_for_ui[ui]:\n                max_vi_for_ui[ui] = vi\n                # Update the min_distance if necessary\n                if ui == 0:\n                    min_distance = min(min_distance, vi - 0)\n                else:\n                    # Find the minimum distance from 0 to ui and add the distance from ui to vi\n                    min_from_0_to_ui = ui\n                    for u in range(ui):\n                        if max_vi_for_ui[u] >= ui:\n                            min_from_0_to_ui = min(min_from_0_to_ui, max_vi_for_ui[u] - u)\n                    min_distance = min(min_distance, min_from_0_to_ui + (vi - ui))\n            # Append the current min_distance to the answer\n            answer.append(min_distance)\n        \n        return answer",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        import bisect\n\n        # Initialize the answer list\n        answer = []\n        \n        # Initialize a list to store the queries in a specific order\n        sorted_queries = sorted(queries, key=lambda x: (x[0], -x[1]))\n        \n        # Initialize a list to store the maximum vi for each ui\n        max_vi_for_ui = [0] * n\n        \n        # Initialize the minimum distance to n-1 (initial path is 0 -> 1 -> ... -> n-1)\n        min_distance = n - 1\n        \n        # Initialize a list to keep track of the maximum vi for each ui\n        max_vi_for_ui = [0] * n\n        \n        # Initialize a list to store the current reach for each node\n        reach = [i + 1 for i in range(n)]\n        \n        # Process each query\n        for ui, vi in sorted_queries:\n            # Update the reach for ui\n            if vi > reach[ui]:\n                reach[ui] = vi\n                # Update the min_distance if necessary\n                if ui == 0:\n                    min_distance = min(min_distance, vi)\n                else:\n                    # Find the minimum steps to reach ui from 0\n                    steps_to_ui = ui\n                    for u in range(ui):\n                        if reach[u] >= ui:\n                            steps_to_ui = min(steps_to_ui, 1 + (u + reach[u] - u))\n                    min_distance = min(min_distance, steps_to_ui + (vi - ui))\n            # Append the current min_distance to the answer\n            answer.append(min_distance)\n        \n        return answer",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        import bisect\n\n        # Initialize the segment tree for minimum distances\n        tree = [float('inf')] * (4 * n)\n\n        # Build the initial segment tree with default distances\n        def build(idx, left, right):\n            if left == right:\n                tree[idx] = left\n            else:\n                mid = (left + right) // 2\n                build(2 * idx + 1, left, mid)\n                build(2 * idx + 2, mid + 1, right)\n                tree[idx] = min(tree[2 * idx + 1], tree[2 * idx + 2])\n\n        # Update the segment tree with a new edge\n        def update(idx, left, right, node_left, node_right, value):\n            if node_right < left or node_left > right:\n                return\n            if node_left >= left and node_right <= right:\n                tree[idx] = min(tree[idx], value)\n                return\n            mid = (node_left + node_right) // 2\n            update(2 * idx + 1, left, right, node_left, mid, value)\n            update(2 * idx + 2, left, right, mid + 1, node_right, value)\n            tree[idx] = min(tree[2 * idx + 1], tree[2 * idx + 2])\n\n        # Query the segment tree for the minimum distance in a range\n        def query(idx, left, right, node_left, node_right):\n            if node_right < left or node_left > right:\n                return float('inf')\n            if node_left >= left and node_right <= right:\n                return tree[idx]\n            mid = (node_left + node_right) // 2\n            left_min = query(2 * idx + 1, left, right, node_left, mid)\n            right_min = query(2 * idx + 2, left, right, mid + 1, node_right)\n            return min(left_min, right_min)\n\n        # Initialize the segment tree\n        build(0, 0, n - 1)\n\n        answer = []\n        for ui, vi in queries:\n            # Update the segment tree with the new edge from ui to vi\n            # The distance from ui to vi is 1, so the distance from 0 to vi can be updated\n            min_dist_to_ui = query(0, 0, ui, 0, n - 1)\n            if min_dist_to_ui != float('inf'):\n                update(0, vi, vi, 0, n - 1, min_dist_to_ui + 1)\n            # Query the segment tree for the distance from 0 to n-1\n            min_dist = query(0, 0, n - 1, 0, n - 1)\n            if min_dist == float('inf'):\n                answer.append(-1)\n            else:\n                answer.append(min_dist)\n        return answer",
+    "import heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with initial roads\n        graph = [[] for _ in range(n)]\n        for i in range(n - 1):\n            graph[i].append(i + 1)\n        \n        # Add queries in reverse order to a stack\n        stack = []\n        for ui, vi in reversed(queries):\n            stack.append((ui, vi))\n        \n        # Initialize distance array with infinity\n        dist = [float('inf')] * n\n        dist[0] = 0  # Distance from 0 to 0 is 0\n        \n        # Priority queue for Dijkstra's algorithm\n        pq = [(0, 0)]\n        \n        answer = []\n        \n        while stack or pq:\n            # Process Dijkstra's algorithm until we reach n-1 or no more pq\n            while pq:\n                d, node = heapq.heappop(pq)\n                if d > dist[node]:\n                    continue\n                if node == n - 1:\n                    answer.append(dist[n - 1])\n                    break\n                for neighbor in graph[node]:\n                    new_d = d + 1\n                    if new_d < dist[neighbor]:\n                        dist[neighbor] = new_d\n                        heapq.heappush(pq, (new_d, neighbor))\n            \n            if pq:\n                continue  # If we reached n-1, no need to add more queries\n            \n            # Add the next query road\n            ui, vi = stack.pop()\n            graph[ui].append(vi)\n        \n        # If there are remaining queries without reaching n-1, append -1\n        while stack:\n            answer.append(-1 if dist[n - 1] == float('inf') else dist[n - 1])\n            ui, vi = stack.pop()\n            graph[ui].append(vi)\n        \n        # Reverse the answer to match the order of queries\n        answer.reverse()\n        return answer",
+    "from typing import List\n\n        class Solution:\n            def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n                # Initialize the answer list\n                answer = []\n                # Initialize a list to store the queries in the order they are added\n                added_edges = []\n                # Initialize the current shortest path length without any queries\n                current_min_distance = n - 1\n                # Iterate through each query\n                for ui, vi in queries:\n                    # Add the new edge to the list of added edges\n                    added_edges.append((ui, vi))\n                    # Check if the new edge provides a shorter path\n                    if vi - ui < current_min_distance:\n                        # Update the current minimum distance\n                        current_min_distance = vi - ui\n                    # Also, check if combining previous edges can provide a shorter path\n                    # Sort the added edges based on ui\n                    added_edges_sorted = sorted(added_edges, key=lambda x: x[0])\n                    # Initialize a variable to track the farthest reachable city with minimum distance\n                    farthest_reachable = 0\n                    min_distance = 0\n                    for edge in added_edges_sorted:\n                        ui, vi = edge\n                        # If the current ui is within the farthest reachable city\n                        if ui <= farthest_reachable:\n                            # Update the farthest reachable city\n                            farthest_reachable = max(farthest_reachable, vi)\n                            # Update the minimum distance if necessary\n                            if vi == n - 1:\n                                min_distance = min(min_distance, farthest_reachable - ui + 1)\n                        else:\n                            # If there is a gap, check if going through the previous farthest reachable city\n                            # and then taking this new edge gives a better path\n                            if farthest_reachable < vi:\n                                min_distance = min(min_distance, farthest_reachable - 0 + (vi - ui + 1))\n                    # Update the current minimum distance if a shorter path is found\n                    if min_distance < current_min_distance:\n                        current_min_distance = min_distance\n                    # Append the current minimum distance to the answer list\n                    answer.append(current_min_distance)\n                return answer",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        shortcuts = []\n        answer = []\n        max_dist = n - 1  # Initial maximum distance without any shortcuts\n        for ui, vi in queries:\n            # Add the new shortcut to the list\n            shortcuts.append((ui, vi))\n            # Initialize the current minimum distance as the direct path length\n            min_dist = vi - ui + (n - 1 - vi) + 1  # Path: 0 to ui, ui to vi, vi to n-1\n            # Check combinations of shortcuts to find a better path\n            for i in range(len(shortcuts)):\n                for j in range(i + 1, len(shortcuts)):\n                    u1, v1 = shortcuts[i]\n                    u2, v2 = shortcuts[j]\n                    # Ensure no overlapping or conflicting shortcuts\n                    if v1 <= u2:\n                        # Path: 0 to u1, u1 to v1, v1 to u2, u2 to v2, v2 to n-1\n                        dist = (u1 - 0) + (v1 - u1) + (u2 - v1) + (v2 - u2) + (n - 1 - v2)\n                        min_dist = min(min_dist, dist)\n            # Update the answer with the current minimum distance\n            answer.append(min_dist)\n        return answer",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        import bisect\n        jumps = []\n        answer = []\n        max_reach = 0\n        for u, v in queries:\n            # Add the new jump\n            bisect.insort(jumps, (u, v))\n            # Find the minimum distance from 0 to n-1\n            current = 0\n            distance = 0\n            while current < n - 1:\n                # Find the best jump from current\n                # Find the rightmost jump where u <= current\n                i = bisect.bisect_right(jumps, (current, inf)) - 1\n                if i >= 0:\n                    # Take the jump with the farthest v\n                    _, v = jumps[i]\n                    current = v\n                    distance += 1\n                else:\n                    # No jump available, move to the next city\n                    current += 1\n                    distance += 1\n            answer.append(distance)\n        return answer",
+    "from typing import List\nfrom bisect import bisect_right\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        jumps = []\n        answer = []\n        max_reach = [i + 1 for i in range(n - 1)]  # Initial roads\n        max_reach.append(n - 1)\n        \n        for u, v in queries:\n            # Add the new jump\n            jumps.append((u, v))\n            # Update the max_reach array\n            for i in range(u, v):\n                if max_reach[i] < v:\n                    max_reach[i] = v\n            # Find the minimum distance from 0 to n-1\n            current = 0\n            distance = 0\n            while current < n - 1:\n                # Find the farthest we can jump from current\n                next_jump = max_reach[current]\n                if next_jump >= n - 1:\n                    distance += 1\n                    break\n                else:\n                    current = next_jump\n                    distance += 1\n            answer.append(distance)\n        return answer",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the segment tree with the initial roads\n        tree = [0] * (4 * n)\n        \n        def build(seg, node, start, end):\n            if start == end:\n                tree[node] = start + 1 if start < n - 1 else n - 1\n                return\n            mid = (start + end) // 2\n            build(seg, 2 * node + 1, start, mid)\n            build(seg, 2 * node + 2, mid + 1, end)\n            tree[node] = max(tree[2 * node + 1], tree[2 * node + 2])\n        \n        def update(seg, node, start, end, idx, val):\n            if start == end:\n                tree[node] = val\n                return\n            mid = (start + end) // 2\n            if idx <= mid:\n                update(seg, 2 * node + 1, start, mid, idx, val)\n            else:\n                update(seg, 2 * node + 2, mid + 1, end, idx, val)\n            tree[node] = max(tree[2 * node + 1], tree[2 * node + 2])\n        \n        def query(seg, node, start, end, left, right):\n            if left > end or right < start:\n                return -1\n            if left <= start and end <= right:\n                return tree[node]\n            mid = (start + end) // 2\n            left_max = query(seg, 2 * node + 1, start, mid, left, right)\n            right_max = query(seg, 2 * node + 2, mid + 1, end, left, right)\n            return max(left_max, right_max)\n        \n        build(tree, 0, 0, n - 1)\n        \n        answer = []\n        for u, v in queries:\n            update(tree, 0, 0, n - 1, u, v)\n            current = 0\n            distance = 0\n            while current < n - 1:\n                max_reach = query(tree, 0, 0, n - 1, current, current)\n                if max_reach >= n - 1:\n                    distance += 1\n                    break\n                else:\n                    current = max_reach\n                    distance += 1\n            answer.append(distance)\n        return answer",
+    "from typing import List\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the segment tree with the initial roads\n        # Each node in the segment tree will store the maximum jump reachable in the range\n        tree = [0] * (4 * n)\n        \n        def build(seg, l, r):\n            if l == r:\n                tree[seg] = l + 1 if l < n - 1 else n - 1\n                return\n            mid = (l + r) // 2\n            build(2 * seg + 1, l, mid)\n            build(2 * seg + 2, mid + 1, r)\n            tree[seg] = max(tree[2 * seg + 1], tree[2 * seg + 2])\n        \n        def update(seg, l, r, idx, val):\n            if l == r:\n                tree[seg] = val\n                return\n            mid = (l + r) // 2\n            if idx <= mid:\n                update(2 * seg + 1, l, mid, idx, val)\n            else:\n                update(2 * seg + 2, mid + 1, r, idx, val)\n            tree[seg] = max(tree[2 * seg + 1], tree[2 * seg + 2])\n        \n        def query(seg, l, r, ql, qr):\n            if ql > r or qr < l:\n                return 0\n            if ql <= l and qr >= r:\n                return tree[seg]\n            mid = (l + r) // 2\n            left = query(2 * seg + 1, l, mid, ql, qr)\n            right = query(2 * seg + 2, mid + 1, r, ql, qr)\n            return max(left, right)\n        \n        build(0, 0, n - 1)\n        answer = []\n        \n        for u, v in queries:\n            # Update the segment tree with the new jump\n            update(0, 0, n - 1, u, v)\n            # Compute the shortest path from 0 to n-1\n            current = 0\n            distance = 0\n            while current < n - 1:\n                # Query the maximum jump from current to n-1\n                max_jump = query(0, 0, n - 1, current, n - 1)\n                if max_jump >= n - 1:\n                    distance += 1\n                    break\n                else:\n                    current = max_jump\n                    distance += 1\n            answer.append(distance)\n        \n        return answer",
+    "from typing import List\nimport heapq\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        # Initialize the graph with direct roads from i to i+1\n        graph = [[] for _ in range(n)]\n        for i in range(n - 1):\n            graph[i].append(i + 1)\n        \n        # Add all queries to the graph\n        for u, v in queries:\n            graph[u].append(v)\n        \n        # Dijkstra's algorithm to find the shortest path from 0 to n-1\n        def dijkstra():\n            dist = [float('inf')] * n\n            dist[0] = 0\n            heap = [(0, 0)]  # (distance, city)\n            \n            while heap:\n                current_dist, current_city = heapq.heappop(heap)\n                if current_city == n - 1:\n                    return current_dist\n                if current_dist > dist[current_city]:\n                    continue\n                for neighbor in graph[current_city]:\n                    distance = current_dist + 1\n                    if distance < dist[neighbor]:\n                        dist[neighbor] = distance\n                        heapq.heappush(heap, (distance, neighbor))\n            return -1  # If no path is found\n        \n        answer = []\n        current_graph = [[] for _ in range(n)]\n        for i in range(n - 1):\n            current_graph[i].append(i + 1)\n        \n        for u, v in queries:\n            current_graph[u].append(v)\n            # Compute shortest path after adding this query\n            dist = [float('inf')] * n\n            dist[0] = 0\n            heap = [(0, 0)]\n            visited = set()\n            while heap:\n                current_dist, current_city = heapq.heappop(heap)\n                if current_city in visited:\n                    continue\n                visited.add(current_city)\n                if current_city == n - 1:\n                    answer.append(current_dist)\n                    break\n                for neighbor in current_graph[current_city]:\n                    distance = current_dist + 1\n                    if distance < dist[neighbor]:\n                        dist[neighbor] = distance\n                        heapq.heappush(heap, (distance, neighbor))\n            else:\n                answer.append(-1)\n        return answer",
+    "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        import bisect\n        jumps = []\n        answer = []\n        for u, v in queries:\n            # Add the new jump\n            bisect.insort(jumps, (u, v))\n            # Find the minimum distance from 0 to n-1\n            current = 0\n            distance = 0\n            while current < n - 1:\n                # Find the best jump from current\n                # Find the rightmost jump where u <= current\n                i = bisect.bisect_right(jumps, (current, float('inf'))) - 1\n                if i >= 0:\n                    # Take the jump with the farthest v\n                    _, v = jumps[i]\n                    current = v\n                    distance += 1\n                else:\n                    # No jump available, move to the next city\n                    current += 1\n                    distance += 1\n            answer.append(distance)\n        return answer",
+    "class Solution:\n            def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n                # Initialize the jumps with the initial roads\n                jumps = [i + 1 for i in range(n - 1)] + [n - 1]\n                \n                # Function to update the jumps array when a new query is added\n                def add_jump(u, v):\n                    jumps[u] = max(jumps[u], v)\n                \n                # Function to find the minimum steps from 0 to n-1\n                def min_steps():\n                    current = 0\n                    steps = 0\n                    while current < n - 1:\n                        # Find the farthest jump from current\n                        next_jump = jumps[current]\n                        if next_jump >= n - 1:\n                            return steps + 1\n                        # Find the maximum jump in the range [current+1, next_jump]\n                        max_jump = next_jump\n                        for i in range(current + 1, next_jump + 1):\n                            if jumps[i] > max_jump:\n                                max_jump = jumps[i]\n                        current = max_jump\n                        steps += 1\n                    return steps\n                \n                answer = []\n                for u, v in queries:\n                    add_jump(u, v)\n                    answer.append(min_steps())\n                return answer",
+    "class Solution:\n            def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n                import bisect\n\n                # Initialize the segment tree for minimum steps\n                tree = [float('inf')] * (4 * n)\n\n                # Build the segment tree\n                def build(node, start, end):\n                    if start == end:\n                        tree[node] = start\n                    else:\n                        mid = (start + end) // 2\n                        build(2*node, start, mid)\n                        build(2*node+1, mid+1, end)\n                        if steps[tree[2*node]] <= steps[tree[2*node+1]]:\n                            tree[node] = tree[2*node]\n                        else:\n                            tree[node] = tree[2*node+1]\n\n                # Query the segment tree for the minimum steps in a range\n                def query(node, start, end, left, right):\n                    if left > end or right < start:\n                        return -1\n                    if left <= start and end <= right:\n                        return tree[node]\n                    mid = (start + end) // 2\n                    left_min = query(2*node, start, mid, left, right)\n                    right_min = query(2*node+1, mid+1, end, left, right)\n                    if left_min == -1:\n                        return right_min\n                    if right_min == -1:\n                        return left_min\n                    return left_min if steps[left_min] <= steps[right_min] else right_min\n\n                # Update the segment tree\n                def update(node, start, end, idx, val):\n                    if start == end:\n                        steps[idx] = val\n                        tree[node] = idx\n                    else:\n                        mid = (start + end) // 2\n                        if start <= idx <= mid:\n                            update(2*node, start, mid, idx, val)\n                        else:\n                            update(2*node+1, mid+1, end, idx, val)\n                        if steps[tree[2*node]] <= steps[tree[2*node+1]]:\n                            tree[node] = tree[2*node]\n                        else:\n                            tree[node] = tree[2*node+1]\n\n                # Initialize steps array\n                steps = [float('inf')] * n\n                steps[0] = 0\n                build(1, 0, n-1)\n\n                answer = []\n                for u, v in queries:\n                    # Update the segment tree for all cities that can be reached via u\n                    min_step_u = steps[u]\n                    if min_step_u + 1 < steps[v]:\n                        update(1, 0, n-1, v, min_step_u + 1)\n                    # Propagate the updates to all cities beyond v\n                    current = v\n                    while current < n - 1:\n                        next_city = current + 1\n                        if steps[current] + 1 < steps[next_city]:\n                            update(1, 0, n-1, next_city, steps[current] + 1)\n                        current = next_city\n                    # Append the current shortest distance to the answer\n                    answer.append(steps[n-1] + 1)  # +1 because steps are counts of edges\n\n                return answer",
+    "class UnionFind:\n            def __init__(self, size):\n                self.parent = list(range(size))\n                self.rank = [1] * size\n\n            def find(self, x):\n                if self.parent[x] != x:\n                    self.parent[x] = self.find(self.parent[x])\n                return self.parent[x]\n\n            def union(self, x, y):\n                xroot = self.find(x)\n                yroot = self.find(y)\n                if xroot == yroot:\n                    return\n                if self.rank[xroot] < self.rank[yroot]:\n                    self.parent[xroot] = yroot\n                else:\n                    self.parent[yroot] = xroot\n                    if self.rank[xroot] == self.rank[yroot]:\n                        self.rank[xroot] += 1\n\n        class Solution:\n            def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n                uf = UnionFind(n)\n                max_reach = [i + 1 for i in range(n)]\n                answer = []\n\n                for u, v in queries:\n                    # Update max_reach for u\n                    prev_reach = max_reach[u]\n                    if v > prev_reach:\n                        max_reach[u] = v\n                        # Update all cities that can reach u\n                        i = u\n                        while i < n and i <= prev_reach:\n                            if max_reach[i] < v:\n                                max_reach[i] = v\n                                uf.union(i, v)\n                            i = uf.find(i)\n                    # Find the shortest path from 0 to n-1\n                    steps = 0\n                    current = 0\n                    while current < n - 1:\n                        if uf.find(current) == uf.find(n - 1):\n                            steps += (n - 1 - current)\n                            break\n                        next_city = max_reach[current]\n                        if next_city == current:\n                            steps = -1\n                            break\n                        steps += (next_city - current)\n                        current = next_city\n                    answer.append(steps)\n                return answer",
+    "class UnionFind:\n    def __init__(self, size):\n        self.parent = list(range(size))\n        self.rank = [1] * size\n\n    def find(self, x):\n        if self.parent[x] != x:\n            self.parent[x] = self.find(self.parent[x])\n        return self.parent[x]\n\n    def union(self, x, y):\n        xroot = self.find(x)\n        yroot = self.find(y)\n        if xroot == yroot:\n            return\n        if self.rank[xroot] < self.rank[yroot]:\n            self.parent[xroot] = yroot\n        else:\n            self.parent[yroot] = xroot\n            if self.rank[xroot] == self.rank[yroot]:\n                self.rank[xroot] += 1\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        uf = UnionFind(n)\n        max_reach = [i + 1 for i in range(n)]\n        answer = []\n\n        for u, v in queries:\n            # Update max_reach for u\n            prev_reach = max_reach[u]\n            if v > prev_reach:\n                max_reach[u] = v\n                # Update all cities that can reach u\n                i = u\n                while i < n and i <= prev_reach:\n                    if max_reach[i] < v:\n                        max_reach[i] = v\n                        uf.union(i, v)\n                    i = uf.find(i)\n            # Find the shortest path from 0 to n-1\n            steps = 0\n            current = 0\n            while current < n - 1:\n                if uf.find(current) == uf.find(n - 1):\n                    steps += (n - 1 - current)\n                    break\n                next_city = max_reach[current]\n                if next_city == current:\n                    steps = -1\n                    break\n                steps += (next_city - current)\n                current = next_city\n            answer.append(steps)\n        return answer",
+    "class UnionFind:\n    def __init__(self, size):\n        self.parent = list(range(size))\n        self.rank = [1] * size\n\n    def find(self, x):\n        if self.parent[x] != x:\n            self.parent[x] = self.find(self.parent[x])\n        return self.parent[x]\n\n    def union(self, x, y):\n        xroot = self.find(x)\n        yroot = self.find(y)\n        if xroot == yroot:\n            return\n        if self.rank[xroot] < self.rank[yroot]:\n            self.parent[xroot] = yroot\n        else:\n            self.parent[yroot] = xroot\n            if self.rank[xroot] == self.rank[yroot]:\n                self.rank[xroot] += 1\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        uf = UnionFind(n)\n        max_reach = [i + 1 for i in range(n)]\n        answer = []\n\n        for u, v in queries:\n            # Update max_reach for u\n            prev_reach = max_reach[u]\n            if v > prev_reach:\n                max_reach[u] = v\n                # Update all cities that can reach u\n                i = u\n                while i < n and i <= prev_reach:\n                    if max_reach[i] < v:\n                        max_reach[i] = v\n                        uf.union(i, v)\n                    i = uf.find(i)\n            # Find the shortest path from 0 to n-1\n            steps = 0\n            current = 0\n            while current < n - 1:\n                if uf.find(current) == uf.find(n - 1):\n                    steps += (n - 1 - current)\n                    break\n                next_city = max_reach[current]\n                if next_city == current:\n                    steps = -1\n                    break\n                steps += (next_city - current)\n                current = next_city\n            answer.append(steps)\n        return answer",
+    "class UnionFind:\n    def __init__(self, size):\n        self.parent = list(range(size))\n        self.rank = [1] * size\n\n    def find(self, x):\n        if self.parent[x] != x:\n            self.parent[x] = self.find(self.parent[x])\n        return self.parent[x]\n\n    def union(self, x, y):\n        xroot = self.find(x)\n        yroot = self.find(y)\n        if xroot == yroot:\n            return\n        if self.rank[xroot] < self.rank[yroot]:\n            self.parent[xroot] = yroot\n        else:\n            self.parent[yroot] = xroot\n            if self.rank[xroot] == self.rank[yroot]:\n                self.rank[xroot] += 1\n\nclass Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        uf = UnionFind(n)\n        max_reach = [i + 1 for i in range(n)]\n        answer = []\n\n        for u, v in queries:\n            # Update max_reach for u\n            prev_reach = max_reach[u]\n            if v > prev_reach:\n                max_reach[u] = v\n                # Update all cities that can reach u\n                i = u\n                while i < n and i <= prev_reach:\n                    if max_reach[i] < v:\n                        max_reach[i] = v\n                        uf.union(i, v)\n                    i = uf.find(i)\n            # Find the shortest path from 0 to n-1\n            steps = 0\n            current = 0\n            while current < n - 1:\n                if uf.find(current) == uf.find(n - 1):\n                    steps += (n - 1 - current)\n                    break\n                next_city = max_reach[current]\n                if next_city == current:\n                    steps = -1\n                    break\n                steps += (next_city - current)\n                current = next_city\n            answer.append(steps)\n        return answer"
+  ],
+  "total_candidates": 23,
+  "nodes_explored": 23,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        import bisect\n\n        # Initialize the segment tree for minimum distances\n        tree = [float('inf')] * (4 * n)\n\n        # Build the initial segment tree with default distances\n        def build(idx, left, right):\n            if left == right:\n                tree[idx] = left\n            else:\n                mid = (left + right) // 2\n                build(2 * idx + 1, left, mid)\n                build(2 * idx + 2, mid + 1, right)\n                tree[idx] = min(tree[2 * idx + 1], tree[2 * idx + 2])\n\n        # Update the segment tree with a new edge\n        def update(idx, left, right, node_left, node_right, value):\n            if node_right < left or node_left > right:\n                return\n            if node_left >= left and node_right <= right:\n                tree[idx] = min(tree[idx], value)\n                return\n            mid = (node_left + node_right) // 2\n            update(2 * idx + 1, left, right, node_left, mid, value)\n            update(2 * idx + 2, left, right, mid + 1, node_right, value)\n            tree[idx] = min(tree[2 * idx + 1], tree[2 * idx + 2])\n\n        # Query the segment tree for the minimum distance in a range\n        def query(idx, left, right, node_left, node_right):\n            if node_right < left or node_left > right:\n                return float('inf')\n            if node_left >= left and node_right <= right:\n                return tree[idx]\n            mid = (node_left + node_right) // 2\n            left_min = query(2 * idx + 1, left, right, node_left, mid)\n            right_min = query(2 * idx + 2, left, right, mid + 1, node_right)\n            return min(left_min, right_min)\n\n        # Initialize the segment tree\n        build(0, 0, n - 1)\n\n        answer = []\n        for ui, vi in queries:\n            # Update the segment tree with the new edge from ui to vi\n            # The distance from ui to vi is 1, so the distance from 0 to vi can be updated\n            min_dist_to_ui = query(0, 0, ui, 0, n - 1)\n            if min_dist_to_ui != float('inf'):\n                update(0, vi, vi, 0, n - 1, min_dist_to_ui + 1)\n            # Query the segment tree for the distance from 0 to n-1\n            min_dist = query(0, 0, n - 1, 0, n - 1)\n            if min_dist == float('inf'):\n                answer.append(-1)\n            else:\n                answer.append(min_dist)\n        return answer",
+      "solution_hash": "2d34742be148297cb7b259b895ad773a8d00b0da9748ea5d757d7da9ff2338cf",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmp1ossv57h.py\", line 182, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/22242033/tmp1ossv57h.py\", line 141, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmp1ossv57h.py` failed. (See above for error)\n",
+        "execution_time": 14.019331455230713,
+        "failed_tests": [
+          {
+            "input": "n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]",
+            "expected": "[4, 3, 3, 1]",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmp1ossv57h.py\", line 182, in <module>\n    check(Solution().shortestDistanceAfterQueries)\n  File \"/scratch/local/22242033/tmp1ossv57h.py\", line 141, in check\n    assert candidate(n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]) == [4, 3, 3, 1]\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmp1ossv57h.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5",
+        "1_7"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def shortestDistanceAfterQueries(self, n: int, queries: List[List[int]]) -> List[int]:\n        import bisect\n        jumps = []\n        answer = []\n        max_reach = 0\n        for u, v in queries:\n            # Add the new jump\n            bisect.insort(jumps, (u, v))\n            # Find the minimum distance from 0 to n-1\n            current = 0\n            distance = 0\n            while current < n - 1:\n                # Find the best jump from current\n                # Find the rightmost jump where u <= current\n                i = bisect.bisect_right(jumps, (current, inf)) - 1\n                if i >= 0:\n                    # Take the jump with the farthest v\n                    _, v = jumps[i]\n                    current = v\n                    distance += 1\n                else:\n                    # No jump available, move to the next city\n                    current += 1\n                    distance += 1\n            answer.append(distance)\n        return answer",
+      "solution_hash": "42626e6b3985972820eed910c90eaaa235a7fa0613dad72c06b9cc9c4dc02bc6",
+      "test_result": {
+        "status": "timeout",
+        "error_message": "Test execution timed out after 10s",
+        "execution_time": 10
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_12",
+        "1_16",
+        "1_19"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 23,
+    "candidates_generated": 23,
+    "tests_passed": 0,
+    "tests_failed": 21,
+    "test_timeouts": 2,
+    "test_errors": 0,
+    "import_errors": 0,
+    "import_terminated_branches": 0,
+    "unique_import_failures": [],
+    "execution_times": [
+      14.019331455230713,
+      13.28447699546814,
+      13.304992437362671,
+      13.30305004119873,
+      13.23088002204895,
+      13.227433443069458,
+      13.230252265930176,
+      14.019331455230713,
+      13.229467153549194,
+      13.246514797210693,
+      13.222554445266724,
+      10,
+      13.179596185684204,
+      13.176517963409424,
+      13.170786142349243,
+      13.188768863677979,
+      10,
+      13.35654616355896,
+      13.334250211715698,
+      13.26627779006958,
+      13.26627779006958,
+      13.26627779006958,
+      13.26627779006958
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 19,
+      "unique_ratio": 0.8260869565217391,
+      "similarity_score": 0.7996854262664131,
+      "solution_lengths": {
+        "min": 988,
+        "max": 3308,
+        "avg": 1829.9565217391305
+      },
+      "algorithm_approaches": {
+        "depth_first_search": 1,
+        "binary_search": 12,
+        "backtracking": 1,
+        "hash_table": 1,
+        "simulation": 2,
+        "other": 6
+      },
+      "feature_diversity": 0.8695652173913043,
+      "features_analysis": {
+        "boolean_features": {
+          "has_recursion": {
+            "true_ratio": 1.0,
+            "count": 23
+          },
+          "uses_list": {
+            "true_ratio": 1.0,
+            "count": 23
+          },
+          "uses_dict": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_set": {
+            "true_ratio": 0.043478260869565216,
+            "count": 1
+          },
+          "uses_heap": {
+            "true_ratio": 0.13043478260869565,
+            "count": 3
+          },
+          "uses_queue": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_stack": {
+            "true_ratio": 0.043478260869565216,
+            "count": 1
+          },
+          "uses_dp": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_bfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_binary_search": {
+            "true_ratio": 0.2608695652173913,
+            "count": 6
+          },
+          "nested_loops": {
+            "true_ratio": 0.8260869565217391,
+            "count": 19
+          }
+        },
+        "numeric_features": {
+          "loop_count": {
+            "min": 1,
+            "max": 10,
+            "avg": 3.1739130434782608,
+            "variance": 4.49149338374291
+          },
+          "if_count": {
+            "min": 1,
+            "max": 12,
+            "avg": 5.217391304347826,
+            "variance": 8.344045368620035
+          },
+          "else_count": {
+            "min": 0,
+            "max": 6,
+            "avg": 1.434782608695652,
+            "variance": 1.4631379962192812
+          },
+          "return_count": {
+            "min": 1,
+            "max": 6,
+            "avg": 3.0434782608695654,
+            "variance": 4.128544423440454
+          },
+          "assignment_count": {
+            "min": 9,
+            "max": 31,
+            "avg": 18.217391304347824,
+            "variance": 51.38752362948961
+          },
+          "class_method_count": {
+            "min": 1,
+            "max": 4,
+            "avg": 2.608695652173913,
+            "variance": 1.9773156899810955
+          },
+          "line_count": {
+            "min": 23,
+            "max": 73,
+            "avg": 46.608695652173914,
+            "variance": 179.02079395085065
+          },
+          "char_count": {
+            "min": 988,
+            "max": 3308,
+            "avg": 1829.9565217391305,
+            "variance": 324789.5198487712
+          },
+          "max_indent": {
+            "min": 16,
+            "max": 32,
+            "avg": 23.47826086956522,
+            "variance": 22.68431001890359
+          }
+        }
+      },
+      "complexity_diversity": {
+        "complexity_distribution": {
+          "exponential": 23
+        },
+        "avg_complexity_metrics": {
+          "avg_line_count": 46.608695652173914,
+          "avg_loop_count": 3.1739130434782608,
+          "avg_condition_count": 6.6521739130434785,
+          "avg_method_count": 2.608695652173913,
+          "avg_assignment_count": 18.217391304347824,
+          "avg_max_loop_nesting": 1.0
+        },
+        "complexity_diversity_ratio": 0.16666666666666666
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]": 13,
+        "n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]": 3
+      },
+      "first_failing_tests": {
+        "n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]": 13,
+        "n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]": 3
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 6,
+          "improvements": 0,
+          "solved": 0
+        },
+        "2": {
+          "attempts": 15,
+          "improvements": 1,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "assertion_failure": {
+          "attempts": 5,
+          "improvements": 1
+        },
+        "other_error": {
+          "attempts": 3,
+          "improvements": 0
+        }
+      },
+      "test_case_improvements": {
+        "n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]": 1
+      },
+      "error_transitions": {
+        "assertion_failure->assertion_failure": 12,
+        "assertion_failure->other_error": 1,
+        "other_error->assertion_failure": 3,
+        "other_error->other_error": 5
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.565217391304348,
+        "solutions_per_depth": {
+          "0": 2,
+          "1": 6,
+          "2": 15
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 0,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.04166666666666663,
+        "pass@3": 0.125,
+        "pass@5": 0.20833333333333337,
+        "pass@10": 0.41666666666666674
+      },
+      "solutions_evaluated": 24
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.0,
+        "branch_success_rate": 0.0,
+        "test_success_rate": 0.0
+      },
+      "test_results": {
+        "total": 23,
+        "passed": 0,
+        "failed": 21,
+        "timeouts": 2,
+        "import_errors": 0,
+        "other_errors": 0,
+        "unique_import_failures": []
+      },
+      "error_recovery": {
+        "total_attempts": 8,
+        "total_improvements": 1,
+        "recovery_rate": 0.125
+      },
+      "top_errors": [
+        [
+          "assertion_failure",
+          5
+        ],
+        [
+          "other_error",
+          3
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "n = 7,queries = [[3, 6], [1, 3], [0, 1], [0, 6]]",
+          13
+        ],
+        [
+          "n = 8,queries = [[2, 7], [0, 2], [4, 6], [0, 4]]",
+          3
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 2363.9683809280396,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.04166666666666663,
+      "pass@3": 0.125,
+      "pass@5": 0.20833333333333337,
+      "pass@10": 0.41666666666666674
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unindent does not match any outer indentation level (<string>, line 119)",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 23
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 24,
+    "test_cases": 1
+  }
+}

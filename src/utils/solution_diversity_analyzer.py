@@ -130,9 +130,18 @@ class SolutionDiversityAnalyzer:
         # Normalize code first
         normalized = self._normalize_code(code)
 
+        # Check for recursion more reliably
+        has_recursion = False
+        function_defs = re.findall(r'def\s+(\w+)', normalized)
+        for func_name in function_defs:
+            # Check if the function calls itself
+            if re.search(r'\b' + re.escape(func_name) + r'\s*\(', normalized):
+                has_recursion = True
+                break
+
         features = {
             # Control flow structures
-            "has_recursion": bool(re.search(r'def\s+\w+[^}]*?\1\s*\(', normalized)),
+            "has_recursion": has_recursion,
             "loop_count": len(re.findall(r'\bfor\b|\bwhile\b', normalized)),
             "if_count": len(re.findall(r'\bif\b', normalized)),
             "else_count": len(re.findall(r'\belse\b', normalized)),

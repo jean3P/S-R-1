@@ -2,7 +2,7 @@
 ###############################################################################
 #  UBELIX – LeetCode Easy Problems (10 per model)
 ###############################################################################
-#SBATCH --job-name=leetcode-hard-h100
+#SBATCH --job-name=leetcodeADHard-hard-h100
 #SBATCH --partition=gpu-invest
 #SBATCH --qos=job_gpu_preemptable
 #SBATCH --gres=gpu:h100:4
@@ -513,22 +513,51 @@ echo "Updating config file with dataset paths..."
 cat >> configs/experiments/leetcode_solver_run_${TS}.yaml << EOF
 
 # Dataset paths added by job script
+# Dataset paths added by job script
 data:
   cache_dir: "data/cache"
   huggingface_cache: "data/huggingface_cache"
   leetcode_dir: "data/leetcode"
   leetcode_repo_path: "/storage/homefs/jp22b083/SSI/S-R-1/data/repositories/LeetCodeDataset"
 
+# Adaptive exploration settings
+adaptive:
+  enabled: true
+  termination_threshold: 0.7
+  time_budget_per_problem: 600  # 5 minutes
+  candidate_budget_per_problem: 90
+  base_time_per_depth: 60  # seconds
+
+  # Multi-signal termination weights
+  termination_weights:
+    consecutive_failures: 0.25
+    error_repetition: 0.20
+    time_budget: 0.15
+    improvement_rate: 0.15
+    solution_similarity: 0.15
+    error_complexity: 0.10
+
+  # Priority calculation weights
+  priority_weights:
+    test_improvement: 0.40
+    error_severity: 0.30
+    solution_novelty: 0.20
+    depth_penalty: 0.10
+
+# LeetCode specific settings
 leetcode:
   version: "v0.3.1"
   preprocessed_file: "data/leetcode/leetcode_problems.json"
   initial_solutions: $INITIAL_K
   branch_factor: $BRANCH_FACTOR
   max_depth: $MAX_DEPTH
-  early_stopping: false
-  adaptive_mode: true  # Add this line to enable adaptive mode
-  consecutive_failures: 3  # Add this line to specify the failure threshold
+  early_stopping: false  # MUST be false for adaptive mode to work properly
+  adaptive_mode: true    # Enable adaptive exploration
+  consecutive_failures: 3  # Fallback threshold for consecutive failures
+  time_budget: 300       # 5 minutes per problem
+  candidate_budget: 50   # Max 50 candidates per problem
 
+# Evaluation settings
 evaluation:
   use_code_eval: true
   code_eval:
@@ -557,22 +586,6 @@ torch.cuda.empty_cache()
 print("[+] Cleared CUDA cache")
 PY
 
-#        python -m src.scripts.run_leetcode_solver \
-#            --config configs/experiments/leetcode_solver_run_${TS}.yaml \
-#            --model "$MODEL" \
-#            --difficulty "$DIFFICULTY" \
-#            --limit $NUM_PROBLEMS \
-#            --initial-k $INITIAL_K \
-#            --branch-factor $BRANCH_FACTOR \
-#            --adaptive \
-#            --consecutive-failures 3 \
-#            --output "$OUTDIR" \
-#            --log-level "DEBUG" \
-#            --disable-quantization \
-#            --disable-flash-attention \
-#            --use-code-eval \
-#            "${ARGS[@]}"
-
         python -m src.scripts.run_leetcode_solver \
             --config configs/experiments/leetcode_solver_run_${TS}.yaml \
             --model "$MODEL" \
@@ -580,14 +593,30 @@ PY
             --limit $NUM_PROBLEMS \
             --initial-k $INITIAL_K \
             --branch-factor $BRANCH_FACTOR \
-            --max-depth $MAX_DEPTH \
+            --adaptive \
+            --consecutive-failures 3 \
             --output "$OUTDIR" \
             --log-level "DEBUG" \
             --disable-quantization \
             --disable-flash-attention \
             --use-code-eval \
-            --early-stopping \
             "${ARGS[@]}"
+
+#        python -m src.scripts.run_leetcode_solver \
+#            --config configs/experiments/leetcode_solver_run_${TS}.yaml \
+#            --model "$MODEL" \
+#            --difficulty "$DIFFICULTY" \
+#            --limit $NUM_PROBLEMS \
+#            --initial-k $INITIAL_K \
+#            --branch-factor $BRANCH_FACTOR \
+#            --max-depth $MAX_DEPTH \
+#            --output "$OUTDIR" \
+#            --log-level "DEBUG" \
+#            --disable-quantization \
+#            --disable-flash-attention \
+#            --use-code-eval \
+#            --early-stopping \
+#            "${ARGS[@]}"
 
         echo -e "\n=== Finished $DIFFICULTY problems for $MODEL: $(date) ==="
         nvidia-smi

@@ -1,0 +1,449 @@
+{
+  "problem_id": "count-substrings-that-can-be-rearranged-to-contain-a-string-i",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "unsolved",
+  "best_solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        target_count = Counter(word2)\n        w2_len = len(word2)\n        result = 0\n        \n        # Check all substrings of word1 starting at each position\n        for start in range(len(word1) - w2_len + 1):\n            # Count characters in the current window of size at least w2_len\n            for end in range(start + w2_len, len(word1) + 1):\n                window_count = Counter(word1[start:end])\n                if window_count & target_count == target_count:\n                    result += 1\n        \n        return result",
+  "passed_solutions": [
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        target_count = Counter(word2)\n        w2_len = len(word2)\n        result = 0\n        \n        # Check all substrings of word1 starting at each position\n        for start in range(len(word1) - w2_len + 1):\n            # Count characters in the current window of size at least w2_len\n            for end in range(start + w2_len, len(word1) + 1):\n                window_count = Counter(word1[start:end])\n                if window_count & target_count == target_count:\n                    result += 1\n        \n        return result"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        target_count = Counter(word2)\n        window_count = Counter()\n        required = len(target_count)\n        formed = 0\n        left = 0\n        result = 0\n        w2_len = len(word2)\n        \n        for right in range(len(word1)):\n            char = word1[right]\n            window_count[char] += 1\n            \n            if char in target_count and window_count[char] == target_count[char]:\n                formed += 1\n            \n            while right - left + 1 >= w2_len:\n                if formed == required:\n                    result += len(word1) - right\n                \n                char = word1[left]\n                window_count[char] -= 1\n                \n                if char in target_count and window_count[char] < target_count[char]:\n                    formed -= 1\n                \n                left += 1\n        \n        return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        target_count = Counter(word2)\n        w2_len = len(word2)\n        result = 0\n        \n        for start in range(len(word1) - w2_len + 1):\n            window_count = Counter(word1[start:start + w2_len])\n            if window_count == target_count:\n                result += len(word1) - start - w2_len + 1\n        \n        return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        target_count = Counter(word2)\n        w2_len = len(word2)\n        result = 0\n        n = len(word1)\n        \n        # Initialize a counter for the first window of size w2_len\n        current_count = Counter(word1[:w2_len])\n        \n        # Check the first window\n        if current_count == target_count:\n            result += n - w2_len + 1\n        \n        # Slide the window across word1\n        for end in range(w2_len, n):\n            start = end - w2_len\n            \n            # Add the new character to the window\n            current_count[word1[end]] += 1\n            \n            # Remove the character that is no longer in the window\n            current_count[word1[start]] -= 1\n            if current_count[word1[start]] == 0:\n                del current_count[word1[start]]\n            \n            # Check if the current window can be rearranged to have word2 as a prefix\n            if current_count == target_count:\n                result += n - end\n        \n        return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        target_count = Counter(word2)\n        w2_len = len(word2)\n        result = 0\n        n = len(word1)\n        \n        for start in range(n - w2_len + 1):\n            window_count = Counter(word1[start:start + w2_len])\n            if window_count & target_count == target_count:\n                result += 1\n                for end in range(start + w2_len, n):\n                    window_count[word1[end]] += 1\n                    if window_count & target_count == target_count:\n                        result += 1\n                    else:\n                        break\n        \n        return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        target_count = Counter(word2)\n        w2_len = len(word2)\n        result = 0\n        n = len(word1)\n        \n        for start in range(n - w2_len + 1):\n            window_count = Counter(word1[start:start + w2_len])\n            if window_count == target_count:\n                result += n - start - w2_len + 1\n            \n            for end in range(start + w2_len, n):\n                window_count[word1[end]] += 1\n                window_count[word1[end - w2_len]] -= 1\n                \n                if window_count[word1[end - w2_len]] == 0:\n                    del window_count[word1[end - w2_len]]\n                \n                if window_count == target_count:\n                    result += n - end\n        \n        return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        target_count = Counter(word2)\n        w2_len = len(word2)\n        result = 0\n        \n        for start in range(len(word1) - w2_len + 1):\n            window_count = Counter(word1[start:start + w2_len])\n            if window_count == target_count:\n                result += 1\n                # Check longer substrings starting from 'start'\n                for end in range(start + w2_len, len(word1) + 1):\n                    window_count[word1[end - 1]] -= 1\n                    if window_count[word1[end - 1]] == 0:\n                        del window_count[word1[end - 1]]\n                    if end < len(word1):\n                        window_count[word1[end]] += 1\n                    if window_count == target_count:\n                        result += 1\n                    else:\n                        break\n        \n        return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        target_count = Counter(word2)\n        w2_len = len(word2)\n        result = 0\n        current_count = Counter()\n        \n        for end in range(len(word1)):\n            current_count[word1[end]] += 1\n            \n            if end >= w2_len:\n                start_char = word1[end - w2_len]\n                current_count[start_char] -= 1\n                if current_count[start_char] == 0:\n                    del current_count[start_char]\n            \n            if current_count == target_count:\n                result += 1\n        \n        return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        target_count = Counter(word2)\n        w2_len = len(word2)\n        result = 0\n        n = len(word1)\n        \n        # Initialize the counter for the first window of size w2_len\n        window_count = Counter(word1[:w2_len])\n        \n        # Check if the first window is valid\n        if window_count == target_count:\n            result += 1\n        \n        # Slide the window over word1\n        for i in range(w2_len, n):\n            # Add the new character to the window\n            window_count[word1[i]] += 1\n            \n            # Remove the character that is no longer in the window\n            window_count[word1[i - w2_len]] -= 1\n            if window_count[word1[i - w2_len]] == 0:\n                del window_count[word1[i - w2_len]]\n            \n            # Check if the current window is valid\n            if window_count == target_count:\n                result += 1\n            \n            # Check longer substrings starting from the current position\n            for j in range(i + 1, n):\n                window_count[word1[j]] += 1\n                \n                # Check if the extended window is valid\n                if window_count & target_count == target_count:\n                    result += 1\n                else:\n                    break\n                \n                # Remove the character that is no longer in the extended window\n                window_count[word1[j]] -= 1\n                if window_count[word1[j]] == 0:\n                    del window_count[word1[j]]\n        \n        return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        target_count = Counter(word2)\n        w2_len = len(word2)\n        result = 0\n        n = len(word1)\n        \n        # Sliding window counter\n        window_count = Counter()\n        \n        for end in range(n):\n            window_count[word1[end]] += 1\n            \n            # Maintain the window size at least as large as word2\n            if end >= w2_len:\n                start_char = word1[end - w2_len]\n                window_count[start_char] -= 1\n                if window_count[start_char] == 0:\n                    del window_count[start_char]\n            \n            # Check if the current window can form a valid prefix\n            if all(window_count[char] >= target_count[char] for char in target_count):\n                result += 1\n        \n        return result",
+    "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        target_count = Counter(word2)\n        w2_len = len(word2)\n        result = 0\n        \n        # Check all substrings of word1 starting at each position\n        for start in range(len(word1) - w2_len + 1):\n            # Count characters in the current window of size at least w2_len\n            for end in range(start + w2_len, len(word1) + 1):\n                window_count = Counter(word1[start:end])\n                if window_count & target_count == target_count:\n                    result += 1\n        \n        return result"
+  ],
+  "total_candidates": 10,
+  "nodes_explored": 10,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def validSubstringCount(self, word1: str, word2: str) -> int:\n        from collections import Counter\n        \n        target_count = Counter(word2)\n        window_count = Counter()\n        required = len(target_count)\n        formed = 0\n        left = 0\n        result = 0\n        w2_len = len(word2)\n        \n        for right in range(len(word1)):\n            char = word1[right]\n            window_count[char] += 1\n            \n            if char in target_count and window_count[char] == target_count[char]:\n                formed += 1\n            \n            while right - left + 1 >= w2_len:\n                if formed == required:\n                    result += len(word1) - right\n                \n                char = word1[left]\n                window_count[char] -= 1\n                \n                if char in target_count and window_count[char] < target_count[char]:\n                    formed -= 1\n                \n                left += 1\n        \n        return result",
+      "solution_hash": "066a9f160a9fdc7579bbeaac77096d4d35309c50170b9317af4b063db798e01c",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242032/tmpv2a7q_4w.py\", line 226, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/22242032/tmpv2a7q_4w.py\", line 120, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242032/tmpv2a7q_4w.py` failed. (See above for error)\n",
+        "execution_time": 13.622618675231934,
+        "failed_tests": [
+          {
+            "input": "word1 = \"mississippi\",word2 = \"issi\"",
+            "expected": "27",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242032/tmpv2a7q_4w.py\", line 226, in <module>\n    check(Solution().validSubstringCount)\n  File \"/scratch/local/22242032/tmpv2a7q_4w.py\", line 120, in check\n    assert candidate(word1 = \"mississippi\",word2 = \"issi\") == 27\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242032/tmpv2a7q_4w.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5",
+        "1_9"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 10,
+    "candidates_generated": 10,
+    "tests_passed": 1,
+    "tests_failed": 9,
+    "test_timeouts": 0,
+    "test_errors": 0,
+    "import_errors": 0,
+    "import_terminated_branches": 0,
+    "unique_import_failures": [],
+    "execution_times": [
+      13.622618675231934,
+      13.626468181610107,
+      13.623804569244385,
+      13.619212627410889,
+      13.623674392700195,
+      13.609391927719116,
+      13.648730278015137,
+      13.625966787338257,
+      13.62488579750061,
+      13.792537689208984
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 10,
+      "unique_ratio": 1.0,
+      "similarity_score": 0.8820917301595312,
+      "solution_lengths": {
+        "min": 475,
+        "max": 1677,
+        "avg": 918.6
+      },
+      "algorithm_approaches": {
+        "sliding_window": 10
+      },
+      "feature_diversity": 1.0,
+      "features_analysis": {
+        "boolean_features": {
+          "has_recursion": {
+            "true_ratio": 1.0,
+            "count": 10
+          },
+          "uses_list": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dict": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_set": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_heap": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_queue": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_stack": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dp": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_bfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_binary_search": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "nested_loops": {
+            "true_ratio": 0.7,
+            "count": 7
+          }
+        },
+        "numeric_features": {
+          "loop_count": {
+            "min": 1,
+            "max": 2,
+            "avg": 1.7,
+            "variance": 0.21000000000000002
+          },
+          "if_count": {
+            "min": 1,
+            "max": 5,
+            "avg": 2.8,
+            "variance": 1.36
+          },
+          "else_count": {
+            "min": 0,
+            "max": 1,
+            "avg": 0.3,
+            "variance": 0.20999999999999996
+          },
+          "return_count": {
+            "min": 1,
+            "max": 1,
+            "avg": 1.0,
+            "variance": 0.0
+          },
+          "assignment_count": {
+            "min": 6,
+            "max": 18,
+            "avg": 11.6,
+            "variance": 13.84
+          },
+          "class_method_count": {
+            "min": 1,
+            "max": 1,
+            "avg": 1.0,
+            "variance": 0.0
+          },
+          "line_count": {
+            "min": 14,
+            "max": 46,
+            "avg": 26.2,
+            "variance": 75.35999999999999
+          },
+          "char_count": {
+            "min": 475,
+            "max": 1677,
+            "avg": 918.6,
+            "variance": 98055.04
+          },
+          "max_indent": {
+            "min": 16,
+            "max": 24,
+            "avg": 20.0,
+            "variance": 6.4
+          }
+        }
+      },
+      "complexity_diversity": {
+        "complexity_distribution": {
+          "exponential": 10
+        },
+        "avg_complexity_metrics": {
+          "avg_line_count": 26.2,
+          "avg_loop_count": 1.7,
+          "avg_condition_count": 3.1,
+          "avg_method_count": 1.0,
+          "avg_assignment_count": 11.6,
+          "avg_max_loop_nesting": 1.0
+        },
+        "complexity_diversity_ratio": 0.16666666666666666
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "word1 = \"mississippi\",word2 = \"issi\"": 4,
+        "word1 = \"aaaabc\",word2 = \"aaa\"": 1,
+        "word1 = \"banana\",word2 = \"ban\"": 4
+      },
+      "first_failing_tests": {
+        "word1 = \"mississippi\",word2 = \"issi\"": 4,
+        "word1 = \"aaaabc\",word2 = \"aaa\"": 1,
+        "word1 = \"banana\",word2 = \"ban\"": 4
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 3,
+          "improvements": 0,
+          "solved": 1
+        },
+        "2": {
+          "attempts": 6,
+          "improvements": 0,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "assertion_failure": {
+          "attempts": 3,
+          "improvements": 1
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "assertion_failure->assertion_failure": 8,
+        "assertion_failure->unknown": 1
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.5,
+        "solutions_per_depth": {
+          "0": 1,
+          "1": 3,
+          "2": 6
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 1,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.18181818181818188,
+        "pass@3": 0.49090909090909096,
+        "pass@5": 0.7272727272727273,
+        "pass@10": 1.0
+      },
+      "solutions_evaluated": 11,
+      "passing_solution_depths": {
+        "min": 1,
+        "max": 1,
+        "avg": 1.0
+      }
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.1,
+        "branch_success_rate": 0.1,
+        "test_success_rate": 0.1
+      },
+      "test_results": {
+        "total": 10,
+        "passed": 1,
+        "failed": 9,
+        "timeouts": 0,
+        "import_errors": 0,
+        "other_errors": 0,
+        "unique_import_failures": []
+      },
+      "error_recovery": {
+        "total_attempts": 3,
+        "total_improvements": 1,
+        "recovery_rate": 0.3333333333333333
+      },
+      "top_errors": [
+        [
+          "assertion_failure",
+          3
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "word1 = \"mississippi\",word2 = \"issi\"",
+          4
+        ],
+        [
+          "word1 = \"banana\",word2 = \"ban\"",
+          4
+        ],
+        [
+          "word1 = \"aaaabc\",word2 = \"aaa\"",
+          1
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 398.7911674976349,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.18181818181818188,
+      "pass@3": 0.49090909090909096,
+      "pass@5": 0.7272727272727273,
+      "pass@10": 1.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 10
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 11,
+    "test_cases": 1
+  }
+}

@@ -1,0 +1,538 @@
+{
+  "problem_id": "sum-of-consecutive-subarrays",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                i = 0\n                while i < n:\n                    j = i + 1\n                    while j < n and abs(nums[j] - nums[j-1]) == 1:\n                        j += 1\n                    length = j - i\n                    # Sum of arithmetic series: (number of terms / 2) * (first term + last term)\n                    subarray_sum = (length * (nums[i] + nums[j-1])) // 2\n                    total = (total + subarray_sum) % MOD\n                    i = j\n                return total",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                if n == 0:\n                    return 0\n                # Initialize the first subarray\n                start = 0\n                diff = 0\n                for i in range(1, n):\n                    current_diff = nums[i] - nums[i - 1]\n                    if current_diff != diff and i - start > 1:\n                        # Calculate sum for the previous subarray\n                        length = i - start - 1\n                        subarray_sum = sum(nums[start:i-1])\n                        # Number of subarrays is length*(length+1)//2\n                        total += subarray_sum * (length + 1) - (nums[start] + nums[i-2]) * length * (length + 1) // 2\n                        total %= MOD\n                        # Adjust for the fact that differences are 1 or -1\n                        if diff == 1:\n                            total += length * (length + 1) // 2\n                        elif diff == -1:\n                            total -= length * (length + 1) // 2\n                        total %= MOD\n                        # Start a new subarray\n                        start = i - 1\n                    diff = current_diff\n                # Handle the last subarray\n                length = n - start\n                subarray_sum = sum(nums[start:])\n                total += subarray_sum * (length + 1) - (nums[start] + nums[-1]) * length * (length + 1) // 2\n                if diff == 1:\n                    total += length * (length + 1) // 2\n                elif diff == -1:\n                    total -= length * (length + 1) // 2\n                total %= MOD\n                return total",
+    "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                if n == 0:\n                    return 0\n                start = 0\n                for i in range(1, n):\n                    if i == 1 or (nums[i] - nums[i-1] == nums[i-1] - nums[i-2]):\n                        continue\n                    else:\n                        # Calculate sum for the previous subarray\n                        length = i - start\n                        if length >= 1:\n                            subarray_sum = sum(nums[start:i])\n                            # Number of subarrays is length*(length+1)//2\n                            total += subarray_sum * length - (nums[start] + nums[i-1]) * length * (length - 1) // 2\n                            total %= MOD\n                        start = i - 1\n                # Handle the last subarray\n                length = n - start\n                if length >= 1:\n                    subarray_sum = sum(nums[start:])\n                    total += subarray_sum * length - (nums[start] + nums[-1]) * length * (length - 1) // 2\n                    total %= MOD\n                return total",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        if n == 0:\n            return 0\n        start = 0\n        diff = 0\n        for i in range(1, n):\n            current_diff = nums[i] - nums[i-1]\n            if i == 1:\n                diff = current_diff\n            elif current_diff != diff:\n                # Calculate sum for the previous subarray\n                length = i - start\n                if length >= 1:\n                    subarray_sum = sum(nums[start:i])\n                    # Number of subarrays is length\n                    total += subarray_sum * length - (nums[start] + nums[i-1]) * length * (length - 1) // 2\n                    total %= MOD\n                start = i - 1\n                diff = current_diff\n        # Handle the last subarray\n        length = n - start\n        if length >= 1:\n            subarray_sum = sum(nums[start:])\n            total += subarray_sum * length - (nums[start] + nums[-1]) * length * (length - 1) // 2\n            total %= MOD\n        return total",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        if n == 0:\n            return 0\n        start = 0\n        diff = 0\n        for i in range(1, n):\n            current_diff = nums[i] - nums[i-1]\n            if i == 1:\n                diff = current_diff\n            elif current_diff != diff:\n                # Calculate sum for the previous subarray\n                length = i - start\n                if length >= 1:\n                    subarray_sum = sum(nums[start:i])\n                    # Number of subarrays is length*(length+1)//2\n                    total += subarray_sum * length - (nums[start] + nums[i-1]) * length * (length - 1) // 2\n                    total %= MOD\n                start = i - 1\n                diff = current_diff\n        # Handle the last subarray\n        length = n - start\n        if length >= 1:\n            subarray_sum = sum(nums[start:])\n            total += subarray_sum * length - (nums[start] + nums[-1]) * length * (length - 1) // 2\n            total %= MOD\n        return total",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        if n == 0:\n            return 0\n        start = 0\n        diff = nums[1] - nums[0] if n > 1 else 0\n        for i in range(1, n):\n            current_diff = nums[i] - nums[i-1]\n            if current_diff != diff and diff != 0:\n                # Calculate sum for the previous subarray\n                length = i - start\n                if length >= 1:\n                    subarray_sum = sum(nums[start:start+length])\n                    total += subarray_sum * length - (nums[start] + nums[i-1]) * length * (length - 1) // 2\n                    total %= MOD\n                start = i - 1\n                diff = current_diff\n            elif i == n - 1:\n                # Handle the last subarray\n                length = i - start + 1\n                subarray_sum = sum(nums[start:start+length])\n                total += subarray_sum * length - (nums[start] + nums[i]) * length * (length - 1) // 2\n                total %= MOD\n        # If the entire array is a single subarray\n        if start == 0 and i == n - 1:\n            subarray_sum = sum(nums)\n            total += subarray_sum * n - (nums[0] + nums[-1]) * n * (n - 1) // 2\n            total %= MOD\n        return total",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        if n == 0:\n            return 0\n        start = 0\n        for i in range(1, n):\n            if i == 1 or (nums[i] - nums[i-1] == nums[i-1] - nums[i-2]):\n                continue\n            else:\n                # Calculate sum for the subarray from start to i-1\n                length = i - start\n                if length >= 2:\n                    diff = nums[start + 1] - nums[start]\n                    if diff == 1 or diff == -1:\n                        # Sum of arithmetic series: n/2 * (a + l)\n                        total += (length * (2 * nums[start] + (length - 1) * diff)) // 2 % MOD\n                else:\n                    total += nums[start] % MOD\n                start = i - 1\n        # Handle the last subarray\n        length = n - start\n        if length >= 2:\n            diff = nums[start + 1] - nums[start]\n            if diff == 1 or diff == -1:\n                total += (length * (2 * nums[start] + (length - 1) * diff)) // 2 % MOD\n        else:\n            total += nums[start] % MOD\n        return total % MOD",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        if n == 0:\n            return 0\n        start = 0\n        for i in range(1, n):\n            if i == 1:\n                diff = nums[i] - nums[i-1]\n                continue\n            current_diff = nums[i] - nums[i-1]\n            if current_diff != diff:\n                # End of current consecutive sequence\n                # Calculate sum for the subarray from start to i-1\n                length = i - start\n                if length >= 2:\n                    # Sum of arithmetic series: n/2 * (a + l)\n                    total += (length * (nums[start] + nums[i-1])) // 2 % MOD\n                else:\n                    total += nums[start] % MOD\n                # Start new sequence\n                start = i - 1\n                diff = current_diff\n        # Handle the last subarray\n        length = n - start\n        if length >= 2:\n            total += (length * (nums[start] + nums[-1])) // 2 % MOD\n        else:\n            total += nums[start] % MOD\n        # Add sum of all individual elements\n        total += sum(nums) % MOD\n        # Since individual elements are already included in the above sum,\n        # we need to subtract the sum of individual elements that are part of longer sequences\n        for i in range(n-1):\n            if abs(nums[i+1] - nums[i]) == 1:\n                total -= nums[i] % MOD\n        total -= nums[-1] % MOD\n        return total % MOD",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        if n == 0:\n            return 0\n        start = 0\n        for i in range(1, n):\n            if i == 1:\n                diff = nums[i] - nums[i-1]\n                continue\n            current_diff = nums[i] - nums[i-1]\n            if current_diff != diff:\n                # Calculate sum for the subarray from start to i-1\n                length = i - start\n                if length >= 2:\n                    # Sum of arithmetic series: n/2 * (a + l)\n                    total += (length * (nums[start] + nums[i-1])) // 2 % MOD\n                else:\n                    total += nums[start] % MOD\n                # Start new subarray\n                start = i - 1\n                diff = current_diff\n        # Handle the last subarray\n        length = n - start\n        if length >= 2:\n            total += (length * (nums[start] + nums[-1])) // 2 % MOD\n        else:\n            total += nums[start] % MOD\n        return total % MOD",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        if n == 0:\n            return 0\n        start = 0\n        for i in range(1, n):\n            if i == 1:\n                diff = nums[i] - nums[i-1]\n            else:\n                current_diff = nums[i] - nums[i-1]\n                if current_diff != diff:\n                    # Calculate sum for the subarray from start to i-1\n                    length = i - start\n                    if length >= 1:\n                        if length == 1:\n                            total += nums[start] % MOD\n                        else:\n                            # Sum of arithmetic series: n/2 * (a + l)\n                            total += (length * (nums[start] + nums[i-1])) // 2 % MOD\n                    # Update start and diff\n                    start = i - 1\n                    diff = current_diff\n        # Handle the last subarray\n        length = n - start\n        if length >= 1:\n            if length == 1:\n                total += nums[start] % MOD\n            else:\n                total += (length * (nums[start] + nums[n-1])) // 2 % MOD\n        return total % MOD",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        \n        if n == 0:\n            return 0\n        \n        # Initialize the first subarray\n        left = 0\n        right = 1\n        if n == 1:\n            return nums[0] % MOD\n        \n        # Determine the initial direction\n        if right < n:\n            diff = nums[right] - nums[left]\n        else:\n            diff = 0\n        \n        while right < n:\n            if right - left == 1 or nums[right] - nums[right - 1] == diff:\n                # Continue the subarray\n                right += 1\n            else:\n                # Calculate sum for the current subarray\n                subarray_len = right - left\n                subarray_sum = sum(nums[left:right])\n                total = (total + subarray_sum) % MOD\n                # Reset left and diff for the next subarray\n                left = right - 1\n                if right < n:\n                    diff = nums[right] - nums[left]\n                right += 1\n        \n        # Add the last subarray\n        subarray_sum = sum(nums[left:right])\n        total = (total + subarray_sum) % MOD\n        \n        return total",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        \n        if n == 0:\n            return 0\n        \n        # Initialize the first subarray\n        left = 0\n        right = 1\n        if n == 1:\n            return nums[0] % MOD\n        \n        # Determine the initial direction\n        if right < n:\n            if nums[right] - nums[left] == 1:\n                diff = 1\n            elif nums[right] - nums[left] == -1:\n                diff = -1\n            else:\n                diff = 0\n        else:\n            diff = 0\n        \n        while right < n:\n            # Check if the current pair continues the sequence\n            current_diff = nums[right] - nums[right - 1]\n            if current_diff == diff:\n                right += 1\n            else:\n                # Calculate sum for the current subarray\n                subarray_len = right - left\n                subarray_sum = sum(nums[left:right])\n                total = (total + subarray_sum) % MOD\n                # Start a new subarray with the current element\n                left = right - 1\n                if right < n:\n                    current_diff = nums[right] - nums[left]\n                    if current_diff == 1:\n                        diff = 1\n                    elif current_diff == -1:\n                        diff = -1\n                    else:\n                        diff = 0\n                right += 1\n        \n        # Add the last subarray\n        subarray_sum = sum(nums[left:right])\n        total = (total + subarray_sum) % MOD\n        \n        return total",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        \n        if n == 0:\n            return 0\n        \n        left = 0\n        for right in range(1, n + 1):\n            if right == n or (right < n and (nums[right] - nums[right - 1] != nums[1] - nums[0])):\n                # Calculate sum for the current subarray from left to right-1\n                subarray_len = right - left\n                # Sum of arithmetic series: n/2 * (first_term + last_term)\n                subarray_sum = subarray_len * (nums[left] + nums[right - 1]) // 2\n                total = (total + subarray_sum) % MOD\n                left = right\n        \n        return total",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        \n        if n == 0:\n            return 0\n        \n        # Initialize the first subarray\n        left = 0\n        right = 1\n        if n == 1:\n            return nums[0] % MOD\n        \n        # Determine the initial direction\n        if right < n:\n            if nums[right] - nums[left] == 1:\n                diff = 1\n            elif nums[right] - nums[left] == -1:\n                diff = -1\n            else:\n                diff = 0\n        else:\n            diff = 0\n        \n        while right < n:\n            # Check if the current pair continues the sequence\n            current_diff = nums[right] - nums[right - 1]\n            if current_diff == diff:\n                right += 1\n            else:\n                # Calculate sum for the current subarray\n                subarray_len = right - left\n                subarray_sum = sum(nums[left:right])\n                total = (total + subarray_sum) % MOD\n                # Start a new subarray with the current element\n                left = right - 1\n                if right < n:\n                    current_diff = nums[right] - nums[left]\n                    if current_diff == 1:\n                        diff = 1\n                    elif current_diff == -1:\n                        diff = -1\n                    else:\n                        diff = 0\n                right += 1\n        \n        # Add the last subarray\n        subarray_sum = sum(nums[left:right])\n        total = (total + subarray_sum) % MOD\n        \n        return total",
+    "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        \n        if n == 0:\n            return 0\n        \n        # Initialize the first subarray\n        left = 0\n        right = 1\n        if n == 1:\n            return nums[0] % MOD\n        \n        # Determine the initial direction\n        if right < n:\n            if nums[right] - nums[left] == 1:\n                diff = 1\n            elif nums[right] - nums[left] == -1:\n                diff = -1\n            else:\n                diff = 0\n        else:\n            diff = 0\n        \n        while right < n:\n            # Check if the current pair continues the sequence\n            current_diff = nums[right] - nums[right - 1]\n            if current_diff == diff:\n                right += 1\n            else:\n                # Calculate sum for the current subarray\n                subarray_len = right - left\n                subarray_sum = sum(nums[left:right])\n                total = (total + subarray_sum) % MOD\n                # Start a new subarray with the current element\n                left = right - 1\n                if right < n:\n                    current_diff = nums[right] - nums[left]\n                    if current_diff == 1:\n                        diff = 1\n                    elif current_diff == -1:\n                        diff = -1\n                    else:\n                        diff = 0\n                right += 1\n        \n        # Add the last subarray\n        subarray_sum = sum(nums[left:right])\n        total = (total + subarray_sum) % MOD\n        \n        return total"
+  ],
+  "total_candidates": 15,
+  "nodes_explored": 15,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                i = 0\n                while i < n:\n                    j = i + 1\n                    while j < n and abs(nums[j] - nums[j-1]) == 1:\n                        j += 1\n                    length = j - i\n                    # Sum of arithmetic series: (number of terms / 2) * (first term + last term)\n                    subarray_sum = (length * (nums[i] + nums[j-1])) // 2\n                    total = (total + subarray_sum) % MOD\n                    i = j\n                return total",
+      "solution_hash": "2cd282774f2653bfd0d70b9aac53502e8d87c11b7b2d9782926aaf07af780f68",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242032/tmpvk3p5ema.py\", line 233, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/22242032/tmpvk3p5ema.py\", line 100, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242032/tmpvk3p5ema.py` failed. (See above for error)\n",
+        "execution_time": 13.896827936172485,
+        "failed_tests": [
+          {
+            "input": "nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]",
+            "expected": "72",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242032/tmpvk3p5ema.py\", line 233, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/22242032/tmpvk3p5ema.py\", line 100, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242032/tmpvk3p5ema.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n            def getSum(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                total = 0\n                n = len(nums)\n                if n == 0:\n                    return 0\n                # Initialize the first subarray\n                start = 0\n                diff = 0\n                for i in range(1, n):\n                    current_diff = nums[i] - nums[i - 1]\n                    if current_diff != diff and i - start > 1:\n                        # Calculate sum for the previous subarray\n                        length = i - start - 1\n                        subarray_sum = sum(nums[start:i-1])\n                        # Number of subarrays is length*(length+1)//2\n                        total += subarray_sum * (length + 1) - (nums[start] + nums[i-2]) * length * (length + 1) // 2\n                        total %= MOD\n                        # Adjust for the fact that differences are 1 or -1\n                        if diff == 1:\n                            total += length * (length + 1) // 2\n                        elif diff == -1:\n                            total -= length * (length + 1) // 2\n                        total %= MOD\n                        # Start a new subarray\n                        start = i - 1\n                    diff = current_diff\n                # Handle the last subarray\n                length = n - start\n                subarray_sum = sum(nums[start:])\n                total += subarray_sum * (length + 1) - (nums[start] + nums[-1]) * length * (length + 1) // 2\n                if diff == 1:\n                    total += length * (length + 1) // 2\n                elif diff == -1:\n                    total -= length * (length + 1) // 2\n                total %= MOD\n                return total",
+      "solution_hash": "19a2f73f32a891232ca797bc0c8a530ec31d967fdd5f7886ee09e077b0c73ca0",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242032/tmpqdsaj__s.py\", line 255, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/22242032/tmpqdsaj__s.py\", line 122, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242032/tmpqdsaj__s.py` failed. (See above for error)\n",
+        "execution_time": 13.995974779129028,
+        "failed_tests": [
+          {
+            "input": "nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]",
+            "expected": "72",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242032/tmpqdsaj__s.py\", line 255, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/22242032/tmpqdsaj__s.py\", line 122, in check\n    assert candidate(nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]) == 72\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242032/tmpqdsaj__s.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_2",
+        "1_6"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def getSum(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        total = 0\n        n = len(nums)\n        \n        if n == 0:\n            return 0\n        \n        # Initialize the first subarray\n        left = 0\n        right = 1\n        if n == 1:\n            return nums[0] % MOD\n        \n        # Determine the initial direction\n        if right < n:\n            diff = nums[right] - nums[left]\n        else:\n            diff = 0\n        \n        while right < n:\n            if right - left == 1 or nums[right] - nums[right - 1] == diff:\n                # Continue the subarray\n                right += 1\n            else:\n                # Calculate sum for the current subarray\n                subarray_len = right - left\n                subarray_sum = sum(nums[left:right])\n                total = (total + subarray_sum) % MOD\n                # Reset left and diff for the next subarray\n                left = right - 1\n                if right < n:\n                    diff = nums[right] - nums[left]\n                right += 1\n        \n        # Add the last subarray\n        subarray_sum = sum(nums[left:right])\n        total = (total + subarray_sum) % MOD\n        \n        return total",
+      "solution_hash": "e1ee14c2466cfb6477a5961d09a335fb6d352561f6a416c9b62774e17c671cc6",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242032/tmpfqq3ti91.py\", line 258, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/22242032/tmpfqq3ti91.py\", line 126, in check\n    assert candidate(nums = [7, 6, 1, 2]) == 32\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242032/tmpfqq3ti91.py` failed. (See above for error)\n",
+        "execution_time": 13.821220874786377,
+        "failed_tests": [
+          {
+            "input": "nums = [7, 6, 1, 2]",
+            "expected": "32",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242032/tmpfqq3ti91.py\", line 258, in <module>\n    check(Solution().getSum)\n  File \"/scratch/local/22242032/tmpfqq3ti91.py\", line 126, in check\n    assert candidate(nums = [7, 6, 1, 2]) == 32\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242032/tmpfqq3ti91.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_11"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 15,
+    "candidates_generated": 15,
+    "tests_passed": 0,
+    "tests_failed": 15,
+    "test_timeouts": 0,
+    "test_errors": 0,
+    "import_errors": 0,
+    "import_terminated_branches": 0,
+    "unique_import_failures": [],
+    "execution_times": [
+      13.896827936172485,
+      13.995974779129028,
+      13.847312927246094,
+      13.869101762771606,
+      13.869101762771606,
+      13.883663892745972,
+      13.916948318481445,
+      13.884379148483276,
+      13.871455669403076,
+      13.836625099182129,
+      13.821220874786377,
+      14.114805221557617,
+      14.122364521026611,
+      14.114805221557617,
+      14.114805221557617
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 12,
+      "unique_ratio": 0.8,
+      "similarity_score": 0.8850778172028559,
+      "solution_lengths": {
+        "min": 653,
+        "max": 1781,
+        "avg": 1266.3333333333333
+      },
+      "algorithm_approaches": {
+        "sliding_window": 3,
+        "other": 12
+      },
+      "feature_diversity": 0.8666666666666667,
+      "features_analysis": {
+        "boolean_features": {
+          "has_recursion": {
+            "true_ratio": 1.0,
+            "count": 15
+          },
+          "uses_list": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dict": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_set": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_heap": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_queue": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_stack": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dp": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_bfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_binary_search": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "nested_loops": {
+            "true_ratio": 0.13333333333333333,
+            "count": 2
+          }
+        },
+        "numeric_features": {
+          "loop_count": {
+            "min": 1,
+            "max": 2,
+            "avg": 1.1333333333333333,
+            "variance": 0.11555555555555551
+          },
+          "if_count": {
+            "min": 0,
+            "max": 7,
+            "avg": 4.866666666666666,
+            "variance": 3.715555555555556
+          },
+          "else_count": {
+            "min": 0,
+            "max": 4,
+            "avg": 1.7333333333333334,
+            "variance": 2.3288888888888892
+          },
+          "return_count": {
+            "min": 1,
+            "max": 3,
+            "avg": 2.2,
+            "variance": 0.2933333333333333
+          },
+          "assignment_count": {
+            "min": 11,
+            "max": 29,
+            "avg": 21.933333333333334,
+            "variance": 30.72888888888889
+          },
+          "class_method_count": {
+            "min": 1,
+            "max": 1,
+            "avg": 1.0,
+            "variance": 0.0
+          },
+          "line_count": {
+            "min": 16,
+            "max": 53,
+            "avg": 35.2,
+            "variance": 119.09333333333333
+          },
+          "char_count": {
+            "min": 653,
+            "max": 1781,
+            "avg": 1266.3333333333333,
+            "variance": 101516.8888888889
+          },
+          "max_indent": {
+            "min": 16,
+            "max": 28,
+            "avg": 22.666666666666668,
+            "variance": 12.088888888888887
+          }
+        }
+      },
+      "complexity_diversity": {
+        "complexity_distribution": {
+          "exponential": 15
+        },
+        "avg_complexity_metrics": {
+          "avg_line_count": 35.2,
+          "avg_loop_count": 1.1333333333333333,
+          "avg_condition_count": 7.333333333333333,
+          "avg_method_count": 1.0,
+          "avg_assignment_count": 21.933333333333334,
+          "avg_max_loop_nesting": 1.0
+        },
+        "complexity_diversity_ratio": 0.16666666666666666
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]": 9,
+        "nums = [7, 6, 1, 2]": 6
+      },
+      "first_failing_tests": {
+        "nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]": 9,
+        "nums = [7, 6, 1, 2]": 6
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 3,
+          "improvements": 0,
+          "solved": 0
+        },
+        "2": {
+          "attempts": 9,
+          "improvements": 0,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "assertion_failure": {
+          "attempts": 6,
+          "improvements": 0
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "assertion_failure->assertion_failure": 12
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.4,
+        "solutions_per_depth": {
+          "0": 3,
+          "1": 3,
+          "2": 9
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 0,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.0,
+        "pass@3": 0.0,
+        "pass@5": 0.0,
+        "pass@10": 0.0
+      },
+      "solutions_evaluated": 16
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.0,
+        "branch_success_rate": 0.0,
+        "test_success_rate": 0.0
+      },
+      "test_results": {
+        "total": 15,
+        "passed": 0,
+        "failed": 15,
+        "timeouts": 0,
+        "import_errors": 0,
+        "other_errors": 0,
+        "unique_import_failures": []
+      },
+      "error_recovery": {
+        "total_attempts": 6,
+        "total_improvements": 0,
+        "recovery_rate": 0.0
+      },
+      "top_errors": [
+        [
+          "assertion_failure",
+          6
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "nums = [1, 3, 2, 4, 3, 5, 4, 6, 5, 7]",
+          9
+        ],
+        [
+          "nums = [7, 6, 1, 2]",
+          6
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 1872.2087607383728,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.0,
+      "pass@3": 0.0,
+      "pass@5": 0.0,
+      "pass@10": 0.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: name 'pairwise' is not defined",
+            "completion_id": 15
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 16,
+    "test_cases": 1
+  }
+}

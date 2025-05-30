@@ -1,0 +1,365 @@
+{
+  "problem_id": "find-the-power-of-k-size-subarrays-ii",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "unsolved",
+  "best_solution": "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Special case when k == 1\n        if k == 1:\n            return nums\n        \n        results = []\n        \n        for i in range(n - k + 1):\n            subarray = nums[i:i+k]\n            is_consecutive = all(subarray[j+1] - subarray[j] == 1 for j in range(k-1))\n            if is_consecutive:\n                results.append(max(subarray))\n            else:\n                results.append(-1)\n        \n        return results",
+  "passed_solutions": [
+    "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Special case when k == 1\n        if k == 1:\n            return nums\n        \n        # Compute the difference array\n        diff = [nums[i+1] - nums[i] for i in range(n-1)]\n        \n        # Initialize the counter for the first window\n        count = 0\n        for i in range(k-1):\n            if diff[i] == 1:\n                count += 1\n        \n        # Initialize results array\n        results = []\n        \n        for i in range(n - k + 1):\n            # Check if all differences in the window are 1\n            if count == k - 1:\n                results.append(nums[i + k - 1])\n            else:\n                results.append(-1)\n            \n            # Move the window forward\n            if i + k - 1 < n - 1:\n                # Remove the difference going out of the window\n                if diff[i] == 1:\n                    count -= 1\n                # Add the difference entering the window\n                if diff[i + k - 1] == 1:\n                    count += 1\n        \n        return results",
+    "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Special case when k == 1\n        if k == 1:\n            return nums\n        \n        results = []\n        \n        for i in range(n - k + 1):\n            subarray = nums[i:i+k]\n            is_consecutive = all(subarray[j+1] - subarray[j] == 1 for j in range(k-1))\n            if is_consecutive:\n                results.append(max(subarray))\n            else:\n                results.append(-1)\n        \n        return results"
+  ],
+  "all_solutions": [
+    "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Special case when k == 1\n        if k == 1:\n            return nums\n        \n        # Compute the difference array\n        diff = [nums[i+1] - nums[i] for i in range(n-1)]\n        \n        # Compute prefix sum of difference array\n        prefix_sum = [0] * n\n        prefix_sum[0] = 0  # No difference for the first element\n        for i in range(1, n):\n            prefix_sum[i] = prefix_sum[i-1] + diff[i-1]\n        \n        # Use deques to keep track of min and max in the window\n        min_deque = deque()\n        max_deque = deque()\n        \n        results = []\n        \n        for i in range(n - k + 1):\n            # Sum of differences in the current window\n            if i == 0:\n                window_sum_diff = prefix_sum[k-1]\n            else:\n                window_sum_diff = prefix_sum[i+k-1] - prefix_sum[i-1]\n            \n            # Maintain min_deque\n            while min_deque and min_deque[0] < i:\n                min_deque.popleft()\n            while min_deque and nums[min_deque[-1]] >= nums[i+k-1]:\n                min_deque.pop()\n            min_deque.append(i+k-1)\n            \n            # Maintain max_deque\n            while max_deque and max_deque[0] < i:\n                max_deque.popleft()\n            while max_deque and nums[max_deque[-1]] <= nums[i+k-1]:\n                max_deque.pop()\n            max_deque.append(i+k-1)\n            \n            current_min = nums[min_deque[0]]\n            current_max = nums[max_deque[0]]\n            \n            # Check conditions\n            if window_sum_diff == k-1 and current_max - current_min == k-1:\n                results.append(current_max)\n            else:\n                results.append(-1)\n        \n        return results",
+    "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Special case when k == 1\n        if k == 1:\n            return nums\n        \n        # Compute the difference array\n        diff = [nums[i+1] - nums[i] for i in range(n-1)]\n        \n        # Initialize the counter for the first window\n        count = 0\n        for i in range(k-1):\n            if diff[i] == 1:\n                count += 1\n        \n        # Initialize results array\n        results = []\n        \n        for i in range(n - k + 1):\n            # Check if all differences in the window are 1\n            if count == k - 1:\n                results.append(nums[i + k - 1])\n            else:\n                results.append(-1)\n            \n            # Move the window forward\n            if i + k - 1 < n - 1:\n                # Remove the difference going out of the window\n                if diff[i] == 1:\n                    count -= 1\n                # Add the difference entering the window\n                if diff[i + k - 1] == 1:\n                    count += 1\n        \n        return results",
+    "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Special case when k == 1\n        if k == 1:\n            return nums\n        \n        results = []\n        \n        for i in range(n - k + 1):\n            subarray = nums[i:i+k]\n            is_consecutive = all(subarray[j+1] - subarray[j] == 1 for j in range(k-1))\n            if is_consecutive:\n                results.append(max(subarray))\n            else:\n                results.append(-1)\n        \n        return results",
+    "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Special case when k == 1\n        if k == 1:\n            return nums\n        \n        # Compute the difference array\n        diff = [nums[i+1] - nums[i] for i in range(n-1)]\n        \n        # Compute prefix sum of difference array\n        prefix_sum = [0] * n\n        prefix_sum[0] = 0  # No difference for the first element\n        for i in range(1, n):\n            prefix_sum[i] = prefix_sum[i-1] + diff[i-1]\n        \n        # Use deques to keep track of min and max in the window\n        min_deque = deque()\n        max_deque = deque()\n        \n        results = []\n        \n        for i in range(n - k + 1):\n            # Sum of differences in the current window\n            if i == 0:\n                window_sum_diff = prefix_sum[k-1]\n            else:\n                window_sum_diff = prefix_sum[i+k-1] - prefix_sum[i-1]\n            \n            # Maintain min_deque\n            while min_deque and min_deque[0] < i:\n                min_deque.popleft()\n            while min_deque and nums[min_deque[-1]] >= nums[i+k-1]:\n                min_deque.pop()\n            min_deque.append(i+k-1)\n            \n            # Maintain max_deque\n            while max_deque and max_deque[0] < i:\n                max_deque.popleft()\n            while max_deque and nums[max_deque[-1]] <= nums[i+k-1]:\n                max_deque.pop()\n            max_deque.append(i+k-1)\n            \n            current_min = nums[min_deque[0]]\n            current_max = nums[max_deque[0]]\n            \n            # Check conditions\n            if window_sum_diff == k-1 and current_max - current_min == k-1:\n                results.append(current_max)\n            else:\n                results.append(-1)\n        \n        return results"
+  ],
+  "total_candidates": 4,
+  "nodes_explored": 4,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "from typing import List\n\nclass Solution:\n    def resultsArray(self, nums: List[int], k: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Special case when k == 1\n        if k == 1:\n            return nums\n        \n        # Compute the difference array\n        diff = [nums[i+1] - nums[i] for i in range(n-1)]\n        \n        # Compute prefix sum of difference array\n        prefix_sum = [0] * n\n        prefix_sum[0] = 0  # No difference for the first element\n        for i in range(1, n):\n            prefix_sum[i] = prefix_sum[i-1] + diff[i-1]\n        \n        # Use deques to keep track of min and max in the window\n        min_deque = deque()\n        max_deque = deque()\n        \n        results = []\n        \n        for i in range(n - k + 1):\n            # Sum of differences in the current window\n            if i == 0:\n                window_sum_diff = prefix_sum[k-1]\n            else:\n                window_sum_diff = prefix_sum[i+k-1] - prefix_sum[i-1]\n            \n            # Maintain min_deque\n            while min_deque and min_deque[0] < i:\n                min_deque.popleft()\n            while min_deque and nums[min_deque[-1]] >= nums[i+k-1]:\n                min_deque.pop()\n            min_deque.append(i+k-1)\n            \n            # Maintain max_deque\n            while max_deque and max_deque[0] < i:\n                max_deque.popleft()\n            while max_deque and nums[max_deque[-1]] <= nums[i+k-1]:\n                max_deque.pop()\n            max_deque.append(i+k-1)\n            \n            current_min = nums[min_deque[0]]\n            current_max = nums[max_deque[0]]\n            \n            # Check conditions\n            if window_sum_diff == k-1 and current_max - current_min == k-1:\n                results.append(current_max)\n            else:\n                results.append(-1)\n        \n        return results",
+      "solution_hash": "bc499ca0fdfeb74b81417a5230f55cfc016aeeb745a78584610dc1ce77c51db1",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242032/tmpx2maaa3i.py\", line 286, in <module>\n    check(Solution().resultsArray)\n  File \"/scratch/local/22242032/tmpx2maaa3i.py\", line 142, in check\n    assert candidate(nums = [100, 101, 102, 103, 104, 105],k = 2) == [101, 102, 103, 104, 105]\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242032/tmpx2maaa3i.py` failed. (See above for error)\n",
+        "execution_time": 13.831668853759766,
+        "failed_tests": [
+          {
+            "input": "nums = [100, 101, 102, 103, 104, 105],k = 2",
+            "expected": "[101, 102, 103, 104, 105]",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242032/tmpx2maaa3i.py\", line 286, in <module>\n    check(Solution().resultsArray)\n  File \"/scratch/local/22242032/tmpx2maaa3i.py\", line 142, in check\n    assert candidate(nums = [100, 101, 102, 103, 104, 105],k = 2) == [101, 102, 103, 104, 105]\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242032/tmpx2maaa3i.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_2",
+        "1_3"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 4,
+    "candidates_generated": 4,
+    "tests_passed": 2,
+    "tests_failed": 2,
+    "test_timeouts": 0,
+    "test_errors": 0,
+    "import_errors": 0,
+    "import_terminated_branches": 0,
+    "unique_import_failures": [],
+    "execution_times": [
+      13.831668853759766,
+      13.879247665405273,
+      13.864420890808105,
+      13.831668853759766
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 3,
+      "unique_ratio": 0.75,
+      "similarity_score": 0.8240650684071928,
+      "solution_lengths": {
+        "min": 613,
+        "max": 1905,
+        "avg": 1405.75
+      },
+      "algorithm_approaches": {
+        "breadth_first_search": 2,
+        "sliding_window": 1,
+        "other": 1
+      },
+      "feature_diversity": 0.75,
+      "features_analysis": {
+        "boolean_features": {
+          "has_recursion": {
+            "true_ratio": 1.0,
+            "count": 4
+          },
+          "uses_list": {
+            "true_ratio": 1.0,
+            "count": 4
+          },
+          "uses_dict": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_set": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_heap": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_queue": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_stack": {
+            "true_ratio": 0.5,
+            "count": 2
+          },
+          "uses_dp": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_bfs": {
+            "true_ratio": 0.5,
+            "count": 2
+          },
+          "uses_dfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_binary_search": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "nested_loops": {
+            "true_ratio": 1.0,
+            "count": 4
+          }
+        },
+        "numeric_features": {
+          "loop_count": {
+            "min": 2,
+            "max": 7,
+            "avg": 4.75,
+            "variance": 5.1875
+          },
+          "if_count": {
+            "min": 3,
+            "max": 7,
+            "avg": 4.5,
+            "variance": 2.25
+          },
+          "else_count": {
+            "min": 1,
+            "max": 2,
+            "avg": 1.5,
+            "variance": 0.25
+          },
+          "return_count": {
+            "min": 3,
+            "max": 3,
+            "avg": 3.0,
+            "variance": 0.0
+          },
+          "assignment_count": {
+            "min": 6,
+            "max": 18,
+            "avg": 13.5,
+            "variance": 24.75
+          },
+          "class_method_count": {
+            "min": 1,
+            "max": 1,
+            "avg": 1.0,
+            "variance": 0.0
+          },
+          "line_count": {
+            "min": 23,
+            "max": 58,
+            "avg": 45.0,
+            "variance": 209.5
+          },
+          "char_count": {
+            "min": 613,
+            "max": 1905,
+            "avg": 1405.75,
+            "variance": 292321.6875
+          },
+          "max_indent": {
+            "min": 16,
+            "max": 20,
+            "avg": 17.0,
+            "variance": 3.0
+          }
+        }
+      },
+      "complexity_diversity": {
+        "complexity_distribution": {
+          "exponential": 4
+        },
+        "avg_complexity_metrics": {
+          "avg_line_count": 45.0,
+          "avg_loop_count": 4.75,
+          "avg_condition_count": 6.0,
+          "avg_method_count": 1.0,
+          "avg_assignment_count": 13.5,
+          "avg_max_loop_nesting": 1.0
+        },
+        "complexity_diversity_ratio": 0.25
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "nums = [100, 101, 102, 103, 104, 105],k = 2": 2
+      },
+      "first_failing_tests": {
+        "nums = [100, 101, 102, 103, 104, 105],k = 2": 2
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 3,
+          "improvements": 0,
+          "solved": 2
+        }
+      },
+      "error_types": {
+        "assertion_failure": {
+          "attempts": 1,
+          "improvements": 2
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "assertion_failure->unknown": 2,
+        "assertion_failure->assertion_failure": 1
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 1,
+        "avg_depth": 0.75,
+        "solutions_per_depth": {
+          "0": 1,
+          "1": 3
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 2
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.6,
+        "pass@3": 1.0,
+        "pass@5": 1.0
+      },
+      "solutions_evaluated": 5,
+      "passing_solution_depths": {
+        "min": 1,
+        "max": 1,
+        "avg": 1.0
+      }
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.5,
+        "branch_success_rate": 0.5,
+        "test_success_rate": 0.5
+      },
+      "test_results": {
+        "total": 4,
+        "passed": 2,
+        "failed": 2,
+        "timeouts": 0,
+        "import_errors": 0,
+        "other_errors": 0,
+        "unique_import_failures": []
+      },
+      "error_recovery": {
+        "total_attempts": 1,
+        "total_improvements": 2,
+        "recovery_rate": 2.0
+      },
+      "top_errors": [
+        [
+          "assertion_failure",
+          1
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "nums = [100, 101, 102, 103, 104, 105],k = 2",
+          2
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 560.2427351474762,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.6,
+      "pass@3": 1.0,
+      "pass@5": 1.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 4
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 5,
+    "test_cases": 1
+  }
+}

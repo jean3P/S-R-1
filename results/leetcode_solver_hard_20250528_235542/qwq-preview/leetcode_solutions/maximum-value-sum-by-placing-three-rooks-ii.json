@@ -1,0 +1,462 @@
+{
+  "problem_id": "maximum-value-sum-by-placing-three-rooks-ii",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Prefix max for rows\n        row_prefix_max = [[0] * n for _ in range(m)]\n        for i in range(m):\n            current_max = float('-inf')\n            for j in range(n):\n                current_max = max(current_max, board[i][j])\n                row_prefix_max[i][j] = current_max\n        \n        # Prefix max for columns\n        col_prefix_max = [[0] * n for _ in range(m)]\n        for j in range(n):\n            current_max = float('-inf')\n            for i in range(m):\n                current_max = max(current_max, board[i][j])\n                col_prefix_max[i][j] = current_max\n        \n        max_sum = float('-inf')\n        \n        # Iterate over each cell as the potential position for the second rook\n        for y in range(m):\n            for x in range(n):\n                # Find the max value for the first rook in rows above y\n                max_above = float('-inf')\n                for i in range(y):\n                    max_above = max(max_above, col_prefix_max[i][x])\n                \n                # Find the max value for the third rook in rows below y\n                max_below = float('-inf')\n                for i in range(y + 1, m):\n                    max_below = max(max_below, col_prefix_max[i][x])\n                \n                # Find the max value for the first rook in columns left of x\n                max_left = float('-inf')\n                for j in range(x):\n                    max_left = max(max_left, row_prefix_max[y][j])\n                \n                # Find the max value for the third rook in columns right of x\n                max_right = float('-inf')\n                for j in range(x + 1, n):\n                    max_right = max(max_right, row_prefix_max[y][j])\n                \n                # Combine the maximum sums\n                if max_above != float('-inf') and max_right != float('-inf'):\n                    max_sum = max(max_sum, max_above + board[y][x] + max_right)\n                if max_above != float('-inf') and max_left != float('-inf'):\n                    max_sum = max(max_sum, max_above + board[y][x] + max_left)\n                if max_below != float('-inf') and max_right != float('-inf'):\n                    max_sum = max(max_sum, max_below + board[y][x] + max_right)\n                if max_below != float('-inf') and max_left != float('-inf'):\n                    max_sum = max(max_sum, max_below + board[y][x] + max_left)\n        \n        return max_sum",
+    "from typing import List\n\n        class Solution:\n            def maximumValueSum(self, board: List[List[int]]) -> int:\n                m, n = len(board), len(board[0])\n                \n                # Compute prefix max for rows\n                row_prefix_max = [[0] * n for _ in range(m)]\n                for i in range(m):\n                    current_max = float('-inf')\n                    for j in range(n):\n                        current_max = max(current_max, board[i][j])\n                        row_prefix_max[i][j] = current_max\n                \n                # Compute suffix max for rows\n                row_suffix_max = [[0] * n for _ in range(m)]\n                for i in range(m):\n                    current_max = float('-inf')\n                    for j in range(n-1, -1, -1):\n                        current_max = max(current_max, board[i][j])\n                        row_suffix_max[i][j] = current_max\n                \n                # Compute prefix max for columns\n                col_prefix_max = [[0] * n for _ in range(m)]\n                for j in range(n):\n                    current_max = float('-inf')\n                    for i in range(m):\n                        current_max = max(current_max, board[i][j])\n                        col_prefix_max[i][j] = current_max\n                \n                # Compute suffix max for columns\n                col_suffix_max = [[0] * n for _ in range(m)]\n                for j in range(n):\n                    current_max = float('-inf')\n                    for i in range(m-1, -1, -1):\n                        current_max = max(current_max, board[i][j])\n                        col_suffix_max[i][j] = current_max\n                \n                max_sum = float('-inf')\n                \n                # Iterate over each cell as the potential position for the second rook\n                for y in range(m):\n                    for x in range(n):\n                        # Find the max value for the first rook in rows above y\n                        max_above = col_prefix_max[y-1][x] if y > 0 else float('-inf')\n                        \n                        # Find the max value for the third rook in rows below y\n                        max_below = col_suffix_max[y+1][x] if y < m-1 else float('-inf')\n                        \n                        # Find the max value for the first rook in columns left of x\n                        max_left = row_prefix_max[y][x-1] if x > 0 else float('-inf')\n                        \n                        # Find the max value for the third rook in columns right of x\n                        max_right = row_suffix_max[y][x+1] if x < n-1 else float('-inf')\n                        \n                        # Combine the maximum sums\n                        if max_above != float('-inf') and max_right != float('-inf'):\n                            max_sum = max(max_sum, max_above + board[y][x] + max_right)\n                        if max_above != float('-inf') and max_left != float('-inf'):\n                            max_sum = max(max_sum, max_above + board[y][x] + max_left)\n                        if max_below != float('-inf') and max_right != float('-inf'):\n                            max_sum = max(max_sum, max_below + board[y][x] + max_right)\n                        if max_below != float('-inf') and max_left != float('-inf'):\n                            max_sum = max(max_sum, max_below + board[y][x] + max_left)\n                \n                return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        max_sum = float('-inf')\n        \n        # Iterate through all possible combinations of rows and columns for three rooks\n        for r1 in range(m):\n            for c1 in range(n):\n                for r2 in range(m):\n                    if r2 == r1:\n                        continue\n                    for c2 in range(n):\n                        if c2 == c1:\n                            continue\n                        for r3 in range(m):\n                            if r3 == r1 or r3 == r2:\n                                continue\n                            for c3 in range(n):\n                                if c3 == c1 or c3 == c2:\n                                    continue\n                                current_sum = board[r1][c1] + board[r2][c2] + board[r3][c3]\n                                if current_sum > max_sum:\n                                    max_sum = current_sum\n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Compute prefix max for rows\n        row_prefix_max = [[0] * n for _ in range(m)]\n        for i in range(m):\n            current_max = float('-inf')\n            for j in range(n):\n                current_max = max(current_max, board[i][j])\n                row_prefix_max[i][j] = current_max\n        \n        # Compute suffix max for rows\n        row_suffix_max = [[0] * n for _ in range(m)]\n        for i in range(m):\n            current_max = float('-inf')\n            for j in range(n-1, -1, -1):\n                current_max = max(current_max, board[i][j])\n                row_suffix_max[i][j] = current_max\n        \n        # Compute prefix max for columns\n        col_prefix_max = [[0] * n for _ in range(m)]\n        for j in range(n):\n            current_max = float('-inf')\n            for i in range(m):\n                current_max = max(current_max, board[i][j])\n                col_prefix_max[i][j] = current_max\n        \n        # Compute suffix max for columns\n        col_suffix_max = [[0] * n for _ in range(m)]\n        for j in range(n):\n            current_max = float('-inf')\n            for i in range(m-1, -1, -1):\n                current_max = max(current_max, board[i][j])\n                col_suffix_max[i][j] = current_max\n        \n        max_sum = float('-inf')\n        \n        # Iterate over each cell as the potential position for the second rook\n        for y in range(m):\n            for x in range(n):\n                # Find the max value for the first rook in rows above y\n                max_above = col_prefix_max[y-1][x] if y > 0 else float('-inf')\n                \n                # Find the max value for the third rook in rows below y\n                max_below = col_suffix_max[y+1][x] if y < m-1 else float('-inf')\n                \n                # Find the max value for the first rook in columns left of x\n                max_left = row_prefix_max[y][x-1] if x > 0 else float('-inf')\n                \n                # Find the max value for the third rook in columns right of x\n                max_right = row_suffix_max[y][x+1] if x < n-1 else float('-inf')\n                \n                # Combine the maximum sums\n                if max_above != float('-inf') and max_right != float('-inf'):\n                    max_sum = max(max_sum, max_above + board[y][x] + max_right)\n                if max_above != float('-inf') and max_left != float('-inf'):\n                    max_sum = max(max_sum, max_above + board[y][x] + max_left)\n                if max_below != float('-inf') and max_right != float('-inf'):\n                    max_sum = max(max_sum, max_below + board[y][x] + max_right)\n                if max_below != float('-inf') and max_left != float('-inf'):\n                    max_sum = max(max_sum, max_below + board[y][x] + max_left)\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Step 1: Select the top 3 rows with the highest sums\n        row_sums = [sum(row) for row in board]\n        top_rows = sorted(range(m), key=lambda i: row_sums[i], reverse=True)[:3]\n        \n        # Step 2: For each combination of 3 rows, select 3 columns with highest values\n        max_sum = float('-inf')\n        for row_indices in combinations(range(m), 3):\n            # Get the values for these rows\n            values = []\n            for r in row_indices:\n                row = board[r]\n                values.append(row)\n            \n            # Find the top 3 columns for these rows\n            col_indices = list(range(n))\n            best_permutation_sum = float('-inf')\n            for perm in permutations(col_indices, 3):\n                # Ensure all columns are unique\n                if len(set(perm)) == 3:\n                    current_sum = sum(values[i][perm[i]] for i in range(3))\n                    if current_sum > best_permutation_sum:\n                        best_permutation_sum = current_sum\n            if best_permutation_sum > max_sum:\n                max_sum = best_permutation_sum\n        \n        return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Collect all cells with their coordinates and values\n        cells = []\n        for i in range(m):\n            for j in range(n):\n                cells.append((board[i][j], i, j))\n        \n        # Sort cells in descending order of value\n        cells.sort(reverse=True)\n        \n        selected = []\n        rows_used = set()\n        cols_used = set()\n        \n        for value, row, col in cells:\n            if row not in rows_used and col not in cols_used:\n                selected.append(value)\n                rows_used.add(row)\n                cols_used.add(col)\n                if len(selected) == 3:\n                    break\n        \n        return sum(selected)",
+    "from typing import List\n\n        class Solution:\n            def maximumValueSum(self, board: List[List[int]]) -> int:\n                m, n = len(board), len(board[0])\n                \n                # Precompute row and column maximums\n                row_max = [[0] * n for _ in range(m)]\n                col_max = [[0] * n for _ in range(m)]\n                \n                for i in range(m):\n                    row_max[i][0] = board[i][0]\n                    for j in range(1, n):\n                        row_max[i][j] = max(row_max[i][j-1], board[i][j])\n                \n                for j in range(n):\n                    col_max[0][j] = board[0][j]\n                    for i in range(1, m):\n                        col_max[i][j] = max(col_max[i-1][j], board[i][j])\n                \n                max_sum = float('-inf')\n                \n                for i in range(m):\n                    for j in range(n):\n                        for k in range(i+1, m):\n                            for l in range(n):\n                                if l == j:\n                                    continue\n                                for p in range(k+1, m):\n                                    for q in range(n):\n                                        if q == j or q == l:\n                                            continue\n                                        current_sum = board[i][j] + board[k][l] + board[p][q]\n                                        if current_sum > max_sum:\n                                            max_sum = current_sum\n                return max_sum",
+    "from typing import List\n\nclass Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Collect all cells with their coordinates and values\n        cells = []\n        for i in range(m):\n            for j in range(n):\n                cells.append((board[i][j], i, j))\n        \n        # Sort cells in descending order of value\n        cells.sort(reverse=True)\n        \n        selected = []\n        rows_used = set()\n        cols_used = set()\n        \n        for value, row, col in cells:\n            if row not in rows_used and col not in cols_used:\n                selected.append(value)\n                rows_used.add(row)\n                cols_used.add(col)\n                if len(selected) == 3:\n                    break\n        \n        return sum(selected)",
+    "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Collect all cells with their coordinates and values\n        cells = []\n        for i in range(m):\n            for j in range(n):\n                cells.append((board[i][j], i, j))\n        \n        # Sort cells in descending order of value\n        cells.sort(reverse=True)\n        \n        selected = []\n        rows_used = set()\n        cols_used = set()\n        \n        for value, row, col in cells:\n            if row not in rows_used and col not in cols_used:\n                selected.append(value)\n                rows_used.add(row)\n                cols_used.add(col)\n                if len(selected) == 3:\n                    break\n        \n        return sum(selected)",
+    "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        import sys\n        m, n = len(board), len(board[0])\n        \n        # Compute prefix max for rows\n        row_prefix_max = [[0] * n for _ in range(m)]\n        for i in range(m):\n            current_max = float('-inf')\n            for j in range(n):\n                current_max = max(current_max, board[i][j])\n                row_prefix_max[i][j] = current_max\n        \n        # Compute suffix max for rows\n        row_suffix_max = [[0] * n for _ in range(m)]\n        for i in range(m):\n            current_max = float('-inf')\n            for j in range(n-1, -1, -1):\n                current_max = max(current_max, board[i][j])\n                row_suffix_max[i][j] = current_max\n        \n        # Compute prefix max for columns\n        col_prefix_max = [[0] * n for _ in range(m)]\n        for j in range(n):\n            current_max = float('-inf')\n            for i in range(m):\n                current_max = max(current_max, board[i][j])\n                col_prefix_max[i][j] = current_max\n        \n        # Compute suffix max for columns\n        col_suffix_max = [[0] * n for _ in range(m)]\n        for j in range(n):\n            current_max = float('-inf')\n            for i in range(m-1, -1, -1):\n                current_max = max(current_max, board[i][j])\n                col_suffix_max[i][j] = current_max\n        \n        max_sum = float('-inf')\n        \n        # Iterate over each cell as the potential position for the second rook\n        for y in range(m):\n            for x in range(n):\n                # Find the max value for the first rook in rows above y\n                max_above = float('-inf')\n                if y > 0:\n                    max_above = col_prefix_max[y-1][x]\n                \n                # Find the max value for the third rook in rows below y\n                max_below = float('-inf')\n                if y < m-1:\n                    max_below = col_suffix_max[y+1][x]\n                \n                # Find the max value for the first rook in columns left of x\n                max_left = float('-inf')\n                if x > 0:\n                    max_left = row_prefix_max[y][x-1]\n                \n                # Find the max value for the third rook in columns right of x\n                max_right = float('-inf')\n                if x < n-1:\n                    max_right = row_suffix_max[y][x+1]\n                \n                # Combine the maximum sums\n                if max_above != float('-inf') and max_right != float('-inf'):\n                    max_sum = max(max_sum, max_above + board[y][x] + max_right)\n                if max_above != float('-inf') and max_left != float('-inf'):\n                    max_sum = max(max_sum, max_above + board[y][x] + max_left)\n                if max_below != float('-inf') and max_right != float('-inf'):\n                    max_sum = max(max_sum, max_below + board[y][x] + max_right)\n                if max_below != float('-inf') and max_left != float('-inf'):\n                    max_sum = max(max_sum, max_below + board[y][x] + max_left)\n        \n        return max_sum",
+    "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        import sys\n        m, n = len(board), len(board[0])\n        \n        # Precompute top 3 values and their indices for each row\n        row_top3 = []\n        for i in range(m):\n            sorted_indices = sorted(range(n), key=lambda j: board[i][j], reverse=True)\n            row_top3.append([(board[i][j], j) for j in sorted_indices[:3]])\n        \n        # Precompute top 3 values and their indices for each column\n        col_top3 = []\n        for j in range(n):\n            sorted_indices = sorted(range(m), key=lambda i: board[i][j], reverse=True)\n            col_top3.append([(board[i][j], i) for i in sorted_indices[:3]])\n        \n        max_sum = float('-inf')\n        \n        # Iterate through each cell as the potential position for the first rook\n        for y in range(m):\n            for x in range(n):\n                current_sum = board[y][x]\n                \n                # Find the top 2 values in different rows and columns\n                remaining_rows = [i for i in range(m) if i != y]\n                remaining_cols = [j for j in range(n) if j != x]\n                \n                best_second = float('-inf')\n                best_third = float('-inf')\n                \n                # Find the best position for the second rook\n                for r in remaining_rows:\n                    for val, j in row_top3[r]:\n                        if j != x:\n                            best_second = max(best_second, val)\n                            break  # Since row_top3 is sorted, no need to check further\n                \n                # Find the best position for the third rook\n                for c in remaining_cols:\n                    for val, i in col_top3[c]:\n                        if i != y and i not in [r for r in remaining_rows if r != y]:\n                            best_third = max(best_third, val)\n                            break  # Since col_top3 is sorted, no need to check further\n                \n                if best_second != float('-inf') and best_third != float('-inf'):\n                    current_sum += best_second + best_third\n                    max_sum = max(max_sum, current_sum)\n        \n        return max_sum",
+    "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        import sys\n        m, n = len(board), len(board[0])\n        \n        # Compute prefix max for rows\n        row_prefix_max = [[0] * n for _ in range(m)]\n        for i in range(m):\n            current_max = float('-inf')\n            for j in range(n):\n                current_max = max(current_max, board[i][j])\n                row_prefix_max[i][j] = current_max\n        \n        # Compute suffix max for rows\n        row_suffix_max = [[0] * n for _ in range(m)]\n        for i in range(m):\n            current_max = float('-inf')\n            for j in range(n-1, -1, -1):\n                current_max = max(current_max, board[i][j])\n                row_suffix_max[i][j] = current_max\n        \n        # Compute prefix max for columns\n        col_prefix_max = [[0] * n for _ in range(m)]\n        for j in range(n):\n            current_max = float('-inf')\n            for i in range(m):\n                current_max = max(current_max, board[i][j])\n                col_prefix_max[i][j] = current_max\n        \n        # Compute suffix max for columns\n        col_suffix_max = [[0] * n for _ in range(m)]\n        for j in range(n):\n            current_max = float('-inf')\n            for i in range(m-1, -1, -1):\n                current_max = max(current_max, board[i][j])\n                col_suffix_max[i][j] = current_max\n        \n        max_sum = float('-inf')\n        \n        # Iterate over each cell as the potential position for the second rook\n        for y in range(m):\n            for x in range(n):\n                # Find the max value for the first rook in rows above y\n                max_above = float('-inf')\n                if y > 0:\n                    max_above = col_prefix_max[y-1][x]\n                \n                # Find the max value for the third rook in rows below y\n                max_below = float('-inf')\n                if y < m-1:\n                    max_below = col_suffix_max[y+1][x]\n                \n                # Find the max value for the first rook in columns left of x\n                max_left = float('-inf')\n                if x > 0:\n                    max_left = row_prefix_max[y][x-1]\n                \n                # Find the max value for the third rook in columns right of x\n                max_right = float('-inf')\n                if x < n-1:\n                    max_right = row_suffix_max[y][x+1]\n                \n                # Combine the maximum sums\n                if max_above != float('-inf') and max_right != float('-inf'):\n                    max_sum = max(max_sum, max_above + board[y][x] + max_right)\n                if max_above != float('-inf') and max_left != float('-inf'):\n                    max_sum = max(max_sum, max_above + board[y][x] + max_left)\n                if max_below != float('-inf') and max_right != float('-inf'):\n                    max_sum = max(max_sum, max_below + board[y][x] + max_right)\n                if max_below != float('-inf') and max_left != float('-inf'):\n                    max_sum = max(max_sum, max_below + board[y][x] + max_left)\n        \n        return max_sum",
+    "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        import sys\n        m, n = len(board), len(board[0])\n        \n        # Precompute top two max values for each row\n        row_max1 = []\n        row_max2 = []\n        for row in board:\n            sorted_row = sorted(enumerate(row), key=lambda x: x[1], reverse=True)\n            if len(sorted_row) >= 2:\n                row_max1.append((sorted_row[0][0], sorted_row[0][1]))\n                row_max2.append((sorted_row[1][0], sorted_row[1][1]))\n            else:\n                row_max1.append((sorted_row[0][0], sorted_row[0][1]))\n                row_max2.append((None, float('-inf')))\n        \n        # Precompute max values for each column\n        col_max = []\n        for j in range(n):\n            max_val = float('-inf')\n            max_idx = -1\n            for i in range(m):\n                if board[i][j] > max_val:\n                    max_val = board[i][j]\n                    max_idx = i\n            col_max.append((max_idx, max_val))\n        \n        max_sum = float('-inf')\n        \n        # Iterate over all combinations of three rows\n        for i1 in range(m):\n            for i2 in range(i1+1, m):\n                for i3 in range(i2+1, m):\n                    # Collect column indices of top two in each row\n                    cols = set()\n                    vals = []\n                    # Add top two from each row\n                    for row_idx in [i1, i2, i3]:\n                        cols.add(row_max1[row_idx][0])\n                        vals.append(row_max1[row_idx][1])\n                        if row_max2[row_idx][0] is not None:\n                            cols.add(row_max2[row_idx][0])\n                            vals.append(row_max2[row_idx][1])\n                    \n                    # If we have at least three distinct columns\n                    if len(cols) >= 3:\n                        # Get the top three values from the available values\n                        sorted_vals = sorted(vals, reverse=True)\n                        current_sum = sum(sorted_vals[:3])\n                        if current_sum > max_sum:\n                            max_sum = current_sum\n        \n        return max_sum"
+  ],
+  "total_candidates": 13,
+  "nodes_explored": 13,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def maximumValueSum(self, board: List[List[int]]) -> int:\n        m, n = len(board), len(board[0])\n        \n        # Prefix max for rows\n        row_prefix_max = [[0] * n for _ in range(m)]\n        for i in range(m):\n            current_max = float('-inf')\n            for j in range(n):\n                current_max = max(current_max, board[i][j])\n                row_prefix_max[i][j] = current_max\n        \n        # Prefix max for columns\n        col_prefix_max = [[0] * n for _ in range(m)]\n        for j in range(n):\n            current_max = float('-inf')\n            for i in range(m):\n                current_max = max(current_max, board[i][j])\n                col_prefix_max[i][j] = current_max\n        \n        max_sum = float('-inf')\n        \n        # Iterate over each cell as the potential position for the second rook\n        for y in range(m):\n            for x in range(n):\n                # Find the max value for the first rook in rows above y\n                max_above = float('-inf')\n                for i in range(y):\n                    max_above = max(max_above, col_prefix_max[i][x])\n                \n                # Find the max value for the third rook in rows below y\n                max_below = float('-inf')\n                for i in range(y + 1, m):\n                    max_below = max(max_below, col_prefix_max[i][x])\n                \n                # Find the max value for the first rook in columns left of x\n                max_left = float('-inf')\n                for j in range(x):\n                    max_left = max(max_left, row_prefix_max[y][j])\n                \n                # Find the max value for the third rook in columns right of x\n                max_right = float('-inf')\n                for j in range(x + 1, n):\n                    max_right = max(max_right, row_prefix_max[y][j])\n                \n                # Combine the maximum sums\n                if max_above != float('-inf') and max_right != float('-inf'):\n                    max_sum = max(max_sum, max_above + board[y][x] + max_right)\n                if max_above != float('-inf') and max_left != float('-inf'):\n                    max_sum = max(max_sum, max_above + board[y][x] + max_left)\n                if max_below != float('-inf') and max_right != float('-inf'):\n                    max_sum = max(max_sum, max_below + board[y][x] + max_right)\n                if max_below != float('-inf') and max_left != float('-inf'):\n                    max_sum = max(max_sum, max_below + board[y][x] + max_left)\n        \n        return max_sum",
+      "solution_hash": "ac2a3da953c6c34353cca03428334303c154b16224e516a1174c3e07a4a284bb",
+      "test_result": {
+        "status": "import_error",
+        "error_message": "Missing required module: sortedcontainers",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmp7e7dto5s.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmp7e7dto5s.py` failed. (See above for error)\n",
+        "execution_time": 13.334843397140503,
+        "import_failures": [
+          "sortedcontainers"
+        ]
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5",
+        "1_9"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 13,
+    "candidates_generated": 13,
+    "tests_passed": 0,
+    "tests_failed": 3,
+    "test_timeouts": 0,
+    "test_errors": 0,
+    "import_errors": 10,
+    "import_terminated_branches": 0,
+    "unique_import_failures": [
+      "sortedcontainers"
+    ],
+    "execution_times": [
+      13.334843397140503,
+      13.333346366882324,
+      13.182901620864868,
+      13.333346366882324,
+      13.181679964065552,
+      13.161436557769775,
+      13.141472578048706,
+      13.161436557769775,
+      13.160203456878662,
+      14.254528284072876,
+      14.232610702514648,
+      14.254528284072876,
+      14.283119916915894
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 10,
+      "unique_ratio": 0.7692307692307693,
+      "similarity_score": 0.8253031219947712,
+      "solution_lengths": {
+        "min": 812,
+        "max": 3493,
+        "avg": 2022.923076923077
+      },
+      "algorithm_approaches": {
+        "backtracking": 3,
+        "hash_table": 3,
+        "other": 7
+      },
+      "feature_diversity": 0.8461538461538461,
+      "features_analysis": {
+        "boolean_features": {
+          "has_recursion": {
+            "true_ratio": 1.0,
+            "count": 13
+          },
+          "uses_list": {
+            "true_ratio": 0.46153846153846156,
+            "count": 6
+          },
+          "uses_dict": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_set": {
+            "true_ratio": 0.38461538461538464,
+            "count": 5
+          },
+          "uses_heap": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_queue": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_stack": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dp": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_bfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_binary_search": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "nested_loops": {
+            "true_ratio": 1.0,
+            "count": 13
+          }
+        },
+        "numeric_features": {
+          "loop_count": {
+            "min": 3,
+            "max": 14,
+            "avg": 9.23076923076923,
+            "variance": 20.792899408284025
+          },
+          "if_count": {
+            "min": 2,
+            "max": 8,
+            "avg": 4.923076923076923,
+            "variance": 5.609467455621301
+          },
+          "else_count": {
+            "min": 0,
+            "max": 4,
+            "avg": 0.6923076923076923,
+            "variance": 2.0591715976331355
+          },
+          "return_count": {
+            "min": 1,
+            "max": 1,
+            "avg": 1.0,
+            "variance": 0.0
+          },
+          "assignment_count": {
+            "min": 7,
+            "max": 38,
+            "avg": 21.384615384615383,
+            "variance": 141.77514792899407
+          },
+          "class_method_count": {
+            "min": 1,
+            "max": 1,
+            "avg": 1.0,
+            "variance": 0.0
+          },
+          "line_count": {
+            "min": 26,
+            "max": 73,
+            "avg": 47.30769230769231,
+            "variance": 316.98224852071
+          },
+          "char_count": {
+            "min": 812,
+            "max": 3493,
+            "avg": 2022.923076923077,
+            "variance": 915070.3786982247
+          },
+          "max_indent": {
+            "min": 20,
+            "max": 44,
+            "avg": 25.23076923076923,
+            "variance": 52.639053254437876
+          }
+        }
+      },
+      "complexity_diversity": {
+        "complexity_distribution": {
+          "exponential": 13
+        },
+        "avg_complexity_metrics": {
+          "avg_line_count": 47.30769230769231,
+          "avg_loop_count": 9.23076923076923,
+          "avg_condition_count": 5.615384615384615,
+          "avg_method_count": 1.0,
+          "avg_assignment_count": 21.384615384615383,
+          "avg_max_loop_nesting": 1.0
+        },
+        "complexity_diversity_ratio": 0.16666666666666666
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {},
+      "first_failing_tests": {}
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 3,
+          "improvements": 0,
+          "solved": 0
+        },
+        "2": {
+          "attempts": 9,
+          "improvements": 0,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "other_error": {
+          "attempts": 4,
+          "improvements": 0
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "other_error->other_error": 12
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.6153846153846154,
+        "solutions_per_depth": {
+          "0": 1,
+          "1": 3,
+          "2": 9
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 0,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.0,
+        "pass@3": 0.0,
+        "pass@5": 0.0,
+        "pass@10": 0.0
+      },
+      "solutions_evaluated": 14
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.0,
+        "branch_success_rate": 0.0,
+        "test_success_rate": 0.0
+      },
+      "test_results": {
+        "total": 13,
+        "passed": 0,
+        "failed": 3,
+        "timeouts": 0,
+        "import_errors": 10,
+        "other_errors": 0,
+        "unique_import_failures": [
+          "sortedcontainers"
+        ]
+      },
+      "error_recovery": {
+        "total_attempts": 4,
+        "total_improvements": 0,
+        "recovery_rate": 0.0
+      },
+      "top_errors": [
+        [
+          "other_error",
+          4
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      },
+      "import_analysis": {
+        "total_import_errors": 10,
+        "branches_terminated_by_imports": 0,
+        "unique_missing_modules": 1,
+        "missing_modules": [
+          "sortedcontainers"
+        ]
+      }
+    }
+  },
+  "processing_time": 1148.1671369075775,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.0,
+      "pass@3": 0.0,
+      "pass@5": 0.0,
+      "pass@10": 0.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 100)",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 100)",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 13
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 14,
+    "test_cases": 1
+  }
+}

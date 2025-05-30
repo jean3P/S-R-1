@@ -1,0 +1,718 @@
+{
+  "problem_id": "minimum-number-of-seconds-to-make-mountain-height-zero",
+  "problem_title": "",
+  "difficulty": "Medium",
+  "status": "unsolved",
+  "best_solution": "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_complete_in_time(max_time):\n            total_height_reduced = 0\n            for time in workerTimes:\n                # Calculate the maximum x such that time * (1 + 2 + ... + x) <= max_time\n                # This is equivalent to finding the largest x such that time * x * (x + 1) / 2 <= max_time\n                # Rearranging gives x^2 + x - 2 * max_time / time <= 0\n                # Solving the quadratic equation x = (-1 + sqrt(1 + 8 * max_time / time)) / 2\n                if time == 0:\n                    continue\n                max_x = int((-1 + sqrt(1 + 8 * max_time // time)) / 2)\n                total_height_reduced += max_x\n                if total_height_reduced >= mountainHeight:\n                    return True\n            return False\n        \n        workerTimes.sort(reverse=True)\n        left, right = 1, mountainHeight * max(workerTimes) * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_complete_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+  "passed_solutions": [
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def max_height_for_time(time, worker_time):\n            # Calculate the maximum height a worker can reduce within the given time\n            # Using the formula for the sum of an arithmetic series: S = n/2 * (a + l)\n            # Here, a = worker_time, l = worker_time * n, S = time\n            # We solve for n: n * (worker_time + worker_time * n) / 2 <= time\n            # => n^2 + n - (2 * time / worker_time) <= 0\n            # Solve the quadratic equation: n = (-b + sqrt(b^2 - 4ac)) / 2a\n            a = worker_time\n            b = worker_time\n            c = -2 * time\n            discriminant = b**2 - 4 * a * c\n            if discriminant < 0:\n                return 0\n            n = (-b + math.sqrt(discriminant)) / (2 * a)\n            return int(n)\n        \n        def can_complete_in_time(max_time):\n            total_height = mountainHeight\n            for time in workerTimes:\n                total_height -= max_height_for_time(max_time, time)\n                if total_height <= 0:\n                    return True\n            return total_height <= 0\n        \n        workerTimes.sort(reverse=True)\n        left, right = 1, mountainHeight * max(workerTimes) * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_complete_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_complete_in_time(max_time):\n            total_work = mountainHeight\n            for time in workerTimes:\n                # Calculate the maximum x such that the total time does not exceed max_time\n                x = int((sqrt(1 + 8 * max_time // time) - 1) / 2)\n                total_work -= x\n                if total_work <= 0:\n                    return True\n            return total_work <= 0\n        \n        workerTimes.sort(reverse=True)\n        left, right = 1, mountainHeight * max(workerTimes) * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_complete_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_complete_in_time(max_time):\n            total_height_reduced = 0\n            for time in workerTimes:\n                # Calculate the maximum x such that time * (1 + 2 + ... + x) <= max_time\n                # This is equivalent to finding the largest x such that time * x * (x + 1) / 2 <= max_time\n                # Rearranging gives x^2 + x - 2 * max_time / time <= 0\n                # Solving the quadratic equation x = (-1 + sqrt(1 + 8 * max_time / time)) / 2\n                if time == 0:\n                    continue\n                max_x = int((-1 + sqrt(1 + 8 * max_time // time)) / 2)\n                total_height_reduced += max_x\n                if total_height_reduced >= mountainHeight:\n                    return True\n            return False\n        \n        workerTimes.sort(reverse=True)\n        left, right = 1, mountainHeight * max(workerTimes) * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_complete_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height = mountainHeight\n            for time in workerTimes:\n                # Calculate the maximum height reduction possible for this worker within max_time\n                k = max_time // time\n                # Sum of arithmetic series: time * (1 + k) * k // 2\n                height_reduction = time * k * (k + 1) // 2\n                total_height -= height_reduction\n                if total_height <= 0:\n                    return True\n            return False\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height = mountainHeight\n            for time in workerTimes:\n                # Determine the maximum height reduction possible for this worker within max_time\n                k = 0\n                current_time = 0\n                while current_time + time * (k + 1) <= max_time:\n                    k += 1\n                    current_time += time * k\n                # Sum of arithmetic series: time * (1 + k) * k // 2\n                height_reduction = time * k * (k + 1) // 2\n                total_height -= height_reduction\n                if total_height <= 0:\n                    break\n            return total_height <= 0\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height = mountainHeight\n            for time in workerTimes:\n                # Determine the maximum height reduction possible for this worker within max_time\n                # Solve for k in the equation: time * k * (k + 1) / 2 <= max_time\n                # Rearrange to: k^2 + k - 2 * max_time / time <= 0\n                # Use quadratic formula to solve for k: k = (-1 + sqrt(1 + 8 * max_time / time)) / 2\n                if time == 0:\n                    continue\n                k = int((-1 + sqrt(1 + 8 * max_time / time)) / 2)\n                # Sum of arithmetic series: time * (1 + k) * k // 2\n                height_reduction = time * k * (k + 1) // 2\n                total_height -= height_reduction\n                if total_height <= 0:\n                    break\n            return total_height <= 0\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height = mountainHeight\n            for time in workerTimes:\n                # Determine the maximum height reduction possible for this worker within max_time\n                k = 0\n                current_time = 0\n                while current_time + time * (k + 1) <= max_time:\n                    k += 1\n                    current_time += time * k\n                # Sum of arithmetic series: time * (1 + k) * k // 2\n                height_reduction = time * k * (k + 1) // 2\n                total_height -= height_reduction\n                if total_height <= 0:\n                    break\n            return total_height <= 0\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height = mountainHeight\n            workerTimes.sort(reverse=True)\n            for time in workerTimes:\n                # Determine the maximum height reduction possible for this worker within max_time\n                k = 0\n                current_time = 0\n                while current_time + time * (k + 1) <= max_time:\n                    k += 1\n                    current_time += time * k\n                # Sum of arithmetic series: time * (1 + k) * k // 2\n                height_reduction = time * k * (k + 1) // 2\n                total_height -= height_reduction\n                if total_height <= 0:\n                    return True\n            return total_height <= 0\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height = mountainHeight\n            for time in workerTimes:\n                # Calculate the maximum height reduction possible for this worker within max_time\n                k = 0\n                current_time = 0\n                while current_time + time * (k + 1) <= max_time:\n                    k += 1\n                    current_time += time * k\n                # Sum of arithmetic series: time * (1 + k) * k // 2\n                height_reduction = time * k * (k + 1) // 2\n                total_height -= height_reduction\n                if total_height <= 0:\n                    break\n            return total_height <= 0\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height = mountainHeight\n            for time in workerTimes:\n                # Calculate the maximum height reduction possible for this worker within max_time\n                k = 0\n                current_time = 0\n                while current_time + time * (k + 1) <= max_time:\n                    k += 1\n                    current_time += time * k\n                # Sum of arithmetic series: time * (1 + k) * k // 2\n                height_reduction = time * k * (k + 1) // 2\n                total_height -= height_reduction\n                if total_height <= 0:\n                    break\n            return total_height <= 0\n        \n        # Sort worker times in ascending order\n        workerTimes.sort()\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height = mountainHeight\n            for time in workerTimes:\n                # Calculate the maximum height reduction possible for this worker within max_time\n                k = 0\n                current_time = 0\n                while current_time + time * (k + 1) <= max_time:\n                    k += 1\n                    current_time += time * k\n                # Sum of arithmetic series: time * (1 + k) * k // 2\n                height_reduction = time * k * (k + 1) // 2\n                total_height -= height_reduction\n                if total_height <= 0:\n                    break\n            return total_height <= 0\n        \n        # Sort worker times to assign larger reductions to faster workers\n        workerTimes.sort()\n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height = mountainHeight\n            workerTimes.sort(reverse=True)  # Sort worker times in descending order\n            for time in workerTimes:\n                # Calculate the maximum height reduction possible for this worker within max_time\n                k = min(max_time // time, mountainHeight)  # Maximum steps this worker can take\n                # Sum of arithmetic series: time * (1 + k) * k // 2\n                height_reduction = time * k * (k + 1) // 2\n                total_height -= height_reduction\n                if total_height <= 0:\n                    return True\n            return total_height <= 0\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height = mountainHeight\n            for time in workerTimes:\n                # Determine the maximum k such that the total time does not exceed max_time\n                k = 0\n                current_time = 0\n                while current_time + time * (k + 1) <= max_time:\n                    k += 1\n                    current_time += time * k\n                # Sum of arithmetic series: time * (1 + k) * k // 2\n                height_reduction = time * k * (k + 1) // 2\n                total_height -= height_reduction\n                if total_height <= 0:\n                    break\n            return total_height <= 0\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height = mountainHeight\n            for time in workerTimes:\n                # Determine the maximum k such that the total time does not exceed max_time\n                # Solve for k in the equation: time * k * (k + 1) // 2 <= max_time\n                # This is equivalent to solving a quadratic equation: k^2 + k - 2 * max_time / time <= 0\n                a = 1\n                b = 1\n                c = -2 * max_time / time\n                discriminant = b**2 - 4 * a * c\n                if discriminant < 0:\n                    k = 0\n                else:\n                    k = (-b + sqrt(discriminant)) / (2 * a)\n                    k = int(k)  # k must be an integer\n                # Sum of arithmetic series: time * (1 + k) * k // 2\n                height_reduction = time * k * (k + 1) // 2\n                total_height -= height_reduction\n                if total_height <= 0:\n                    break\n            return total_height <= 0\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height = mountainHeight\n            worker_times_sorted = sorted(workerTimes)\n            for time in worker_times_sorted:\n                # Determine the maximum k such that the total time does not exceed max_time\n                k = 0\n                current_time = 0\n                while current_time + time * (k + 1) <= max_time:\n                    k += 1\n                    current_time += time * k\n                # Sum of arithmetic series: time * (1 + k) * k // 2\n                height_reduction = time * k * (k + 1) // 2\n                total_height -= height_reduction\n                if total_height <= 0:\n                    break\n            return total_height <= 0\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height = mountainHeight\n            for time in workerTimes:\n                # Determine the maximum k such that the total time does not exceed max_time\n                k = 0\n                current_time = 0\n                while current_time + time * (k + 1) <= max_time:\n                    k += 1\n                    current_time += time * k\n                # Sum of arithmetic series: time * (1 + k) * k // 2\n                height_reduction = time * k * (k + 1) // 2\n                total_height -= height_reduction\n                if total_height <= 0:\n                    break\n            return total_height <= 0\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height_reduced = 0\n            for time in workerTimes:\n                # Calculate the maximum height this worker can reduce within max_time\n                k = max_time // time\n                total_height_reduced += k * (k + 1) // 2\n                if total_height_reduced >= mountainHeight:\n                    return True\n            return False\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height_reduced = 0\n            for time in workerTimes:\n                # Calculate the maximum height this worker can reduce within max_time\n                k = 0\n                current_time = 0\n                while current_time + time * (k + 1) <= max_time:\n                    k += 1\n                    current_time += time * k\n                total_height_reduced += k\n                if total_height_reduced >= mountainHeight:\n                    return True\n            return False\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height_reduced = 0\n            for time in workerTimes:\n                # Calculate the maximum height this worker can reduce within max_time\n                k = 0\n                current_time = 0\n                while current_time + time * (k + 1) <= max_time:\n                    k += 1\n                    current_time += time * k\n                total_height_reduced += k\n                if total_height_reduced >= mountainHeight:\n                    return True\n            return False\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height_reduced = 0\n            for time in sorted(workerTimes, reverse=True):\n                # Calculate the maximum height this worker can reduce within max_time\n                k = 0\n                current_time = 0\n                while current_time + time * (k + 1) <= max_time:\n                    k += 1\n                    current_time += time * k\n                total_height_reduced += k\n                if total_height_reduced >= mountainHeight:\n                    return True\n            return False\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height_reduced = 0\n            for time in workerTimes:\n                # Calculate the maximum height this worker can reduce within max_time\n                # Sum of series: time + time*2 + ... + time*x = time * (x * (x + 1)) / 2\n                # Solve for x: time * (x * (x + 1)) / 2 <= max_time\n                # x * (x + 1) <= (2 * max_time) / time\n                # x^2 + x - (2 * max_time) / time <= 0\n                # Use quadratic formula to solve for x: x = (-b + sqrt(b^2 - 4ac)) / (2a)\n                a = 1\n                b = 1\n                c = -(2 * max_time) / time\n                discriminant = b**2 - 4 * a * c\n                if discriminant < 0:\n                    k = 0\n                else:\n                    k = int((-b + math.sqrt(discriminant)) / (2 * a))\n                total_height_reduced += k\n                if total_height_reduced >= mountainHeight:\n                    return True\n            return False\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height_reduced = 0\n            for time in workerTimes:\n                # Calculate the maximum height this worker can reduce within max_time\n                k = 0\n                current_time = 0\n                while current_time + time * (k + 1) <= max_time:\n                    k += 1\n                    current_time += time * k\n                total_height_reduced += k\n                if total_height_reduced >= mountainHeight:\n                    return True\n            return False\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height_reduced = 0\n            for time in workerTimes:\n                # Calculate the maximum height this worker can reduce within max_time\n                k = 0\n                current_time = 0\n                while current_time + time * (k + 1) <= max_time:\n                    k += 1\n                    current_time += time * k\n                total_height_reduced += k\n                if total_height_reduced >= mountainHeight:\n                    return True\n            return False\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height_reduced = 0\n            for time in workerTimes:\n                # Calculate the maximum height this worker can reduce within max_time\n                k = 0\n                current_time = 0\n                while current_time + time * (k + 1) <= max_time:\n                    k += 1\n                    current_time += time * k\n                total_height_reduced += k\n                if total_height_reduced >= mountainHeight:\n                    return True\n            return False\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        # Sort worker times in ascending order\n        workerTimes.sort()\n        n = len(workerTimes)\n        \n        # Binary search for the minimum time required\n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            total_height_reduced = 0\n            for i in range(n):\n                # Calculate the maximum height this worker can reduce within mid time\n                k = mid // workerTimes[i]\n                total_height_reduced += k\n                if total_height_reduced >= mountainHeight:\n                    break\n            if total_height_reduced >= mountainHeight:\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height_reduced = 0\n            for time in workerTimes:\n                # Calculate the maximum height this worker can reduce within max_time\n                k = 0\n                while (k + 1) * time <= max_time:\n                    k += 1\n                total_height_reduced += k\n                if total_height_reduced >= mountainHeight:\n                    return True\n            return False\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height_reduced = 0\n            for time in workerTimes:\n                # Calculate the maximum height this worker can reduce within max_time\n                # Sum of arithmetic series: time + 2*time + ... + k*time <= max_time\n                # k * (k + 1) * time / 2 <= max_time\n                # k^2 + k - 2*max_time/time <= 0\n                # Solve quadratic equation: k = (-1 + sqrt(1 + 8*max_time/time)) / 2\n                if time == 0:\n                    continue\n                k = int((-1 + sqrt(1 + 8 * max_time // time)) / 2)\n                total_height_reduced += k\n                if total_height_reduced >= mountainHeight:\n                    return True\n            return False\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height_reduced = 0\n            for time in workerTimes:\n                # Calculate the maximum height this worker can reduce within max_time\n                k = 0\n                current_time = 0\n                while current_time + (k + 1) * time <= max_time:\n                    k += 1\n                    current_time += k * time\n                total_height_reduced += k\n                if total_height_reduced >= mountainHeight:\n                    return True\n            return False\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            # Sort worker times in ascending order\n            workerTimes.sort()\n            total_height_reduced = 0\n            for time in workerTimes:\n                # Calculate the maximum height this worker can reduce within max_time\n                k = 0\n                current_time = 0\n                while current_time + (k + 1) * time <= max_time:\n                    k += 1\n                    current_time += k * time\n                total_height_reduced += k\n                if total_height_reduced >= mountainHeight:\n                    return True\n            return False\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_complete_in_time(max_time):\n            total_work = mountainHeight\n            workers_used = 0\n            for time in workerTimes:\n                x = 0\n                current_time = 0\n                while current_time + time * (x + 1) <= max_time:\n                    x += 1\n                    current_time += time * x\n                total_work -= x\n                workers_used += 1\n                if total_work <= 0:\n                    return True\n                if workers_used >= len(workerTimes):\n                    break\n            return total_work <= 0\n        \n        workerTimes.sort(reverse=True)\n        left, right = 1, mountainHeight * max(workerTimes) * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_complete_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def max_height_for_time(time, worker_time):\n            # Calculate the maximum height a worker can reduce within the given time\n            # Using the formula for the sum of an arithmetic series: S = n/2 * (a + l)\n            # Here, a = worker_time, l = worker_time * n, S = time\n            # We solve for n: n * (worker_time + worker_time * n) / 2 <= time\n            # => n^2 + n - (2 * time / worker_time) <= 0\n            # Solve the quadratic equation: n = (-b + sqrt(b^2 - 4ac)) / 2a\n            a = worker_time\n            b = worker_time\n            c = -2 * time\n            discriminant = b**2 - 4 * a * c\n            if discriminant < 0:\n                return 0\n            n = (-b + math.sqrt(discriminant)) / (2 * a)\n            return int(n)\n        \n        def can_complete_in_time(max_time):\n            total_height = mountainHeight\n            for time in workerTimes:\n                total_height -= max_height_for_time(max_time, time)\n                if total_height <= 0:\n                    return True\n            return total_height <= 0\n        \n        workerTimes.sort(reverse=True)\n        left, right = 1, mountainHeight * max(workerTimes) * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_complete_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_complete_in_time(max_time):\n            total_work = mountainHeight\n            for time in workerTimes:\n                # Calculate the maximum x such that the total time does not exceed max_time\n                x = int((sqrt(1 + 8 * max_time // time) - 1) / 2)\n                total_work -= x\n                if total_work <= 0:\n                    return True\n            return total_work <= 0\n        \n        workerTimes.sort(reverse=True)\n        left, right = 1, mountainHeight * max(workerTimes) * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_complete_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+    "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_complete_in_time(max_time):\n            total_height_reduced = 0\n            for time in workerTimes:\n                # Calculate the maximum x such that time * (1 + 2 + ... + x) <= max_time\n                # This is equivalent to finding the largest x such that time * x * (x + 1) / 2 <= max_time\n                # Rearranging gives x^2 + x - 2 * max_time / time <= 0\n                # Solving the quadratic equation x = (-1 + sqrt(1 + 8 * max_time / time)) / 2\n                if time == 0:\n                    continue\n                max_x = int((-1 + sqrt(1 + 8 * max_time // time)) / 2)\n                total_height_reduced += max_x\n                if total_height_reduced >= mountainHeight:\n                    return True\n            return False\n        \n        workerTimes.sort(reverse=True)\n        left, right = 1, mountainHeight * max(workerTimes) * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_complete_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left"
+  ],
+  "total_candidates": 30,
+  "nodes_explored": 30,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height = mountainHeight\n            for time in workerTimes:\n                # Calculate the maximum height reduction possible for this worker within max_time\n                k = max_time // time\n                # Sum of arithmetic series: time * (1 + k) * k // 2\n                height_reduction = time * k * (k + 1) // 2\n                total_height -= height_reduction\n                if total_height <= 0:\n                    return True\n            return False\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+      "solution_hash": "611b4b92985bba9b563deedf6017e43ee2820751d84f5dba5d58a519d6883732",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242032/tmpht7avrnz.py\", line 226, in <module>\n    check(Solution().minNumberOfSeconds)\n  File \"/scratch/local/22242032/tmpht7avrnz.py\", line 106, in check\n    assert candidate(mountainHeight = 15,workerTimes = [5, 5, 5]) == 75\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242032/tmpht7avrnz.py` failed. (See above for error)\n",
+        "execution_time": 13.55037522315979,
+        "failed_tests": [
+          {
+            "input": "mountainHeight = 15,workerTimes = [5, 5, 5]",
+            "expected": "75",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242032/tmpht7avrnz.py\", line 226, in <module>\n    check(Solution().minNumberOfSeconds)\n  File \"/scratch/local/22242032/tmpht7avrnz.py\", line 106, in check\n    assert candidate(mountainHeight = 15,workerTimes = [5, 5, 5]) == 75\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242032/tmpht7avrnz.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5",
+        "1_9"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_reduce_in_time(max_time):\n            total_height_reduced = 0\n            for time in workerTimes:\n                # Calculate the maximum height this worker can reduce within max_time\n                k = max_time // time\n                total_height_reduced += k * (k + 1) // 2\n                if total_height_reduced >= mountainHeight:\n                    return True\n            return False\n        \n        left, right = 1, mountainHeight * max(workerTimes)\n        while left < right:\n            mid = (left + right) // 2\n            if can_reduce_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+      "solution_hash": "f33d3ec2ea826fc81b01def69bc1e39aab457a8948a197b34e663e6962607c32",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242032/tmpowuomi8p.py\", line 224, in <module>\n    check(Solution().minNumberOfSeconds)\n  File \"/scratch/local/22242032/tmpowuomi8p.py\", line 104, in check\n    assert candidate(mountainHeight = 15,workerTimes = [5, 5, 5]) == 75\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242032/tmpowuomi8p.py` failed. (See above for error)\n",
+        "execution_time": 13.536374568939209,
+        "failed_tests": [
+          {
+            "input": "mountainHeight = 15,workerTimes = [5, 5, 5]",
+            "expected": "75",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242032/tmpowuomi8p.py\", line 224, in <module>\n    check(Solution().minNumberOfSeconds)\n  File \"/scratch/local/22242032/tmpowuomi8p.py\", line 104, in check\n    assert candidate(mountainHeight = 15,workerTimes = [5, 5, 5]) == 75\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242032/tmpowuomi8p.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_14",
+        "1_18",
+        "1_22"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def minNumberOfSeconds(self, mountainHeight: int, workerTimes: List[int]) -> int:\n        def can_complete_in_time(max_time):\n            total_work = mountainHeight\n            workers_used = 0\n            for time in workerTimes:\n                x = 0\n                current_time = 0\n                while current_time + time * (x + 1) <= max_time:\n                    x += 1\n                    current_time += time * x\n                total_work -= x\n                workers_used += 1\n                if total_work <= 0:\n                    return True\n                if workers_used >= len(workerTimes):\n                    break\n            return total_work <= 0\n        \n        workerTimes.sort(reverse=True)\n        left, right = 1, mountainHeight * max(workerTimes) * (mountainHeight + 1) // 2\n        while left < right:\n            mid = (left + right) // 2\n            if can_complete_in_time(mid):\n                right = mid\n            else:\n                left = mid + 1\n        return left",
+      "solution_hash": "29af7c71e05fbe360166473a534b36d22fb85e1a7c03c35e3b0632be4d15a146",
+      "test_result": {
+        "status": "timeout",
+        "error_message": "Test execution timed out after 10s",
+        "execution_time": 10
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_27",
+        "1_28",
+        "1_29"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 30,
+    "candidates_generated": 30,
+    "tests_passed": 3,
+    "tests_failed": 26,
+    "test_timeouts": 1,
+    "test_errors": 0,
+    "import_errors": 0,
+    "import_terminated_branches": 0,
+    "unique_import_failures": [],
+    "execution_times": [
+      13.55037522315979,
+      13.51430630683899,
+      13.566634893417358,
+      13.51430630683899,
+      13.519010066986084,
+      13.51430630683899,
+      13.54039192199707,
+      13.54039192199707,
+      13.570517539978027,
+      13.51430630683899,
+      13.566116571426392,
+      13.555909395217896,
+      13.51430630683899,
+      13.536374568939209,
+      13.562910079956055,
+      13.562910079956055,
+      13.572691202163696,
+      14.788031339645386,
+      13.562910079956055,
+      13.562910079956055,
+      13.562910079956055,
+      13.972031116485596,
+      13.623072385787964,
+      13.869378805160522,
+      13.61739444732666,
+      13.706217527389526,
+      10,
+      13.621772050857544,
+      13.637826681137085,
+      13.61346960067749
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 21,
+      "unique_ratio": 0.7,
+      "similarity_score": 0.9580442953914908,
+      "solution_lengths": {
+        "min": 784,
+        "max": 1517,
+        "avg": 1049.9333333333334
+      },
+      "algorithm_approaches": {
+        "binary_search": 30
+      },
+      "feature_diversity": 0.7333333333333333,
+      "features_analysis": {
+        "boolean_features": {
+          "has_recursion": {
+            "true_ratio": 1.0,
+            "count": 30
+          },
+          "uses_list": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dict": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_set": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_heap": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_queue": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_stack": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dp": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_bfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_binary_search": {
+            "true_ratio": 1.0,
+            "count": 30
+          },
+          "nested_loops": {
+            "true_ratio": 1.0,
+            "count": 30
+          }
+        },
+        "numeric_features": {
+          "loop_count": {
+            "min": 2,
+            "max": 3,
+            "avg": 2.6333333333333333,
+            "variance": 0.23222222222222214
+          },
+          "if_count": {
+            "min": 2,
+            "max": 3,
+            "avg": 2.2333333333333334,
+            "variance": 0.1788888888888889
+          },
+          "else_count": {
+            "min": 1,
+            "max": 2,
+            "avg": 1.0666666666666667,
+            "variance": 0.06222222222222224
+          },
+          "return_count": {
+            "min": 1,
+            "max": 5,
+            "avg": 2.6666666666666665,
+            "variance": 0.48888888888888893
+          },
+          "assignment_count": {
+            "min": 8,
+            "max": 17,
+            "avg": 12.433333333333334,
+            "variance": 4.645555555555557
+          },
+          "class_method_count": {
+            "min": 1,
+            "max": 3,
+            "avg": 2.0,
+            "variance": 0.06666666666666667
+          },
+          "line_count": {
+            "min": 20,
+            "max": 35,
+            "avg": 25.7,
+            "variance": 10.543333333333331
+          },
+          "char_count": {
+            "min": 784,
+            "max": 1517,
+            "avg": 1049.9333333333334,
+            "variance": 28588.92888888888
+          },
+          "max_indent": {
+            "min": 20,
+            "max": 20,
+            "avg": 20.0,
+            "variance": 0.0
+          }
+        }
+      },
+      "complexity_diversity": {
+        "complexity_distribution": {
+          "exponential": 30
+        },
+        "avg_complexity_metrics": {
+          "avg_line_count": 25.7,
+          "avg_loop_count": 2.6333333333333333,
+          "avg_condition_count": 3.3,
+          "avg_method_count": 2.0,
+          "avg_assignment_count": 12.433333333333334,
+          "avg_max_loop_nesting": 1.0
+        },
+        "complexity_diversity_ratio": 0.16666666666666666
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "mountainHeight = 15,workerTimes = [5, 5, 5]": 16,
+        "mountainHeight = 30,workerTimes = [3, 3, 3]": 10
+      },
+      "first_failing_tests": {
+        "mountainHeight = 15,workerTimes = [5, 5, 5]": 16,
+        "mountainHeight = 30,workerTimes = [3, 3, 3]": 10
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 9,
+          "improvements": 0,
+          "solved": 3
+        },
+        "2": {
+          "attempts": 18,
+          "improvements": 0,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "assertion_failure": {
+          "attempts": 8,
+          "improvements": 0
+        },
+        "other_error": {
+          "attempts": 1,
+          "improvements": 3
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "assertion_failure->assertion_failure": 24,
+        "other_error->unknown": 3
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.5,
+        "solutions_per_depth": {
+          "0": 3,
+          "1": 9,
+          "2": 18
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 3,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.12903225806451601,
+        "pass@3": 0.3492769744160178,
+        "pass@5": 0.5248689019545527,
+        "pass@10": 0.8097886540600667
+      },
+      "solutions_evaluated": 31,
+      "passing_solution_depths": {
+        "min": 1,
+        "max": 1,
+        "avg": 1.0
+      }
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.1,
+        "branch_success_rate": 0.1,
+        "test_success_rate": 0.1
+      },
+      "test_results": {
+        "total": 30,
+        "passed": 3,
+        "failed": 26,
+        "timeouts": 1,
+        "import_errors": 0,
+        "other_errors": 0,
+        "unique_import_failures": []
+      },
+      "error_recovery": {
+        "total_attempts": 9,
+        "total_improvements": 3,
+        "recovery_rate": 0.3333333333333333
+      },
+      "top_errors": [
+        [
+          "assertion_failure",
+          8
+        ],
+        [
+          "other_error",
+          1
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "mountainHeight = 15,workerTimes = [5, 5, 5]",
+          16
+        ],
+        [
+          "mountainHeight = 30,workerTimes = [3, 3, 3]",
+          10
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 975.1753933429718,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.12903225806451601,
+      "pass@3": 0.3492769744160178,
+      "pass@5": 0.5248689019545527,
+      "pass@10": 0.8097886540600667
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 26
+          }
+        ],
+        [
+          27,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 27
+          }
+        ],
+        [
+          28,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 28
+          }
+        ],
+        [
+          29,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 29
+          }
+        ],
+        [
+          30,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: 'key' is an invalid keyword argument for bisect_left()",
+            "completion_id": 30
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 31,
+    "test_cases": 1
+  }
+}

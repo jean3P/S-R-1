@@ -1,0 +1,829 @@
+{
+  "problem_id": "count-almost-equal-pairs-ii",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n        \n        # Normalize each number by sorting its digits\n        normalized = [''.join(sorted(str(num))) for num in nums]\n        \n        # Count occurrences of each normalized form\n        count_map = defaultdict(int)\n        for norm in normalized:\n            count_map[norm] += 1\n        \n        # Calculate the number of almost equal pairs\n        result = 0\n        for norm, count in count_map.items():\n            # Pairs within the same normalized form\n            result += count * (count - 1) // 2\n        \n        # Check for pairs that can be made almost equal by one swap\n        for norm in normalized:\n            for i in range(len(norm)):\n                for j in range(i + 1, len(norm)):\n                    # Swap digits at positions i and j\n                    swapped = norm[:i] + norm[j] + norm[i+1:j] + norm[i] + norm[j+1:]\n                    if swapped in count_map:\n                        result += count_map[swapped]\n                        if norm == swapped:\n                            result -= count_map[swapped]  # Avoid double counting the same pair\n        \n        # Each pair is counted twice, so divide by 2\n        return result // 2",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_almost_equal(x: str, y: str) -> bool:\n            if len(x) != len(y):\n                return False\n            \n            # Count the frequency of each digit in both numbers\n            count_x = Counter(x)\n            count_y = Counter(y)\n            \n            # If the digit counts are different, they cannot be made equal\n            if count_x != count_y:\n                return False\n            \n            # Calculate the number of mismatched positions\n            mismatch = sum(1 for a, b in zip(x, y) if a != b)\n            \n            # They can be made almost equal if there are 0, 2, or 4 mismatches\n            return mismatch == 0 or mismatch == 2 or mismatch == 4\n        \n        nums_str = [str(num) for num in nums]\n        n = len(nums_str)\n        result = 0\n        \n        # Check all pairs (i, j) with i < j\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(nums_str[i], nums_str[j]):\n                    result += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_almost_equal(x: str, y: str) -> bool:\n            if len(x) != len(y):\n                return False\n            \n            # Count the frequency of each digit in both numbers\n            count_x = Counter(x)\n            count_y = Counter(y)\n            \n            # If the digit counts are different, they cannot be made equal\n            if count_x != count_y:\n                return False\n            \n            # Calculate the number of mismatched positions\n            mismatch = sum(1 for a, b in zip(x, y) if a != b)\n            \n            # They can be made almost equal if there are 0, 2, or 4 mismatches\n            return mismatch == 0 or mismatch == 2 or mismatch == 4\n        \n        nums_str = [str(num) for num in nums]\n        n = len(nums_str)\n        result = 0\n        \n        # Check all pairs (i, j) with i < j\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(nums_str[i], nums_str[j]):\n                    result += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_almost_equal(x: str, y: str) -> bool:\n            if len(x) != len(y):\n                return False\n            \n            # Count the frequency of each digit in both numbers\n            count_x = Counter(x)\n            count_y = Counter(y)\n            \n            # If the digit counts are different, they cannot be made equal\n            if count_x != count_y:\n                return False\n            \n            # Calculate the number of mismatched positions\n            mismatch = sum(1 for a, b in zip(x, y) if a != b)\n            \n            # They can be made almost equal if there are 0, 2, or 4 mismatches\n            # However, we need to ensure that the mismatches can be resolved with at most two swaps\n            # This means we can have at most 2 positions where the digits differ\n            return mismatch == 0 or mismatch == 2\n        \n        nums_str = [str(num) for num in nums]\n        n = len(nums_str)\n        result = 0\n        \n        # Check all pairs (i, j) with i < j\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(nums_str[i], nums_str[j]):\n                    result += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_almost_equal(x: str, y: str) -> bool:\n            if len(x) != len(y):\n                return False\n            \n            # Count the frequency of each digit in both numbers\n            count_x = Counter(x)\n            count_y = Counter(y)\n            \n            # Calculate the difference in frequency for each digit\n            diff_count = 0\n            for digit in set(count_x.keys()).union(set(count_y.keys())):\n                diff_count += abs(count_x[digit] - count_y[digit])\n            \n            # They can be made almost equal if the total difference in digit counts is at most 4\n            return diff_count <= 4\n        \n        nums_str = [str(num) for num in nums]\n        n = len(nums_str)\n        result = 0\n        \n        # Check all pairs (i, j) with i < j\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(nums_str[i], nums_str[j]):\n                    result += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_almost_equal(x: str, y: str) -> bool:\n            if len(x) != len(y):\n                return False\n            \n            # Count the frequency of each digit in both numbers\n            count_x = Counter(x)\n            count_y = Counter(y)\n            \n            # If the digit counts are not the same, they cannot be made equal\n            if count_x != count_y:\n                return False\n            \n            # Count the number of mismatched positions\n            mismatch_count = sum(1 for a, b in zip(x, y) if a != b)\n            \n            # They can be made almost equal if there are at most 4 mismatched positions\n            # (2 swaps can fix up to 4 mismatches)\n            return mismatch_count <= 4\n        \n        nums_str = [str(num) for num in nums]\n        n = len(nums_str)\n        result = 0\n        \n        # Check all pairs (i, j) with i < j\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(nums_str[i], nums_str[j]):\n                    result += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_almost_equal(x: str, y: str) -> bool:\n            if len(x) != len(y):\n                return False\n            \n            # Count the frequency of each digit in both numbers\n            count_x = Counter(x)\n            count_y = Counter(y)\n            \n            # If the digit counts are not the same, they cannot be made equal\n            if count_x != count_y:\n                return False\n            \n            # Count the number of mismatched positions\n            mismatch_count = sum(1 for a, b in zip(x, y) if a != b)\n            \n            # They can be made almost equal if there are at most 4 mismatched positions\n            # and the mismatches can be paired off with at most 2 swaps\n            return mismatch_count // 2 <= 2\n        \n        nums_str = [str(num) for num in nums]\n        n = len(nums_str)\n        result = 0\n        \n        # Check all pairs (i, j) with i < j\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(nums_str[i], nums_str[j]):\n                    result += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_almost_equal(x: str, y: str) -> bool:\n            if len(x) != len(y):\n                return False\n            \n            # Count the frequency of each digit in both numbers\n            count_x = Counter(x)\n            count_y = Counter(y)\n            \n            # Calculate the difference in counts for each digit\n            diff = Counter()\n            for digit in set(count_x.keys()).union(set(count_y.keys())):\n                diff[digit] = abs(count_x[digit] - count_y[digit])\n            \n            # Sum of differences should be even and at most 4\n            total_diff = sum(diff.values())\n            if total_diff % 2 != 0 or total_diff > 4:\n                return False\n            \n            # Count the number of mismatched positions\n            mismatch_count = sum(1 for a, b in zip(x, y) if a != b)\n            \n            # They can be made almost equal if there are at most 4 mismatched positions\n            # and the total difference in counts is even and at most 4\n            return mismatch_count <= 4\n        \n        nums_str = [str(num) for num in nums]\n        n = len(nums_str)\n        result = 0\n        \n        # Check all pairs (i, j) with i < j\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(nums_str[i], nums_str[j]):\n                    result += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_almost_equal(x: str, y: str) -> bool:\n            if len(x) != len(y):\n                return False\n            \n            # Count the frequency of each digit in both numbers\n            count_x = Counter(x)\n            count_y = Counter(y)\n            \n            # Calculate the difference in counts for each digit\n            diff = Counter()\n            for digit in set(count_x.keys()).union(set(count_y.keys())):\n                diff[digit] = abs(count_x[digit] - count_y[digit])\n            \n            # Count the number of mismatched digits\n            mismatch_count = sum(diff.values())\n            \n            # We can fix up to 4 mismatched digits with 2 swaps\n            # Each swap can fix 2 mismatched digits\n            return mismatch_count // 2 <= 2\n        \n        nums_str = [str(num) for num in nums]\n        n = len(nums_str)\n        result = 0\n        \n        # Check all pairs (i, j) with i < j\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(nums_str[i], nums_str[j]):\n                    result += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import Counter\n        \n        def can_be_almost_equal(num1, num2):\n            # Convert numbers to strings and count digits\n            count1 = Counter(str(num1))\n            count2 = Counter(str(num2))\n            \n            # Find the difference in digit counts\n            diff = Counter()\n            for digit in set(count1.keys()).union(set(count2.keys())):\n                diff[digit] = abs(count1[digit] - count2[digit])\n            \n            # Calculate the total number of differing digits\n            total_diff = sum(diff.values())\n            \n            # Check if the numbers can be made almost equal with up to 2 swaps\n            # If there are more than 4 differing digits, it's impossible with 2 swaps\n            if total_diff > 4:\n                return False\n            \n            # If there are exactly 4 differing digits, they must be in pairs\n            # e.g., '1234' and '4321' can be made equal with 2 swaps\n            if total_diff == 4:\n                return all(d % 2 == 0 for d in diff.values())\n            \n            # If there are 2 or fewer differing digits, they can be made equal with 1 or 0 swaps\n            return total_diff <= 2\n        \n        result = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(nums[i], nums[j]):\n                    result += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import Counter\n        \n        def can_be_almost_equal(num1, num2):\n            # Convert numbers to strings and count digits\n            count1 = Counter(str(num1))\n            count2 = Counter(str(num2))\n            \n            # Find the difference in digit counts\n            diff = Counter()\n            for digit in set(count1.keys()).union(set(count2.keys())):\n                diff[digit] = abs(count1[digit] - count2[digit])\n            \n            # Calculate the total number of differing digits\n            total_diff = sum(diff.values())\n            \n            # Check if the numbers can be made almost equal with up to 2 swaps\n            # Each swap can fix 2 differing digits, so total_diff should be <= 4\n            return total_diff <= 4\n        \n        result = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(nums[i], nums[j]):\n                    result += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_almost_equal(num1, num2):\n            # Convert numbers to strings and sort the digits\n            str1 = ''.join(sorted(str(num1)))\n            str2 = ''.join(sorted(str(num2)))\n            # Check if the sorted strings are the same\n            return str1 == str2\n        \n        result = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(nums[i], nums[j]):\n                    result += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import Counter\n        \n        def can_be_almost_equal(num1, num2):\n            # Convert numbers to strings and count digits\n            count1 = Counter(str(num1))\n            count2 = Counter(str(num2))\n            \n            # Find the difference in digit counts\n            diff = Counter()\n            for digit in set(count1.keys()).union(set(count2.keys())):\n                diff[digit] = abs(count1[digit] - count2[digit])\n            \n            # Calculate the total number of differing digits\n            total_diff = sum(diff.values())\n            \n            # Check if the numbers can be made almost equal with up to 2 swaps\n            # If there are more than 4 differing digits, it's impossible with 2 swaps\n            if total_diff > 4:\n                return False\n            \n            # If there are 2 or fewer differing digits, they can be made equal with 1 or 0 swaps\n            # If there are exactly 4 differing digits, they must be even to allow for 2 swaps\n            return total_diff <= 2 or (total_diff == 4 and all(d % 2 == 0 for d in diff.values()))\n        \n        result = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(nums[i], nums[j]):\n                    result += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import Counter\n        \n        def can_be_almost_equal(count1, count2):\n            diff = 0\n            for d in set(count1.keys()).union(set(count2.keys())):\n                diff += abs(count1[d] - count2[d])\n            return diff // 2 <= 2\n        \n        num_counts = [Counter(str(num)) for num in nums]\n        count = 0\n        n = len(nums)\n        \n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(num_counts[i], num_counts[j]):\n                    count += 1\n        \n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import Counter\n        \n        def can_be_almost_equal(count1, count2):\n            diff = []\n            for d in set(count1.keys()).union(set(count2.keys())):\n                diff_count = abs(count1[d] - count2[d])\n                if diff_count > 0:\n                    diff.append(diff_count)\n            # We can only have at most two non-zero differences\n            # And the sum of these differences should be at most 4\n            return len(diff) <= 2 and sum(diff) <= 4\n        \n        num_counts = [Counter(str(num)) for num in nums]\n        count = 0\n        n = len(nums)\n        \n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(num_counts[i], num_counts[j]):\n                    count += 1\n        \n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import Counter\n        \n        def digit_count_tuple(num):\n            count = Counter(str(num))\n            return tuple(sorted((digit, count[digit]) for digit in count))\n        \n        num_tuples = [digit_count_tuple(num) for num in nums]\n        count = 0\n        n = len(nums)\n        \n        for i in range(n):\n            for j in range(i + 1, n):\n                if self.can_be_almost_equal(num_tuples[i], num_tuples[j]):\n                    count += 1\n        \n        return count\n    \n    def can_be_almost_equal(self, tuple1, tuple2):\n        if len(tuple1) != len(tuple2):\n            return False\n        \n        diff_count = 0\n        i, j = 0, 0\n        while i < len(tuple1) and j < len(tuple2):\n            if tuple1[i] == tuple2[j]:\n                i += 1\n                j += 1\n            else:\n                if tuple1[i][0] == tuple2[j][0]:\n                    diff_count += abs(tuple1[i][1] - tuple2[j][1])\n                    i += 1\n                    j += 1\n                elif tuple1[i][0] < tuple2[j][0]:\n                    diff_count += tuple1[i][1]\n                    i += 1\n                else:\n                    diff_count += tuple2[j][1]\n                    j += 1\n            \n            if diff_count > 4:\n                return False\n        \n        diff_count += sum(x[1] for x in tuple1[i:]) + sum(x[1] for x in tuple2[j:])\n        \n        return diff_count <= 4",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_almost_equal(count1, count2):\n            diff = []\n            for d in set(count1.keys()).union(set(count2.keys())):\n                diff_count = abs(count1[d] - count2[d])\n                if diff_count > 0:\n                    diff.append(diff_count)\n            # We can only have at most two non-zero differences\n            # And the sum of these differences should be at most 4\n            # But we need to ensure that we can pair up the mismatches into at most two swaps\n            return sum(diff) <= 4 and len([d for d in diff if d > 1]) <= 2\n        \n        num_counts = [Counter(str(num)) for num in nums]\n        count = 0\n        n = len(nums)\n        \n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(num_counts[i], num_counts[j]):\n                    count += 1\n        \n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import Counter\n        \n        def can_be_almost_equal(count1, count2):\n            diff = []\n            for d in set(count1.keys()).union(set(count2.keys())):\n                diff_count = abs(count1[d] - count2[d])\n                if diff_count > 0:\n                    diff.append(diff_count)\n            # We can have at most two differences of 1 and one difference of 2\n            count_diff_1 = diff.count(1)\n            count_diff_2 = diff.count(2)\n            return count_diff_1 <= 2 and count_diff_2 <= 1 and (count_diff_1 + count_diff_2 * 2) <= 4\n        \n        num_counts = [Counter(str(num)) for num in nums]\n        count = 0\n        n = len(nums)\n        \n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(num_counts[i], num_counts[j]):\n                    count += 1\n        \n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import Counter\n        \n        def can_be_almost_equal(count1, count2):\n            diff = 0\n            extra_digits = 0\n            \n            for d in set(count1.keys()).union(set(count2.keys())):\n                c1 = count1.get(d, 0)\n                c2 = count2.get(d, 0)\n                \n                if c1 > c2:\n                    extra_digits += c1 - c2\n                elif c2 > c1:\n                    diff += c2 - c1\n            \n            # We can fix up to 2 differences with 2 swaps\n            return diff <= 2 and extra_digits <= 2\n        \n        num_counts = [Counter(str(num)) for num in nums]\n        count = 0\n        n = len(nums)\n        \n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(num_counts[i], num_counts[j]):\n                    count += 1\n        \n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import Counter\n        \n        def can_be_almost_equal(count1, count2):\n            diff = 0\n            \n            for d in set(count1.keys()).union(set(count2.keys())):\n                c1 = count1.get(d, 0)\n                c2 = count2.get(d, 0)\n                diff += abs(c1 - c2)\n            \n            # We can fix up to 4 mismatches with 2 swaps\n            return diff <= 4\n        \n        num_counts = [Counter(str(num)) for num in nums]\n        count = 0\n        n = len(nums)\n        \n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(num_counts[i], num_counts[j]):\n                    count += 1\n        \n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import Counter\n        \n        def can_be_almost_equal(count1, count2):\n            diff = 0\n            extra_digits = 0\n            \n            for d in set(count1.keys()).union(set(count2.keys())):\n                c1 = count1.get(d, 0)\n                c2 = count2.get(d, 0)\n                \n                if c1 > c2:\n                    extra_digits += c1 - c2\n                elif c2 > c1:\n                    diff += c2 - c1\n            \n            # We can fix up to 2 differences with 2 swaps\n            # Total mismatches should be less than or equal to 4\n            return diff + extra_digits <= 4\n        \n        num_counts = [Counter(str(num)) for num in nums]\n        count = 0\n        n = len(nums)\n        \n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(num_counts[i], num_counts[j]):\n                    count += 1\n        \n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_almost_equal(count1, count2):\n            diff = 0\n            for d in set(count1.keys()).union(set(count2.keys())):\n                c1 = count1.get(d, 0)\n                c2 = count2.get(d, 0)\n                diff += abs(c1 - c2)\n            # We can fix up to 4 mismatches with 2 swaps\n            return diff <= 4\n        \n        num_counts = [Counter(str(num)) for num in nums]\n        count = 0\n        n = len(nums)\n        \n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(num_counts[i], num_counts[j]):\n                    count += 1\n        \n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import Counter\n        \n        def can_be_almost_equal(count1, count2):\n            diff = 0\n            for d in set(count1.keys()).union(set(count2.keys())):\n                diff += abs(count1[d] - count2[d])\n            # Each swap can fix two mismatches, so we allow up to 4 mismatches\n            return diff <= 4\n        \n        num_counts = [Counter(str(num)) for num in nums]\n        count = 0\n        n = len(nums)\n        \n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(num_counts[i], num_counts[j]):\n                    count += 1\n        \n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_almost_equal(s1, s2):\n            # Count mismatches when comparing sorted strings\n            mismatches = 0\n            for c1, c2 in zip_longest(s1, s2, fillvalue='0'):\n                if c1 != c2:\n                    mismatches += 1\n            # Each swap can fix two mismatches, so we allow up to 4 mismatches\n            return mismatches <= 4\n        \n        sorted_nums = [''.join(sorted(str(num))) for num in nums]\n        count = 0\n        n = len(nums)\n        \n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(sorted_nums[i], sorted_nums[j]):\n                    count += 1\n        \n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_almost_equal(s1, s2):\n            # Count the number of differing positions\n            diff = sum(c1 != c2 for c1, c2 in zip_longest(s1, s2, fillvalue=''))\n            # Each swap can fix two mismatches, so we allow up to 4 mismatches\n            return diff <= 4\n        \n        # Sort the digits of each number\n        sorted_nums = [''.join(sorted(str(num))) for num in nums]\n        count = 0\n        n = len(nums)\n        \n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(sorted_nums[i], sorted_nums[j]):\n                    count += 1\n        \n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_almost_equal(s1, s2):\n            # Count mismatches between sorted strings\n            mismatches = sum(c1 != c2 for c1, c2 in zip(sorted(s1), sorted(s2)))\n            # Each swap can fix two mismatches, so we allow up to 4 mismatches\n            return mismatches <= 4\n        \n        count = 0\n        n = len(nums)\n        \n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(str(nums[i]), str(nums[j])):\n                    count += 1\n        \n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n        \n        def get_digit_count(num):\n            count = [0] * 10\n            while num > 0:\n                count[num % 10] += 1\n                num //= 10\n            return tuple(count)\n        \n        def generate_variations(count):\n            variations = set([count])\n            digits = [i for i in range(10) if count[i] > 0]\n            n = len(digits)\n            \n            # Generate variations by changing one digit\n            for i in range(n):\n                for j in range(10):\n                    if j != digits[i]:\n                        new_count = list(count)\n                        new_count[digits[i]] -= 1\n                        new_count[j] += 1\n                        variations.add(tuple(new_count))\n            \n            # Generate variations by changing two digits\n            for i in range(n):\n                for j in range(i + 1, n):\n                    for k in range(10):\n                        for l in range(10):\n                            if k != digits[i] and l != digits[j]:\n                                new_count = list(count)\n                                new_count[digits[i]] -= 1\n                                new_count[digits[j]] -= 1\n                                new_count[k] += 1\n                                new_count[l] += 1\n                                variations.add(tuple(new_count))\n            return variations\n        \n        count_map = defaultdict(int)\n        result = 0\n        \n        for num in nums:\n            digit_count = get_digit_count(num)\n            variations = generate_variations(digit_count)\n            for variation in variations:\n                result += count_map[variation]\n            count_map[digit_count] += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n        \n        def get_sorted_digits(num):\n            return tuple(sorted(str(num)))\n        \n        count_map = defaultdict(int)\n        result = 0\n        \n        for num in nums:\n            sorted_digits = get_sorted_digits(num)\n            # Check all possible variations by changing up to two digits\n            for i in range(len(sorted_digits)):\n                for j in range(i, len(sorted_digits)):\n                    # Create a list from the tuple to allow modification\n                    temp = list(sorted_digits)\n                    # Swap digits at positions i and j\n                    temp[i], temp[j] = temp[j], temp[i]\n                    # Convert back to tuple and check in map\n                    result += count_map[tuple(temp)]\n                    # Swap back to original to try next pair\n                    temp[i], temp[j] = temp[j], temp[i]\n            # Also check the original sorted digits\n            result += count_map[sorted_digits]\n            # Update the count map with the current sorted digits\n            count_map[sorted_digits] += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n        \n        def get_digit_variations(num_str):\n            variations = set()\n            n = len(num_str)\n            # Add the original number\n            variations.add(num_str)\n            # Generate all variations by swapping one pair of digits\n            for i in range(n):\n                for j in range(i + 1, n):\n                    swapped = list(num_str)\n                    swapped[i], swapped[j] = swapped[j], swapped[i]\n                    variations.add(''.join(swapped))\n                    # Generate all variations by swapping a second pair of digits\n                    for k in range(n):\n                        for l in range(k + 1, n):\n                            swapped2 = list(swapped)\n                            swapped2[k], swapped2[l] = swapped2[l], swapped2[k]\n                            variations.add(''.join(swapped2))\n            return variations\n        \n        count_map = defaultdict(int)\n        result = 0\n        \n        for num in nums:\n            num_str = str(num)\n            variations = get_digit_variations(num_str)\n            for variation in variations:\n                result += count_map[variation]\n            count_map[num_str] += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict, Counter\n        \n        def get_digit_count(num):\n            return tuple(sorted(Counter(str(num)).items()))\n        \n        count_map = defaultdict(int)\n        result = 0\n        \n        for num in nums:\n            digit_count = get_digit_count(num)\n            \n            # Check all stored counts to see if they can form an almost equal pair\n            for stored_count in count_map:\n                diff = sum(abs(a - b) for (a_digit, a), (b_digit, b) in zip_longest(digit_count, stored_count, fillvalue=(0, 0)))\n                if diff <= 4:  # Maximum difference of 4 allows up to 2 swaps\n                    result += count_map[stored_count]\n            \n            # Update the count map with the current digit count\n            count_map[digit_count] += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n        from itertools import permutations\n        \n        def get_permutations(num):\n            num_str = str(num)\n            perm_set = set(permutations(num_str))\n            return {int(''.join(p)) for p in perm_set}\n        \n        count_map = defaultdict(int)\n        result = 0\n        \n        for num in nums:\n            perms = get_permutations(num)\n            for perm in perms:\n                result += count_map[perm]\n            for perm in perms:\n                count_map[perm] += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def sort_digits(num):\n            return tuple(sorted(str(num)))\n        \n        sorted_nums = [sort_digits(num) for num in nums]\n        count_map = defaultdict(int)\n        result = 0\n        \n        for sorted_num in sorted_nums:\n            result += count_map[sorted_num]\n            count_map[sorted_num] += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def digit_count(num):\n            count = [0] * 10\n            for digit in str(num):\n                count[int(digit)] += 1\n            return tuple(count)\n        \n        count_map = defaultdict(int)\n        result = 0\n        \n        for num in nums:\n            current_count = digit_count(num)\n            for i in range(10):\n                for j in range(i, 10):\n                    # Try changing one digit\n                    new_count = list(current_count)\n                    if new_count[i] > 0:\n                        new_count[i] -= 1\n                        new_count[j] += 1\n                        result += count_map[tuple(new_count)]\n                    \n                    # Try changing two different digits\n                    if i != j and new_count[j] > 0:\n                        new_count[j] -= 1\n                        result += count_map[tuple(new_count)]\n                        new_count[j] += 1\n                    \n                    # Restore the count for the next iteration\n                    new_count[i] += 1\n                    new_count[j] -= 1\n            \n            # Count pairs with the same digit count\n            result += count_map[current_count]\n            count_map[current_count] += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def generate_variations(num_str):\n            variations = set()\n            n = len(num_str)\n            for i in range(n):\n                for j in range(i + 1, n):\n                    swapped = list(num_str)\n                    swapped[i], swapped[j] = swapped[j], swapped[i]\n                    variations.add(''.join(swapped))\n                    for k in range(j + 1, n):\n                        swapped2 = list(swapped)\n                        swapped2[j], swapped2[k] = swapped2[k], swapped2[j]\n                        variations.add(''.join(swapped2))\n            return variations\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            num_str_i = str(nums[i])\n            variations_i = generate_variations(num_str_i)\n            for j in range(i + 1, n):\n                num_str_j = str(nums[j])\n                if num_str_j in variations_i or num_str_i in generate_variations(num_str_j):\n                    count += 1\n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def generate_variations(num_str):\n            n = len(num_str)\n            variations = set([num_str])\n            for i in range(n):\n                for j in range(i + 1, n):\n                    swapped = list(num_str)\n                    swapped[i], swapped[j] = swapped[j], swapped[i]\n                    variations.add(''.join(swapped))\n                    for k in range(j + 1, n):\n                        swapped2 = list(swapped)\n                        swapped2[k], swapped2[j] = swapped2[j], swapped2[k]\n                        variations.add(''.join(swapped2))\n            return variations\n        \n        num_variations = defaultdict(set)\n        for num in nums:\n            num_str = str(num)\n            for variation in generate_variations(num_str):\n                num_variations[variation].add(num_str)\n        \n        count = 0\n        seen = set()\n        for num in nums:\n            num_str = str(num)\n            for variation in generate_variations(num_str):\n                if variation in num_variations:\n                    for original in num_variations[variation]:\n                        if original != num_str and (original, num_str) not in seen:\n                            count += 1\n                            seen.add((num_str, original))\n        \n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n        \n        def get_digit_count(num):\n            count = [0] * 10\n            while num > 0:\n                count[num % 10] += 1\n                num //= 10\n            return tuple(count)\n        \n        def can_be_almost_equal(count1, count2):\n            diff_count = 0\n            total_diff = 0\n            for c1, c2 in zip(count1, count2):\n                if c1 != c2:\n                    diff_count += 1\n                    total_diff += abs(c1 - c2)\n            return diff_count <= 4 and total_diff <= 4\n        \n        count_map = defaultdict(list)\n        result = 0\n        \n        for num in nums:\n            digit_count = get_digit_count(num)\n            for existing_count in count_map[digit_count]:\n                if can_be_almost_equal(digit_count, existing_count):\n                    result += 1\n            count_map[digit_count].append(digit_count)\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def sort_digits(num):\n            return tuple(sorted(str(num)))\n        \n        sorted_nums = [sort_digits(num) for num in nums]\n        count_map = defaultdict(int)\n        result = 0\n        \n        for sorted_num in sorted_nums:\n            for existing_sorted_num in count_map:\n                diff_count = sum(c1 != c2 for c1, c2 in zip_longest(sorted_num, existing_sorted_num, fillvalue=''))\n                if diff_count <= 2:\n                    result += count_map[existing_sorted_num]\n            count_map[sorted_num] += 1\n        \n        return result",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_almost_equal(num1, num2):\n            s1, s2 = sorted(str(num1)), sorted(str(num2))\n            if s1 == s2:\n                return True\n            diff = 0\n            i, j = 0, 0\n            while i < len(s1) and j < len(s2):\n                if s1[i] == s2[j]:\n                    i += 1\n                    j += 1\n                elif s1[i] < s2[j]:\n                    diff += 1\n                    i += 1\n                else:\n                    diff += 1\n                    j += 1\n            diff += abs(len(s1) - len(s2))\n            return diff <= 2\n        \n        count = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(nums[i], nums[j]):\n                    count += 1\n        return count",
+    "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        def can_be_almost_equal(num1, num2):\n            str1, str2 = str(num1), str(num2)\n            if sorted(str1) != sorted(str2):\n                return False\n            \n            # Count mismatches\n            mismatch = 0\n            for c1, c2 in zip(str1, str2):\n                if c1 != c2:\n                    mismatch += 1\n                if mismatch > 4:\n                    return False\n            \n            return mismatch <= 4\n        \n        result = 0\n        n = len(nums)\n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(nums[i], nums[j]):\n                    result += 1\n        \n        return result"
+  ],
+  "total_candidates": 39,
+  "nodes_explored": 39,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n        \n        # Normalize each number by sorting its digits\n        normalized = [''.join(sorted(str(num))) for num in nums]\n        \n        # Count occurrences of each normalized form\n        count_map = defaultdict(int)\n        for norm in normalized:\n            count_map[norm] += 1\n        \n        # Calculate the number of almost equal pairs\n        result = 0\n        for norm, count in count_map.items():\n            # Pairs within the same normalized form\n            result += count * (count - 1) // 2\n        \n        # Check for pairs that can be made almost equal by one swap\n        for norm in normalized:\n            for i in range(len(norm)):\n                for j in range(i + 1, len(norm)):\n                    # Swap digits at positions i and j\n                    swapped = norm[:i] + norm[j] + norm[i+1:j] + norm[i] + norm[j+1:]\n                    if swapped in count_map:\n                        result += count_map[swapped]\n                        if norm == swapped:\n                            result -= count_map[swapped]  # Avoid double counting the same pair\n        \n        # Each pair is counted twice, so divide by 2\n        return result // 2",
+      "solution_hash": "230ce053abd40271610d0e2f7329f0d958c285cb61e9dbed5cfd0e740f93b0b1",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmpixfa4dek.py\", line 251, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/22242033/tmpixfa4dek.py\", line 115, in check\n    assert candidate(nums = [123, 321, 213, 132]) == 6\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmpixfa4dek.py` failed. (See above for error)\n",
+        "execution_time": 13.351897478103638,
+        "failed_tests": [
+          {
+            "input": "nums = [123, 321, 213, 132]",
+            "expected": "6",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmpixfa4dek.py\", line 251, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/22242033/tmpixfa4dek.py\", line 115, in check\n    assert candidate(nums = [123, 321, 213, 132]) == 6\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmpixfa4dek.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5",
+        "1_9"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import Counter\n        \n        def can_be_almost_equal(count1, count2):\n            diff = 0\n            for d in set(count1.keys()).union(set(count2.keys())):\n                diff += abs(count1[d] - count2[d])\n            return diff // 2 <= 2\n        \n        num_counts = [Counter(str(num)) for num in nums]\n        count = 0\n        n = len(nums)\n        \n        for i in range(n):\n            for j in range(i + 1, n):\n                if can_be_almost_equal(num_counts[i], num_counts[j]):\n                    count += 1\n        \n        return count",
+      "solution_hash": "875786fd88417ef2a9f95ab32b6db70cc849fba1a08050a3ce6c1237de820422",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmpzrcde01j.py\", line 240, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/22242033/tmpzrcde01j.py\", line 106, in check\n    assert candidate(nums = [12, 21, 13, 31, 23, 32]) == 3\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmpzrcde01j.py` failed. (See above for error)\n",
+        "execution_time": 13.349587440490723,
+        "failed_tests": [
+          {
+            "input": "nums = [12, 21, 13, 31, 23, 32]",
+            "expected": "3",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmpzrcde01j.py\", line 240, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/22242033/tmpzrcde01j.py\", line 106, in check\n    assert candidate(nums = [12, 21, 13, 31, 23, 32]) == 3\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmpzrcde01j.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_14",
+        "1_18",
+        "1_22"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def countPairs(self, nums: List[int]) -> int:\n        from collections import defaultdict\n        \n        def get_digit_count(num):\n            count = [0] * 10\n            while num > 0:\n                count[num % 10] += 1\n                num //= 10\n            return tuple(count)\n        \n        def generate_variations(count):\n            variations = set([count])\n            digits = [i for i in range(10) if count[i] > 0]\n            n = len(digits)\n            \n            # Generate variations by changing one digit\n            for i in range(n):\n                for j in range(10):\n                    if j != digits[i]:\n                        new_count = list(count)\n                        new_count[digits[i]] -= 1\n                        new_count[j] += 1\n                        variations.add(tuple(new_count))\n            \n            # Generate variations by changing two digits\n            for i in range(n):\n                for j in range(i + 1, n):\n                    for k in range(10):\n                        for l in range(10):\n                            if k != digits[i] and l != digits[j]:\n                                new_count = list(count)\n                                new_count[digits[i]] -= 1\n                                new_count[digits[j]] -= 1\n                                new_count[k] += 1\n                                new_count[l] += 1\n                                variations.add(tuple(new_count))\n            return variations\n        \n        count_map = defaultdict(int)\n        result = 0\n        \n        for num in nums:\n            digit_count = get_digit_count(num)\n            variations = generate_variations(digit_count)\n            for variation in variations:\n                result += count_map[variation]\n            count_map[digit_count] += 1\n        \n        return result",
+      "solution_hash": "b4e532f8694e3e02c2362f02c68c97ff3e555f0dd3f0a7efd70f2f2cd5b879be",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmpwhm6rgf3.py\", line 270, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/22242033/tmpwhm6rgf3.py\", line 136, in check\n    assert candidate(nums = [12, 21, 13, 31, 23, 32]) == 3\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmpwhm6rgf3.py` failed. (See above for error)\n",
+        "execution_time": 13.335748672485352,
+        "failed_tests": [
+          {
+            "input": "nums = [12, 21, 13, 31, 23, 32]",
+            "expected": "3",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmpwhm6rgf3.py\", line 270, in <module>\n    check(Solution().countPairs)\n  File \"/scratch/local/22242033/tmpwhm6rgf3.py\", line 136, in check\n    assert candidate(nums = [12, 21, 13, 31, 23, 32]) == 3\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmpwhm6rgf3.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_27",
+        "1_31",
+        "1_35"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 39,
+    "candidates_generated": 39,
+    "tests_passed": 0,
+    "tests_failed": 39,
+    "test_timeouts": 0,
+    "test_errors": 0,
+    "import_errors": 0,
+    "import_terminated_branches": 0,
+    "unique_import_failures": [],
+    "execution_times": [
+      13.351897478103638,
+      13.309770345687866,
+      13.309770345687866,
+      13.336136102676392,
+      13.287810802459717,
+      13.296472787857056,
+      13.350822925567627,
+      13.31632685661316,
+      13.362915754318237,
+      13.297280311584473,
+      13.309046983718872,
+      13.322234392166138,
+      13.34711503982544,
+      13.349587440490723,
+      13.321360349655151,
+      13.345921993255615,
+      13.343172311782837,
+      13.338300466537476,
+      13.302879571914673,
+      13.364280700683594,
+      13.328946352005005,
+      13.326311826705933,
+      13.337442398071289,
+      13.30415153503418,
+      13.343933582305908,
+      13.31473994255066,
+      13.335748672485352,
+      13.303800821304321,
+      13.268564701080322,
+      13.304619312286377,
+      13.294931888580322,
+      13.296960353851318,
+      13.26173996925354,
+      13.253379344940186,
+      13.298670768737793,
+      13.266902685165405,
+      13.353604793548584,
+      13.318582534790039,
+      13.259272336959839
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 38,
+      "unique_ratio": 0.9743589743589743,
+      "similarity_score": 0.8585469053046624,
+      "solution_lengths": {
+        "min": 422,
+        "max": 1874,
+        "avg": 1030.871794871795
+      },
+      "algorithm_approaches": {
+        "divide_and_conquer": 1,
+        "backtracking": 1,
+        "hash_table": 25,
+        "other": 12
+      },
+      "feature_diversity": 0.9743589743589743,
+      "features_analysis": {
+        "boolean_features": {
+          "has_recursion": {
+            "true_ratio": 1.0,
+            "count": 39
+          },
+          "uses_list": {
+            "true_ratio": 0.2564102564102564,
+            "count": 10
+          },
+          "uses_dict": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_set": {
+            "true_ratio": 0.5128205128205128,
+            "count": 20
+          },
+          "uses_heap": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_queue": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_stack": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dp": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_bfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_binary_search": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "nested_loops": {
+            "true_ratio": 1.0,
+            "count": 39
+          }
+        },
+        "numeric_features": {
+          "loop_count": {
+            "min": 2,
+            "max": 10,
+            "avg": 4.256410256410256,
+            "variance": 2.1393819855358314
+          },
+          "if_count": {
+            "min": 0,
+            "max": 5,
+            "avg": 2.051282051282051,
+            "variance": 1.7409598948060505
+          },
+          "else_count": {
+            "min": 0,
+            "max": 2,
+            "avg": 0.07692307692307693,
+            "variance": 0.1222879684418145
+          },
+          "return_count": {
+            "min": 1,
+            "max": 5,
+            "avg": 2.6153846153846154,
+            "variance": 0.8520710059171586
+          },
+          "assignment_count": {
+            "min": 5,
+            "max": 23,
+            "avg": 10.794871794871796,
+            "variance": 13.855358316896778
+          },
+          "class_method_count": {
+            "min": 1,
+            "max": 3,
+            "avg": 2.051282051282051,
+            "variance": 0.0999342537804077
+          },
+          "line_count": {
+            "min": 14,
+            "max": 50,
+            "avg": 28.23076923076923,
+            "variance": 60.587771203155825
+          },
+          "char_count": {
+            "min": 422,
+            "max": 1874,
+            "avg": 1030.871794871795,
+            "variance": 99381.5476660092
+          },
+          "max_indent": {
+            "min": 12,
+            "max": 32,
+            "avg": 20.82051282051282,
+            "variance": 10.81393819855358
+          }
+        }
+      },
+      "complexity_diversity": {
+        "complexity_distribution": {
+          "exponential": 39
+        },
+        "avg_complexity_metrics": {
+          "avg_line_count": 28.23076923076923,
+          "avg_loop_count": 4.256410256410256,
+          "avg_condition_count": 2.230769230769231,
+          "avg_method_count": 2.051282051282051,
+          "avg_assignment_count": 10.794871794871796,
+          "avg_max_loop_nesting": 1.0256410256410255
+        },
+        "complexity_diversity_ratio": 0.16666666666666666
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "nums = [123, 321, 213, 132]": 8,
+        "nums = [12, 21, 13, 31, 23, 32]": 18,
+        "nums = [11, 22, 33, 44, 55, 66, 77, 88, 99, 101, 202, 303, 404, 505, 606, 707, 808, 909]": 4,
+        "nums = [123456, 654321, 12345, 54321, 1234, 4321, 123, 321, 12, 21, 1]": 4,
+        "nums = [1111, 2222, 3333, 4444]": 5
+      },
+      "first_failing_tests": {
+        "nums = [123, 321, 213, 132]": 8,
+        "nums = [12, 21, 13, 31, 23, 32]": 18,
+        "nums = [11, 22, 33, 44, 55, 66, 77, 88, 99, 101, 202, 303, 404, 505, 606, 707, 808, 909]": 4,
+        "nums = [123456, 654321, 12345, 54321, 1234, 4321, 123, 321, 12, 21, 1]": 4,
+        "nums = [1111, 2222, 3333, 4444]": 5
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 9,
+          "improvements": 0,
+          "solved": 0
+        },
+        "2": {
+          "attempts": 27,
+          "improvements": 0,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "assertion_failure": {
+          "attempts": 12,
+          "improvements": 0
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "assertion_failure->assertion_failure": 36
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.6153846153846154,
+        "solutions_per_depth": {
+          "0": 3,
+          "1": 9,
+          "2": 27
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 0,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.025000000000000022,
+        "pass@3": 0.07499999999999996,
+        "pass@5": 0.125,
+        "pass@10": 0.25
+      },
+      "solutions_evaluated": 40
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.0,
+        "branch_success_rate": 0.0,
+        "test_success_rate": 0.0
+      },
+      "test_results": {
+        "total": 39,
+        "passed": 0,
+        "failed": 39,
+        "timeouts": 0,
+        "import_errors": 0,
+        "other_errors": 0,
+        "unique_import_failures": []
+      },
+      "error_recovery": {
+        "total_attempts": 12,
+        "total_improvements": 0,
+        "recovery_rate": 0.0
+      },
+      "top_errors": [
+        [
+          "assertion_failure",
+          12
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "nums = [12, 21, 13, 31, 23, 32]",
+          18
+        ],
+        [
+          "nums = [123, 321, 213, 132]",
+          8
+        ],
+        [
+          "nums = [1111, 2222, 3333, 4444]",
+          5
+        ],
+        [
+          "nums = [11, 22, 33, 44, 55, 66, 77, 88, 99, 101, 202, 303, 404, 505, 606, 707, 808, 909]",
+          4
+        ],
+        [
+          "nums = [123456, 654321, 12345, 54321, 1234, 4321, 123, 321, 12, 21, 1]",
+          4
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 1367.3597486019135,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.025000000000000022,
+      "pass@3": 0.07499999999999996,
+      "pass@5": 0.125,
+      "pass@10": 0.25
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 26
+          }
+        ],
+        [
+          27,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 27
+          }
+        ],
+        [
+          28,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 28
+          }
+        ],
+        [
+          29,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 29
+          }
+        ],
+        [
+          30,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 30
+          }
+        ],
+        [
+          31,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 31
+          }
+        ],
+        [
+          32,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 32
+          }
+        ],
+        [
+          33,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 33
+          }
+        ],
+        [
+          34,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 34
+          }
+        ],
+        [
+          35,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 35
+          }
+        ],
+        [
+          36,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 36
+          }
+        ],
+        [
+          37,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 37
+          }
+        ],
+        [
+          38,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 38
+          }
+        ],
+        [
+          39,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 39
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 40,
+    "test_cases": 1
+  }
+}

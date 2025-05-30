@@ -1,0 +1,814 @@
+{
+  "problem_id": "find-the-count-of-monotonic-pairs-ii",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # Initialize DP table\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Base case: for the first element, arr1[0] can be anything from 0 to nums[0]\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the DP table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 2)\n            for j in range(max_val + 1):\n                prefix_sum[j + 1] = (prefix_sum[j] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = (prefix_sum[j + 1] - prefix_sum[max(0, j - nums[i] + j)] + MOD) % MOD\n        \n        # Sum up all valid configurations for the last element\n        result = sum(dp[n - 1]) % MOD\n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # Initialize DP tables\n        dp_inc = [[0] * (max_val + 1) for _ in range(n)]\n        dp_dec = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Base case: for the first element, arr1[0] can be anything from 0 to nums[0]\n        for j in range(nums[0] + 1):\n            dp_inc[0][j] = 1\n        \n        # Base case: for the first element, arr2[0] can be anything from 0 to nums[0]\n        for j in range(nums[0] + 1):\n            dp_dec[0][j] = 1\n        \n        # Fill the DP tables\n        for i in range(1, n):\n            # Fill dp_inc for non-decreasing sequences\n            prefix_sum_inc = [0] * (max_val + 2)\n            for j in range(max_val + 1):\n                prefix_sum_inc[j + 1] = (prefix_sum_inc[j] + dp_inc[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp_inc[i][j] = (prefix_sum_inc[j + 1]) % MOD\n            \n            # Fill dp_dec for non-increasing sequences\n            prefix_sum_dec = [0] * (max_val + 2)\n            for j in range(max_val, -1, -1):\n                prefix_sum_dec[j] = (prefix_sum_dec[j + 1] + dp_dec[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp_dec[i][j] = (prefix_sum_dec[j]) % MOD\n        \n        # Calculate the result as the product of valid pairs for each position\n        result = 1\n        for i in range(n):\n            total_pairs = 0\n            for j in range(nums[i] + 1):\n                total_pairs = (total_pairs + dp_inc[i][j] * dp_dec[i][nums[i] - j]) % MOD\n            result = (result * total_pairs) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        \n        # Initialize DP table\n        dp = [[0] * (nums[0] + 1) for _ in range(n)]\n        \n        # Base case: for the first element, arr1[0] can be anything from 0 to nums[0]\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the DP table\n        for i in range(1, n):\n            for j in range(nums[i] + 1):\n                # arr1[i] = j, arr2[i] = nums[i] - j\n                # Sum up all valid ways to form arr1[0..i-1] and arr2[0..i-1]\n                for k in range(j + 1):\n                    dp[i][j] = (dp[i][j] + dp[i - 1][k]) % MOD\n        \n        # Calculate the result as the sum of valid pairs for the last position\n        result = 0\n        for j in range(nums[-1] + 1):\n            result = (result + dp[-1][j]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # Initialize DP tables\n        dp_inc = [[0] * (max_val + 1) for _ in range(n)]\n        dp_dec = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Base case: for the first element, arr1[0] can be anything from 0 to nums[0]\n        for j in range(nums[0] + 1):\n            dp_inc[0][j] = 1\n        \n        # Base case: for the first element, arr2[0] can be anything from 0 to nums[0]\n        for j in range(nums[0] + 1):\n            dp_dec[0][j] = 1\n        \n        # Fill the DP tables\n        for i in range(1, n):\n            # Fill dp_inc for non-decreasing sequences\n            prefix_sum_inc = [0] * (max_val + 2)\n            for j in range(max_val + 1):\n                prefix_sum_inc[j + 1] = (prefix_sum_inc[j] + dp_inc[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp_inc[i][j] = (prefix_sum_inc[j + 1]) % MOD\n            \n            # Fill dp_dec for non-increasing sequences\n            prefix_sum_dec = [0] * (max_val + 2)\n            for j in range(max_val, -1, -1):\n                prefix_sum_dec[j] = (prefix_sum_dec[j + 1] + dp_dec[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp_dec[i][j] = (prefix_sum_dec[j]) % MOD\n        \n        # Calculate the result as the product of valid pairs for each position\n        result = 1\n        for i in range(n):\n            total_pairs = 0\n            for j in range(nums[i] + 1):\n                total_pairs = (total_pairs + dp_inc[i][j] * dp_dec[i][nums[i] - j]) % MOD\n            result = (result * total_pairs) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # Initialize DP tables\n        dp_inc = [[0] * (max_val + 1) for _ in range(n)]\n        dp_dec = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Base case: for the first element, arr1[0] can be anything from 0 to nums[0]\n        for j in range(nums[0] + 1):\n            dp_inc[0][j] = 1\n        \n        # Base case: for the first element, arr2[0] can be anything from 0 to nums[0]\n        for j in range(nums[0] + 1):\n            dp_dec[0][j] = 1\n        \n        # Fill the DP tables\n        for i in range(1, n):\n            # Fill dp_inc for non-decreasing sequences\n            prefix_sum_inc = [0] * (max_val + 2)\n            for j in range(max_val + 1):\n                prefix_sum_inc[j + 1] = (prefix_sum_inc[j] + dp_inc[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp_inc[i][j] = (prefix_sum_inc[j + 1]) % MOD\n            \n            # Fill dp_dec for non-increasing sequences\n            prefix_sum_dec = [0] * (max_val + 2)\n            for j in range(max_val, -1, -1):\n                prefix_sum_dec[j] = (prefix_sum_dec[j + 1] + dp_dec[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp_dec[i][j] = (prefix_sum_dec[j]) % MOD\n        \n        # Calculate the result as the product of valid pairs for each position\n        result = 1\n        for i in range(n):\n            total_pairs = 0\n            for j in range(nums[i] + 1):\n                total_pairs = (total_pairs + dp_inc[i][j] * dp_dec[i][nums[i] - j]) % MOD\n            result = (result * total_pairs) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # Initialize DP table\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Base case: for the first element, arr1[0] can be anything from 0 to nums[0]\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the DP table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 2)\n            for j in range(max_val + 1):\n                prefix_sum[j + 1] = (prefix_sum[j] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = (prefix_sum[j + 1] - prefix_sum[max(0, j - nums[i] + 1)] + MOD) % MOD\n        \n        # Sum up all valid configurations for the last element\n        result = sum(dp[n - 1]) % MOD\n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # Initialize DP table\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Base case: for the first element, arr1[0] can be anything from 0 to nums[0]\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the DP table\n        for i in range(1, n):\n            for j in range(nums[i] + 1):\n                # arr1[i] = j, arr2[i] = nums[i] - j\n                # arr1[i] should be non-decreasing, so we sum up all valid dp[i-1][k] where k <= j\n                dp[i][j] = sum(dp[i-1][k] for k in range(j + 1)) % MOD\n        \n        # Sum up all valid configurations for the last element\n        result = sum(dp[n - 1]) % MOD\n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        \n        # dp[i][j] will store the number of ways to form arr1[0..i] ending with arr1[i] = j\n        dp = [[0] * (1001) for _ in range(n)]\n        \n        # Base case: for the first element, arr1[0] can be anything from 0 to nums[0]\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the DP table\n        for i in range(1, n):\n            for j in range(nums[i] + 1):\n                # arr1[i] = j, arr2[i] = nums[i] - j\n                # arr1[i] should be >= arr1[i-1] and arr2[i] should be <= arr2[i-1]\n                for k in range(j + 1):\n                    dp[i][j] = (dp[i][j] + dp[i - 1][k]) % MOD\n        \n        # Sum up all valid configurations for the last element\n        result = sum(dp[n - 1]) % MOD\n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # Initialize DP table\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Base case: for the first element, arr1[0] can be anything from 0 to nums[0]\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the DP table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 2)\n            for j in range(max_val + 1):\n                prefix_sum[j + 1] = (prefix_sum[j] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = (prefix_sum[j + 1] - prefix_sum[max(0, j - nums[i] + 1)] + MOD) % MOD\n        \n        # Sum up all valid configurations for the last element\n        result = sum(dp[n - 1]) % MOD\n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form valid pairs up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Base case: for the first element, arr1[0] can be anything from 0 to nums[0]\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the DP table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 2)\n            for j in range(max_val + 1):\n                prefix_sum[j + 1] = (prefix_sum[j] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = (prefix_sum[j + 1] - prefix_sum[max(0, j - nums[i] + 1)] + MOD) % MOD\n        \n        # Sum up all valid configurations for the last element\n        result = sum(dp[n - 1]) % MOD\n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        \n        # Function to calculate the number of ways to split nums[i] into arr1[i] and arr2[i]\n        def count_ways(num):\n            # arr1[i] can be any value from 0 to num, so there are (num + 1) choices\n            return num + 1\n        \n        # Calculate the total number of ways to form valid pairs\n        total_ways = 1\n        for num in nums:\n            total_ways = (total_ways * count_ways(num)) % MOD\n        \n        return total_ways",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp1[i][j] will store the number of ways to form a non-decreasing sequence up to index i with arr1[i] = j\n        dp1 = [[0] * (max_val + 1) for _ in range(n)]\n        # dp2[i][j] will store the number of ways to form a non-increasing sequence up to index i with arr2[i] = j\n        dp2 = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Base case: for the first element, arr1[0] can be anything from 0 to nums[0]\n        for j in range(nums[0] + 1):\n            dp1[0][j] = 1\n        \n        # Base case: for the first element, arr2[0] can be anything from 0 to nums[0]\n        for j in range(nums[0] + 1):\n            dp2[0][j] = 1\n        \n        # Fill the DP tables\n        for i in range(1, n):\n            prefix_sum1 = [0] * (max_val + 2)\n            prefix_sum2 = [0] * (max_val + 2)\n            \n            for j in range(max_val + 1):\n                prefix_sum1[j + 1] = (prefix_sum1[j] + dp1[i - 1][j]) % MOD\n                prefix_sum2[j + 1] = (prefix_sum2[j] + dp2[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp1[i][j] = (prefix_sum1[j + 1] - prefix_sum1[max(0, j - nums[i] + 1)] + MOD) % MOD\n                dp2[i][nums[i] - j] = (prefix_sum2[nums[i] - j + 1] - prefix_sum2[max(0, nums[i] - j - nums[i] + 1)] + MOD) % MOD\n        \n        # Sum up all valid configurations for the last element\n        result = 0\n        for j in range(max_val + 1):\n            result = (result + dp1[n - 1][j] * dp2[n - 1][nums[n - 1] - j]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form valid pairs up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Base case: for the first element, arr1[0] can be anything from 0 to nums[0]\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the DP table\n        for i in range(1, n):\n            for j in range(nums[i] + 1):\n                k = nums[i] - j  # Corresponding value for arr2[i]\n                # Sum up all valid configurations for arr1[0..i-1] that can lead to arr1[i] = j\n                for l in range(j + 1):\n                    dp[i][j] = (dp[i][j] + dp[i - 1][l]) % MOD\n                # Ensure arr2 is non-increasing by considering only valid configurations\n                for l in range(k, max_val + 1):\n                    dp[i][j] = (dp[i][j] + dp[i - 1][l]) % MOD\n        \n        # Sum up all valid configurations for the last element\n        result = sum(dp[n - 1]) % MOD\n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 1)\n            for j in range(max_val + 1):\n                prefix_sum[j] = (prefix_sum[j - 1] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = prefix_sum[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp_inc[i][j] will store the number of ways to form a valid non-decreasing sequence up to index i with arr1[i] = j\n        dp_inc = [[0] * (max_val + 1) for _ in range(n)]\n        # dp_dec[i][j] will store the number of ways to form a valid non-increasing sequence up to index i with arr2[i] = j\n        dp_dec = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp tables\n        for j in range(nums[0] + 1):\n            dp_inc[0][j] = 1\n            dp_dec[0][nums[0] - j] = 1\n        \n        # Fill the dp tables\n        for i in range(1, n):\n            prefix_sum_inc = [0] * (max_val + 1)\n            prefix_sum_dec = [0] * (max_val + 1)\n            \n            for j in range(max_val + 1):\n                prefix_sum_inc[j] = (prefix_sum_inc[j - 1] + dp_inc[i - 1][j]) % MOD\n                prefix_sum_dec[j] = (prefix_sum_dec[j - 1] + dp_dec[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp_inc[i][j] = prefix_sum_inc[j]\n                dp_dec[i][nums[i] - j] = prefix_sum_dec[max_val - (nums[i] - j)]\n        \n        # Sum up all valid configurations for the last index\n        result = 0\n        for j in range(max_val + 1):\n            result = (result + dp_inc[n - 1][j] * dp_dec[n - 1][nums[n - 1] - j]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp_inc[i][j] will store the number of ways to form a valid non-decreasing sequence up to index i with arr1[i] = j\n        dp_inc = [[0] * (max_val + 1) for _ in range(n)]\n        # dp_dec[i][j] will store the number of ways to form a valid non-increasing sequence up to index i with arr2[i] = j\n        dp_dec = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp tables\n        for j in range(nums[0] + 1):\n            dp_inc[0][j] = 1\n            dp_dec[0][nums[0] - j] = 1\n        \n        # Fill the dp tables\n        for i in range(1, n):\n            prefix_sum_inc = [0] * (max_val + 1)\n            prefix_sum_dec = [0] * (max_val + 1)\n            \n            # Calculate prefix sums for non-decreasing array\n            for j in range(max_val + 1):\n                prefix_sum_inc[j] = (prefix_sum_inc[j - 1] + dp_inc[i - 1][j]) % MOD\n            \n            # Calculate prefix sums for non-increasing array\n            for j in range(max_val + 1):\n                prefix_sum_dec[j] = (prefix_sum_dec[j - 1] + dp_dec[i - 1][j]) % MOD\n            \n            # Update dp_inc for current index\n            for j in range(nums[i] + 1):\n                dp_inc[i][j] = prefix_sum_inc[j]\n            \n            # Update dp_dec for current index\n            for j in range(nums[i] + 1):\n                dp_dec[i][nums[i] - j] = prefix_sum_dec[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = 0\n        for j in range(max_val + 1):\n            result = (result + dp_inc[n - 1][j] * dp_dec[n - 1][nums[n - 1] - j]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp_inc[i][j] will store the number of ways to form a valid non-decreasing sequence up to index i with arr1[i] = j\n        dp_inc = [[0] * (max_val + 1) for _ in range(n)]\n        # dp_dec[i][j] will store the number of ways to form a valid non-increasing sequence up to index i with arr2[i] = j\n        dp_dec = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp tables\n        for j in range(nums[0] + 1):\n            dp_inc[0][j] = 1\n            dp_dec[0][nums[0] - j] = 1\n        \n        # Fill the dp tables\n        for i in range(1, n):\n            prefix_sum_inc = [0] * (max_val + 1)\n            prefix_sum_dec = [0] * (max_val + 1)\n            \n            for j in range(max_val + 1):\n                prefix_sum_inc[j] = (prefix_sum_inc[j - 1] + dp_inc[i - 1][j]) % MOD\n                prefix_sum_dec[j] = (prefix_sum_dec[j - 1] + dp_dec[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp_inc[i][j] = prefix_sum_inc[j]\n                dp_dec[i][nums[i] - j] = prefix_sum_dec[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = 0\n        for j in range(max_val + 1):\n            result = (result + dp_inc[n - 1][j] * dp_dec[n - 1][nums[n - 1] - j]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp_inc[i][j] will store the number of ways to form a valid non-decreasing sequence up to index i with arr1[i] = j\n        dp_inc = [[0] * (max_val + 1) for _ in range(n)]\n        # dp_dec[i][j] will store the number of ways to form a valid non-increasing sequence up to index i with arr2[i] = j\n        dp_dec = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp tables\n        for j in range(nums[0] + 1):\n            dp_inc[0][j] = 1\n            dp_dec[0][nums[0] - j] = 1\n        \n        # Fill the dp tables\n        for i in range(1, n):\n            prefix_sum_inc = [0] * (max_val + 1)\n            prefix_sum_dec = [0] * (max_val + 1)\n            \n            for j in range(1, max_val + 1):\n                prefix_sum_inc[j] = (prefix_sum_inc[j - 1] + dp_inc[i - 1][j - 1]) % MOD\n                prefix_sum_dec[j] = (prefix_sum_dec[j - 1] + dp_dec[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp_inc[i][j] = prefix_sum_inc[j + 1]\n                dp_dec[i][nums[i] - j] = prefix_sum_dec[nums[i] - j + 1]\n        \n        # Sum up all valid configurations for the last index\n        result = 0\n        for j in range(max_val + 1):\n            result = (result + dp_inc[n - 1][j] * dp_dec[n - 1][nums[n - 1] - j]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            for j in range(nums[i] + 1):\n                dp[i][j] = sum(dp[i - 1][k] for k in range(j, nums[i] - j + 1)) % MOD\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j][k] will store the number of ways to form a valid pair up to index i with arr1[i] = j and arr2[i] = k\n        dp = [[[0] * (max_val + 1) for _ in range(max_val + 1)] for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            k = nums[0] - j\n            if k >= 0:\n                dp[0][j][k] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            for j in range(nums[i] + 1):\n                k = nums[i] - j\n                if k < 0:\n                    continue\n                for prev_j in range(j + 1):\n                    for prev_k in range(k, max_val + 1):\n                        dp[i][j][k] = (dp[i][j][k] + dp[i - 1][prev_j][prev_k]) % MOD\n        \n        # Sum up all valid configurations for the last index\n        result = 0\n        for j in range(max_val + 1):\n            for k in range(max_val + 1):\n                result = (result + dp[n - 1][j][k]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j][k] will store the number of ways to form a valid pair up to index i with arr1[i] = j and arr2[i] = k\n        dp = [[[0] * (max_val + 1) for _ in range(max_val + 1)] for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            k = nums[0] - j\n            if k >= 0:\n                dp[0][j][k] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            for j in range(nums[i] + 1):\n                k = nums[i] - j\n                if k < 0:\n                    continue\n                for prev_j in range(j + 1):\n                    for prev_k in range(k, max_val + 1):\n                        dp[i][j][k] = (dp[i][j][k] + dp[i - 1][prev_j][prev_k]) % MOD\n        \n        # Sum up all valid configurations for the last index\n        result = 0\n        for j in range(max_val + 1):\n            for k in range(max_val + 1):\n                result = (result + dp[n - 1][j][k]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j][k] will store the number of ways to form a valid pair up to index i with arr1[i] = j and arr2[i] = k\n        dp = [[[0] * (max_val + 1) for _ in range(max_val + 1)] for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            k = nums[0] - j\n            if k >= 0:\n                dp[0][j][k] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            for j in range(nums[i] + 1):\n                k = nums[i] - j\n                if k < 0:\n                    continue\n                for prev_j in range(j + 1):\n                    for prev_k in range(k, max_val + 1):\n                        dp[i][j][k] = (dp[i][j][k] + dp[i - 1][prev_j][prev_k]) % MOD\n        \n        # Sum up all valid configurations for the last index\n        result = 0\n        for j in range(max_val + 1):\n            for k in range(max_val + 1):\n                result = (result + dp[n - 1][j][k]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 1)\n            for j in range(1, max_val + 1):\n                prefix_sum[j] = (prefix_sum[j - 1] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = prefix_sum[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 1)\n            for j in range(max_val + 1):\n                prefix_sum[j] = (prefix_sum[j - 1] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = prefix_sum[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result\n\n# Corrected approach using combinatorial counting\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 1)\n            for j in range(max_val + 1):\n                prefix_sum[j] = (prefix_sum[j - 1] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = prefix_sum[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result\n\n# Corrected approach using combinatorial counting\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 1)\n            for j in range(max_val + 1):\n                prefix_sum[j] = (prefix_sum[j - 1] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = prefix_sum[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result\n\n# Corrected approach using combinatorial counting\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 1)\n            for j in range(max_val + 1):\n                prefix_sum[j] = (prefix_sum[j - 1] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = prefix_sum[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result\n\n# Corrected approach using combinatorial counting\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 1)\n            for j in range(max_val + 1):\n                prefix_sum[j] = (prefix_sum[j - 1] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = prefix_sum[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result\n\n# Corrected approach using combinatorial counting\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 1)\n            for j in range(max_val + 1):\n                prefix_sum[j] = (prefix_sum[j - 1] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = prefix_sum[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result\n\n# Corrected approach using combinatorial counting\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 1)\n            for j in range(max_val + 1):\n                prefix_sum[j] = (prefix_sum[j - 1] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = prefix_sum[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result\n\n# Corrected approach using combinatorial counting\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 1)\n            for j in range(max_val + 1):\n                prefix_sum[j] = (prefix_sum[j - 1] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = prefix_sum[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result\n\n# Corrected approach using combinatorial counting\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 1)\n            for j in range(max_val + 1):\n                prefix_sum[j] = (prefix_sum[j - 1] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = prefix_sum[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result\n\n# Corrected approach using combinatorial counting\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 1)\n            for j in range(max_val + 1):\n                prefix_sum[j] = (prefix_sum[j - 1] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = prefix_sum[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result\n\n# Corrected approach using combinatorial counting\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 1)\n            for j in range(max_val + 1):\n                prefix_sum[j] = (prefix_sum[j - 1] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = prefix_sum[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result\n\n# Corrected approach using combinatorial counting\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 1)\n            for j in range(max_val + 1):\n                prefix_sum[j] = (prefix_sum[j - 1] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = prefix_sum[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result\n\n# Corrected approach using combinatorial counting\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 1)\n            for j in range(max_val + 1):\n                prefix_sum[j] = (prefix_sum[j - 1] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = prefix_sum[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result\n\n# Corrected approach using combinatorial counting\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 1)\n            for j in range(max_val + 1):\n                prefix_sum[j] = (prefix_sum[j - 1] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = prefix_sum[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result\n\n# Corrected approach using combinatorial counting\nclass Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 1)\n            for j in range(max_val + 1):\n                prefix_sum[j] = (prefix_sum[j - 1] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = prefix_sum[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j][k] will store the number of ways to form a valid pair up to index i with arr1[i] = j and arr2[i] = k\n        dp = [[[0] * (max_val + 1) for _ in range(max_val + 1)] for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            k = nums[0] - j\n            if k >= 0:\n                dp[0][j][k] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            for j in range(nums[i] + 1):\n                k = nums[i] - j\n                if k < 0:\n                    continue\n                for prev_j in range(j + 1):\n                    for prev_k in range(k, max_val + 1):\n                        dp[i][j][k] = (dp[i][j][k] + dp[i - 1][prev_j][prev_k]) % MOD\n        \n        # Sum up all valid configurations for the last index\n        result = 0\n        for j in range(max_val + 1):\n            for k in range(max_val + 1):\n                result = (result + dp[n - 1][j][k]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (1001) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            for j in range(nums[i] + 1):\n                dp[i][j] = sum(dp[i - 1][k] for k in range(j, nums[i] - j + 1)) % MOD\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form valid pairs up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = 0\n            for j in range(nums[i] + 1):\n                prefix_sum = (prefix_sum + dp[i - 1][nums[i] - j]) % MOD\n                dp[i][j] = prefix_sum\n        \n        # Sum up all valid configurations from the last row of the dp table\n        result = sum(dp[n - 1]) % MOD\n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j][k] will store the number of ways to form valid pairs up to index i with arr1[i] = j and arr2[i] = k\n        dp = [[[0] * (max_val + 1) for _ in range(max_val + 1)] for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            k = nums[0] - j\n            if k >= 0:\n                dp[0][j][k] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            for j in range(nums[i] + 1):\n                k = nums[i] - j\n                if k < 0:\n                    continue\n                for j_prev in range(j + 1):\n                    for k_prev in range(k, max_val + 1):\n                        dp[i][j][k] = (dp[i][j][k] + dp[i - 1][j_prev][k_prev]) % MOD\n        \n        # Sum up all valid configurations from the last row of the dp table\n        result = 0\n        for j in range(max_val + 1):\n            for k in range(max_val + 1):\n                result = (result + dp[n - 1][j][k]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form valid pairs up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            for j in range(nums[i] + 1):\n                dp[i][j] = (dp[i][j] + dp[i - 1][j]) % MOD  # Carry forward the previous counts\n                if j > 0:\n                    dp[i][j] = (dp[i][j] + dp[i - 1][j - 1]) % MOD  # Add counts from the previous element\n        \n        # Sum up all valid configurations from the last row of the dp table\n        result = sum(dp[n - 1]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp1[i][j] will store the number of ways to form a valid arr1 up to index i with arr1[i] = j\n        dp1 = [[0] * (max_val + 1) for _ in range(n)]\n        # dp2[i][j] will store the number of ways to form a valid arr2 up to index i with arr2[i] = j\n        dp2 = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of dp1 and dp2\n        for j in range(nums[0] + 1):\n            dp1[0][j] = 1\n            dp2[0][nums[0] - j] = 1\n        \n        # Fill dp1 and dp2 tables\n        for i in range(1, n):\n            prefix_sum1 = [0] * (max_val + 2)\n            prefix_sum2 = [0] * (max_val + 2)\n            \n            # Calculate prefix sums for dp1\n            for j in range(max_val + 1):\n                prefix_sum1[j + 1] = (prefix_sum1[j] + dp1[i - 1][j]) % MOD\n            \n            # Calculate prefix sums for dp2\n            for j in range(max_val + 1):\n                prefix_sum2[j + 1] = (prefix_sum2[j] + dp2[i - 1][j]) % MOD\n            \n            # Fill dp1 for current index\n            for j in range(nums[i] + 1):\n                dp1[i][j] = prefix_sum1[j + 1] % MOD\n            \n            # Fill dp2 for current index\n            for j in range(nums[i] + 1):\n                dp2[i][nums[i] - j] = prefix_sum2[nums[i] - j + 1] % MOD\n        \n        # Sum up all valid configurations from the last row of dp1 and dp2\n        result = 0\n        for j in range(max_val + 1):\n            result = (result + dp1[n - 1][j] * dp2[n - 1][nums[n - 1] - j]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp1[j] will store the number of ways to form valid arr1 up to current index with arr1[i] = j\n        # dp2[k] will store the number of ways to form valid arr2 up to current index with arr2[i] = k\n        dp1 = [0] * (max_val + 1)\n        dp2 = [0] * (max_val + 1)\n        \n        # Initialize the first element of dp1 and dp2\n        for j in range(nums[0] + 1):\n            k = nums[0] - j\n            if k >= 0:\n                dp1[j] = 1\n                dp2[k] = 1\n        \n        # Fill the dp tables\n        for i in range(1, n):\n            new_dp1 = [0] * (max_val + 1)\n            new_dp2 = [0] * (max_val + 1)\n            \n            # Update dp1 for the current index\n            prefix_sum = 0\n            for j in range(nums[i] + 1):\n                prefix_sum = (prefix_sum + dp1[j]) % MOD\n                new_dp1[j] = prefix_sum\n            \n            # Update dp2 for the current index\n            suffix_sum = 0\n            for k in range(max_val, -1, -1):\n                if k <= nums[i]:\n                    suffix_sum = (suffix_sum + dp2[k]) % MOD\n                new_dp2[k] = suffix_sum\n            \n            dp1, dp2 = new_dp1, new_dp2\n        \n        # Sum up all valid configurations from the last row of the dp tables\n        result = 0\n        for j in range(max_val + 1):\n            k = nums[-1] - j\n            if k >= 0:\n                result = (result + dp1[j] * dp2[k]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form valid pairs up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            for j in range(nums[i] + 1):\n                # arr1[i] = j, arr2[i] = nums[i] - j\n                # Ensure arr1 is non-decreasing and arr2 is non-increasing\n                for k in range(j + 1):\n                    dp[i][j] = (dp[i][j] + dp[i - 1][k]) % MOD\n        \n        # Sum up all valid configurations from the last row of the dp table\n        result = sum(dp[n - 1]) % MOD\n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp1[i][j] will store the number of ways to form valid arr1 up to index i with arr1[i] = j\n        dp1 = [[0] * (max_val + 1) for _ in range(n)]\n        # dp2[i][j] will store the number of ways to form valid arr2 up to index i with arr2[i] = j\n        dp2 = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp1 and dp2 tables\n        for j in range(nums[0] + 1):\n            dp1[0][j] = 1\n            dp2[0][nums[0] - j] = 1\n        \n        # Fill the dp1 table\n        for i in range(1, n):\n            prefix_sum = 0\n            for j in range(nums[i] + 1):\n                prefix_sum = (prefix_sum + dp1[i - 1][j]) % MOD\n                dp1[i][j] = prefix_sum\n        \n        # Fill the dp2 table\n        for i in range(1, n):\n            suffix_sum = 0\n            for j in range(nums[i], -1, -1):\n                suffix_sum = (suffix_sum + dp2[i - 1][j]) % MOD\n                dp2[i][j] = suffix_sum\n        \n        # Calculate the result by combining dp1 and dp2\n        result = 0\n        for j in range(max_val + 1):\n            result = (result + dp1[n - 1][j] * dp2[n - 1][nums[n - 1] - j]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp_inc[i][j] will store the number of ways to form a non-decreasing sequence up to index i with arr1[i] = j\n        dp_inc = [[0] * (max_val + 1) for _ in range(n)]\n        # dp_dec[i][j] will store the number of ways to form a non-increasing sequence up to index i with arr2[i] = j\n        dp_dec = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp_inc and dp_dec tables\n        for j in range(nums[0] + 1):\n            dp_inc[0][j] = 1\n            dp_dec[0][nums[0] - j] = 1\n        \n        # Fill the dp_inc table\n        for i in range(1, n):\n            prefix_sum = 0\n            for j in range(nums[i] + 1):\n                prefix_sum = (prefix_sum + dp_inc[i - 1][j]) % MOD\n                dp_inc[i][j] = prefix_sum\n        \n        # Fill the dp_dec table\n        for i in range(1, n):\n            suffix_sum = 0\n            for j in range(nums[i], -1, -1):\n                suffix_sum = (suffix_sum + dp_dec[i - 1][j]) % MOD\n                dp_dec[i][j] = suffix_sum\n        \n        # Calculate the result by summing up all valid configurations\n        result = 0\n        for j in range(nums[-1] + 1):\n            result = (result + dp_inc[n - 1][j] * dp_dec[n - 1][nums[-1] - j]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp1[i][j] will store the number of ways to form non-decreasing sequences up to index i with arr1[i] = j\n        dp1 = [[0] * (max_val + 1) for _ in range(n)]\n        # dp2[i][j] will store the number of ways to form non-increasing sequences up to index i with arr2[i] = j\n        dp2 = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp1 and dp2 tables\n        for j in range(nums[0] + 1):\n            dp1[0][j] = 1\n            dp2[0][nums[0] - j] = 1\n        \n        # Fill the dp1 table\n        for i in range(1, n):\n            prefix_sum = 0\n            for j in range(nums[i] + 1):\n                prefix_sum = (prefix_sum + dp1[i - 1][j]) % MOD\n                dp1[i][j] = prefix_sum\n        \n        # Fill the dp2 table\n        for i in range(1, n):\n            suffix_sum = 0\n            for j in range(nums[i], -1, -1):\n                suffix_sum = (suffix_sum + dp2[i - 1][j]) % MOD\n                dp2[i][j] = suffix_sum\n        \n        # Calculate the total number of valid pairs\n        result = 0\n        for j in range(nums[-1] + 1):\n            result = (result + dp1[n - 1][j] * dp2[n - 1][nums[-1] - j]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp1[i][j] will store the number of ways to form a non-decreasing sequence up to index i with arr1[i] = j\n        dp1 = [[0] * (max_val + 1) for _ in range(n)]\n        # dp2[i][j] will store the number of ways to form a non-increasing sequence up to index i with arr2[i] = j\n        dp2 = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp1 and dp2 tables\n        for j in range(nums[0] + 1):\n            dp1[0][j] = 1\n            dp2[0][j] = 1\n        \n        # Fill the dp1 table\n        for i in range(1, n):\n            prefix_sum = 0\n            for j in range(nums[i] + 1):\n                prefix_sum = (prefix_sum + dp1[i - 1][j]) % MOD\n                dp1[i][j] = prefix_sum\n        \n        # Fill the dp2 table\n        for i in range(1, n):\n            suffix_sum = 0\n            for j in range(nums[i], -1, -1):\n                suffix_sum = (suffix_sum + dp2[i - 1][j]) % MOD\n                dp2[i][j] = suffix_sum\n        \n        # Calculate the result by combining dp1 and dp2\n        result = 0\n        for j in range(max_val + 1):\n            result = (result + dp1[n - 1][j] * dp2[n - 1][nums[n - 1] - j]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            for j in range(nums[i] + 1):\n                # arr1[i] = j, arr2[i] = nums[i] - j\n                # Sum of previous valid pairs ending with any value k <= j\n                for k in range(j + 1):\n                    dp[i][j] = (dp[i][j] + dp[i - 1][k]) % MOD\n        \n        # Calculate the result by summing all valid pairs at the last index\n        result = 0\n        for j in range(nums[-1] + 1):\n            result = (result + dp[n - 1][j]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid sequence up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            for j in range(nums[i] + 1):\n                # arr1[i] = j, arr2[i] = nums[i] - j\n                dp[i][j] = (dp[i][j] + dp[i - 1][j]) % MOD  # Non-decreasing condition\n                if j > 0:\n                    dp[i][j] = (dp[i][j] + dp[i][j - 1]) % MOD  # Carry forward from previous j\n        \n        # Calculate the result by summing up all valid ways for the last element\n        result = 0\n        for j in range(nums[-1] + 1):\n            result = (result + dp[n - 1][j]) % MOD\n        \n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            for j in range(nums[i] + 1):\n                # arr1[i] = j, arr2[i] = nums[i] - j\n                # Sum of non-decreasing sequences ending at j and non-increasing sequences starting at nums[i] - j\n                for k in range(j + 1):\n                    dp[i][j] = (dp[i][j] + dp[i - 1][k]) % MOD\n        \n        # Calculate the result by summing up all valid ways for the last element\n        result = 0\n        for j in range(nums[-1] + 1):\n            result = (result + dp[n - 1][j]) % MOD\n        \n        return result"
+  ],
+  "total_candidates": 39,
+  "nodes_explored": 39,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # Initialize DP table\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Base case: for the first element, arr1[0] can be anything from 0 to nums[0]\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the DP table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 2)\n            for j in range(max_val + 1):\n                prefix_sum[j + 1] = (prefix_sum[j] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = (prefix_sum[j + 1] - prefix_sum[max(0, j - nums[i] + j)] + MOD) % MOD\n        \n        # Sum up all valid configurations for the last element\n        result = sum(dp[n - 1]) % MOD\n        return result",
+      "solution_hash": "0f6c40d2dee4f6c2cc575c8dda2ae232abc36f17815d693495ec5b79ceef00e8",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmp3lucxxk8.py\", line 195, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/22242033/tmp3lucxxk8.py\", line 109, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmp3lucxxk8.py` failed. (See above for error)\n",
+        "execution_time": 13.524175643920898,
+        "failed_tests": [
+          {
+            "input": "nums = [2, 3, 2]",
+            "expected": "4",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmp3lucxxk8.py\", line 195, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/22242033/tmp3lucxxk8.py\", line 109, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmp3lucxxk8.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5",
+        "1_9"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form a valid pair up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = [0] * (max_val + 1)\n            for j in range(max_val + 1):\n                prefix_sum[j] = (prefix_sum[j - 1] + dp[i - 1][j]) % MOD\n            \n            for j in range(nums[i] + 1):\n                dp[i][j] = prefix_sum[nums[i] - j]\n        \n        # Sum up all valid configurations for the last index\n        result = sum(dp[n - 1]) % MOD\n        return result",
+      "solution_hash": "e04e70f183110509e0ed0bc2618212686f4c8b8feba8de362b34a81e2667880f",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmp_jmtx91t.py\", line 195, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/22242033/tmp_jmtx91t.py\", line 109, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmp_jmtx91t.py` failed. (See above for error)\n",
+        "execution_time": 13.544744491577148,
+        "failed_tests": [
+          {
+            "input": "nums = [2, 3, 2]",
+            "expected": "4",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmp_jmtx91t.py\", line 195, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/22242033/tmp_jmtx91t.py\", line 109, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmp_jmtx91t.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_14",
+        "1_18",
+        "1_22"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        \n        # dp[i][j] will store the number of ways to form valid pairs up to index i with arr1[i] = j\n        dp = [[0] * (max_val + 1) for _ in range(n)]\n        \n        # Initialize the first row of the dp table\n        for j in range(nums[0] + 1):\n            dp[0][j] = 1\n        \n        # Fill the dp table\n        for i in range(1, n):\n            prefix_sum = 0\n            for j in range(nums[i] + 1):\n                prefix_sum = (prefix_sum + dp[i - 1][nums[i] - j]) % MOD\n                dp[i][j] = prefix_sum\n        \n        # Sum up all valid configurations from the last row of the dp table\n        result = sum(dp[n - 1]) % MOD\n        return result",
+      "solution_hash": "0c9ed12dc2880e4017dd6ac3c89db9cae3b09e839f254cba1803fd27d333083a",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmpknzv92cu.py\", line 193, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/22242033/tmpknzv92cu.py\", line 107, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmpknzv92cu.py` failed. (See above for error)\n",
+        "execution_time": 13.497864961624146,
+        "failed_tests": [
+          {
+            "input": "nums = [2, 3, 2]",
+            "expected": "4",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmpknzv92cu.py\", line 193, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/22242033/tmpknzv92cu.py\", line 107, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmpknzv92cu.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_27",
+        "1_31",
+        "1_35"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 39,
+    "candidates_generated": 39,
+    "tests_passed": 0,
+    "tests_failed": 34,
+    "test_timeouts": 5,
+    "test_errors": 0,
+    "import_errors": 0,
+    "import_terminated_branches": 0,
+    "unique_import_failures": [],
+    "execution_times": [
+      13.524175643920898,
+      13.519350528717041,
+      13.5051851272583,
+      13.519350528717041,
+      13.519350528717041,
+      13.504286289215088,
+      13.517808437347412,
+      13.50351595878601,
+      13.504286289215088,
+      13.504286289215088,
+      13.54197072982788,
+      13.519650936126709,
+      13.542385816574097,
+      13.544744491577148,
+      13.518210411071777,
+      13.536298274993896,
+      13.514461994171143,
+      13.527939081192017,
+      13.551094055175781,
+      10,
+      10,
+      10,
+      13.567745208740234,
+      13.50913143157959,
+      10,
+      13.500586748123169,
+      13.497864961624146,
+      10,
+      13.509372472763062,
+      13.497050046920776,
+      13.453890323638916,
+      13.453622579574585,
+      13.466497421264648,
+      13.449923276901245,
+      13.513078212738037,
+      13.454514265060425,
+      13.447389125823975,
+      13.474605321884155,
+      13.447389125823975
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 31,
+      "unique_ratio": 0.7948717948717948,
+      "similarity_score": 0.8694166705960734,
+      "solution_lengths": {
+        "min": 575,
+        "max": 13973,
+        "avg": 1511.2820512820513
+      },
+      "algorithm_approaches": {
+        "dynamic_programming": 24,
+        "other": 15
+      },
+      "feature_diversity": 0.8205128205128205,
+      "features_analysis": {
+        "boolean_features": {
+          "has_recursion": {
+            "true_ratio": 1.0,
+            "count": 39
+          },
+          "uses_list": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dict": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_set": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_heap": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_queue": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_stack": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dp": {
+            "true_ratio": 0.6153846153846154,
+            "count": 24
+          },
+          "uses_bfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_binary_search": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "nested_loops": {
+            "true_ratio": 0.9743589743589743,
+            "count": 38
+          }
+        },
+        "numeric_features": {
+          "loop_count": {
+            "min": 1,
+            "max": 75,
+            "avg": 8.461538461538462,
+            "variance": 121.32544378698215
+          },
+          "if_count": {
+            "min": 0,
+            "max": 3,
+            "avg": 0.38461538461538464,
+            "variance": 0.6469428007889544
+          },
+          "else_count": {
+            "min": 0,
+            "max": 0,
+            "avg": 0.0,
+            "variance": 0.0
+          },
+          "return_count": {
+            "min": 1,
+            "max": 14,
+            "avg": 1.358974358974359,
+            "variance": 4.230111768573303
+          },
+          "assignment_count": {
+            "min": 4,
+            "max": 134,
+            "avg": 14.41025641025641,
+            "variance": 392.6522024983563
+          },
+          "class_method_count": {
+            "min": 1,
+            "max": 15,
+            "avg": 1.3846153846153846,
+            "variance": 4.903353057199208
+          },
+          "line_count": {
+            "min": 16,
+            "max": 401,
+            "avg": 40.333333333333336,
+            "variance": 3483.2478632478646
+          },
+          "char_count": {
+            "min": 575,
+            "max": 13973,
+            "avg": 1511.2820512820513,
+            "variance": 4199825.792241947
+          },
+          "max_indent": {
+            "min": 12,
+            "max": 24,
+            "avg": 17.846153846153847,
+            "variance": 8.899408284023663
+          }
+        }
+      },
+      "complexity_diversity": {
+        "complexity_distribution": {
+          "exponential": 39
+        },
+        "avg_complexity_metrics": {
+          "avg_line_count": 40.333333333333336,
+          "avg_loop_count": 8.461538461538462,
+          "avg_condition_count": 0.38461538461538464,
+          "avg_method_count": 1.3846153846153846,
+          "avg_assignment_count": 14.41025641025641,
+          "avg_max_loop_nesting": 1.1282051282051282
+        },
+        "complexity_diversity_ratio": 0.16666666666666666
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "nums = [2, 3, 2]": 34
+      },
+      "first_failing_tests": {
+        "nums = [2, 3, 2]": 34
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 9,
+          "improvements": 0,
+          "solved": 0
+        },
+        "2": {
+          "attempts": 27,
+          "improvements": 0,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "assertion_failure": {
+          "attempts": 11,
+          "improvements": 0
+        },
+        "other_error": {
+          "attempts": 1,
+          "improvements": 0
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "assertion_failure->assertion_failure": 26,
+        "assertion_failure->index_error": 2,
+        "assertion_failure->other_error": 5,
+        "other_error->assertion_failure": 3
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.6153846153846154,
+        "solutions_per_depth": {
+          "0": 3,
+          "1": 9,
+          "2": 27
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 0,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.025000000000000022,
+        "pass@3": 0.07499999999999996,
+        "pass@5": 0.125,
+        "pass@10": 0.25
+      },
+      "solutions_evaluated": 40
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.0,
+        "branch_success_rate": 0.0,
+        "test_success_rate": 0.0
+      },
+      "test_results": {
+        "total": 39,
+        "passed": 0,
+        "failed": 34,
+        "timeouts": 5,
+        "import_errors": 0,
+        "other_errors": 0,
+        "unique_import_failures": []
+      },
+      "error_recovery": {
+        "total_attempts": 12,
+        "total_improvements": 0,
+        "recovery_rate": 0.0
+      },
+      "top_errors": [
+        [
+          "assertion_failure",
+          11
+        ],
+        [
+          "other_error",
+          1
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "nums = [2, 3, 2]",
+          34
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 1814.5886754989624,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.025000000000000022,
+      "pass@3": 0.07499999999999996,
+      "pass@5": 0.125,
+      "pass@10": 0.25
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: list index out of range",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: list index out of range",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 26
+          }
+        ],
+        [
+          27,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 27
+          }
+        ],
+        [
+          28,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 28
+          }
+        ],
+        [
+          29,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 29
+          }
+        ],
+        [
+          30,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 30
+          }
+        ],
+        [
+          31,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 31
+          }
+        ],
+        [
+          32,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 32
+          }
+        ],
+        [
+          33,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 33
+          }
+        ],
+        [
+          34,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 34
+          }
+        ],
+        [
+          35,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 35
+          }
+        ],
+        [
+          36,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 36
+          }
+        ],
+        [
+          37,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 37
+          }
+        ],
+        [
+          38,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 38
+          }
+        ],
+        [
+          39,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 39
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 40,
+    "test_cases": 1
+  }
+}

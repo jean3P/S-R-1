@@ -1,0 +1,430 @@
+{
+  "problem_id": "final-array-state-after-k-multiplication-operations-ii",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        count = Counter(nums)\n        sorted_values = sorted(count.keys())\n        \n        for value in sorted_values:\n            if k == 0:\n                break\n            if count[value] <= k:\n                k -= count[value]\n                count[value * multiplier] += count[value]\n                del count[value]\n            else:\n                count[value] -= k\n                count[value * multiplier] += k\n                k = 0\n        \n        final_state = []\n        for value in nums:\n            final_state.append((value * (multiplier ** count[value])) % MOD)\n        \n        return final_state",
+  "passed_solutions": [
+    "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        count = Counter(nums)\n        sorted_values = sorted(count.keys())\n        \n        for value in sorted_values:\n            if k == 0:\n                break\n            if count[value] <= k:\n                k -= count[value]\n                count[value * multiplier] += count[value]\n                del count[value]\n            else:\n                count[value] -= k\n                count[value * multiplier] += k\n                k = 0\n        \n        final_state = []\n        for value in nums:\n            final_state.append((value * (multiplier ** count[value])) % MOD)\n        \n        return final_state"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        min_heap = []\n        \n        # Convert nums into a heap\n        for index, value in enumerate(nums):\n            heappush(min_heap, (value, index))\n        \n        for _ in range(k):\n            # Pop the smallest element\n            value, index = heappop(min_heap)\n            # Multiply it by the multiplier\n            new_value = value * multiplier\n            # Push the new value back into the heap with the same index\n            heappush(min_heap, (new_value, index))\n        \n        # Extract the final values from the heap and sort them by their original indices\n        final_state = [0] * len(nums)\n        while min_heap:\n            value, index = heappop(min_heap)\n            final_state[index] = value % MOD\n        \n        return final_state",
+    "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        count = Counter(nums)\n        sorted_values = sorted(count.keys())\n        \n        for _ in range(k):\n            min_val = sorted_values[0]\n            if count[min_val] > 0:\n                count[min_val] -= 1\n                new_val = min_val * multiplier\n                if new_val not in count:\n                    count[new_val] = 0\n                    bisect.insort(sorted_values, new_val)\n                count[new_val] += 1\n                if count[min_val] == 0:\n                    sorted_values.pop(0)\n        \n        final_state = []\n        for val in sorted_values:\n            final_state.extend([val % MOD] * count[val])\n        \n        return final_state",
+    "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        heap = []\n        count = Counter(nums)\n        \n        # Initialize the heap with unique elements and their counts\n        for num in count:\n            heappush(heap, num)\n        \n        for _ in range(k):\n            min_val = heappop(heap)\n            count[min_val] -= 1\n            new_val = min_val * multiplier\n            \n            if count[min_val] == 0:\n                del count[min_val]\n            else:\n                heappush(heap, min_val)\n            \n            if new_val not in count:\n                heappush(heap, new_val)\n                count[new_val] = 0\n            count[new_val] += 1\n        \n        final_state = []\n        for num in heap:\n            final_state.extend([num % MOD] * count[num])\n        \n        return final_state",
+    "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        heapify(nums)  # Convert nums into a min-heap\n        \n        for _ in range(k):\n            min_val = heappop(nums)  # Get the smallest element\n            heappush(nums, (min_val * multiplier) % MOD)  # Push the new value back into the heap\n        \n        return nums",
+    "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        heapify(nums)  # Convert nums into a min-heap\n        \n        for _ in range(k):\n            min_val = heappop(nums)  # Extract the minimum element\n            heappush(nums, (min_val * multiplier) % MOD)  # Push the new value back into the heap\n        \n        return nums",
+    "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        count = Counter(nums)\n        sorted_values = sorted(count.keys())\n        \n        i = 0\n        while k > 0 and i < len(sorted_values):\n            value = sorted_values[i]\n            if count[value] <= k:\n                k -= count[value]\n                count[value * multiplier] += count[value]\n                del count[value]\n            else:\n                count[value] -= k\n                count[value * multiplier] += k\n                k = 0\n            if value * multiplier in count:\n                sorted_values[i] = value * multiplier\n            else:\n                sorted_values.insert(i + 1, value * multiplier)\n                i += 1\n        \n        final_state = []\n        for value in sorted_values:\n            final_state.extend([value % MOD] * count[value])\n        \n        return final_state",
+    "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        min_heap = []\n        \n        # Push all elements into the min-heap\n        for num in nums:\n            heappush(min_heap, num)\n        \n        # Perform k operations\n        for _ in range(k):\n            # Pop the smallest element\n            min_val = heappop(min_heap)\n            # Multiply by the multiplier and push back into the heap\n            heappush(min_heap, (min_val * multiplier) % MOD)\n        \n        # Convert the heap back to a list and return\n        return min_heap",
+    "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapify(min_heap)\n        \n        while k > 0:\n            min_val, min_idx = heappop(min_heap)\n            new_val = min_val * multiplier\n            heappush(min_heap, (new_val, min_idx))\n            k -= 1\n        \n        final_state = [0] * len(nums)\n        for val, idx in min_heap:\n            final_state[idx] = val % MOD\n        \n        return final_state",
+    "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        min_heap = [(num, idx) for idx, num in enumerate(nums)]\n        heapify(min_heap)\n        \n        while k > 0:\n            min_val, min_idx = heappop(min_heap)\n            new_val = min_val * multiplier\n            heappush(min_heap, (new_val, min_idx))\n            k -= 1\n        \n        final_state = [0] * len(nums)\n        for val, idx in min_heap:\n            final_state[idx] = val % MOD\n        \n        return final_state",
+    "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        count = Counter(nums)\n        sorted_values = sorted(count.keys())\n        \n        for value in sorted_values:\n            if k == 0:\n                break\n            if count[value] <= k:\n                k -= count[value]\n                count[value * multiplier] += count[value]\n                del count[value]\n            else:\n                count[value] -= k\n                count[value * multiplier] += k\n                k = 0\n        \n        final_state = []\n        for value in nums:\n            final_state.append((value * (multiplier ** count[value])) % MOD)\n        \n        return final_state"
+  ],
+  "total_candidates": 10,
+  "nodes_explored": 10,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def getFinalState(self, nums: List[int], k: int, multiplier: int) -> List[int]:\n        MOD = 10**9 + 7\n        min_heap = []\n        \n        # Convert nums into a heap\n        for index, value in enumerate(nums):\n            heappush(min_heap, (value, index))\n        \n        for _ in range(k):\n            # Pop the smallest element\n            value, index = heappop(min_heap)\n            # Multiply it by the multiplier\n            new_value = value * multiplier\n            # Push the new value back into the heap with the same index\n            heappush(min_heap, (new_value, index))\n        \n        # Extract the final values from the heap and sort them by their original indices\n        final_state = [0] * len(nums)\n        while min_heap:\n            value, index = heappop(min_heap)\n            final_state[index] = value % MOD\n        \n        return final_state",
+      "solution_hash": "cb2b81efb34cbf372792b56048c0866a676949f919a14dd1ba489d1d3ecc020a",
+      "test_result": {
+        "status": "timeout",
+        "error_message": "Test execution timed out after 10s",
+        "execution_time": 10
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5",
+        "1_9"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 10,
+    "candidates_generated": 10,
+    "tests_passed": 1,
+    "tests_failed": 4,
+    "test_timeouts": 5,
+    "test_errors": 0,
+    "import_errors": 0,
+    "import_terminated_branches": 0,
+    "unique_import_failures": [],
+    "execution_times": [
+      10,
+      10,
+      13.358006954193115,
+      13.378979921340942,
+      13.378979921340942,
+      10,
+      13.546548843383789,
+      10,
+      10,
+      13.53942346572876
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 8,
+      "unique_ratio": 0.8,
+      "similarity_score": 0.8151241587249868,
+      "solution_lengths": {
+        "min": 404,
+        "max": 956,
+        "avg": 686.6
+      },
+      "algorithm_approaches": {
+        "binary_search": 1,
+        "other": 9
+      },
+      "feature_diversity": 0.9,
+      "features_analysis": {
+        "boolean_features": {
+          "has_recursion": {
+            "true_ratio": 1.0,
+            "count": 10
+          },
+          "uses_list": {
+            "true_ratio": 0.6,
+            "count": 6
+          },
+          "uses_dict": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_set": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_heap": {
+            "true_ratio": 0.7,
+            "count": 7
+          },
+          "uses_queue": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_stack": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dp": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_bfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_binary_search": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "nested_loops": {
+            "true_ratio": 0.8,
+            "count": 8
+          }
+        },
+        "numeric_features": {
+          "loop_count": {
+            "min": 1,
+            "max": 3,
+            "avg": 2.2,
+            "variance": 0.5599999999999999
+          },
+          "if_count": {
+            "min": 0,
+            "max": 3,
+            "avg": 0.9,
+            "variance": 1.2900000000000005
+          },
+          "else_count": {
+            "min": 0,
+            "max": 2,
+            "avg": 0.4,
+            "variance": 0.4400000000000001
+          },
+          "return_count": {
+            "min": 1,
+            "max": 1,
+            "avg": 1.0,
+            "variance": 0.0
+          },
+          "assignment_count": {
+            "min": 2,
+            "max": 14,
+            "avg": 7.3,
+            "variance": 14.810000000000002
+          },
+          "class_method_count": {
+            "min": 1,
+            "max": 1,
+            "avg": 1.0,
+            "variance": 0.0
+          },
+          "line_count": {
+            "min": 10,
+            "max": 30,
+            "avg": 20.0,
+            "variance": 42.0
+          },
+          "char_count": {
+            "min": 404,
+            "max": 956,
+            "avg": 686.6,
+            "variance": 37431.04
+          },
+          "max_indent": {
+            "min": 12,
+            "max": 20,
+            "avg": 14.0,
+            "variance": 7.2
+          }
+        }
+      },
+      "complexity_diversity": {
+        "complexity_distribution": {
+          "exponential": 10
+        },
+        "avg_complexity_metrics": {
+          "avg_line_count": 20.0,
+          "avg_loop_count": 2.2,
+          "avg_condition_count": 1.3,
+          "avg_method_count": 1.0,
+          "avg_assignment_count": 7.3,
+          "avg_max_loop_nesting": 1.0
+        },
+        "complexity_diversity_ratio": 0.16666666666666666
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "nums = [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5],k = 25,multiplier = 1": 4
+      },
+      "first_failing_tests": {
+        "nums = [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5],k = 25,multiplier = 1": 4
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 3,
+          "improvements": 0,
+          "solved": 1
+        },
+        "2": {
+          "attempts": 6,
+          "improvements": 0,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "other_error": {
+          "attempts": 3,
+          "improvements": 1
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "other_error->other_error": 4,
+        "other_error->assertion_failure": 4,
+        "other_error->unknown": 1
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.5,
+        "solutions_per_depth": {
+          "0": 1,
+          "1": 3,
+          "2": 6
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 1,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.18181818181818188,
+        "pass@3": 0.49090909090909096,
+        "pass@5": 0.7272727272727273,
+        "pass@10": 1.0
+      },
+      "solutions_evaluated": 11,
+      "passing_solution_depths": {
+        "min": 1,
+        "max": 1,
+        "avg": 1.0
+      }
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.1,
+        "branch_success_rate": 0.1,
+        "test_success_rate": 0.1
+      },
+      "test_results": {
+        "total": 10,
+        "passed": 1,
+        "failed": 4,
+        "timeouts": 5,
+        "import_errors": 0,
+        "other_errors": 0,
+        "unique_import_failures": []
+      },
+      "error_recovery": {
+        "total_attempts": 3,
+        "total_improvements": 1,
+        "recovery_rate": 0.3333333333333333
+      },
+      "top_errors": [
+        [
+          "other_error",
+          3
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "nums = [1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5],k = 25,multiplier = 1",
+          4
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 375.1355950832367,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.18181818181818188,
+      "pass@3": 0.49090909090909096,
+      "pass@5": 0.7272727272727273,
+      "pass@10": 1.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "timed out",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 10
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 11,
+    "test_cases": 1
+  }
+}
