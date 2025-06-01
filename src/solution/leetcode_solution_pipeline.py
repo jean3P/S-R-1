@@ -512,11 +512,15 @@ class LeetCodeSolutionPipeline:
             branch_import_failures[branch_key].update(parent_failed_imports)
 
         # ADAPTIVE MODE: Use adaptive termination logic
+        logger.debug(f"Adaptive check: mode={self.adaptive_mode}, strategy={self.adaptive_strategy is not None}, "
+                     f"histories={branch_histories is not None}, parent_in_histories={parent_id in branch_histories if branch_histories else False}")
         if self.adaptive_mode and self.adaptive_strategy and branch_histories and parent_id in branch_histories:
             parent_history = branch_histories[parent_id]
             should_terminate, confidence, reason = self.adaptive_strategy.should_terminate_branch(
                 parent_node, parent_history, depth, stats
             )
+            logger.info(f"Adaptive decision for {parent_id}: terminate={should_terminate}, "
+                        f"confidence={confidence:.2f}, reason={reason}")
 
             if should_terminate:
                 logger.info(

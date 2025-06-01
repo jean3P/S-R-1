@@ -523,19 +523,19 @@ data:
 # Adaptive exploration settings
 adaptive:
   enabled: true
-  termination_threshold: 0.7
-  time_budget_per_problem: 600  # 5 minutes
-  candidate_budget_per_problem: 90
+  termination_threshold: 0.4
+  time_budget_per_problem: 300  # 5 minutes
+  candidate_budget_per_problem: 50
   base_time_per_depth: 60  # seconds
 
   # Multi-signal termination weights
   termination_weights:
-    consecutive_failures: 0.25
-    error_repetition: 0.20
+    consecutive_failures: 0.35
+    error_repetition: 0.25
     time_budget: 0.15
-    improvement_rate: 0.15
-    solution_similarity: 0.15
-    error_complexity: 0.10
+    improvement_rate: 0.10
+    solution_similarity: 0.10
+    error_complexity: 0.05
 
   # Priority calculation weights
   priority_weights:
@@ -551,7 +551,7 @@ leetcode:
   initial_solutions: $INITIAL_K
   branch_factor: $BRANCH_FACTOR
   max_depth: $MAX_DEPTH
-  early_stopping: false  # MUST be false for adaptive mode to work properly
+  early_stopping: true  # MUST be false for adaptive mode to work properly
   adaptive_mode: true    # Enable adaptive exploration
   consecutive_failures: 3  # Fallback threshold for consecutive failures
   time_budget: 300       # 5 minutes per problem
@@ -600,6 +600,7 @@ PY
             --disable-quantization \
             --disable-flash-attention \
             --use-code-eval \
+            --early-stopping \
             "${ARGS[@]}"
 
 #        python -m src.scripts.run_leetcode_solver \

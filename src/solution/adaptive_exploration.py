@@ -207,6 +207,10 @@ class AdaptiveExplorationStrategy:
             signals[k] * self.termination_weights[k]
             for k in signals
         )
+        # ADD THE DEPTH FACTOR HERE - AFTER calculating base confidence_score
+        # Add depth factor to boost termination confidence at higher depths
+        depth_factor = min(depth / 10.0, 1.0)  # 0 to 1 based on depth
+        confidence_score = confidence_score * (1 + depth_factor * 0.5)  # Up to 50% boost
 
         # Determine primary reason
         weighted_signals = {

@@ -550,7 +550,7 @@ leetcode:
   initial_solutions: $INITIAL_K
   branch_factor: $BRANCH_FACTOR
   max_depth: $MAX_DEPTH
-  early_stopping: false  # MUST be false for adaptive mode to work properly
+  early_stopping: true  # MUST be false for adaptive mode to work properly
   adaptive_mode: true    # Enable adaptive exploration
   consecutive_failures: 3  # Fallback threshold for consecutive failures
   time_budget: 300       # 5 minutes per problem
@@ -600,6 +600,7 @@ PY
             --disable-quantization \
             --disable-flash-attention \
             --use-code-eval \
+            --early-stopping \
             "${ARGS[@]}"
 
 #        python -m src.scripts.run_leetcode_solver \
