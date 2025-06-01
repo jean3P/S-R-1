@@ -354,7 +354,7 @@ class LeetCodeSolutionPipeline:
             "all_solutions": [s["solution"] for s in all_solutions],
             "total_candidates": stats["candidates_generated"],
             "nodes_explored": stats["nodes_explored"],
-            "tree_depth": self._calculate_tree_depth(solution_tree),
+            "tree_depth": self._calculate_tree_depth(solution_tree, all_solutions),
             "solution_tree": solution_tree,
             "stats": stats_serializable,
             "processing_time": total_time
@@ -1077,7 +1077,7 @@ class LeetCodeSolutionPipeline:
 
         return False
 
-    def _calculate_tree_depth(self, solution_tree: List[Dict[str, Any]]) -> int:
+    def _calculate_tree_depth(self, solution_tree: List[Dict[str, Any]], all_solutions: List[Dict[str, Any]]) -> int:
         """Calculate the maximum depth of the solution tree."""
         max_depth = 0
 
@@ -1085,12 +1085,13 @@ class LeetCodeSolutionPipeline:
             nonlocal max_depth
             max_depth = max(max_depth, depth)
 
-            # Get all children by looking up their IDs
+            # Get all children by looking up their IDs in all_solutions
             for child_id in node.get("children", []):
-                child_node = next((n for n in solution_tree if n["node_id"] == child_id), None)
+                child_node = next((n for n in all_solutions if n["node_id"] == child_id), None)
                 if child_node:
                     traverse(child_node, depth + 1)
 
+        # Start traversal from root nodes in solution_tree
         for root_node in solution_tree:
             traverse(root_node)
 
