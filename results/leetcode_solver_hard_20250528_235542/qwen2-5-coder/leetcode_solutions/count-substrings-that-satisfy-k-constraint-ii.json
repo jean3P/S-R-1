@@ -1,0 +1,403 @@
+{
+  "problem_id": "count-substrings-that-satisfy-k-constraint-ii",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        def count_valid_substrings(l: int, r: int) -> int:\n            count_zeros = 0\n            count_ones = 0\n            start = l\n            valid_count = 0\n            \n            for end in range(l, r + 1):\n                if s[end] == '0':\n                    count_zeros += 1\n                else:\n                    count_ones += 1\n                \n                while count_zeros > k and count_ones > k:\n                    if s[start] == '0':\n                        count_zeros -= 1\n                    else:\n                        count_ones -= 1\n                    start += 1\n                \n                valid_count += (end - start + 1)\n            \n            return valid_count\n        \n        result = []\n        for l, r in queries:\n            result.append(count_valid_substrings(l, r))\n        \n        return result",
+  "passed_solutions": [
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        def count_valid_substrings(l: int, r: int) -> int:\n            count_zeros = 0\n            count_ones = 0\n            start = l\n            valid_count = 0\n            \n            for end in range(l, r + 1):\n                if s[end] == '0':\n                    count_zeros += 1\n                else:\n                    count_ones += 1\n                \n                while count_zeros > k and count_ones > k:\n                    if s[start] == '0':\n                        count_zeros -= 1\n                    else:\n                        count_ones -= 1\n                    start += 1\n                \n                valid_count += (end - start + 1)\n            \n            return valid_count\n        \n        result = []\n        for l, r in queries:\n            result.append(count_valid_substrings(l, r))\n        \n        return result"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix_zeros = [0] * (n + 1)\n        prefix_ones = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix_zeros[i + 1] = prefix_zeros[i] + (s[i] == '0')\n            prefix_ones[i + 1] = prefix_ones[i] + (s[i] == '1')\n        \n        def count_valid_substrings(prefix, k, l, r):\n            count = 0\n            for i in range(l, r + 1):\n                zeros_or_ones = prefix[r + 1] - prefix[i]\n                if zeros_or_ones <= k:\n                    count += (r - i + 1)\n            return count\n        \n        result = []\n        for l, r in queries:\n            count_zeros = count_valid_substrings(prefix_zeros, k, l, r)\n            count_ones = count_valid_substrings(prefix_ones, k, l, r)\n            total_count = count_zeros + count_ones - (prefix_zeros[r + 1] - prefix_zeros[l]) - (prefix_ones[r + 1] - prefix_ones[l])\n            result.append(total_count)\n        \n        return result",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix_zeros = [0] * (n + 1)\n        prefix_ones = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix_zeros[i + 1] = prefix_zeros[i] + (s[i] == '0')\n            prefix_ones[i + 1] = prefix_ones[i] + (s[i] == '1')\n        \n        def count_valid_substrings(prefix, k, l, r):\n            count = 0\n            left = l\n            for right in range(l, r + 1):\n                while left <= right and prefix[right + 1] - prefix[left] > k:\n                    left += 1\n                count += (right - left + 1)\n            return count\n        \n        result = []\n        for l, r in queries:\n            count_zeros = count_valid_substrings(prefix_zeros, k, l, r)\n            count_ones = count_valid_substrings(prefix_ones, k, l, r)\n            count_both = count_valid_substrings(prefix_zeros, k, l, r)\n            total_count = count_zeros + count_ones - count_both\n            result.append(total_count)\n        \n        return result",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix_zeros = [0] * (n + 1)\n        prefix_ones = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix_zeros[i + 1] = prefix_zeros[i] + (s[i] == '0')\n            prefix_ones[i + 1] = prefix_ones[i] + (s[i] == '1')\n        \n        def count_invalid_substrings(prefix, k, l, r):\n            count = 0\n            left = l\n            for right in range(l, r + 1):\n                while left <= right and prefix[right + 1] - prefix[left] > k:\n                    left += 1\n                count += (right - left + 1)\n            return count\n        \n        def count_total_substrings(l, r):\n            return (r - l + 1) * (r - l + 2) // 2\n        \n        result = []\n        for l, r in queries:\n            total_count = count_total_substrings(l, r)\n            invalid_zeros = count_invalid_substrings(prefix_zeros, k, l, r)\n            invalid_ones = count_invalid_substrings(prefix_ones, k, l, r)\n            invalid_both = count_invalid_substrings(prefix_zeros, k, l, r) + count_invalid_substrings(prefix_ones, k, l, r) - total_count\n            \n            valid_count = total_count - invalid_both\n            result.append(valid_count)\n        \n        return result",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix_zeros = [0] * (n + 1)\n        prefix_ones = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix_zeros[i + 1] = prefix_zeros[i] + (s[i] == '0')\n            prefix_ones[i + 1] = prefix_ones[i] + (s[i] == '1')\n        \n        def count_invalid_substrings(prefix, k, l, r):\n            count = 0\n            left = l\n            for right in range(l, r + 1):\n                while left <= right and prefix[right + 1] - prefix[left] > k:\n                    left += 1\n                count += (right - left + 1)\n            return count\n        \n        def total_substrings(l, r):\n            return (r - l + 1) * (r - l + 2) // 2\n        \n        result = []\n        for l, r in queries:\n            invalid_zeros = count_invalid_substrings(prefix_zeros, k, l, r)\n            invalid_ones = count_invalid_substrings(prefix_ones, k, l, r)\n            invalid_both = count_invalid_substrings(prefix_zeros, k, l, r) + count_invalid_substrings(prefix_ones, k, l, r) - total_substrings(l, r)\n            valid_count = total_substrings(l, r) - invalid_both\n            result.append(valid_count)\n        \n        return result",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix_zeros = [0] * (n + 1)\n        prefix_ones = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix_zeros[i + 1] = prefix_zeros[i] + (s[i] == '0')\n            prefix_ones[i + 1] = prefix_ones[i] + (s[i] == '1')\n        \n        def count_invalid_substrings(prefix, k, l, r):\n            count = 0\n            left = l\n            for right in range(l, r + 1):\n                while left <= right and prefix[right + 1] - prefix[left] > k:\n                    left += 1\n                count += (right - left + 1)\n            return count\n        \n        def total_substrings(l, r):\n            return (r - l + 1) * (r - l + 2) // 2\n        \n        result = []\n        for l, r in queries:\n            invalid_zeros = count_invalid_substrings(prefix_zeros, k, l, r)\n            invalid_ones = count_invalid_substrings(prefix_ones, k, l, r)\n            invalid_both = count_invalid_substrings(prefix_zeros, k, l, r) + count_invalid_substrings(prefix_ones, k, l, r) - total_substrings(l, r)\n            valid_count = total_substrings(l, r) - invalid_both\n            result.append(valid_count)\n        \n        return result",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        def count_valid_substrings(l: int, r: int) -> int:\n            count_zeros = 0\n            count_ones = 0\n            start = l\n            valid_count = 0\n            \n            for end in range(l, r + 1):\n                if s[end] == '0':\n                    count_zeros += 1\n                else:\n                    count_ones += 1\n                \n                while count_zeros > k and count_ones > k:\n                    if s[start] == '0':\n                        count_zeros -= 1\n                    else:\n                        count_ones -= 1\n                    start += 1\n                \n                valid_count += (end - start + 1)\n            \n            return valid_count\n        \n        result = []\n        for l, r in queries:\n            result.append(count_valid_substrings(l, r))\n        \n        return result",
+    "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix_zeros = [0] * (n + 1)\n        prefix_ones = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix_zeros[i + 1] = prefix_zeros[i] + (s[i] == '0')\n            prefix_ones[i + 1] = prefix_ones[i] + (s[i] == '1')\n        \n        def count_valid_substrings(prefix, k, l, r):\n            count = 0\n            left = l\n            for right in range(l, r + 1):\n                while left <= right and prefix[right + 1] - prefix[left] > k:\n                    left += 1\n                count += (right - left + 1)\n            return count\n        \n        result = []\n        for l, r in queries:\n            count_zeros = count_valid_substrings(prefix_zeros, k, l, r)\n            count_ones = count_valid_substrings(prefix_ones, k, l, r)\n            result.append(count_zeros + count_ones - count_valid_substrings(prefix_zeros, k, l, r) - count_valid_substrings(prefix_ones, k, l, r) + (r - l + 1))\n        \n        return result"
+  ],
+  "total_candidates": 7,
+  "nodes_explored": 7,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def countKConstraintSubstrings(self, s: str, k: int, queries: List[List[int]]) -> List[int]:\n        n = len(s)\n        prefix_zeros = [0] * (n + 1)\n        prefix_ones = [0] * (n + 1)\n        \n        for i in range(n):\n            prefix_zeros[i + 1] = prefix_zeros[i] + (s[i] == '0')\n            prefix_ones[i + 1] = prefix_ones[i] + (s[i] == '1')\n        \n        def count_valid_substrings(prefix, k, l, r):\n            count = 0\n            for i in range(l, r + 1):\n                zeros_or_ones = prefix[r + 1] - prefix[i]\n                if zeros_or_ones <= k:\n                    count += (r - i + 1)\n            return count\n        \n        result = []\n        for l, r in queries:\n            count_zeros = count_valid_substrings(prefix_zeros, k, l, r)\n            count_ones = count_valid_substrings(prefix_ones, k, l, r)\n            total_count = count_zeros + count_ones - (prefix_zeros[r + 1] - prefix_zeros[l]) - (prefix_ones[r + 1] - prefix_ones[l])\n            result.append(total_count)\n        \n        return result",
+      "solution_hash": "d191c3c47089524a8e3b9356404a1d19bb3d5bffca5e4b318e2d8e0c3d3223e0",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmpjxskvyhm.py\", line 186, in <module>\n    check(Solution().countKConstraintSubstrings)\n  File \"/scratch/local/22242033/tmpjxskvyhm.py\", line 110, in check\n    assert candidate(s = \"010101\",k = 1,queries = [[0, 5], [1, 4], [2, 3]]) == [15, 9, 3]\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmpjxskvyhm.py` failed. (See above for error)\n",
+        "execution_time": 13.530691862106323,
+        "failed_tests": [
+          {
+            "input": "s = \"010101\",k = 1,queries = [[0, 5], [1, 4], [2, 3]]",
+            "expected": "[15, 9, 3]",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmpjxskvyhm.py\", line 186, in <module>\n    check(Solution().countKConstraintSubstrings)\n  File \"/scratch/local/22242033/tmpjxskvyhm.py\", line 110, in check\n    assert candidate(s = \"010101\",k = 1,queries = [[0, 5], [1, 4], [2, 3]]) == [15, 9, 3]\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmpjxskvyhm.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5",
+        "1_6"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 7,
+    "candidates_generated": 7,
+    "tests_passed": 1,
+    "tests_failed": 6,
+    "test_timeouts": 0,
+    "test_errors": 0,
+    "import_errors": 0,
+    "import_terminated_branches": 0,
+    "unique_import_failures": [],
+    "execution_times": [
+      13.530691862106323,
+      13.468328952789307,
+      13.495251655578613,
+      13.49702262878418,
+      13.49702262878418,
+      13.45553970336914,
+      13.4439377784729
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 6,
+      "unique_ratio": 0.8571428571428571,
+      "similarity_score": 0.9013261771246744,
+      "solution_lengths": {
+        "min": 966,
+        "max": 1334,
+        "avg": 1158.142857142857
+      },
+      "algorithm_approaches": {
+        "binary_search": 5,
+        "sliding_window": 2
+      },
+      "feature_diversity": 0.8571428571428571,
+      "features_analysis": {
+        "boolean_features": {
+          "has_recursion": {
+            "true_ratio": 1.0,
+            "count": 7
+          },
+          "uses_list": {
+            "true_ratio": 1.0,
+            "count": 7
+          },
+          "uses_dict": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_set": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_heap": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_queue": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_stack": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dp": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_bfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_binary_search": {
+            "true_ratio": 0.7142857142857143,
+            "count": 5
+          },
+          "nested_loops": {
+            "true_ratio": 1.0,
+            "count": 7
+          }
+        },
+        "numeric_features": {
+          "loop_count": {
+            "min": 3,
+            "max": 4,
+            "avg": 3.7142857142857144,
+            "variance": 0.20408163265306123
+          },
+          "if_count": {
+            "min": 0,
+            "max": 2,
+            "avg": 0.42857142857142855,
+            "variance": 0.5306122448979591
+          },
+          "else_count": {
+            "min": 0,
+            "max": 2,
+            "avg": 0.2857142857142857,
+            "variance": 0.48979591836734704
+          },
+          "return_count": {
+            "min": 2,
+            "max": 3,
+            "avg": 2.4285714285714284,
+            "variance": 0.24489795918367344
+          },
+          "assignment_count": {
+            "min": 13,
+            "max": 18,
+            "avg": 16.0,
+            "variance": 2.5714285714285716
+          },
+          "class_method_count": {
+            "min": 2,
+            "max": 3,
+            "avg": 2.4285714285714284,
+            "variance": 0.24489795918367344
+          },
+          "line_count": {
+            "min": 26,
+            "max": 33,
+            "avg": 29.285714285714285,
+            "variance": 6.204081632653062
+          },
+          "char_count": {
+            "min": 966,
+            "max": 1334,
+            "avg": 1158.142857142857,
+            "variance": 16750.979591836734
+          },
+          "max_indent": {
+            "min": 20,
+            "max": 24,
+            "avg": 20.571428571428573,
+            "variance": 1.959183673469388
+          }
+        }
+      },
+      "complexity_diversity": {
+        "complexity_distribution": {
+          "exponential": 7
+        },
+        "avg_complexity_metrics": {
+          "avg_line_count": 29.285714285714285,
+          "avg_loop_count": 3.7142857142857144,
+          "avg_condition_count": 0.7142857142857143,
+          "avg_method_count": 2.4285714285714284,
+          "avg_assignment_count": 16.0,
+          "avg_max_loop_nesting": 1.0
+        },
+        "complexity_diversity_ratio": 0.16666666666666666
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "s = \"010101\",k = 1,queries = [[0, 5], [1, 4], [2, 3]]": 6
+      },
+      "first_failing_tests": {
+        "s = \"010101\",k = 1,queries = [[0, 5], [1, 4], [2, 3]]": 6
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 3,
+          "improvements": 0,
+          "solved": 1
+        },
+        "2": {
+          "attempts": 3,
+          "improvements": 0,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "assertion_failure": {
+          "attempts": 2,
+          "improvements": 1
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "assertion_failure->assertion_failure": 5,
+        "assertion_failure->unknown": 1
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.2857142857142858,
+        "solutions_per_depth": {
+          "0": 1,
+          "1": 3,
+          "2": 3
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 1,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.25,
+        "pass@3": 0.6428571428571429,
+        "pass@5": 0.8928571428571429
+      },
+      "solutions_evaluated": 8,
+      "passing_solution_depths": {
+        "min": 1,
+        "max": 1,
+        "avg": 1.0
+      }
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.14285714285714285,
+        "branch_success_rate": 0.14285714285714285,
+        "test_success_rate": 0.14285714285714285
+      },
+      "test_results": {
+        "total": 7,
+        "passed": 1,
+        "failed": 6,
+        "timeouts": 0,
+        "import_errors": 0,
+        "other_errors": 0,
+        "unique_import_failures": []
+      },
+      "error_recovery": {
+        "total_attempts": 2,
+        "total_improvements": 1,
+        "recovery_rate": 0.5
+      },
+      "top_errors": [
+        [
+          "assertion_failure",
+          2
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "s = \"010101\",k = 1,queries = [[0, 5], [1, 4], [2, 3]]",
+          6
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 346.9733636379242,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.25,
+      "pass@3": 0.6428571428571429,
+      "pass@5": 0.8928571428571429
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 7
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 8,
+    "test_cases": 1
+  }
+}

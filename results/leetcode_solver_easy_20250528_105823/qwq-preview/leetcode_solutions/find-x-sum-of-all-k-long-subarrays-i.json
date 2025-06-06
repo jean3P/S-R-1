@@ -1,0 +1,785 @@
+{
+  "problem_id": "find-x-sum-of-all-k-long-subarrays-i",
+  "problem_title": "",
+  "difficulty": "Easy",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Initialize frequency map for the first window\n        freq = Counter(nums[:k])\n        \n        # Function to get the top x elements based on frequency and value\n        def get_top_x(freq):\n            # Sort the items first by frequency descending, then by value descending\n            sorted_freq = sorted(freq.items(), key=lambda item: (-item[1], -item[0]))\n            # Get the top x elements\n            top_x = set([pair[0] for pair in sorted_freq[:x]])\n            return top_x\n        \n        # Function to calculate sum of elements in freq that are in top_x\n        def calculate_sum(freq, top_x):\n            return sum(count for num, count in freq.items() if num in top_x)\n        \n        # Calculate the initial top x elements\n        top_x = get_top_x(freq)\n        # Calculate the initial sum\n        answer = [calculate_sum(freq, top_x)]\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq[outgoing] -= 1\n            if freq[outgoing] == 0:\n                del freq[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq[incoming] += 1\n            # Update top_x if necessary\n            if incoming not in top_x and len(top_x) == x:\n                # Check if incoming element should be in top_x\n                # Find the lowest frequency in top_x\n                min_freq_in_top = min(freq[num] for num in top_x)\n                if freq[incoming] > min_freq_in_top or \\\n                   (freq[incoming] == min_freq_in_top and incoming > max(top_x)):\n                    # Update top_x\n                    top_x = get_top_x(freq)\n            else:\n                # If incoming element is already in top_x, no need to update\n                pass\n            # Calculate the sum for the current window\n            current_sum = calculate_sum(freq, top_x)\n            answer.append(current_sum)\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\nimport heapq\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Initialize frequency map for the first window\n        freq = Counter(nums[:k])\n        \n        # Define a comparison class for heap\n        class Element:\n            def __init__(self, num, count):\n                self.num = num\n                self.count = count\n            def __lt__(self, other):\n                if self.count == other.count:\n                    return self.num < other.num  # Smaller num has lower priority\n                return self.count < other.count  # Smaller count has lower priority\n        \n        # Initialize heap with the first window's frequencies\n        heap = [Element(num, count) for num, count in freq.items()]\n        heapq.heapify(heap)\n        \n        # Keep only the top x elements in the heap\n        while len(heap) > x:\n            heapq.heappop(heap)\n        \n        # Function to calculate the x-sum of the current window\n        def calculate_x_sum(freq, heap):\n            top_x = {elem.num for elem in heap}\n            return sum(count for num, count in freq.items() if num in top_x)\n        \n        answer = [calculate_x_sum(freq, heap)]\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the outgoing element\n            outgoing = nums[i - k]\n            freq[outgoing] -= 1\n            if freq[outgoing] == 0:\n                del freq[outgoing]\n            \n            # Add the incoming element\n            incoming = nums[i]\n            freq[incoming] += 1\n            \n            # Check if the outgoing element was in the top x\n            if outgoing in [elem.num for elem in heap]:\n                # Remove it from the heap and heapify\n                heap = [elem for elem in heap if elem.num != outgoing]\n                heapq.heapify(heap)\n                # Push the updated elements back\n                for num, count in freq.items():\n                    if num not in [elem.num for elem in heap]:\n                        heapq.heappush(heap, Element(num, count))\n                    else:\n                        for elem in heap:\n                            if elem.num == num:\n                                elem.count = count\n                # Maintain the top x elements\n                while len(heap) > x:\n                    heapq.heappop(heap)\n            \n            # Check if the incoming element should be in the top x\n            if incoming not in [elem.num for elem in heap]:\n                heapq.heappush(heap, Element(incoming, freq[incoming]))\n                if len(heap) > x:\n                    heapq.heappop(heap)\n            else:\n                # Update the count in the heap\n                for elem in heap:\n                    if elem.num == incoming:\n                        elem.count = freq[incoming]\n                # Re-heapify to maintain the order\n                heapq.heapify(heap)\n            \n            # Calculate the x-sum for the current window\n            answer.append(calculate_x_sum(freq, heap))\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\nimport heapq\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Initialize frequency map for the first window\n        freq = Counter(nums[:k])\n        \n        # Define a comparison class for heap\n        class Element:\n            def __init__(self, num, count):\n                self.num = num\n                self.count = count\n            def __lt__(self, other):\n                if self.count == other.count:\n                    return self.num < other.num  # Smaller num has lower priority\n                return self.count < other.count  # Smaller count has lower priority\n        \n        # Initialize heap with the first window's frequencies\n        heap = [Element(num, count) for num, count in freq.items()]\n        heapq.heapify(heap)\n        \n        # Keep only the top x elements in the heap\n        while len(heap) > x:\n            heapq.heappop(heap)\n        \n        # Function to calculate the x-sum of the current window\n        def calculate_x_sum(freq, heap):\n            top_x = {elem.num for elem in heap}\n            return sum(count for num, count in freq.items() if num in top_x)\n        \n        answer = [calculate_x_sum(freq, heap)]\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the outgoing element\n            outgoing = nums[i - k]\n            freq[outgoing] -= 1\n            if freq[outgoing] == 0:\n                del freq[outgoing]\n            \n            # Add the incoming element\n            incoming = nums[i]\n            freq[incoming] = freq.get(incoming, 0) + 1\n            \n            # Check if the outgoing element was in the top x\n            if any(elem.num == outgoing for elem in heap):\n                # Remove it from the heap and heapify\n                heap = [elem for elem in heap if elem.num != outgoing]\n                heapq.heapify(heap)\n                # Push the updated elements back\n                for num, count in freq.items():\n                    if num not in [elem.num for elem in heap]:\n                        heapq.heappush(heap, Element(num, count))\n                    else:\n                        for elem in heap:\n                            if elem.num == num:\n                                elem.count = count\n                # Maintain the top x elements\n                while len(heap) > x:\n                    heapq.heappop(heap)\n            \n            # Check if the incoming element should be in the top x\n            if incoming not in [elem.num for elem in heap]:\n                heapq.heappush(heap, Element(incoming, freq[incoming]))\n                if len(heap) > x:\n                    heapq.heappop(heap)\n            else:\n                # Update the count in the heap\n                for elem in heap:\n                    if elem.num == incoming:\n                        elem.count = freq[incoming]\n                # Re-heapify to maintain the order\n                heapq.heapify(heap)\n            \n            # Calculate the x-sum for the current window\n            answer.append(calculate_x_sum(freq, heap))\n        \n        return answer",
+    "from typing import List\n        from collections import Counter\n\n        class Solution:\n            def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n                n = len(nums)\n                if k > n:\n                    return []\n                \n                def x_sum(subarray, x):\n                    freq = Counter(subarray)\n                    # Sort the frequency map by count descending, then by value descending\n                    sorted_freq = sorted(freq.items(), key=lambda item: (-item[1], -item[0]))\n                    # Get the top x elements\n                    top_x = set([num for num, count in sorted_freq[:x]])\n                    # Calculate sum of elements that are in top_x\n                    return sum(count for num, count in freq.items() if num in top_x)\n                \n                answer = []\n                for i in range(n - k + 1):\n                    subarray = nums[i:i+k]\n                    answer.append(x_sum(subarray, x))\n                return answer",
+    "from typing import List\nimport heapq\nfrom collections import Counter\n\nclass Element:\n    def __init__(self, num, count):\n        self.num = num\n        self.count = count\n    def __lt__(self, other):\n        if self.count == other.count:\n            return self.num < other.num  # Smaller num has lower priority\n        return self.count < other.count  # Smaller count has lower priority\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Initialize frequency map for the first window\n        freq = Counter(nums[:k])\n        \n        # Initialize heap with the first window's frequencies\n        heap = [Element(num, count) for num, count in freq.items()]\n        heapq.heapify(heap)\n        \n        # Keep only the top x elements in the heap\n        while len(heap) > x:\n            heapq.heappop(heap)\n        \n        # Function to calculate the x-sum of the current window\n        def calculate_x_sum(freq, heap):\n            top_x = {elem.num for elem in heap}\n            return sum(count for num, count in freq.items() if num in top_x)\n        \n        answer = [calculate_x_sum(freq, heap)]\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the outgoing element\n            outgoing = nums[i - k]\n            freq[outgoing] -= 1\n            if freq[outgoing] == 0:\n                del freq[outgoing]\n            \n            # Add the incoming element\n            incoming = nums[i]\n            freq[incoming] = freq.get(incoming, 0) + 1\n            \n            # Check if the outgoing element was in the top x\n            if any(elem.num == outgoing for elem in heap):\n                # Remove it from the heap and heapify\n                heap = [elem for elem in heap if elem.num != outgoing]\n                heapq.heapify(heap)\n                # Push the updated elements back\n                for num, count in freq.items():\n                    if num not in [elem.num for elem in heap]:\n                        heapq.heappush(heap, Element(num, count))\n                    else:\n                        for elem in heap:\n                            if elem.num == num:\n                                elem.count = count\n                # Maintain the top x elements\n                while len(heap) > x:\n                    heapq.heappop(heap)\n            \n            # Check if the incoming element should be in the top x\n            if incoming not in [elem.num for elem in heap]:\n                heapq.heappush(heap, Element(incoming, freq[incoming]))\n                if len(heap) > x:\n                    heapq.heappop(heap)\n            else:\n                # Update the count in the heap\n                for elem in heap:\n                    if elem.num == incoming:\n                        elem.count = freq[incoming]\n                # Re-heapify to maintain the order\n                heapq.heapify(heap)\n            \n            # Calculate the x-sum for the current window\n            answer.append(calculate_x_sum(freq, heap))\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Initialize frequency map for the first window\n        freq = Counter(nums[:k])\n        \n        # Function to get the top x elements based on frequency and value\n        def get_top_x(freq):\n            # Use a heap to manage elements based on frequency and value\n            heap = [(-freq[num], num) for num in freq]\n            heapq.heapify(heap)\n            top_x = set()\n            for _ in range(min(x, len(heap))):\n                top_x.add(heapq.heappop(heap)[1])\n            return top_x\n        \n        # Function to calculate sum of elements in freq that are in top_x\n        def calculate_sum(freq, top_x):\n            return sum(count for num, count in freq.items() if num in top_x)\n        \n        # Calculate the initial top x elements\n        top_x = get_top_x(freq)\n        # Calculate the initial sum\n        answer = [calculate_sum(freq, top_x)]\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq[outgoing] -= 1\n            if freq[outgoing] == 0:\n                del freq[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq[incoming] = freq.get(incoming, 0) + 1\n            # Update top_x if necessary\n            if incoming not in top_x or outgoing in top_x:\n                # Recompute top_x\n                top_x = get_top_x(freq)\n            # Calculate the sum for the current window\n            current_sum = calculate_sum(freq, top_x)\n            answer.append(current_sum)\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\nimport heapq\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Initialize frequency map for the first window\n        freq = Counter(nums[:k])\n        \n        # Function to get the top x elements based on frequency and value\n        def get_top_x(freq):\n            # Use a heap to manage elements based on frequency and negative value\n            heap = [(-freq[num], num) for num in freq]\n            heapq.heapify(heap)\n            top_x = set()\n            for _ in range(min(x, len(heap))):\n                top_x.add(heapq.heappop(heap)[1])\n            return top_x\n        \n        # Function to calculate sum of elements in freq that are in top_x\n        def calculate_sum(freq, top_x):\n            return sum(count for num, count in freq.items() if num in top_x)\n        \n        # Calculate the initial top x elements\n        top_x = get_top_x(freq)\n        # Calculate the initial sum\n        answer = [calculate_sum(freq, top_x)]\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq[outgoing] -= 1\n            if freq[outgoing] == 0:\n                del freq[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq[incoming] = freq.get(incoming, 0) + 1\n            # Update top_x if necessary\n            if incoming not in top_x or outgoing in top_x:\n                # Recompute top_x\n                top_x = get_top_x(freq)\n            # Calculate the sum for the current window\n            current_sum = calculate_sum(freq, top_x)\n            answer.append(current_sum)\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter, defaultdict\nimport heapq\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Function to get the top x elements based on frequency and value\n        def get_top_x(freq):\n            # Use a heap to manage elements based on frequency and negative value\n            heap = [(-freq[num], num) for num in freq]\n            heapq.heapify(heap)\n            top_x = set()\n            for _ in range(min(x, len(heap))):\n                top_x.add(heapq.heappop(heap)[1])\n            return top_x\n        \n        # Function to calculate sum of elements in freq that are in top_x\n        def calculate_sum(freq, top_x):\n            return sum(count for num, count in freq.items() if num in top_x)\n        \n        # Initialize frequency map for the first window\n        freq = Counter(nums[:k])\n        # Calculate the initial top x elements\n        top_x = get_top_x(freq)\n        # Calculate the initial sum\n        answer = [calculate_sum(freq, top_x)]\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq[outgoing] -= 1\n            if freq[outgoing] == 0:\n                del freq[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq[incoming] = freq.get(incoming, 0) + 1\n            # Update top_x if necessary\n            if incoming not in top_x or outgoing in top_x:\n                # Recompute top_x\n                top_x = get_top_x(freq)\n            # Calculate the sum for the current window\n            current_sum = calculate_sum(freq, top_x)\n            answer.append(current_sum)\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\nimport heapq\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Initialize frequency map for the first window\n        freq = Counter(nums[:k])\n        \n        # Function to get the top x elements based on frequency and value\n        def get_top_x(freq):\n            # Use a heap to manage elements based on frequency and value\n            heap = [(-freq[num], num) for num in freq]\n            heapq.heapify(heap)\n            top_x = set()\n            for _ in range(min(x, len(heap))):\n                top_x.add(heapq.heappop(heap)[1])\n            return top_x\n        \n        # Function to calculate sum of elements in freq that are in top_x\n        def calculate_sum(freq, top_x):\n            return sum(count for num, count in freq.items() if num in top_x)\n        \n        # Calculate the initial top x elements\n        top_x = get_top_x(freq)\n        # Calculate the initial sum\n        answer = [calculate_sum(freq, top_x)]\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq[outgoing] -= 1\n            if freq[outgoing] == 0:\n                del freq[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq[incoming] = freq.get(incoming, 0) + 1\n            # Update top_x if necessary\n            if incoming not in top_x or outgoing in top_x:\n                # Recompute top_x\n                top_x = get_top_x(freq)\n            # Calculate the sum for the current window\n            current_sum = calculate_sum(freq, top_x)\n            answer.append(current_sum)\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Initialize frequency map for the first window\n        freq = Counter(nums[:k])\n        \n        # Function to get the top x elements based on frequency and value\n        def get_top_x(freq):\n            # Use a heap to get the top x elements\n            # Heap elements are (-frequency, value) to sort by frequency descending, then value descending\n            heap = [(-count, num) for num, count in freq.items()]\n            heapq.heapify(heap)\n            top_x = set()\n            for _ in range(min(x, len(heap))):\n                top_x.add(heapq.heappop(heap)[1])\n            return top_x\n        \n        # Function to calculate sum of elements in freq that are in top_x\n        def calculate_sum(freq, top_x):\n            return sum(count for num, count in freq.items() if num in top_x)\n        \n        # Calculate the initial top x elements\n        top_x = get_top_x(freq)\n        # Calculate the initial sum\n        answer = [calculate_sum(freq, top_x)]\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq[outgoing] -= 1\n            if freq[outgoing] == 0:\n                del freq[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq[incoming] += 1\n            # Update top_x if necessary\n            if incoming not in top_x and len(top_x) == x:\n                # Check if incoming element should be in top_x\n                # Find the lowest frequency in top_x\n                min_freq_in_top = -max(heapq.nlargest(x, [(-count, num) for num, count in freq.items()]))[0]\n                if freq[incoming] > min_freq_in_top or \\\n                   (freq[incoming] == min_freq_in_top and incoming > max(top_x)):\n                    # Update top_x\n                    top_x = get_top_x(freq)\n            else:\n                # If incoming element is already in top_x, no need to update\n                pass\n            # Calculate the sum for the current window\n            current_sum = calculate_sum(freq, top_x)\n            answer.append(current_sum)\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\nimport heapq\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Initialize frequency map for the first window\n        freq = Counter(nums[:k])\n        \n        # Function to get the top x elements based on frequency and value\n        def get_top_x(freq):\n            # Use a heap to get the top x elements\n            # Heap elements are (-frequency, value) to sort by frequency descending, then value descending\n            heap = [(-count, num) for num, count in freq.items()]\n            heapq.heapify(heap)\n            top_x = set()\n            for _ in range(min(x, len(heap))):\n                top_x.add(heapq.heappop(heap)[1])\n            return top_x\n        \n        # Function to calculate sum of elements in freq that are in top_x\n        def calculate_sum(freq, top_x):\n            return sum(count for num, count in freq.items() if num in top_x)\n        \n        # Calculate the initial top x elements\n        top_x = get_top_x(freq)\n        # Calculate the initial sum\n        answer = [calculate_sum(freq, top_x)]\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq[outgoing] -= 1\n            if freq[outgoing] == 0:\n                del freq[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq[incoming] += 1\n            # Update top_x if necessary\n            if incoming not in top_x and len(top_x) == x:\n                # Check if incoming element should be in top_x\n                # Find the lowest frequency in top_x\n                min_freq_in_top = -max(heapq.nlargest(x, [(-count, num) for num, count in freq.items()]))[0]\n                if freq[incoming] > min_freq_in_top or \\\n                   (freq[incoming] == min_freq_in_top and incoming > max(top_x)):\n                    # Update top_x\n                    top_x = get_top_x(freq)\n            else:\n                # If incoming element is already in top_x, no need to update\n                pass\n            # Calculate the sum for the current window\n            current_sum = calculate_sum(freq, top_x)\n            answer.append(current_sum)\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\nimport heapq\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Initialize frequency map for the first window\n        freq = Counter(nums[:k])\n        \n        # Function to get the top x elements based on frequency and value\n        def get_top_x(freq):\n            # Use a heap to get the top x elements\n            # Heap elements are (-frequency, -value) to sort by frequency descending, then value descending\n            heap = [(-count, -num) for num, count in freq.items()]\n            heapq.heapify(heap)\n            top_x = set()\n            for _ in range(min(x, len(heap))):\n                top_x.add(-heapq.heappop(heap)[1])\n            return top_x\n        \n        # Function to calculate sum of elements in freq that are in top_x\n        def calculate_sum(freq, top_x):\n            return sum(count for num, count in freq.items() if num in top_x)\n        \n        # Calculate the initial top x elements\n        top_x = get_top_x(freq)\n        # Calculate the initial sum\n        answer = [calculate_sum(freq, top_x)]\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq[outgoing] -= 1\n            if freq[outgoing] == 0:\n                del freq[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq[incoming] = freq.get(incoming, 0) + 1\n            # Update top_x if necessary\n            if incoming not in top_x and len(top_x) == x:\n                # Check if incoming element should be in top_x\n                # Find the lowest frequency in top_x\n                min_freq_in_top = -max(heapq.nlargest(x, [(-count, -num) for num, count in freq.items()]))[0]\n                if freq[incoming] > min_freq_in_top or \\\n                   (freq[incoming] == min_freq_in_top and incoming > -min(top_x, key=lambda num: (-freq[num], num))):\n                    # Update top_x\n                    top_x = get_top_x(freq)\n            # Calculate the sum for the current window\n            current_sum = calculate_sum(freq, top_x)\n            answer.append(current_sum)\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\nimport heapq\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Initialize frequency map for the first window\n        freq = Counter(nums[:k])\n        \n        # Function to get the top x elements based on frequency and value\n        def get_top_x(freq):\n            # Use a heap to get the top x elements\n            # Heap elements are (-frequency, -value) to sort by frequency descending, then value descending\n            heap = [(-count, -num) for num, count in freq.items()]\n            heapq.heapify(heap)\n            top_x = set()\n            for _ in range(min(x, len(heap))):\n                top_x.add(-heapq.heappop(heap)[1])\n            return top_x\n        \n        # Function to calculate sum of elements in freq that are in top_x\n        def calculate_sum(freq, top_x):\n            return sum(count for num, count in freq.items() if num in top_x)\n        \n        # Calculate the initial top x elements\n        top_x = get_top_x(freq)\n        # Calculate the initial sum\n        answer = [calculate_sum(freq, top_x)]\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq[outgoing] -= 1\n            if freq[outgoing] == 0:\n                del freq[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq[incoming] += 1\n            # Update top_x if necessary\n            if incoming not in top_x and len(top_x) == x:\n                # Check if incoming element should be in top_x\n                # Find the lowest frequency in top_x\n                min_freq_in_top = -max(heapq.nlargest(x, [(-count, -num) for num, count in freq.items()]))[0]\n                if freq[incoming] > min_freq_in_top or \\\n                   (freq[incoming] == min_freq_in_top and incoming > -min(top_x, key=lambda x: (-freq[x], -x))):\n                    # Update top_x\n                    top_x = get_top_x(freq)\n            else:\n                # If incoming element is already in top_x, no need to update\n                pass\n            # Calculate the sum for the current window\n            current_sum = calculate_sum(freq, top_x)\n            answer.append(current_sum)\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        def top_x_sum(counter, x):\n            # Sort by frequency descending, then by value descending\n            sorted_items = sorted(counter.items(), key=lambda item: (-item[1], -item[0]))\n            top_x = sorted_items[:x]\n            return sum(val * count for val, count in top_x)\n        \n        answer = []\n        # Initialize frequency counter for the first window\n        freq_counter = Counter(nums[:k])\n        answer.append(top_x_sum(freq_counter, x))\n        \n        # Slide the window from left to right\n        for i in range(k, len(nums)):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq_counter[outgoing] -= 1\n            if freq_counter[outgoing] == 0:\n                del freq_counter[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq_counter[incoming] += 1\n            # Calculate x-sum for the current window\n            answer.append(top_x_sum(freq_counter, x))\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        def top_x_sum(counter, x):\n            # Sort by frequency descending, then by value descending\n            sorted_items = sorted(counter.items(), key=lambda item: (-item[1], -item[0]))\n            top_x = sorted_items[:x]\n            return sum(val * count for val, count in top_x)\n        \n        answer = []\n        # Initialize frequency counter for the first window\n        freq_counter = Counter(nums[:k])\n        answer.append(top_x_sum(freq_counter, x))\n        \n        # Slide the window from left to right\n        for i in range(k, len(nums)):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq_counter[outgoing] -= 1\n            if freq_counter[outgoing] == 0:\n                del freq_counter[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq_counter[incoming] += 1\n            # Calculate x-sum for the current window\n            answer.append(top_x_sum(freq_counter, x))\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        def top_x_sum(counter, x):\n            # Sort by frequency descending, then by value descending\n            sorted_items = sorted(counter.items(), key=lambda item: (-item[1], -item[0]))\n            top_x = sorted_items[:x]\n            return sum(val * count for val, count in top_x)\n        \n        answer = []\n        # Initialize frequency counter for the first window\n        freq_counter = Counter(nums[:k])\n        answer.append(top_x_sum(freq_counter, x))\n        \n        # Slide the window from left to right\n        for i in range(k, len(nums)):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq_counter[outgoing] -= 1\n            if freq_counter[outgoing] == 0:\n                del freq_counter[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq_counter[incoming] += 1\n            # Calculate x-sum for the current window\n            answer.append(top_x_sum(freq_counter, x))\n        \n        return answer",
+    "from typing import List\n        from collections import Counter\n\n        class Solution:\n            def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n                def top_x_sum(counter, x):\n                    # Use negative frequencies and values to simulate a max heap\n                    heap = [(-freq, val) for val, freq in counter.items()]\n                    heapq.heapify(heap)\n                    top_x = []\n                    for _ in range(x):\n                        if heap:\n                            _, val = heapq.heappop(heap)\n                            top_x.append(val)\n                    return sum(val * counter[val] for val in top_x)\n\n                answer = []\n                # Initialize frequency counter for the first window\n                freq_counter = Counter(nums[:k])\n                answer.append(top_x_sum(freq_counter, x))\n                \n                # Slide the window from left to right\n                for i in range(k, len(nums)):\n                    # Remove the element going out of the window\n                    outgoing = nums[i - k]\n                    freq_counter[outgoing] -= 1\n                    if freq_counter[outgoing] == 0:\n                        del freq_counter[outgoing]\n                    # Add the new element coming into the window\n                    incoming = nums[i]\n                    freq_counter[incoming] += 1\n                    # Calculate x-sum for the current window\n                    answer.append(top_x_sum(freq_counter, x))\n                \n                return answer",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        def top_x_sum(counter, x):\n            # Sort by frequency descending, then by value descending\n            sorted_items = sorted(counter.items(), key=lambda item: (-item[1], -item[0]))\n            top_x = sorted_items[:x]\n            return sum(val * count for val, count in top_x)\n        \n        answer = []\n        # Initialize frequency counter for the first window\n        freq_counter = Counter(nums[:k])\n        answer.append(top_x_sum(freq_counter, x))\n        \n        # Slide the window from left to right\n        for i in range(k, len(nums)):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq_counter[outgoing] -= 1\n            if freq_counter[outgoing] == 0:\n                del freq_counter[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq_counter[incoming] += 1\n            # Calculate x-sum for the current window\n            answer.append(top_x_sum(freq_counter, x))\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        def top_x_sum(counter, x):\n            # Sort by frequency descending, then by value descending\n            sorted_items = sorted(counter.items(), key=lambda item: (-item[1], -item[0]))\n            top_x = sorted_items[:x]\n            # Calculate sum of the top x elements' frequencies multiplied by their values\n            return sum(val * count for val, count in top_x)\n        \n        answer = []\n        # Initialize frequency counter for the first window\n        freq_counter = Counter(nums[:k])\n        answer.append(top_x_sum(freq_counter, x))\n        \n        # Slide the window from left to right\n        for i in range(k, len(nums)):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq_counter[outgoing] -= 1\n            if freq_counter[outgoing] == 0:\n                del freq_counter[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq_counter[incoming] += 1\n            # Calculate x-sum for the current window\n            answer.append(top_x_sum(freq_counter, x))\n        \n        return answer",
+    "from typing import List\n        from collections import Counter\n\n        class Solution:\n            def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n                def top_x_sum(counter, x):\n                    # Sort by frequency descending, then by value descending\n                    sorted_items = sorted(counter.items(), key=lambda item: (-item[1], -item[0]))\n                    top_x = sorted_items[:x]\n                    # Calculate sum of the top x elements' frequencies multiplied by their values\n                    return sum(val * count for val, count in top_x)\n                \n                answer = []\n                # Initialize frequency counter for the first window\n                freq_counter = Counter(nums[:k])\n                answer.append(top_x_sum(freq_counter, x))\n                \n                # Slide the window from left to right\n                for i in range(k, len(nums)):\n                    # Remove the element going out of the window\n                    outgoing = nums[i - k]\n                    freq_counter[outgoing] -= 1\n                    if freq_counter[outgoing] == 0:\n                        del freq_counter[outgoing]\n                    # Add the new element coming into the window\n                    incoming = nums[i]\n                    freq_counter[incoming] += 1\n                    # Calculate x-sum for the current window\n                    answer.append(top_x_sum(freq_counter, x))\n                \n                return answer",
+    "from typing import List\n        from collections import Counter\n\n        class Solution:\n            def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n                def top_x_sum(counter, x):\n                    # Use a min-heap to keep track of the top x elements\n                    # Heap elements are tuples (-frequency, -value, value)\n                    # Negative frequencies and values to simulate max-heap behavior\n                    heap = []\n                    for val, freq in counter.items():\n                        # Push the negative frequency and negative value to simulate max-heap\n                        heapq.heappush(heap, (-freq, -val, val))\n                        if len(heap) > x:\n                            heapq.heappop(heap)\n                    # Sum up the values based on their frequencies\n                    return sum(-freq * val for _, _, val in heap)\n                \n                answer = []\n                # Initialize frequency counter for the first window\n                freq_counter = Counter(nums[:k])\n                answer.append(top_x_sum(freq_counter, x))\n                \n                # Slide the window from left to right\n                for i in range(k, len(nums)):\n                    # Remove the element going out of the window\n                    outgoing = nums[i - k]\n                    freq_counter[outgoing] -= 1\n                    if freq_counter[outgoing] == 0:\n                        del freq_counter[outgoing]\n                    # Add the new element coming into the window\n                    incoming = nums[i]\n                    freq_counter[incoming] += 1\n                    # Calculate x-sum for the current window\n                    answer.append(top_x_sum(freq_counter, x))\n                \n                return answer",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        def top_x_sum(counter, x):\n            # Sort by frequency descending, then by value descending\n            sorted_items = sorted(counter.items(), key=lambda item: (-item[1], -item[0]))\n            top_x = sorted_items[:x]\n            # Calculate sum of the top x elements' frequencies multiplied by their values\n            return sum(val * count for val, count in top_x)\n        \n        answer = []\n        # Initialize frequency counter for the first window\n        freq_counter = Counter(nums[:k])\n        answer.append(top_x_sum(freq_counter, x))\n        \n        # Slide the window from left to right\n        for i in range(k, len(nums)):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq_counter[outgoing] -= 1\n            if freq_counter[outgoing] == 0:\n                del freq_counter[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq_counter[incoming] += 1\n            # Calculate x-sum for the current window\n            answer.append(top_x_sum(freq_counter, x))\n        \n        return answer",
+    "from typing import List\n        from collections import Counter\n\n        class Solution:\n            def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n                def top_x_sum(counter, x):\n                    # Sort by frequency descending, then by value descending\n                    sorted_items = sorted(counter.items(), key=lambda item: (-item[1], -item[0]))\n                    top_x = sorted_items[:x]\n                    return sum(val * count for val, count in top_x)\n                \n                answer = []\n                # Initialize frequency counter for the first window\n                freq_counter = Counter(nums[:k])\n                answer.append(top_x_sum(freq_counter, x))\n                \n                # Slide the window from left to right\n                for i in range(k, len(nums)):\n                    # Remove the element going out of the window\n                    outgoing = nums[i - k]\n                    freq_counter[outgoing] -= 1\n                    if freq_counter[outgoing] == 0:\n                        del freq_counter[outgoing]\n                    # Add the new element coming into the window\n                    incoming = nums[i]\n                    freq_counter[incoming] += 1\n                    # Calculate x-sum for the current window\n                    answer.append(top_x_sum(freq_counter, x))\n                \n                return answer",
+    "from typing import List\n        from collections import Counter\n\n        class Solution:\n            def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n                def top_x_sum(counter, x):\n                    # Sort by frequency descending, then by value descending\n                    sorted_items = sorted(counter.items(), key=lambda item: (-item[1], -item[0]))\n                    top_x = sorted_items[:x]\n                    # Calculate sum of the top x elements' contributions\n                    return sum(val * count for val, count in top_x)\n                \n                answer = []\n                # Initialize frequency counter for the first window\n                freq_counter = Counter(nums[:k])\n                answer.append(top_x_sum(freq_counter, x))\n                \n                # Slide the window from left to right\n                for i in range(k, len(nums)):\n                    # Remove the element going out of the window\n                    outgoing = nums[i - k]\n                    freq_counter[outgoing] -= 1\n                    if freq_counter[outgoing] == 0:\n                        del freq_counter[outgoing]\n                    # Add the new element coming into the window\n                    incoming = nums[i]\n                    freq_counter[incoming] += 1\n                    # Calculate x-sum for the current window\n                    answer.append(top_x_sum(freq_counter, x))\n                \n                return answer",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        def top_x_sum(counter, x):\n            # Sort by frequency descending, then by value descending\n            sorted_items = sorted(counter.items(), key=lambda item: (-item[1], -item[0]))\n            top_x = sorted_items[:x]\n            return sum(val * count for val, count in top_x)\n        \n        answer = []\n        # Initialize frequency counter for the first window\n        freq_counter = Counter(nums[:k])\n        answer.append(top_x_sum(freq_counter, x))\n        \n        # Slide the window from left to right\n        for i in range(k, len(nums)):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq_counter[outgoing] -= 1\n            if freq_counter[outgoing] == 0:\n                del freq_counter[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq_counter[incoming] += 1\n            # Calculate x-sum for the current window\n            answer.append(top_x_sum(freq_counter, x))\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        def top_x_sum(counter, x):\n            # Sort by frequency descending, then by value descending\n            sorted_items = sorted(counter.items(), key=lambda item: (-item[1], -item[0]))\n            top_x = sorted_items[:x]\n            return sum(val * count for val, count in top_x)\n        \n        answer = []\n        # Initialize frequency counter for the first window\n        freq_counter = Counter(nums[:k])\n        answer.append(top_x_sum(freq_counter, x))\n        \n        # Slide the window from left to right\n        for i in range(k, len(nums)):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq_counter[outgoing] -= 1\n            if freq_counter[outgoing] == 0:\n                del freq_counter[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq_counter[incoming] += 1\n            # Calculate x-sum for the current window\n            answer.append(top_x_sum(freq_counter, x))\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        answer = []\n        \n        # Initialize frequency dictionary for the first window\n        freq = Counter(nums[:k])\n        \n        # Sort the items by frequency and value\n        sorted_freq = sorted(freq.items(), key=lambda item: (-item[1], -item[0]))\n        \n        # Calculate the x-sum for the first window\n        top_x = sorted_freq[:x]\n        current_sum = sum(val * count for val, count in top_x)\n        answer.append(current_sum)\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            out_val = nums[i - k]\n            freq[out_val] -= 1\n            if freq[out_val] == 0:\n                del freq[out_val]\n            \n            # Add the new element coming into the window\n            in_val = nums[i]\n            freq[in_val] += 1\n            \n            # Update the sorted frequency list\n            # Find the position of the outgoing value and remove it\n            for j, (val, count) in enumerate(sorted_freq):\n                if val == out_val:\n                    sorted_freq.pop(j)\n                    break\n            # Find the position to insert the incoming value\n            for j in range(len(sorted_freq)):\n                val, count = sorted_freq[j]\n                if freq[in_val] > count or (freq[in_val] == count and in_val > val):\n                    sorted_freq.insert(j, (in_val, freq[in_val]))\n                    break\n            else:\n                sorted_freq.append((in_val, freq[in_val]))\n            \n            # Calculate the x-sum for the current window\n            top_x = sorted_freq[:x]\n            current_sum = sum(val * count for val, count in top_x)\n            answer.append(current_sum)\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        answer = []\n        \n        # Function to get the top x elements based on frequency and value\n        def get_top_x(freq):\n            # Sort the items by frequency descending, then by value descending\n            sorted_freq = sorted(freq.items(), key=lambda item: (-item[1], -item[0]))\n            # Get the top x elements\n            top_x = sorted_freq[:x]\n            # Calculate the sum of these elements\n            current_sum = sum(val * count for val, count in top_x)\n            return current_sum\n        \n        # Initialize frequency dictionary for the first window\n        freq = Counter(nums[:k])\n        answer.append(get_top_x(freq))\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            out_val = nums[i - k]\n            freq[out_val] -= 1\n            if freq[out_val] == 0:\n                del freq[out_val]\n            \n            # Add the new element coming into the window\n            in_val = nums[i]\n            freq[in_val] += 1\n            \n            # Recompute the top x sum for the current window\n            answer.append(get_top_x(freq))\n        \n        return answer",
+    "from typing import List\n        from collections import Counter\n\n        class Solution:\n            def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n                n = len(nums)\n                answer = []\n                \n                # Function to get the top x elements based on frequency and value\n                def get_top_x(freq):\n                    # Sort the items by frequency descending, then by value descending\n                    sorted_freq = sorted(freq.items(), key=lambda item: (-item[1], -item[0]))\n                    # Get the top x elements\n                    top_x = sorted_freq[:x]\n                    # Calculate the sum of these elements\n                    current_sum = sum(val * count for val, count in top_x)\n                    return current_sum\n                \n                # Initialize frequency dictionary for the first window\n                freq = Counter(nums[:k])\n                answer.append(get_top_x(freq))\n                \n                # Slide the window from left to right\n                for i in range(k, n):\n                    # Remove the element going out of the window\n                    out_val = nums[i - k]\n                    freq[out_val] -= 1\n                    if freq[out_val] == 0:\n                        del freq[out_val]\n                    \n                    # Add the new element coming into the window\n                    in_val = nums[i]\n                    freq[in_val] += 1\n                    \n                    # Recompute the top x sum for the current window\n                    answer.append(get_top_x(freq))\n                \n                return answer",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        answer = []\n        \n        # Function to get the top x elements based on frequency and value\n        def get_top_x(freq):\n            # Create a list of (-frequency, -value) to sort by frequency descending, then by value descending\n            freq_list = [(-freq[val], -val) for val in freq]\n            # Use heapq to get the top x elements\n            top_x = nlargest(x, freq_list)\n            # Extract the values from the top x elements\n            top_values = {-val[1] for val in top_x}\n            # Calculate the sum of these elements in the current window\n            current_sum = sum(val for val in freq if val in top_values) * freq[val]\n            return current_sum\n        \n        # Initialize frequency dictionary for the first window\n        freq = Counter(nums[:k])\n        answer.append(get_top_x(freq))\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            out_val = nums[i - k]\n            freq[out_val] -= 1\n            if freq[out_val] == 0:\n                del freq[out_val]\n            \n            # Add the new element coming into the window\n            in_val = nums[i]\n            freq[in_val] += 1\n            \n            # Recompute the top x sum for the current window\n            answer.append(get_top_x(freq))\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        answer = []\n        \n        # Function to get the top x elements based on frequency and value\n        def get_top_x(freq):\n            # Sort the items by frequency descending, then by value descending\n            sorted_freq = sorted(freq.items(), key=lambda item: (-item[1], -item[0]))\n            top_x = sorted_freq[:x]\n            return [val for val, count in top_x for _ in range(count)]\n        \n        # Initialize frequency dictionary for the first window\n        freq = Counter(nums[:k])\n        top_x_elements = get_top_x(freq)\n        answer.append(sum(top_x_elements))\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            out_val = nums[i - k]\n            freq[out_val] -= 1\n            if freq[out_val] == 0:\n                del freq[out_val]\n            \n            # Add the new element coming into the window\n            in_val = nums[i]\n            freq[in_val] += 1\n            \n            # Update the top x elements\n            top_x_elements = get_top_x(freq)\n            answer.append(sum(top_x_elements))\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        answer = []\n        \n        # Function to get the top x elements based on frequency and value\n        def get_top_x(freq):\n            # Use a min-heap to keep track of the top x elements\n            # Heap elements are tuples (-frequency, -value, value)\n            # Negative frequency and value to simulate max-heap behavior\n            heap = []\n            for val, count in freq.items():\n                # Push the negative frequency and negative value to simulate max-heap\n                heapq.heappush(heap, (-count, -val, val))\n                if len(heap) > x:\n                    heapq.heappop(heap)\n            # Extract the top x elements\n            top_x = []\n            while heap:\n                _, _, val = heapq.heappop(heap)\n                top_x.append(val)\n            return top_x\n        \n        # Initialize frequency dictionary for the first window\n        freq = Counter(nums[:k])\n        top_x = get_top_x(freq)\n        # Sum only the elements that are in the top_x\n        answer.append(sum(val for val in nums[:k] if val in top_x))\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            out_val = nums[i - k]\n            freq[out_val] -= 1\n            if freq[out_val] == 0:\n                del freq[out_val]\n            \n            # Add the new element coming into the window\n            in_val = nums[i]\n            freq[in_val] += 1\n            \n            # Update the top x elements\n            top_x = get_top_x(freq)\n            # Sum only the elements that are in the top_x\n            answer.append(sum(val for val in nums[i - k + 1:i + 1] if val in top_x))\n        \n        return answer",
+    "class Solution:\n\ndef findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n\nn = len(nums)\n\nanswer = []\n\nfor i in range(n - k + 1):\n\nwindow = nums[i:i+k]\n\nfreq = collections.Counter(window)\n\nif len(freq) < x:\n\nanswer.append(sum(window))\n\nelse:\n\n# Sort by frequency descending, then by value descending\n\nsorted_freq = sorted(freq.items(), key=lambda item: (-item[1], -item[0]))\n\ntop_x = sorted_freq[:x]\n\n# Sum up all occurrences of these x elements\n\nsum_x = sum(freq[val] * val for val, _ in top_x)\n\nanswer.append(sum_x)\n\nreturn answer\n\nThis seems straightforward. Let's test it with the first example.\n\nnums = [1,1,2,2,3,4,2,3], k = 6, x = 2\n\nFirst window: [1,1,2,2,3,4]\n\nfreq = {1:2, 2:2, 3:1, 4:1}\n\nlen(freq) = 4 >= 2\n\nsorted_freq = sorted([(1,2), (2,2), (3,1), (4,1)], key=lambda item: (-item[1], -item[0]))\n\nwhich is [(2,2), (1,2), (4,1), (3,1)]\n\ntop_x = [(2,2), (1,2)]\n\nsum_x = 2*2 + 1*2 = 4 + 2 = 6\n\nSecond window: [1,2,2,3,4,2]\n\nfreq = {1:1, 2:3, 3:1, 4:1}\n\nlen(freq) = 4 >= 2\n\nsorted_freq = [(2,3), (1,1), (3,1), (4,1)]\n\ntop_x = [(2,3), (1,1)]\n\nsum_x = 2*3 + 1*1 = 6 + 1 = 7\n\nWait, but in the example, it's 10. Hmm, something's wrong here.\n\nWait, in the example, it's 2+2+2+4=10.\n\nAh, so the top x elements should be 2 and 4, with frequencies 3 and 1 respectively.\n\nSum should be 2*3 + 4*1 = 6 + 4 = 10.\n\nWait, in my calculation, I had sum_x = 2*3 + 1*1 = 7, which is incorrect.\n\nAh, I see the mistake. In the frequency dictionary, the key is the value, and the count is the frequency.\n\nSo, in the second window, freq = {1:1, 2:3, 3:1, 4:1}\n\nsorted_freq = sorted([(1,1), (2,3), (3,1), (4,1)], key=lambda item: (-item[1], -item[0])) = [(2,3), (1,1), (3,1), (4,1)]\n\ntop_x = [(2,3), (1,1)]\n\nThen, sum_x = 2*3 + 1*1 = 7, but according to the example, it should be 2*3 + 4*1 = 10.\n\nWait, it seems I'm selecting the top x based on frequency and value, but in the example, they are selecting the top x based on frequency and value, but summing the occurrences in the window.\n\nWait, perhaps I misinterpreted the sorting.\n\nLet me check the sorting again.\n\nsorted_freq = sorted(freq.items(), key=lambda item: (-item[1], -item[0]))\n\nFor the second window: freq.items() = [(1,1), (2,3), (3,1), (4,1)]\n\nsorted_freq = sorted(freq.items(), key=lambda item: (-item[1], -item[0])) = [(2,3), (1,1), (3,1), (4,1)]\n\ntop_x = [(2,3), (1,1)]\n\nThen, sum_x = 2*3 + 1*1 = 7, but according to the example, it should be 2*3 + 4*1 = 10.\n\nWait, perhaps I need to sort in descending order of frequency, and for ties in frequency, sort by value in descending order.\n\nIn the second window, frequencies are:\n\n2:3, 1:1, 3:1, 4:1\n\nNo ties in frequency, so top x is 2 and then 1 (since 1 has a higher value than 3 and 4, but same frequency).\n\nBut according to the example, it's summing 2 and 4, which are 2 and 4.\n\nWait, perhaps I need to sort the frequencies in descending order, and for ties in frequency, sort the values in descending order.\n\nIn this case, frequencies are 2:3, 1:1, 3:1, 4:1\n\nNo tie in frequency, so top x is 2 and then 1, since 1 has a higher value than 3 and 4.\n\nBut in the example, they are taking 2 and 4.\n\nWait, perhaps I misread the example.\n\nWait, in the example, for the second window [1,2,2,3,4,2], only elements 2 and 4 will be kept. sum is 2+2+2+4=10.\n\nBut according to my calculation, I have top x as 2 and 1, sum is 7.\n\nWait, perhaps I need to sum the values of the top x elements in the window, not frequency * value.\n\nWait, no, the x-sum is defined as keeping the occurrences of the top x most frequent elements, and then summing those occurrences.\n\nSo, for the second window, top x elements are 2 and 4, so keep all occurrences of 2 and 4, which are 2,2,2,4, sum is 10.\n\nBut according to my code, I'm summing frequency * value for top x elements, which is 2*3 + 1*1 = 7, which is incorrect.\n\nWait, perhaps I need to sum the values of the kept occurrences.\n\nWait, maybe I need to iterate through the window and sum the values that are in the top x elements.\n\nLet me try that.\n\nSo, for the second window [1,2,2,3,4,2], top x elements are 2 and 4.\n\nSo, sum is 2 + 2 + 2 + 4 = 10.\n\nSimilarly, in my code, if I sum freq[val] * val for val in top_x, that should be 2*3 + 4*1 = 10.\n\nWait, in my earlier calculation, I had sum_x = 2*3 + 1*1 = 7, which is wrong.\n\nAh, I see the mistake. In the top_x, I have [(2,3), (1,1)], so sum_x = 2*3 + 1*1 = 7.\n\nBut according to the example, I should be summing 2*3 + 4*1 = 10.\n\nSo, the top_x should be [(2,3), (4,1)], not [(2,3), (1,1)].\n\nWait, why is it taking 1 over 4?\n\nBecause in the sorted_freq, after sorting by (-frequency, -value), it should be [(2,3), (4",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int],",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        answer = []\n        \n        # Initialize frequency dictionary for the first window\n        freq = Counter(nums[:k])\n        \n        # Sort the items by frequency and value\n        sorted_freq = sorted(freq.items(), key=lambda item: (-item[1], -item[0]))\n        \n        # Calculate the x-sum for the first window\n        top_x = sorted_freq[:x]\n        current_sum = sum(val * count for val, count in top_x)\n        answer.append(current_sum)\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            out_val = nums[i - k]\n            freq[out_val] -= 1\n            if freq[out_val] == 0:\n                del freq[out_val]\n            \n            # Add the new element coming into the window\n            in_val = nums[i]\n            freq[in_val] += 1\n            \n            # Update the sorted frequency list\n            # Find the position of the outgoing value and remove it\n            for j, (val, count) in enumerate(sorted_freq):\n                if val == out_val:\n                    sorted_freq.pop(j)\n                    break\n            # Find the position to insert the incoming value\n            for j in range(len(sorted_freq)):\n                val, count = sorted_freq[j]\n                if freq[in_val] > count or (freq[in_val] == count and in_val > val):\n                    sorted_freq.insert(j, (in_val, freq[in_val]))\n                    break\n            else:\n                sorted_freq.append((in_val, freq[in_val]))\n            \n            # Calculate the x-sum for the current window\n            top_x = sorted_freq[:x]\n            current_sum = sum(val * count for val, count in top_x)\n            answer.append(current_sum)\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        answer = []\n        \n        # Initialize frequency dictionary for the first window\n        freq = Counter(nums[:k])\n        \n        # Sort the items by frequency and value\n        sorted_freq = sorted(freq.items(), key=lambda item: (-item[1], -item[0]))\n        \n        # Calculate the x-sum for the first window\n        top_x = sorted_freq[:x]\n        current_sum = sum(val * count for val, count in top_x)\n        answer.append(current_sum)\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            out_val = nums[i - k]\n            freq[out_val] -= 1\n            if freq[out_val] == 0:\n                del freq[out_val]\n            \n            # Add the new element coming into the window\n            in_val = nums[i]\n            freq[in_val] += 1\n            \n            # Update the sorted frequency list\n            # Find the position of the outgoing value and remove it\n            for j, (val, count) in enumerate(sorted_freq):\n                if val == out_val:\n                    sorted_freq.pop(j)\n                    break\n            # Find the position to insert the incoming value\n            for j in range(len(sorted_freq)):\n                val, count = sorted_freq[j]\n                if freq[in_val] > count or (freq[in_val] == count and in_val > val):\n                    sorted_freq.insert(j, (in_val, freq[in_val]))\n                    break\n            else:\n                sorted_freq.append((in_val, freq[in_val]))\n            \n            # Calculate the x-sum for the current window\n            top_x = sorted_freq[:x]\n            current_sum = sum(val * count for val, count in top_x)\n            answer.append(current_sum)\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        answer = []\n        \n        # Iterate over each window of size k\n        for i in range(n - k + 1):\n            # Get the current window\n            window = nums[i:i + k]\n            # Count the frequency of each element in the window\n            freq = Counter(window)\n            # Sort the elements by frequency and value in descending order\n            sorted_freq = sorted(freq.items(), key=lambda item: (-item[1], -item[0]))\n            # Select the top x elements\n            top_x = sorted_freq[:x]\n            # Calculate the sum of the top x elements considering their frequencies\n            current_sum = sum(val * count for val, count in top_x)\n            # Append the sum to the answer list\n            answer.append(current_sum)\n        \n        return answer",
+    "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        answer = []\n        \n        # Initialize frequency dictionary for the first window\n        freq = Counter(nums[:k])\n        \n        # Sort the items by frequency and value\n        sorted_freq = sorted(freq.items(), key=lambda item: (-item[1], -item[0]))\n        \n        # Calculate the x-sum for the first window\n        top_x = sorted_freq[:x]\n        current_sum = sum(val * count for val, count in top_x)\n        answer.append(current_sum)\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            out_val = nums[i - k]\n            freq[out_val] -= 1\n            if freq[out_val] == 0:\n                del freq[out_val]\n            \n            # Add the new element coming into the window\n            in_val = nums[i]\n            freq[in_val] += 1\n            \n            # Update the sorted frequency list\n            # Find the position of the outgoing value and remove it\n            for j, (val, count) in enumerate(sorted_freq):\n                if val == out_val:\n                    sorted_freq.pop(j)\n                    break\n            # Find the position to insert the incoming value\n            for j in range(len(sorted_freq)):\n                val, count = sorted_freq[j]\n                if freq[in_val] > count or (freq[in_val] == count and in_val > val):\n                    sorted_freq.insert(j, (in_val, freq[in_val]))\n                    break\n            else:\n                sorted_freq.append((in_val, freq[in_val]))\n            \n            # Calculate the x-sum for the current window\n            top_x = sorted_freq[:x]\n            current_sum = sum(val * count for val, count in top_x)\n            answer.append(current_sum)\n        \n        return answer"
+  ],
+  "total_candidates": 38,
+  "nodes_explored": 38,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        if k > n:\n            return []\n        \n        # Initialize frequency map for the first window\n        freq = Counter(nums[:k])\n        \n        # Function to get the top x elements based on frequency and value\n        def get_top_x(freq):\n            # Sort the items first by frequency descending, then by value descending\n            sorted_freq = sorted(freq.items(), key=lambda item: (-item[1], -item[0]))\n            # Get the top x elements\n            top_x = set([pair[0] for pair in sorted_freq[:x]])\n            return top_x\n        \n        # Function to calculate sum of elements in freq that are in top_x\n        def calculate_sum(freq, top_x):\n            return sum(count for num, count in freq.items() if num in top_x)\n        \n        # Calculate the initial top x elements\n        top_x = get_top_x(freq)\n        # Calculate the initial sum\n        answer = [calculate_sum(freq, top_x)]\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq[outgoing] -= 1\n            if freq[outgoing] == 0:\n                del freq[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq[incoming] += 1\n            # Update top_x if necessary\n            if incoming not in top_x and len(top_x) == x:\n                # Check if incoming element should be in top_x\n                # Find the lowest frequency in top_x\n                min_freq_in_top = min(freq[num] for num in top_x)\n                if freq[incoming] > min_freq_in_top or \\\n                   (freq[incoming] == min_freq_in_top and incoming > max(top_x)):\n                    # Update top_x\n                    top_x = get_top_x(freq)\n            else:\n                # If incoming element is already in top_x, no need to update\n                pass\n            # Calculate the sum for the current window\n            current_sum = calculate_sum(freq, top_x)\n            answer.append(current_sum)\n        \n        return answer",
+      "solution_hash": "8ce67dfcc86657f867166da2714a49ca4980d886aa8cef55f53f242ab9bf20e2",
+      "test_result": {
+        "status": "import_error",
+        "error_message": "Missing required module: sortedcontainers",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242031/tmp4x382srf.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242031/tmp4x382srf.py` failed. (See above for error)\n",
+        "execution_time": 13.926060199737549,
+        "import_failures": [
+          "sortedcontainers"
+        ]
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5",
+        "1_9"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        def top_x_sum(counter, x):\n            # Sort by frequency descending, then by value descending\n            sorted_items = sorted(counter.items(), key=lambda item: (-item[1], -item[0]))\n            top_x = sorted_items[:x]\n            return sum(val * count for val, count in top_x)\n        \n        answer = []\n        # Initialize frequency counter for the first window\n        freq_counter = Counter(nums[:k])\n        answer.append(top_x_sum(freq_counter, x))\n        \n        # Slide the window from left to right\n        for i in range(k, len(nums)):\n            # Remove the element going out of the window\n            outgoing = nums[i - k]\n            freq_counter[outgoing] -= 1\n            if freq_counter[outgoing] == 0:\n                del freq_counter[outgoing]\n            # Add the new element coming into the window\n            incoming = nums[i]\n            freq_counter[incoming] += 1\n            # Calculate x-sum for the current window\n            answer.append(top_x_sum(freq_counter, x))\n        \n        return answer",
+      "solution_hash": "212fecb7914d494b7e917e1961c09dd1c4d4fbe7686d874098aaa47876bcfa29",
+      "test_result": {
+        "status": "import_error",
+        "error_message": "Missing required module: sortedcontainers",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242031/tmp9o0od49a.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242031/tmp9o0od49a.py` failed. (See above for error)\n",
+        "execution_time": 13.909878492355347,
+        "import_failures": [
+          "sortedcontainers"
+        ]
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_14",
+        "1_18",
+        "1_22"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "from typing import List\nfrom collections import Counter\n\nclass Solution:\n    def findXSum(self, nums: List[int], k: int, x: int) -> List[int]:\n        n = len(nums)\n        answer = []\n        \n        # Initialize frequency dictionary for the first window\n        freq = Counter(nums[:k])\n        \n        # Sort the items by frequency and value\n        sorted_freq = sorted(freq.items(), key=lambda item: (-item[1], -item[0]))\n        \n        # Calculate the x-sum for the first window\n        top_x = sorted_freq[:x]\n        current_sum = sum(val * count for val, count in top_x)\n        answer.append(current_sum)\n        \n        # Slide the window from left to right\n        for i in range(k, n):\n            # Remove the element going out of the window\n            out_val = nums[i - k]\n            freq[out_val] -= 1\n            if freq[out_val] == 0:\n                del freq[out_val]\n            \n            # Add the new element coming into the window\n            in_val = nums[i]\n            freq[in_val] += 1\n            \n            # Update the sorted frequency list\n            # Find the position of the outgoing value and remove it\n            for j, (val, count) in enumerate(sorted_freq):\n                if val == out_val:\n                    sorted_freq.pop(j)\n                    break\n            # Find the position to insert the incoming value\n            for j in range(len(sorted_freq)):\n                val, count = sorted_freq[j]\n                if freq[in_val] > count or (freq[in_val] == count and in_val > val):\n                    sorted_freq.insert(j, (in_val, freq[in_val]))\n                    break\n            else:\n                sorted_freq.append((in_val, freq[in_val]))\n            \n            # Calculate the x-sum for the current window\n            top_x = sorted_freq[:x]\n            current_sum = sum(val * count for val, count in top_x)\n            answer.append(current_sum)\n        \n        return answer",
+      "solution_hash": "015e98616359301ff5ae426065bad78af7d52a2623b6b837331449a0b0013fa2",
+      "test_result": {
+        "status": "import_error",
+        "error_message": "Missing required module: sortedcontainers",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242031/tmpkxmxb9wk.py\", line 4, in <module>\n    from sortedcontainers import SortedList\nModuleNotFoundError: No module named 'sortedcontainers'\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242031/tmpkxmxb9wk.py` failed. (See above for error)\n",
+        "execution_time": 13.934123754501343,
+        "import_failures": [
+          "sortedcontainers"
+        ]
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_27",
+        "1_30",
+        "1_34"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 38,
+    "candidates_generated": 38,
+    "tests_passed": 0,
+    "tests_failed": 5,
+    "test_timeouts": 0,
+    "test_errors": 0,
+    "import_errors": 33,
+    "import_terminated_branches": 0,
+    "unique_import_failures": [
+      "sortedcontainers"
+    ],
+    "execution_times": [
+      13.926060199737549,
+      13.835038661956787,
+      13.851035118103027,
+      13.853403568267822,
+      13.84168291091919,
+      13.81034779548645,
+      13.882410287857056,
+      13.850792646408081,
+      13.882410287857056,
+      13.88453459739685,
+      13.86860179901123,
+      13.955488681793213,
+      13.801939487457275,
+      13.909878492355347,
+      13.909878492355347,
+      13.909878492355347,
+      13.918768644332886,
+      13.909878492355347,
+      13.909878492355347,
+      13.909878492355347,
+      13.859455108642578,
+      13.909878492355347,
+      13.909878492355347,
+      13.909878492355347,
+      13.909878492355347,
+      13.909878492355347,
+      13.934123754501343,
+      13.862729787826538,
+      13.862729787826538,
+      13.865784168243408,
+      13.953423500061035,
+      13.9050772190094,
+      13.923017263412476,
+      13.932363748550415,
+      13.934123754501343,
+      13.934123754501343,
+      13.897167444229126,
+      13.934123754501343
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 23,
+      "unique_ratio": 0.6052631578947368,
+      "similarity_score": 0.804999181091927,
+      "solution_lengths": {
+        "min": 112,
+        "max": 4608,
+        "avg": 1817.9473684210527
+      },
+      "algorithm_approaches": {
+        "greedy": 22,
+        "sliding_window": 15,
+        "other": 1
+      },
+      "feature_diversity": 0.7631578947368421,
+      "features_analysis": {
+        "boolean_features": {
+          "has_recursion": {
+            "true_ratio": 1.0,
+            "count": 38
+          },
+          "uses_list": {
+            "true_ratio": 0.9736842105263158,
+            "count": 37
+          },
+          "uses_dict": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_set": {
+            "true_ratio": 0.2631578947368421,
+            "count": 10
+          },
+          "uses_heap": {
+            "true_ratio": 0.3684210526315789,
+            "count": 14
+          },
+          "uses_queue": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_stack": {
+            "true_ratio": 0.10526315789473684,
+            "count": 4
+          },
+          "uses_dp": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_bfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_binary_search": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "nested_loops": {
+            "true_ratio": 0.9736842105263158,
+            "count": 37
+          }
+        },
+        "numeric_features": {
+          "loop_count": {
+            "min": 0,
+            "max": 13,
+            "avg": 4.131578947368421,
+            "variance": 9.009002770083091
+          },
+          "if_count": {
+            "min": 0,
+            "max": 11,
+            "avg": 3.0,
+            "variance": 7.7894736842105265
+          },
+          "else_count": {
+            "min": 0,
+            "max": 2,
+            "avg": 0.39473684210526316,
+            "variance": 0.3968144044321327
+          },
+          "return_count": {
+            "min": 0,
+            "max": 5,
+            "avg": 2.526315789473684,
+            "variance": 1.6703601108033244
+          },
+          "assignment_count": {
+            "min": 0,
+            "max": 30,
+            "avg": 13.078947368421053,
+            "variance": 24.17797783933518
+          },
+          "class_method_count": {
+            "min": 1,
+            "max": 4,
+            "avg": 2.210526315789474,
+            "variance": 0.6925207756232685
+          },
+          "line_count": {
+            "min": 5,
+            "max": 155,
+            "avg": 46.55263157894737,
+            "variance": 604.8261772853186
+          },
+          "char_count": {
+            "min": 112,
+            "max": 4608,
+            "avg": 1817.9473684210527,
+            "variance": 623565.4182825484
+          },
+          "max_indent": {
+            "min": 0,
+            "max": 32,
+            "avg": 19.05263157894737,
+            "variance": 40.78670360110802
+          }
+        }
+      },
+      "complexity_diversity": {
+        "complexity_distribution": {
+          "exponential": 37,
+          "constant": 1
+        },
+        "avg_complexity_metrics": {
+          "avg_line_count": 46.55263157894737,
+          "avg_loop_count": 4.131578947368421,
+          "avg_condition_count": 3.3947368421052633,
+          "avg_method_count": 2.210526315789474,
+          "avg_assignment_count": 13.078947368421053,
+          "avg_max_loop_nesting": 1.0
+        },
+        "complexity_diversity_ratio": 0.3333333333333333
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {},
+      "first_failing_tests": {}
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 9,
+          "improvements": 0,
+          "solved": 0
+        },
+        "2": {
+          "attempts": 26,
+          "improvements": 0,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "other_error": {
+          "attempts": 12,
+          "improvements": 0
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "other_error->other_error": 34,
+        "other_error->syntax_error": 1
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.605263157894737,
+        "solutions_per_depth": {
+          "0": 3,
+          "1": 9,
+          "2": 26
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 0,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.0,
+        "pass@3": 0.0,
+        "pass@5": 0.0,
+        "pass@10": 0.0
+      },
+      "solutions_evaluated": 39
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.0,
+        "branch_success_rate": 0.0,
+        "test_success_rate": 0.0
+      },
+      "test_results": {
+        "total": 38,
+        "passed": 0,
+        "failed": 5,
+        "timeouts": 0,
+        "import_errors": 33,
+        "other_errors": 0,
+        "unique_import_failures": [
+          "sortedcontainers"
+        ]
+      },
+      "error_recovery": {
+        "total_attempts": 12,
+        "total_improvements": 0,
+        "recovery_rate": 0.0
+      },
+      "top_errors": [
+        [
+          "other_error",
+          12
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      },
+      "import_analysis": {
+        "total_import_errors": 33,
+        "branches_terminated_by_imports": 0,
+        "unique_missing_modules": 1,
+        "missing_modules": [
+          "sortedcontainers"
+        ]
+      }
+    }
+  },
+  "processing_time": 2312.30965590477,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.0,
+      "pass@3": 0.0,
+      "pass@5": 0.0,
+      "pass@10": 0.0
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 99)",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 101)",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 99)",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 101)",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 21
+          }
+        ],
+        [
+          22,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 99)",
+            "completion_id": 22
+          }
+        ],
+        [
+          23,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 99)",
+            "completion_id": 23
+          }
+        ],
+        [
+          24,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 24
+          }
+        ],
+        [
+          25,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 25
+          }
+        ],
+        [
+          26,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 26
+          }
+        ],
+        [
+          27,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 27
+          }
+        ],
+        [
+          28,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 99)",
+            "completion_id": 28
+          }
+        ],
+        [
+          29,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 29
+          }
+        ],
+        [
+          30,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 30
+          }
+        ],
+        [
+          31,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 31
+          }
+        ],
+        [
+          32,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: expected an indented block (<string>, line 103)",
+            "completion_id": 32
+          }
+        ],
+        [
+          33,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: invalid syntax (<string>, line 104)",
+            "completion_id": 33
+          }
+        ],
+        [
+          34,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 34
+          }
+        ],
+        [
+          35,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 35
+          }
+        ],
+        [
+          36,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 36
+          }
+        ],
+        [
+          37,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 37
+          }
+        ],
+        [
+          38,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: No module named 'sortedcontainers'",
+            "completion_id": 38
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 39,
+    "test_cases": 1
+  }
+}

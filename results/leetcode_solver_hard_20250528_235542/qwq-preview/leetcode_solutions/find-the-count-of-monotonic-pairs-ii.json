@@ -1,0 +1,553 @@
+{
+  "problem_id": "find-the-count-of-monotonic-pairs-ii",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_sum = sum(nums)\n        # Initialize dp arrays\n        dp_prev = [0] * (max_sum + 1)\n        dp_curr = [0] * (max_sum + 1)\n        # Initial state\n        for a1 in range(nums[0] + 1):\n            a2 = nums[0] - a1\n            dp_prev[a1] = 1\n        # Iterate through each element\n        for i in range(1, n):\n            prefix_sum = 0\n            for a1 in range(nums[i] + 1):\n                a2 = nums[i] - a1\n                # Find the maximum a1_prev that is <= a1\n                a1_prev_max = a1\n                # Find the minimum a2_prev that is >= a2\n                a2_prev_min = a2\n                # Calculate the range of a1_prev that satisfies both conditions\n                # a1_prev <= a1 and a2_prev >= a2\n                # Since a2_prev = nums[i-1] - a1_prev >= a2\n                # => a1_prev <= nums[i-1] - a2\n                a1_prev_max = min(a1, nums[i-1] - a2)\n                if a1_prev_max >= 0:\n                    prefix_sum = (prefix_sum + dp_prev[a1_prev_max]) % MOD\n                # Set dp_curr[a1]\n                dp_curr[a1] = prefix_sum\n            # Update previous dp\n            dp_prev, dp_curr = dp_curr, [0] * (max_sum + 1)\n        # Sum up all possible dp_prev values\n        total = sum(dp_prev) % MOD\n        return total",
+  "passed_solutions": [
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_sum = sum(nums)\n        # Initialize dp arrays\n        dp_prev = [0] * (max_sum + 1)\n        dp_curr = [0] * (max_sum + 1)\n        # Initial state\n        for a1 in range(nums[0] + 1):\n            a2 = nums[0] - a1\n            dp_prev[a1] = 1\n        # Iterate through each element\n        for i in range(1, n):\n            prefix_sum = 0\n            for a1 in range(nums[i] + 1):\n                a2 = nums[i] - a1\n                # Find the maximum a1_prev that is <= a1\n                a1_prev_max = a1\n                # Find the minimum a2_prev that is >= a2\n                a2_prev_min = a2\n                # Calculate the range of a1_prev that satisfies both conditions\n                # a1_prev <= a1 and a2_prev >= a2\n                # Since a2_prev = nums[i-1] - a1_prev >= a2\n                # => a1_prev <= nums[i-1] - a2\n                a1_prev_max = min(a1, nums[i-1] - a2)\n                if a1_prev_max >= 0:\n                    prefix_sum = (prefix_sum + dp_prev[a1_prev_max]) % MOD\n                # Set dp_curr[a1]\n                dp_curr[a1] = prefix_sum\n            # Update previous dp\n            dp_prev, dp_curr = dp_curr, [0] * (max_sum + 1)\n        # Sum up all possible dp_prev values\n        total = sum(dp_prev) % MOD\n        return total"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # Initialize DP arrays\n        dp = [0] * 1001\n        dp[nums[0]] = 1  # arr1[0] can be from 0 to nums[0], arr2[0] = nums[0] - arr1[0]\n        \n        for i in range(1, n):\n            new_dp = [0] * 1001\n            max_arr2_prev = -1\n            for arr1_prev in range(1001):\n                if dp[arr1_prev] > 0:\n                    arr2_prev = nums[i-1] - arr1_prev\n                    max_arr2_prev = max(max_arr2_prev, arr2_prev)\n            \n            prefix_sum = 0\n            for arr1_curr in range(1001):\n                if arr1_curr < arr1_prev:\n                    continue\n                arr2_curr = nums[i] - arr1_curr\n                if arr2_curr > max_arr2_prev:\n                    continue\n                prefix_sum = (prefix_sum + dp[arr1_prev]) % MOD\n                if arr1_curr > arr1_prev:\n                    prefix_sum = (prefix_sum + dp[arr1_curr]) % MOD\n                new_dp[arr1_curr] = prefix_sum\n            dp = new_dp\n        \n        total = 0\n        for arr1 in range(1001):\n            total = (total + dp[arr1]) % MOD\n        return total",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # Initialize DP array\n        dp = [0] * 1001\n        for j in range(nums[0] + 1):\n            dp[j] = 1  # arr1[0] can be from 0 to nums[0], arr2[0] = nums[0] - j\n        \n        for i in range(1, n):\n            new_dp = [0] * 1001\n            max_arr2 = -1\n            for prev_j in range(1001):\n                if dp[prev_j] > 0:\n                    arr2_prev = nums[i-1] - prev_j\n                    if arr2_prev > max_arr2:\n                        max_arr2 = arr2_prev\n            \n            prefix_sum = 0\n            for j in range(1001):\n                if j < prev_j:\n                    continue\n                arr2_curr = nums[i] - j\n                if arr2_curr > max_arr2:\n                    continue\n                # Accumulate the ways where arr1 prev <= j and arr2 prev >= arr2 curr\n                if j >= prev_j and arr2_curr <= arr2_prev:\n                    prefix_sum = (prefix_sum + dp[prev_j]) % MOD\n                new_dp[j] = (new_dp[j] + prefix_sum) % MOD\n            dp = new_dp\n        \n        total = 0\n        for j in range(1001):\n            total = (total + dp[j]) % MOD\n        return total",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        max_val = max(nums) + 1\n        dp = [0] * max_val\n        dp[nums[0]] = 1  # arr1[0] can be from 0 to nums[0], arr2[0] = nums[0] - arr1[0]\n        \n        for i in range(1, n):\n            new_dp = [0] * max_val\n            prefix_sum = 0\n            max_arr2_prev = -1\n            for arr1_prev in range(max_val):\n                if dp[arr1_prev] > 0:\n                    arr2_prev = nums[i-1] - arr1_prev\n                    if arr2_prev > max_arr2_prev:\n                        max_arr2_prev = arr2_prev\n            for arr1_curr in range(max_val):\n                arr2_curr = nums[i] - arr1_curr\n                if arr2_curr > max_arr2_prev:\n                    continue\n                for arr1_prev in range(arr1_curr + 1):\n                    if dp[arr1_prev] > 0:\n                        arr2_prev = nums[i-1] - arr1_prev\n                        if arr2_curr <= arr2_prev:\n                            prefix_sum = (prefix_sum + dp[arr1_prev]) % MOD\n                new_dp[arr1_curr] = prefix_sum\n            dp = new_dp\n        \n        total = 0\n        for arr1 in range(max_val):\n            total = (total + dp[arr1]) % MOD\n        return total",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # Initialize dp arrays\n        dp = [0] * 2001  # arr1 can be from 0 to 2000\n        for arr1 in range(nums[0] + 1):\n            arr2 = nums[0] - arr1\n            dp[arr1] = 1  # arr1[0] can be from 0 to nums[0], arr2[0] = nums[0] - arr1[0]\n        \n        for i in range(1, n):\n            new_dp = [0] * 2001\n            prefix_sum = 0\n            max_arr2_prev = -1\n            for arr1_prev in range(2001):\n                if dp[arr1_prev] > 0:\n                    arr2_prev = nums[i-1] - arr1_prev\n                    if arr2_prev > max_arr2_prev:\n                        max_arr2_prev = arr2_prev\n            for arr1_curr in range(2001):\n                arr2_curr = nums[i] - arr1_curr\n                if arr2_curr > max_arr2_prev:\n                    continue\n                for arr1_prev in range(arr1_curr + 1):\n                    if dp[arr1_prev] > 0:\n                        arr2_prev = nums[i-1] - arr1_prev\n                        if arr2_curr <= arr2_prev:\n                            prefix_sum = (prefix_sum + dp[arr1_prev]) % MOD\n                new_dp[arr1_curr] = prefix_sum\n            dp = new_dp\n        \n        total = 0\n        for arr1 in range(2001):\n            total = (total + dp[arr1]) % MOD\n        return total",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # Initialize dp arrays\n        dp = [0] * 1001  # arr1 can be from 0 to 1000\n        dp[nums[0]] = 1  # arr1[0] can be from 0 to nums[0], arr2[0] = nums[0] - arr1[0]\n        \n        for i in range(1, n):\n            new_dp = [0] * 1001\n            prefix_sum = 0\n            max_arr2_prev = -1\n            for arr1_prev in range(1001):\n                if dp[arr1_prev] > 0:\n                    arr2_prev = nums[i-1] - arr1_prev\n                    if arr2_prev > max_arr2_prev:\n                        max_arr2_prev = arr2_prev\n            for arr1_curr in range(1001):\n                arr2_curr = nums[i] - arr1_curr\n                if arr2_curr > max_arr2_prev:\n                    continue\n                for arr1_prev in range(max(0, arr1_curr), 1001):\n                    if dp[arr1_prev] > 0:\n                        arr2_prev = nums[i-1] - arr1_prev\n                        if arr2_curr <= arr2_prev:\n                            prefix_sum = (prefix_sum + dp[arr1_prev]) % MOD\n                new_dp[arr1_curr] = prefix_sum\n            dp = new_dp\n        \n        total = 0\n        for arr1 in range(1001):\n            total = (total + dp[arr1]) % MOD\n        return total",
+    "class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                \n                # Initialize dp arrays\n                dp = [0] * 2001  # arr1 can be from 0 to 1000, but we pad for safety\n                dp[0] = 1  # Initial state: arr1[0] can be from 0 to nums[0]\n                \n                for num in nums:\n                    new_dp = [0] * 2001\n                    prefix_sum = 0\n                    for arr1 in range(0, num + 1):\n                        arr2 = num - arr1\n                        if arr1 >= prefix_sum:\n                            break\n                        if arr2 >= 0:\n                            prefix_sum = (prefix_sum + dp[arr1]) % MOD\n                        if arr1 <= num and arr2 <= 1000:\n                            new_dp[arr1] = prefix_sum\n                    dp = new_dp\n                \n                result = 0\n                for count in dp:\n                    result = (result + count) % MOD\n                return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        max_val = max(nums)  # Determine the maximum possible value in nums\n        dp = [0] * (max_val + 1)\n        dp[0] = 1  # Initial state: arr1 can start from 0\n        \n        for num in nums:\n            new_dp = [0] * (max_val + 1)\n            prefix_sum = 0\n            for arr1 in range(0, num + 1):\n                arr2 = num - arr1\n                if arr2 > max_val:\n                    continue\n                prefix_sum = (prefix_sum + dp[arr1]) % MOD\n                if arr1 <= num and arr2 <= max_val:\n                    new_dp[arr1] = prefix_sum\n            dp = new_dp\n        \n        result = 0\n        for count in dp:\n            result = (result + count) % MOD\n        return result",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # Initialize Fenwick Tree for efficient prefix sums and updates\n        class FenwickTree:\n            def __init__(self, size):\n                self.N = size + 2\n                self.tree = [0] * (self.N + 1)\n            \n            def update(self, index, delta):\n                while index < self.N:\n                    self.tree[index] = (self.tree[index] + delta) % MOD\n                    index += index & -index\n            \n            def query(self, index):\n                res = 0\n                while index > 0:\n                    res = (res + self.tree[index]) % MOD\n                    index -= index & -index\n                return res\n            \n            def range_query(self, left, right):\n                return (self.query(right) - self.query(left - 1)) % MOD\n        \n        # Adjust nums by subtracting 1 for 1-based indexing\n        nums = [num - 1 for num in nums]\n        max_val = max(nums)\n        \n        # Initialize Fenwick Tree with size max_val + 1\n        ft = FenwickTree(max_val + 1)\n        \n        # Initialize the first position\n        for arr1 in range(nums[0] + 1):\n            arr2 = nums[0] - arr1\n            ft.update(arr1 + 1, 1)\n        \n        # Iterate through the remaining positions\n        for i in range(1, n):\n            new_ft = FenwickTree(max_val + 1)\n            min_arr1 = 0\n            max_arr1 = nums[i]\n            if i >= 1:\n                min_arr1 = ft.query(max_val + 1)  # Get the maximum arr1 from previous step\n                min_arr1 = max(min_arr1, 0)\n            for arr1 in range(min_arr1, max_arr1 + 1):\n                arr2 = nums[i] - arr1\n                if arr2 >= 0:\n                    # Update the new Fenwick Tree with the count from the previous Fenwick Tree\n                    new_ft.update(arr1 + 1, ft.query(arr1 + 1))\n            ft = new_ft\n        \n        # Sum up all possible arr1 sequences\n        result = ft.query(max_val + 1)\n        return result",
+    "class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                max_sum = sum(nums)\n                # Initialize dp arrays\n                dp_prev = [0] * (max_sum + 1)\n                dp_curr = [0] * (max_sum + 1)\n                # Initial state\n                for a1 in range(nums[0] + 1):\n                    a2 = nums[0] - a1\n                    dp_prev[a1] = 1\n                # Iterate through each element\n                for i in range(1, n):\n                    prefix_sum = 0\n                    for a1 in range(nums[i] + 1):\n                        a2 = nums[i] - a1\n                        # Update prefix_sum\n                        if a1 >= 0:\n                            prefix_sum = (prefix_sum + dp_prev[a1]) % MOD\n                        # Set dp_curr[a1]\n                        if a1 <= a1_prev and a2 >= a2_prev:\n                            dp_curr[a1] = prefix_sum\n                        else:\n                            dp_curr[a1] = 0\n                    # Update previous dp\n                    dp_prev, dp_curr = dp_curr, [0] * (max_sum + 1)\n                # Sum up all possible dp_prev values\n                total = sum(dp_prev) % MOD\n                return total",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_sum = sum(nums)\n        # Initialize dp arrays\n        dp_prev = [0] * (max_sum + 1)\n        dp_curr = [0] * (max_sum + 1)\n        # Initial state\n        for a1 in range(nums[0] + 1):\n            a2 = nums[0] - a1\n            dp_prev[a1] = 1\n        # Track previous a1 and a2 values\n        a1_prev_max = nums[0]\n        a2_prev_min = 0\n        # Iterate through each element\n        for i in range(1, n):\n            prefix_sum = 0\n            a1_curr_max = 0\n            a2_curr_min = nums[i]\n            for a1 in range(nums[i] + 1):\n                a2 = nums[i] - a1\n                # Update prefix_sum if a1 <= a1_prev_max\n                if a1 <= a1_prev_max:\n                    prefix_sum = (prefix_sum + dp_prev[a1]) % MOD\n                # Set dp_curr[a1] if a2 >= a2_prev_min\n                if a2 <= a2_prev_min:\n                    dp_curr[a1] = prefix_sum\n                else:\n                    dp_curr[a1] = 0\n                # Update current max and min for a1 and a2\n                if a1 > a1_curr_max:\n                    a1_curr_max = a1\n                if a2 < a2_curr_min:\n                    a2_curr_min = a2\n            # Update previous dp and a1_prev_max, a2_prev_min\n            dp_prev, dp_curr = dp_curr, [0] * (max_sum + 1)\n            a1_prev_max = a1_curr_max\n            a2_prev_min = a2_curr_min\n        # Sum up all possible dp_prev values\n        total = sum(dp_prev) % MOD\n        return total",
+    "class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                max_sum = sum(nums)\n                # Initialize dp arrays\n                dp_prev = [0] * (max_sum + 1)\n                dp_curr = [0] * (max_sum + 1)\n                # Initial state\n                for a1 in range(nums[0] + 1):\n                    a2 = nums[0] - a1\n                    dp_prev[a1] = 1\n                # Track previous a1 max and a2 min\n                a1_prev_max = nums[0]\n                a2_prev_min = 0\n                # Iterate through each element\n                for i in range(1, n):\n                    prefix_sum = 0\n                    a1_curr_max = 0\n                    a2_curr_min = nums[i]\n                    for a1 in range(nums[i] + 1):\n                        a2 = nums[i] - a1\n                        # Update prefix_sum if a1 >= previous a1 and a2 <= previous a2\n                        if a1 <= a1_prev_max and a2 >= a2_prev_min:\n                            prefix_sum = (prefix_sum + dp_prev[a1]) % MOD\n                        # Set dp_curr[a1] based on the prefix_sum\n                        dp_curr[a1] = prefix_sum\n                        # Update current max and min for a1 and a2\n                        if a1 > a1_curr_max:\n                            a1_curr_max = a1\n                        if a2 < a2_curr_min:\n                            a2_curr_min = a2\n                    # Update previous dp and a1_prev_max, a2_prev_min\n                    dp_prev, dp_curr = dp_curr, [0] * (max_sum + 1)\n                    a1_prev_max = a1_curr_max\n                    a2_prev_min = a2_curr_min\n                # Sum up all possible dp_prev values\n                total = sum(dp_prev) % MOD\n                return total",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_sum = sum(nums)\n        # Initialize dp arrays\n        dp_prev = [0] * (max_sum + 1)\n        dp_curr = [0] * (max_sum + 1)\n        # Initial state\n        for a1 in range(nums[0] + 1):\n            a2 = nums[0] - a1\n            dp_prev[a1] = 1\n        # Iterate through each element\n        for i in range(1, n):\n            prefix_sum = 0\n            for a1 in range(nums[i] + 1):\n                a2 = nums[i] - a1\n                # Find the maximum a1_prev that is <= a1\n                max_a1_prev = min(a1, max_sum)\n                # Accumulate the sum of dp_prev[a1_prev] for a1_prev <= a1\n                while max_a1_prev >= 0 and dp_prev[max_a1_prev] > 0:\n                    if nums[i-1] - max_a1_prev >= a2:\n                        prefix_sum = (prefix_sum + dp_prev[max_a1_prev]) % MOD\n                    max_a1_prev -= 1\n                # Set dp_curr[a1]\n                dp_curr[a1] = prefix_sum\n            # Update previous dp\n            dp_prev, dp_curr = dp_curr, [0] * (max_sum + 1)\n        # Sum up all possible dp_prev values\n        total = sum(dp_prev) % MOD\n        return total",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_sum = max(nums)  # Adjusted to handle larger sums efficiently\n        # Initialize dp arrays\n        dp_prev = [0] * (max_sum + 1)\n        dp_curr = [0] * (max_sum + 1)\n        # Initial state\n        for a1 in range(nums[0] + 1):\n            a2 = nums[0] - a1\n            dp_prev[a1] = 1\n        # Iterate through each element\n        for i in range(1, n):\n            prefix_sum = 0\n            for a1 in range(max_sum + 1):\n                a2 = nums[i] - a1\n                if a2 < 0:\n                    continue\n                # Find the maximum a1_prev that is <= a1\n                max_a1_prev = min(a1, max_sum)\n                # Accumulate the sum of dp_prev[a1_prev] for a1_prev <= a1 and a2_prev >= a2\n                while max_a1_prev >= 0 and dp_prev[max_a1_prev] > 0:\n                    a2_prev = nums[i-1] - max_a1_prev\n                    if a2_prev >= a2:\n                        prefix_sum = (prefix_sum + dp_prev[max_a1_prev]) % MOD\n                    max_a1_prev -= 1\n                # Set dp_curr[a1]\n                dp_curr[a1] = prefix_sum\n            # Update previous dp\n            dp_prev, dp_curr = dp_curr, [0] * (max_sum + 1)\n        # Sum up all possible dp_prev values\n        total = sum(dp_prev) % MOD\n        return total",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums)\n        # Initialize dp arrays\n        dp_prev = [0] * (max_val + 1)\n        dp_curr = [0] * (max_val + 1)\n        # Initial state\n        for a1 in range(nums[0] + 1):\n            a2 = nums[0] - a1\n            dp_prev[a1] = 1\n        # Prefix sums for previous dp\n        prefix_prev = list(accumulate(dp_prev))\n        # Iterate through each element\n        for i in range(1, n):\n            dp_curr = [0] * (max_val + 1)\n            prefix_curr = [0] * (max_val + 1)\n            for a1 in range(nums[i] + 1):\n                a2 = nums[i] - a1\n                # Find the maximum a1_prev that is <= a1 and arr2_prev >= a2\n                max_a1_prev = a1\n                min_a2_prev = a2\n                # arr2_prev >= a2 => nums[i-1] - a1_prev >= a2 => a1_prev <= nums[i-1] - a2\n                max_a1_prev = min(a1, nums[i-1] - min_a2_prev)\n                if max_a1_prev < 0:\n                    continue\n                # Accumulate the sum of dp_prev[a1_prev] for a1_prev <= max_a1_prev\n                if max_a1_prev >= 0:\n                    dp_curr[a1] = prefix_prev[max_a1_prev + 1]\n                else:\n                    dp_curr[a1] = 0\n                dp_curr[a1] %= MOD\n                # Update prefix sums\n                if a1 > 0:\n                    prefix_curr[a1] = (prefix_curr[a1 - 1] + dp_curr[a1]) % MOD\n                else:\n                    prefix_curr[a1] = dp_curr[a1]\n            # Update previous dp\n            dp_prev = dp_curr\n            prefix_prev = prefix_curr\n        # Sum up all possible dp_prev values\n        total = sum(dp_prev) % MOD\n        return total",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_sum = sum(nums)\n        # Initialize dp arrays\n        dp_prev = [0] * (max_sum + 1)\n        dp_curr = [0] * (max_sum + 1)\n        # Initial state\n        for a1 in range(nums[0] + 1):\n            a2 = nums[0] - a1\n            dp_prev[a1] = 1\n        # Iterate through each element\n        for i in range(1, n):\n            prefix_sum = 0\n            for a1 in range(nums[i] + 1):\n                a2 = nums[i] - a1\n                # Find the maximum a1_prev that is <= a1\n                a1_prev_max = a1\n                # Find the minimum a2_prev that is >= a2\n                a2_prev_min = a2\n                # Calculate the range of a1_prev that satisfies both conditions\n                # a1_prev <= a1 and a2_prev >= a2\n                # Since a2_prev = nums[i-1] - a1_prev >= a2\n                # => a1_prev <= nums[i-1] - a2\n                a1_prev_max = min(a1, nums[i-1] - a2)\n                if a1_prev_max >= 0:\n                    prefix_sum = (prefix_sum + dp_prev[a1_prev_max]) % MOD\n                # Set dp_curr[a1]\n                dp_curr[a1] = prefix_sum\n            # Update previous dp\n            dp_prev, dp_curr = dp_curr, [0] * (max_sum + 1)\n        # Sum up all possible dp_prev values\n        total = sum(dp_prev) % MOD\n        return total"
+  ],
+  "total_candidates": 15,
+  "nodes_explored": 15,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        if n == 0:\n            return 0\n        \n        # Initialize DP arrays\n        dp = [0] * 1001\n        dp[nums[0]] = 1  # arr1[0] can be from 0 to nums[0], arr2[0] = nums[0] - arr1[0]\n        \n        for i in range(1, n):\n            new_dp = [0] * 1001\n            max_arr2_prev = -1\n            for arr1_prev in range(1001):\n                if dp[arr1_prev] > 0:\n                    arr2_prev = nums[i-1] - arr1_prev\n                    max_arr2_prev = max(max_arr2_prev, arr2_prev)\n            \n            prefix_sum = 0\n            for arr1_curr in range(1001):\n                if arr1_curr < arr1_prev:\n                    continue\n                arr2_curr = nums[i] - arr1_curr\n                if arr2_curr > max_arr2_prev:\n                    continue\n                prefix_sum = (prefix_sum + dp[arr1_prev]) % MOD\n                if arr1_curr > arr1_prev:\n                    prefix_sum = (prefix_sum + dp[arr1_curr]) % MOD\n                new_dp[arr1_curr] = prefix_sum\n            dp = new_dp\n        \n        total = 0\n        for arr1 in range(1001):\n            total = (total + dp[arr1]) % MOD\n        return total",
+      "solution_hash": "5ad54a80c265877976b51139b5d0d89c6d6c099007d35cf756dee93f2f8bf8e2",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmp4rw76tqa.py\", line 206, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/22242033/tmp4rw76tqa.py\", line 120, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmp4rw76tqa.py` failed. (See above for error)\n",
+        "execution_time": 13.34782361984253,
+        "failed_tests": [
+          {
+            "input": "nums = [2, 3, 2]",
+            "expected": "4",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmp4rw76tqa.py\", line 206, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/22242033/tmp4rw76tqa.py\", line 120, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmp4rw76tqa.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_2"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                \n                # Initialize dp arrays\n                dp = [0] * 2001  # arr1 can be from 0 to 1000, but we pad for safety\n                dp[0] = 1  # Initial state: arr1[0] can be from 0 to nums[0]\n                \n                for num in nums:\n                    new_dp = [0] * 2001\n                    prefix_sum = 0\n                    for arr1 in range(0, num + 1):\n                        arr2 = num - arr1\n                        if arr1 >= prefix_sum:\n                            break\n                        if arr2 >= 0:\n                            prefix_sum = (prefix_sum + dp[arr1]) % MOD\n                        if arr1 <= num and arr2 <= 1000:\n                            new_dp[arr1] = prefix_sum\n                    dp = new_dp\n                \n                result = 0\n                for count in dp:\n                    result = (result + count) % MOD\n                return result",
+      "solution_hash": "4513e6e49a81237354899b3ce99e0ef8795468cf691b28ee61e705ff28f00cd1",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmpnso2hqxr.py\", line 198, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/22242033/tmpnso2hqxr.py\", line 112, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmpnso2hqxr.py` failed. (See above for error)\n",
+        "execution_time": 13.35376787185669,
+        "failed_tests": [
+          {
+            "input": "nums = [2, 3, 2]",
+            "expected": "4",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmpnso2hqxr.py\", line 198, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/22242033/tmpnso2hqxr.py\", line 112, in check\n    assert candidate(nums = [2, 3, 2]) == 4\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmpnso2hqxr.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_6"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_2",
+      "solution": "class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                max_sum = sum(nums)\n                # Initialize dp arrays\n                dp_prev = [0] * (max_sum + 1)\n                dp_curr = [0] * (max_sum + 1)\n                # Initial state\n                for a1 in range(nums[0] + 1):\n                    a2 = nums[0] - a1\n                    dp_prev[a1] = 1\n                # Iterate through each element\n                for i in range(1, n):\n                    prefix_sum = 0\n                    for a1 in range(nums[i] + 1):\n                        a2 = nums[i] - a1\n                        # Update prefix_sum\n                        if a1 >= 0:\n                            prefix_sum = (prefix_sum + dp_prev[a1]) % MOD\n                        # Set dp_curr[a1]\n                        if a1 <= a1_prev and a2 >= a2_prev:\n                            dp_curr[a1] = prefix_sum\n                        else:\n                            dp_curr[a1] = 0\n                    # Update previous dp\n                    dp_prev, dp_curr = dp_curr, [0] * (max_sum + 1)\n                # Sum up all possible dp_prev values\n                total = sum(dp_prev) % MOD\n                return total",
+      "solution_hash": "6aeacd378b7cbd52dc708392ace0dece619c05ef860b1124c56e55a1e738c728",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmp0peaq0rf.py\", line 200, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/22242033/tmp0peaq0rf.py\", line 114, in check\n    assert candidate(nums = [2, 3, 2]) == 4\n  File \"/scratch/local/22242033/tmp0peaq0rf.py\", line 102, in countOfPairs\n    if a1 <= a1_prev and a2 >= a2_prev:\nNameError: name 'a1_prev' is not defined\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmp0peaq0rf.py` failed. (See above for error)\n",
+        "execution_time": 13.342008352279663,
+        "failed_tests": [
+          {
+            "input": "nums = [2, 3, 2]",
+            "expected": "4",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmp0peaq0rf.py\", line 200, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/22242033/tmp0peaq0rf.py\", line 114, in check\n    assert candidate(nums = [2, 3, 2]) == 4\n  File \"/scratch/local/22242033/tmp0peaq0rf.py\", line 102, in countOfPairs\n    if a1 <= a1_prev and a2 >= a2_prev:\nNameError: name 'a1_prev' is not defined\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmp0peaq0rf.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_9",
+        "1_11",
+        "1_14"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 15,
+    "candidates_generated": 15,
+    "tests_passed": 1,
+    "tests_failed": 14,
+    "test_timeouts": 0,
+    "test_errors": 0,
+    "import_errors": 0,
+    "import_terminated_branches": 0,
+    "unique_import_failures": [],
+    "execution_times": [
+      13.34782361984253,
+      13.344056606292725,
+      13.340749979019165,
+      13.628174781799316,
+      13.355985879898071,
+      13.35376787185669,
+      13.345254898071289,
+      13.303638219833374,
+      13.342008352279663,
+      13.37524938583374,
+      13.37093472480774,
+      13.382494926452637,
+      13.445294380187988,
+      13.44637393951416,
+      13.514222860336304
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 15,
+      "unique_ratio": 1.0,
+      "similarity_score": 0.872777649070919,
+      "solution_lengths": {
+        "min": 872,
+        "max": 2129,
+        "avg": 1412.5333333333333
+      },
+      "algorithm_approaches": {
+        "dynamic_programming": 7,
+        "other": 8
+      },
+      "feature_diversity": 1.0,
+      "features_analysis": {
+        "boolean_features": {
+          "has_recursion": {
+            "true_ratio": 1.0,
+            "count": 15
+          },
+          "uses_list": {
+            "true_ratio": 0.06666666666666667,
+            "count": 1
+          },
+          "uses_dict": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_set": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_heap": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_queue": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_stack": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dp": {
+            "true_ratio": 0.4666666666666667,
+            "count": 7
+          },
+          "uses_bfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_binary_search": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "nested_loops": {
+            "true_ratio": 1.0,
+            "count": 15
+          }
+        },
+        "numeric_features": {
+          "loop_count": {
+            "min": 3,
+            "max": 6,
+            "avg": 4.0,
+            "variance": 1.2
+          },
+          "if_count": {
+            "min": 1,
+            "max": 6,
+            "avg": 3.6666666666666665,
+            "variance": 3.0222222222222217
+          },
+          "else_count": {
+            "min": 0,
+            "max": 2,
+            "avg": 0.26666666666666666,
+            "variance": 0.3288888888888889
+          },
+          "return_count": {
+            "min": 1,
+            "max": 4,
+            "avg": 1.6666666666666667,
+            "variance": 0.6222222222222221
+          },
+          "assignment_count": {
+            "min": 16,
+            "max": 24,
+            "avg": 19.133333333333333,
+            "variance": 7.5822222222222235
+          },
+          "class_method_count": {
+            "min": 1,
+            "max": 5,
+            "avg": 1.2666666666666666,
+            "variance": 0.9955555555555559
+          },
+          "line_count": {
+            "min": 27,
+            "max": 58,
+            "avg": 36.8,
+            "variance": 53.49333333333335
+          },
+          "char_count": {
+            "min": 872,
+            "max": 2129,
+            "avg": 1412.5333333333333,
+            "variance": 85511.71555555557
+          },
+          "max_indent": {
+            "min": 20,
+            "max": 28,
+            "avg": 24.0,
+            "variance": 12.8
+          }
+        }
+      },
+      "complexity_diversity": {
+        "complexity_distribution": {
+          "exponential": 15
+        },
+        "avg_complexity_metrics": {
+          "avg_line_count": 36.8,
+          "avg_loop_count": 4.0,
+          "avg_condition_count": 3.933333333333333,
+          "avg_method_count": 1.2666666666666666,
+          "avg_assignment_count": 19.133333333333333,
+          "avg_max_loop_nesting": 1.0
+        },
+        "complexity_diversity_ratio": 0.16666666666666666
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "nums = [2, 3, 2]": 14
+      },
+      "first_failing_tests": {
+        "nums = [2, 3, 2]": 14
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 6,
+          "improvements": 0,
+          "solved": 1
+        },
+        "2": {
+          "attempts": 6,
+          "improvements": 0,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "assertion_failure": {
+          "attempts": 7,
+          "improvements": 0
+        },
+        "name_error": {
+          "attempts": 1,
+          "improvements": 1
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "assertion_failure->assertion_failure": 9,
+        "name_error->assertion_failure": 2,
+        "name_error->unknown": 1
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.2,
+        "solutions_per_depth": {
+          "0": 3,
+          "1": 6,
+          "2": 6
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 1,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.125,
+        "pass@3": 0.35,
+        "pass@5": 0.5416666666666666,
+        "pass@10": 0.875
+      },
+      "solutions_evaluated": 16,
+      "passing_solution_depths": {
+        "min": 1,
+        "max": 1,
+        "avg": 1.0
+      }
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.06666666666666667,
+        "branch_success_rate": 0.06666666666666667,
+        "test_success_rate": 0.06666666666666667
+      },
+      "test_results": {
+        "total": 15,
+        "passed": 1,
+        "failed": 14,
+        "timeouts": 0,
+        "import_errors": 0,
+        "other_errors": 0,
+        "unique_import_failures": []
+      },
+      "error_recovery": {
+        "total_attempts": 8,
+        "total_improvements": 1,
+        "recovery_rate": 0.125
+      },
+      "top_errors": [
+        [
+          "assertion_failure",
+          7
+        ],
+        [
+          "name_error",
+          1
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "nums = [2, 3, 2]",
+          14
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 3255.1170048713684,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.125,
+      "pass@3": 0.35,
+      "pass@5": 0.5416666666666666,
+      "pass@10": 0.875
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: name 'a1_prev' is not defined",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 15
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 16,
+    "test_cases": 1
+  }
+}

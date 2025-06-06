@@ -1,0 +1,433 @@
+{
+  "problem_id": "constructing-two-increasing-arrays",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": "from typing import List\nfrom functools import lru_cache\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        len1, len2 = len(nums1), len(nums2)\n        \n        @lru_cache(maxsize=None)\n        def dp(i, j, prev1, prev2, next_even, next_odd):\n            if i == len1 and j == len2:\n                return 0\n            if i == len1:\n                # Only process nums2\n                if nums2[j] == 0:\n                    candidate = next_even\n                    while candidate <= prev2 or (candidate % 2 != 0):\n                        candidate += 1\n                    new_next_even = candidate + 2 if candidate % 2 == 0 else candidate + 1\n                    new_next_odd = next_odd\n                else:\n                    candidate = next_odd\n                    while candidate <= prev2 or (candidate % 2 == 0):\n                        candidate += 1\n                    new_next_even = next_even\n                    new_next_odd = candidate + 2 if candidate % 2 == 1 else candidate + 1\n                return max(candidate, dp(i, j + 1, prev1, candidate, new_next_even, new_next_odd))\n            if j == len2:\n                # Only process nums1\n                if nums1[i] == 0:\n                    candidate = next_even\n                    while candidate <= prev1 or (candidate % 2 != 0):\n                        candidate += 1\n                    new_next_even = candidate + 2 if candidate % 2 == 0 else candidate + 1\n                    new_next_odd = next_odd\n                else:\n                    candidate = next_odd\n                    while candidate <= prev1 or (candidate % 2 == 0):\n                        candidate += 1\n                    new_next_even = next_even\n                    new_next_odd = candidate + 2 if candidate % 2 == 1 else candidate + 1\n                return max(candidate, dp(i + 1, j, candidate, prev2, new_next_even, new_next_odd))\n            \n            # Process nums1\n            if nums1[i] == 0:\n                candidate1 = next_even\n                while candidate1 <= prev1 or (candidate1 % 2 != 0):\n                    candidate1 += 1\n                new_next_even1 = candidate1 + 2 if candidate1 % 2 == 0 else candidate1 + 1\n                new_next_odd1 = next_odd\n            else:\n                candidate1 = next_odd\n                while candidate1 <= prev1 or (candidate1 % 2 == 0):\n                    candidate1 += 1\n                new_next_even1 = next_even\n                new_next_odd1 = candidate1 + 2 if candidate1 % 2 == 1 else candidate1 + 1\n            res1 = max(candidate1, dp(i + 1, j, candidate1, prev2, new_next_even1, new_next_odd1))\n            \n            # Process nums2\n            if nums2[j] == 0:\n                candidate2 = next_even\n                while candidate2 <= prev2 or (candidate2 % 2 != 0):\n                    candidate2 += 1\n                new_next_even2 = candidate2 + 2 if candidate2 % 2 == 0 else candidate2 + 1\n                new_next_odd2 = next_odd\n            else:\n                candidate2 = next_odd\n                while candidate2 <= prev2 or (candidate2 % 2 == 0):\n                    candidate2 += 1\n                new_next_even2 = next_even\n                new_next_odd2 = candidate2 + 2 if candidate2 % 2 == 1 else candidate2 + 1\n            res2 = max(candidate2, dp(i, j + 1, prev1, candidate2, new_next_even2, new_next_odd2))\n            \n            # Choose the minimum of both possibilities\n            return min(res1, res2)\n        \n        # Initialize with no previous assignments and starting even and odd numbers\n        return dp(0, 0, 0, 0, 2, 1)",
+  "passed_solutions": [
+    "from typing import List\nfrom functools import lru_cache\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        len1, len2 = len(nums1), len(nums2)\n        \n        @lru_cache(maxsize=None)\n        def dp(i, j, prev1, prev2, next_even, next_odd):\n            if i == len1 and j == len2:\n                return 0\n            if i == len1:\n                # Only process nums2\n                if nums2[j] == 0:\n                    candidate = next_even\n                    while candidate <= prev2 or (candidate % 2 != 0):\n                        candidate += 1\n                    new_next_even = candidate + 2 if candidate % 2 == 0 else candidate + 1\n                    new_next_odd = next_odd\n                else:\n                    candidate = next_odd\n                    while candidate <= prev2 or (candidate % 2 == 0):\n                        candidate += 1\n                    new_next_even = next_even\n                    new_next_odd = candidate + 2 if candidate % 2 == 1 else candidate + 1\n                return max(candidate, dp(i, j + 1, prev1, candidate, new_next_even, new_next_odd))\n            if j == len2:\n                # Only process nums1\n                if nums1[i] == 0:\n                    candidate = next_even\n                    while candidate <= prev1 or (candidate % 2 != 0):\n                        candidate += 1\n                    new_next_even = candidate + 2 if candidate % 2 == 0 else candidate + 1\n                    new_next_odd = next_odd\n                else:\n                    candidate = next_odd\n                    while candidate <= prev1 or (candidate % 2 == 0):\n                        candidate += 1\n                    new_next_even = next_even\n                    new_next_odd = candidate + 2 if candidate % 2 == 1 else candidate + 1\n                return max(candidate, dp(i + 1, j, candidate, prev2, new_next_even, new_next_odd))\n            \n            # Process nums1\n            if nums1[i] == 0:\n                candidate1 = next_even\n                while candidate1 <= prev1 or (candidate1 % 2 != 0):\n                    candidate1 += 1\n                new_next_even1 = candidate1 + 2 if candidate1 % 2 == 0 else candidate1 + 1\n                new_next_odd1 = next_odd\n            else:\n                candidate1 = next_odd\n                while candidate1 <= prev1 or (candidate1 % 2 == 0):\n                    candidate1 += 1\n                new_next_even1 = next_even\n                new_next_odd1 = candidate1 + 2 if candidate1 % 2 == 1 else candidate1 + 1\n            res1 = max(candidate1, dp(i + 1, j, candidate1, prev2, new_next_even1, new_next_odd1))\n            \n            # Process nums2\n            if nums2[j] == 0:\n                candidate2 = next_even\n                while candidate2 <= prev2 or (candidate2 % 2 != 0):\n                    candidate2 += 1\n                new_next_even2 = candidate2 + 2 if candidate2 % 2 == 0 else candidate2 + 1\n                new_next_odd2 = next_odd\n            else:\n                candidate2 = next_odd\n                while candidate2 <= prev2 or (candidate2 % 2 == 0):\n                    candidate2 += 1\n                new_next_even2 = next_even\n                new_next_odd2 = candidate2 + 2 if candidate2 % 2 == 1 else candidate2 + 1\n            res2 = max(candidate2, dp(i, j + 1, prev1, candidate2, new_next_even2, new_next_odd2))\n            \n            # Choose the minimum of both possibilities\n            return min(res1, res2)\n        \n        # Initialize with no previous assignments and starting even and odd numbers\n        return dp(0, 0, 0, 0, 2, 1)"
+  ],
+  "all_solutions": [
+    "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        @lru_cache(None)\n        def dp(i, prev1, prev2, used):\n            if i == total:\n                return 0\n            min_max = float('inf')\n            num = i + 1  # Starting from 1\n            array, idx = positions[i]\n            if array == 1:\n                if nums1[idx] == 0:\n                    # Even number\n                    candidate = next_even(prev1)\n                    while candidate in used:\n                        candidate += 2\n                else:\n                    # Odd number\n                    candidate = next_odd(prev1)\n                    while candidate in used:\n                        candidate += 2\n                new_used = used | {candidate}\n                new_prev1 = candidate\n                new_prev2 = prev2\n                min_max = min(min_max, max(candidate, dp(i + 1, new_prev1, new_prev2, new_used)))\n            else:\n                if nums2[idx] == 0:\n                    # Even number\n                    candidate = next_even(prev2)\n                    while candidate in used:\n                        candidate += 2\n                else:\n                    # Odd number\n                    candidate = next_odd(prev2)\n                    while candidate in used:\n                        candidate += 2\n                new_used = used | {candidate}\n                new_prev1 = prev1\n                new_prev2 = candidate\n                min_max = min(min_max, max(candidate, dp(i + 1, new_prev1, new_prev2, new_used)))\n            return min_max\n        \n        def next_even(num):\n            return num + 2 if num % 2 == 0 else num + 1\n        \n        def next_odd(num):\n            return num + 2 if num % 2 == 1 else num + 1\n        \n        # Prepare positions\n        positions = []\n        for i in range(len(nums1)):\n            positions.append((1, i))\n        for i in range(len(nums2)):\n            positions.append((2, i))\n        positions.sort(key=lambda x: (x[1], x[0]))\n        \n        total = len(positions)\n        initial_used = set()\n        return dp(0, 0, 0, initial_used)",
+    "from typing import List\nfrom functools import lru_cache\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        combined = list(enumerate(nums1)) + [(len(nums1) + i, num) for i, num in enumerate(nums2)]\n        combined.sort(key=lambda x: x[0])\n\n        @lru_cache(maxsize=None)\n        def dp(pos, prev1, prev2, used_mask):\n            if pos == len(combined):\n                return 0\n            min_max = float('inf')\n            array_idx, num = combined[pos]\n            is_nums1 = array_idx < len(nums1)\n            if is_nums1:\n                start = prev1 + 1 if nums1[array_idx] == 0 else prev1 + 2 - prev1 % 2\n                step = 2\n                for candidate in range(start, 2 * len(combined) * max(len(nums1), len(nums2)) + 1, step):\n                    if not (used_mask & (1 << candidate)):\n                        new_used_mask = used_mask | (1 << candidate)\n                        new_min_max = max(candidate, dp(pos + 1, candidate, prev2, new_used_mask))\n                        min_max = min(min_max, new_min_max)\n                        if candidate > prev1:\n                            break  # Since the array must be increasing\n            else:\n                idx_in_nums2 = array_idx - len(nums1)\n                start = prev2 + 1 if nums2[idx_in_nums2] == 0 else prev2 + 2 - prev2 % 2\n                step = 2\n                for candidate in range(start, 2 * len(combined) * max(len(nums1), len(nums2)) + 1, step):\n                    if not (used_mask & (1 << candidate)):\n                        new_used_mask = used_mask | (1 << candidate)\n                        new_min_max = max(candidate, dp(pos + 1, prev1, candidate, new_used_mask))\n                        min_max = min(min_max, new_min_max)\n                        if candidate > prev2:\n                            break  # Since the array must be increasing\n            return min_max\n        \n        initial_used_mask = 0\n        return dp(0, -1, -1, initial_used_mask)",
+    "from typing import List\n\n        class Solution:\n            def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n                def assign_values(nums):\n                    assigned = []\n                    prev = -1\n                    for num in nums:\n                        if num == 0:  # even\n                            candidate = prev + 1 if prev % 2 == 0 else prev + 2 - prev % 2\n                            candidate = candidate if candidate % 2 == 0 else candidate + 1\n                        else:  # odd\n                            candidate = prev + 1 if prev % 2 == 1 else prev + 2 - prev % 2\n                            candidate = candidate if candidate % 2 == 1 else candidate + 1\n                        while candidate in used:\n                            candidate += 2\n                        assigned.append(candidate)\n                        used.add(candidate)\n                        prev = candidate\n                    return assigned\n\n                used = set()\n                assigned1 = assign_values(nums1)\n                assigned2 = assign_values(nums2)\n                return max(max(assigned1), max(assigned2))",
+    "from typing import List\n        import heapq\n\n        class Solution:\n            def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n                # Initialize priority queues for each array\n                # Each entry is a tuple (next_available, array_index)\n                # array_index 0 for nums1, 1 for nums2\n                queues = []\n                if nums1:\n                    queues.append((1 if nums1[0] == 1 else 2, 0, 0))\n                if nums2:\n                    queues.append((1 if nums2[0] == 1 else 2, 1, 0))\n                heapq.heapify(queues)\n                \n                used = set()\n                max_num = 0\n                \n                while queues:\n                    current, array_index, index = heapq.heappop(queues)\n                    if array_index == 0:\n                        nums = nums1\n                    else:\n                        nums = nums2\n                    \n                    # Ensure current is greater than previous in the same array\n                    if index > 0:\n                        prev = queues[0][0] if queues else 0\n                        if array_index == 0:\n                            prev = queues[0][0] if queues and queues[0][1] == 0 else 0\n                        else:\n                            prev = queues[0][0] if queues and queues[0][1] == 1 else 0\n                        if current <= prev:\n                            current = prev + 1\n                    \n                    # Ensure current is not used before\n                    while current in used:\n                        current += 2\n                    \n                    # Assign current to the position\n                    used.add(current)\n                    max_num = max(max_num, current)\n                    \n                    # Push the next number for this array\n                    if index + 1 < len(nums):\n                        next_num = current + 1 if nums[array_index][index + 1] == 1 else current + 2 - current % 2\n                        heapq.heappush(queues, (next_num, array_index, index + 1))\n                \n                return max_num",
+    "import heapq\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Combine the arrays with their indices\n        combined = [(0, i, num) for i, num in enumerate(nums1)] + [(1, i, num) for i, num in enumerate(nums2)]\n        combined.sort(key=lambda x: (x[1], x[0]))\n        \n        # Heaps to store the next available value for each array\n        next_available = [[], []]\n        for arr_idx in [0, 1]:\n            if arr_idx == 0:\n                arr_len = len(nums1)\n            else:\n                arr_len = len(nums2)\n            for i in range(arr_len):\n                if combined[i][0] == arr_idx:\n                    num = combined[i][2]\n                    if num == 0:\n                        # Even numbers starting from 2\n                        heapq.heappush(next_available[arr_idx], 2)\n                    else:\n                        # Odd numbers starting from 1\n                        heapq.heappush(next_available[arr_idx], 1)\n                    break\n        \n        max_assigned = 0\n        assigned = [{} for _ in range(2)]\n        \n        for arr_idx, pos, num in combined:\n            # Get the last assigned value for this array\n            last_val = assigned[arr_idx][pos-1] if pos > 0 else 0\n            # Get the next available value for this array\n            next_val = next_available[arr_idx][0]\n            while next_val <= last_val:\n                heapq.heappop(next_available[arr_idx])\n                next_val = next_available[arr_idx][0]\n            # Assign the next available value\n            assigned_val = next_val\n            heapq.heappush(next_available[arr_idx], assigned_val + 2)\n            assigned[arr_idx][pos] = assigned_val\n            # Update max_assigned\n            max_assigned = max(max_assigned, assigned_val)\n        \n        return max_assigned",
+    "from typing import List\nfrom functools import lru_cache\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        # Combine positions from both arrays\n        positions = []\n        for idx, val in enumerate(nums1):\n            positions.append((1, idx, val))\n        for idx, val in enumerate(nums2):\n            positions.append((2, idx, val))\n        positions.sort(key=lambda x: (x[1], x[0]))\n        \n        total = len(positions)\n        \n        @lru_cache(maxsize=None)\n        def dp(i, prev1, prev2, next_even, next_odd):\n            if i == total:\n                return 0\n            array, idx, val = positions[i]\n            if array == 1:\n                if val == 0:\n                    # Choose the smallest available even number greater than prev1\n                    candidate = next_even\n                    while candidate < next_even or (candidate % 2 != 0):\n                        candidate += 1\n                    new_next_even = candidate + 2 if candidate % 2 == 0 else candidate + 1\n                    new_next_odd = next_odd\n                else:\n                    # Choose the smallest available odd number greater than prev1\n                    candidate = next_odd\n                    while candidate < next_odd or (candidate % 2 == 0):\n                        candidate += 1\n                    new_next_even = next_even\n                    new_next_odd = candidate + 2 if candidate % 2 == 1 else candidate + 1\n                new_prev1 = candidate\n                new_prev2 = prev2\n            else:\n                if val == 0:\n                    # Choose the smallest available even number greater than prev2\n                    candidate = next_even\n                    while candidate < next_even or (candidate % 2 != 0):\n                        candidate += 1\n                    new_next_even = candidate + 2 if candidate % 2 == 0 else candidate + 1\n                    new_next_odd = next_odd\n                else:\n                    # Choose the smallest available odd number greater than prev2\n                    candidate = next_odd\n                    while candidate < next_odd or (candidate % 2 == 0):\n                        candidate += 1\n                    new_next_even = next_even\n                    new_next_odd = candidate + 2 if candidate % 2 == 1 else candidate + 1\n                new_prev1 = prev1\n                new_prev2 = candidate\n            return min(max(candidate, dp(i + 1, new_prev1, new_prev2, new_next_even, new_next_odd)), \n                       dp(i + 1, prev1, prev2, next_even, next_odd) if i + 1 < total else 0)\n        \n        # Initialize with no previous assignments and starting even and odd numbers\n        return dp(0, 0, 0, 2, 1)",
+    "from typing import List\nfrom functools import lru_cache\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        combined = []\n        for idx, val in enumerate(nums1):\n            combined.append((1, idx, val))\n        for idx, val in enumerate(nums2):\n            combined.append((2, idx, val))\n        combined.sort(key=lambda x: (x[1], x[0]))\n        \n        @lru_cache(maxsize=None)\n        def dp(pos, last1, last2, used):\n            if pos == len(combined):\n                return 0\n            array, idx, val = combined[pos]\n            min_max = float('inf')\n            if array == 1:\n                if val == 0:\n                    candidate = last1 + 2 if last1 % 2 == 0 else last1 + 1\n                    while candidate in used:\n                        candidate += 2\n                    used.add(candidate)\n                    min_max = min(min_max, max(candidate, dp(pos + 1, candidate, last2, used)))\n                    used.remove(candidate)\n                else:\n                    candidate = last1 + 1 if last1 % 2 == 1 else last1 + 2\n                    while candidate in used:\n                        candidate += 2\n                    used.add(candidate)\n                    min_max = min(min_max, max(candidate, dp(pos + 1, candidate, last2, used)))\n                    used.remove(candidate)\n            else:\n                if val == 0:\n                    candidate = last2 + 2 if last2 % 2 == 0 else last2 + 1\n                    while candidate in used:\n                        candidate += 2\n                    used.add(candidate)\n                    min_max = min(min_max, max(candidate, dp(pos + 1, last1, candidate, used)))\n                    used.remove(candidate)\n                else:\n                    candidate = last2 + 1 if last2 % 2 == 1 else last2 + 2\n                    while candidate in used:\n                        candidate += 2\n                    used.add(candidate)\n                    min_max = min(min_max, max(candidate, dp(pos + 1, last1, candidate, used)))\n                    used.remove(candidate)\n            return min_max\n        \n        initial_used = set()\n        return dp(0, 0, 0, initial_used)",
+    "from typing import List\nfrom functools import lru_cache\n\nclass Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        len1, len2 = len(nums1), len(nums2)\n        \n        @lru_cache(maxsize=None)\n        def dp(i, j, prev1, prev2, next_even, next_odd):\n            if i == len1 and j == len2:\n                return 0\n            if i == len1:\n                # Only process nums2\n                if nums2[j] == 0:\n                    candidate = next_even\n                    while candidate <= prev2 or (candidate % 2 != 0):\n                        candidate += 1\n                    new_next_even = candidate + 2 if candidate % 2 == 0 else candidate + 1\n                    new_next_odd = next_odd\n                else:\n                    candidate = next_odd\n                    while candidate <= prev2 or (candidate % 2 == 0):\n                        candidate += 1\n                    new_next_even = next_even\n                    new_next_odd = candidate + 2 if candidate % 2 == 1 else candidate + 1\n                return max(candidate, dp(i, j + 1, prev1, candidate, new_next_even, new_next_odd))\n            if j == len2:\n                # Only process nums1\n                if nums1[i] == 0:\n                    candidate = next_even\n                    while candidate <= prev1 or (candidate % 2 != 0):\n                        candidate += 1\n                    new_next_even = candidate + 2 if candidate % 2 == 0 else candidate + 1\n                    new_next_odd = next_odd\n                else:\n                    candidate = next_odd\n                    while candidate <= prev1 or (candidate % 2 == 0):\n                        candidate += 1\n                    new_next_even = next_even\n                    new_next_odd = candidate + 2 if candidate % 2 == 1 else candidate + 1\n                return max(candidate, dp(i + 1, j, candidate, prev2, new_next_even, new_next_odd))\n            \n            # Process nums1\n            if nums1[i] == 0:\n                candidate1 = next_even\n                while candidate1 <= prev1 or (candidate1 % 2 != 0):\n                    candidate1 += 1\n                new_next_even1 = candidate1 + 2 if candidate1 % 2 == 0 else candidate1 + 1\n                new_next_odd1 = next_odd\n            else:\n                candidate1 = next_odd\n                while candidate1 <= prev1 or (candidate1 % 2 == 0):\n                    candidate1 += 1\n                new_next_even1 = next_even\n                new_next_odd1 = candidate1 + 2 if candidate1 % 2 == 1 else candidate1 + 1\n            res1 = max(candidate1, dp(i + 1, j, candidate1, prev2, new_next_even1, new_next_odd1))\n            \n            # Process nums2\n            if nums2[j] == 0:\n                candidate2 = next_even\n                while candidate2 <= prev2 or (candidate2 % 2 != 0):\n                    candidate2 += 1\n                new_next_even2 = candidate2 + 2 if candidate2 % 2 == 0 else candidate2 + 1\n                new_next_odd2 = next_odd\n            else:\n                candidate2 = next_odd\n                while candidate2 <= prev2 or (candidate2 % 2 == 0):\n                    candidate2 += 1\n                new_next_even2 = next_even\n                new_next_odd2 = candidate2 + 2 if candidate2 % 2 == 1 else candidate2 + 1\n            res2 = max(candidate2, dp(i, j + 1, prev1, candidate2, new_next_even2, new_next_odd2))\n            \n            # Choose the minimum of both possibilities\n            return min(res1, res2)\n        \n        # Initialize with no previous assignments and starting even and odd numbers\n        return dp(0, 0, 0, 0, 2, 1)"
+  ],
+  "total_candidates": 8,
+  "nodes_explored": 8,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n    def minLargest(self, nums1: List[int], nums2: List[int]) -> int:\n        @lru_cache(None)\n        def dp(i, prev1, prev2, used):\n            if i == total:\n                return 0\n            min_max = float('inf')\n            num = i + 1  # Starting from 1\n            array, idx = positions[i]\n            if array == 1:\n                if nums1[idx] == 0:\n                    # Even number\n                    candidate = next_even(prev1)\n                    while candidate in used:\n                        candidate += 2\n                else:\n                    # Odd number\n                    candidate = next_odd(prev1)\n                    while candidate in used:\n                        candidate += 2\n                new_used = used | {candidate}\n                new_prev1 = candidate\n                new_prev2 = prev2\n                min_max = min(min_max, max(candidate, dp(i + 1, new_prev1, new_prev2, new_used)))\n            else:\n                if nums2[idx] == 0:\n                    # Even number\n                    candidate = next_even(prev2)\n                    while candidate in used:\n                        candidate += 2\n                else:\n                    # Odd number\n                    candidate = next_odd(prev2)\n                    while candidate in used:\n                        candidate += 2\n                new_used = used | {candidate}\n                new_prev1 = prev1\n                new_prev2 = candidate\n                min_max = min(min_max, max(candidate, dp(i + 1, new_prev1, new_prev2, new_used)))\n            return min_max\n        \n        def next_even(num):\n            return num + 2 if num % 2 == 0 else num + 1\n        \n        def next_odd(num):\n            return num + 2 if num % 2 == 1 else num + 1\n        \n        # Prepare positions\n        positions = []\n        for i in range(len(nums1)):\n            positions.append((1, i))\n        for i in range(len(nums2)):\n            positions.append((2, i))\n        positions.sort(key=lambda x: (x[1], x[0]))\n        \n        total = len(positions)\n        initial_used = set()\n        return dp(0, 0, 0, initial_used)",
+      "solution_hash": "04fd001fbccc64e383d524328b0899fa2ce36eebe119ed86129a6eb0898f1ce8",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmpcroori7c.py\", line 267, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/22242033/tmpcroori7c.py\", line 142, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\n  File \"/scratch/local/22242033/tmpcroori7c.py\", line 138, in minLargest\n    return dp(0, 0, 0, initial_used)\nTypeError: unhashable type: 'set'\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmpcroori7c.py` failed. (See above for error)\n",
+        "execution_time": 13.217894077301025,
+        "failed_tests": [
+          {
+            "input": "nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]",
+            "expected": "8",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmpcroori7c.py\", line 267, in <module>\n    check(Solution().minLargest)\n  File \"/scratch/local/22242033/tmpcroori7c.py\", line 142, in check\n    assert candidate(nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]) == 8\n  File \"/scratch/local/22242033/tmpcroori7c.py\", line 138, in minLargest\n    return dp(0, 0, 0, initial_used)\nTypeError: unhashable type: 'set'\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmpcroori7c.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 8,
+    "candidates_generated": 8,
+    "tests_passed": 1,
+    "tests_failed": 7,
+    "test_timeouts": 0,
+    "test_errors": 0,
+    "import_errors": 0,
+    "import_terminated_branches": 0,
+    "unique_import_failures": [],
+    "execution_times": [
+      13.217894077301025,
+      13.232438564300537,
+      13.209898948669434,
+      13.21443247795105,
+      13.225525379180908,
+      13.225804805755615,
+      13.214658498764038,
+      13.776312351226807
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 1,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 8,
+      "unique_ratio": 1.0,
+      "similarity_score": 0.7913523022023143,
+      "solution_lengths": {
+        "min": 1164,
+        "max": 3637,
+        "avg": 2242.25
+      },
+      "algorithm_approaches": {
+        "dynamic_programming": 5,
+        "hash_table": 2,
+        "other": 1
+      },
+      "feature_diversity": 1.0,
+      "features_analysis": {
+        "boolean_features": {
+          "has_recursion": {
+            "true_ratio": 1.0,
+            "count": 8
+          },
+          "uses_list": {
+            "true_ratio": 0.875,
+            "count": 7
+          },
+          "uses_dict": {
+            "true_ratio": 0.125,
+            "count": 1
+          },
+          "uses_set": {
+            "true_ratio": 0.5,
+            "count": 4
+          },
+          "uses_heap": {
+            "true_ratio": 0.25,
+            "count": 2
+          },
+          "uses_queue": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_stack": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dp": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_bfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_binary_search": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "nested_loops": {
+            "true_ratio": 1.0,
+            "count": 8
+          }
+        },
+        "numeric_features": {
+          "loop_count": {
+            "min": 2,
+            "max": 8,
+            "avg": 5.0,
+            "variance": 4.75
+          },
+          "if_count": {
+            "min": 4,
+            "max": 15,
+            "avg": 8.5,
+            "variance": 12.75
+          },
+          "else_count": {
+            "min": 3,
+            "max": 12,
+            "avg": 6.375,
+            "variance": 7.984375
+          },
+          "return_count": {
+            "min": 1,
+            "max": 5,
+            "avg": 2.875,
+            "variance": 2.109375
+          },
+          "assignment_count": {
+            "min": 16,
+            "max": 68,
+            "avg": 29.5,
+            "variance": 251.25
+          },
+          "class_method_count": {
+            "min": 1,
+            "max": 4,
+            "avg": 2.0,
+            "variance": 0.75
+          },
+          "line_count": {
+            "min": 25,
+            "max": 77,
+            "avg": 50.625,
+            "variance": 203.234375
+          },
+          "char_count": {
+            "min": 1164,
+            "max": 3637,
+            "avg": 2242.25,
+            "variance": 449428.9375
+          },
+          "max_indent": {
+            "min": 24,
+            "max": 28,
+            "avg": 25.5,
+            "variance": 3.75
+          }
+        }
+      },
+      "complexity_diversity": {
+        "complexity_distribution": {
+          "exponential": 8
+        },
+        "avg_complexity_metrics": {
+          "avg_line_count": 50.625,
+          "avg_loop_count": 5.0,
+          "avg_condition_count": 14.875,
+          "avg_method_count": 2.0,
+          "avg_assignment_count": 29.5,
+          "avg_max_loop_nesting": 1.25
+        },
+        "complexity_diversity_ratio": 0.16666666666666666
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]": 4,
+        "nums1 = [1],nums2 = [0]": 1
+      },
+      "first_failing_tests": {
+        "nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]": 4,
+        "nums1 = [1],nums2 = [0]": 1
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 3,
+          "improvements": 0,
+          "solved": 0
+        },
+        "2": {
+          "attempts": 5,
+          "improvements": 2,
+          "solved": 1
+        }
+      },
+      "error_types": {
+        "type_error": {
+          "attempts": 1,
+          "improvements": 0
+        },
+        "assertion_failure": {
+          "attempts": 2,
+          "improvements": 3
+        }
+      },
+      "test_case_improvements": {
+        "nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]": 2
+      },
+      "error_transitions": {
+        "type_error->assertion_failure": 2,
+        "assertion_failure->other_error": 2,
+        "assertion_failure->index_error": 1,
+        "assertion_failure->type_error": 1,
+        "assertion_failure->unknown": 1
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.5,
+        "solutions_per_depth": {
+          "0": 1,
+          "1": 2,
+          "2": 5
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 0,
+          "2": 1
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.22222222222222232,
+        "pass@3": 0.5833333333333333,
+        "pass@5": 0.8333333333333334
+      },
+      "solutions_evaluated": 9,
+      "passing_solution_depths": {
+        "min": 2,
+        "max": 2,
+        "avg": 2.0
+      }
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.125,
+        "branch_success_rate": 0.125,
+        "test_success_rate": 0.125
+      },
+      "test_results": {
+        "total": 8,
+        "passed": 1,
+        "failed": 7,
+        "timeouts": 0,
+        "import_errors": 0,
+        "other_errors": 0,
+        "unique_import_failures": []
+      },
+      "error_recovery": {
+        "total_attempts": 3,
+        "total_improvements": 3,
+        "recovery_rate": 1.0
+      },
+      "top_errors": [
+        [
+          "assertion_failure",
+          2
+        ],
+        [
+          "type_error",
+          1
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "nums1 = [0, 0, 0, 0],nums2 = [1, 1, 1, 1]",
+          4
+        ],
+        [
+          "nums1 = [1],nums2 = [0]",
+          1
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 1,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 866.9866304397583,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.22222222222222232,
+      "pass@3": 0.5833333333333333,
+      "pass@5": 0.8333333333333334
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unhashable type: 'set'",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 97)",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unexpected indent (<string>, line 96)",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: list index out of range",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: unhashable type: 'set'",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 8
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 9,
+    "test_cases": 1
+  }
+}

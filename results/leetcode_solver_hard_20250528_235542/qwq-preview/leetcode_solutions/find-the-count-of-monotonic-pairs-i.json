@@ -1,0 +1,592 @@
+{
+  "problem_id": "find-the-count-of-monotonic-pairs-i",
+  "problem_title": "",
+  "difficulty": "Hard",
+  "status": "unsolved",
+  "best_solution": null,
+  "passed_solutions": [],
+  "all_solutions": [
+    "class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                max_num = max(nums)\n                prev = [0] * (max_num + 1)\n                for val in range(nums[0] + 1):\n                    arr1_val = val\n                    arr2_val = nums[0] - val\n                    if arr2_val >= 0:\n                        prev[arr1_val] = 1\n                total = sum(prev) % MOD\n\n                for i in range(1, n):\n                    curr = [0] * (max_num + 1)\n                    cumulative = 0\n                    for arr1_val in range(nums[i] + 1):\n                        arr2_val = nums[i] - arr1_val\n                        if arr2_val < 0:\n                            continue\n                        if arr1_val < arr1_val_prev:\n                            continue\n                        arr1_val_prev = arr1_val\n                        cumulative = (cumulative + prev[arr1_val_prev]) % MOD\n                        if arr2_val <= arr2_val_prev:\n                            curr[arr1_val] = cumulative\n                            arr2_val_prev = arr2_val\n                    prev = curr\n                    total = (total + sum(curr)) % MOD\n                return total",
+    "class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                max_num = max(nums)\n                prev = [0] * (max_num + 1)\n                for val in range(nums[0] + 1):\n                    arr1_val = val\n                    arr2_val = nums[0] - val\n                    if arr2_val >= 0:\n                        prev[arr1_val] = 1\n                total = sum(prev) % MOD\n\n                for i in range(1, n):\n                    curr = [0] * (max_num + 1)\n                    cumulative = 0\n                    arr1_val_prev = -1\n                    arr2_val_prev = float('inf')\n                    for arr1_val in range(nums[i] + 1):\n                        arr2_val = nums[i] - arr1_val\n                        if arr2_val < 0:\n                            continue\n                        if arr1_val < arr1_val_prev:\n                            continue\n                        if arr2_val > arr2_val_prev:\n                            continue\n                        arr1_val_prev = arr1_val\n                        arr2_val_prev = arr2_val\n                        cumulative = (cumulative + prev[arr1_val]) % MOD\n                        curr[arr1_val] = cumulative\n                    prev = curr\n                    total = (total + sum(curr)) % MOD\n                return total",
+    "class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                if n == 0:\n                    return 0\n                \n                # Initialize the range for arr1[0]\n                arr1_min = 0\n                arr1_max = nums[0]\n                total = arr1_max - arr1_min + 1\n                total %= MOD\n                \n                for i in range(1, n):\n                    new_min = arr1_min\n                    new_max = arr1_max\n                    # arr1[i] should be >= arr1[i-1] (monotonically non-decreasing)\n                    new_min = max(new_min, arr1_min)\n                    # arr2[i] = nums[i] - arr1[i] should be <= arr2[i-1]\n                    # Which implies arr1[i] >= arr1[i-1] + (arr2[i-1] - nums[i])\n                    # Since arr2[i-1] = nums[i-1] - arr1[i-1]\n                    min_arr1_i = arr1_min + (nums[i-1] - arr1_min - nums[i])\n                    new_min = max(new_min, min_arr1_i)\n                    # arr1[i] should be <= arr1[i-1] + (arr2[i-1] - 0)\n                    # But since arr2[i] can be 0, arr1[i] <= nums[i]\n                    new_max = min(arr1_max, nums[i])\n                    \n                    # Calculate the number of valid arr1[i] values\n                    if new_min > new_max:\n                        return 0  # No valid arr1[i]\n                    count = new_max - new_min + 1\n                    total *= count\n                    total %= MOD\n                \n                return total",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_num = max(nums)\n        # Initialize the previous state for the first element\n        prev = [0] * (max_num + 1)\n        for val in range(nums[0] + 1):\n            arr1_val = val\n            arr2_val = nums[0] - val\n            if arr2_val >= 0:\n                prev[arr1_val] = 1\n        total = sum(prev) % MOD\n\n        for i in range(1, n):\n            curr = [0] * (max_num + 1)\n            cumulative = 0\n            arr1_val_prev = -1\n            arr2_val_prev = float('inf')\n            for arr1_val in range(nums[i] + 1):\n                arr2_val = nums[i] - arr1_val\n                if arr2_val < 0:\n                    continue\n                # Ensure arr1 is non-decreasing and arr2 is non-increasing\n                if arr1_val < arr1_val_prev:\n                    continue\n                if arr2_val > arr2_val_prev:\n                    continue\n                arr1_val_prev = arr1_val\n                arr2_val_prev = arr2_val\n                # Accumulate the number of ways to reach the current arr1_val\n                cumulative = (cumulative + prev[arr1_val]) % MOD\n                curr[arr1_val] = cumulative\n            prev = curr\n            total = (total + sum(curr)) % MOD\n        return total",
+    "class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                max_num = max(nums)\n                prev = [0] * (max_num + 1)\n                for val in range(nums[0] + 1):\n                    arr1_val = val\n                    arr2_val = nums[0] - val\n                    if arr2_val >= 0:\n                        prev[arr1_val] = 1\n                total = sum(prev) % MOD\n\n                for i in range(1, n):\n                    curr = [0] * (max_num + 1)\n                    cumulative = 0\n                    arr1_min = -1\n                    arr2_max = float('inf')\n                    for arr1_val in range(max_num + 1):\n                        if arr1_val < arr1_min:\n                            continue\n                        arr2_val = nums[i] - arr1_val\n                        if arr2_val < 0 or arr2_val > arr2_max:\n                            continue\n                        cumulative = (cumulative + prev[arr1_val]) % MOD\n                        curr[arr1_val] = cumulative\n                        if arr1_val > arr1_min:\n                            arr1_min = arr1_val\n                        if arr2_val < arr2_max:\n                            arr2_max = arr2_val\n                    prev = curr\n                    total = (total + sum(curr)) % MOD\n                return total",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_num = max(nums)\n        \n        # Initialize the previous frequency array for arr1 values\n        prev = [0] * (max_num + 1)\n        for val in range(nums[0] + 1):\n            arr1_val = val\n            arr2_val = nums[0] - val\n            if arr2_val >= 0:\n                prev[arr1_val] = 1\n        total = sum(prev) % MOD\n\n        for i in range(1, n):\n            curr = [0] * (max_num + 1)\n            cumulative = 0\n            arr1_val_prev = -1\n            arr2_val_prev = float('inf')\n            for arr1_val in range(nums[i] + 1):\n                arr2_val = nums[i] - arr1_val\n                if arr2_val < 0:\n                    continue\n                # Ensure arr1 is non-decreasing\n                if arr1_val < arr1_val_prev:\n                    continue\n                # Update cumulative count for arr1_val\n                while arr1_val_prev < arr1_val:\n                    arr1_val_prev += 1\n                    cumulative = (cumulative + prev[arr1_val_prev]) % MOD\n                # Ensure arr2 is non-increasing\n                if arr2_val > arr2_val_prev:\n                    continue\n                arr2_val_prev = arr2_val\n                curr[arr1_val] = cumulative\n            prev = curr\n            total = (total + sum(curr)) % MOD\n        return total",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_num = max(nums)\n        \n        # Initialize the previous frequency array for arr1 values\n        prev = [0] * (max_num + 1)\n        for val in range(nums[0] + 1):\n            arr1_val = val\n            arr2_val = nums[0] - val\n            if arr2_val >= 0:\n                prev[arr1_val] = 1\n        total = sum(prev) % MOD\n\n        for i in range(1, n):\n            curr = [0] * (max_num + 1)\n            cumulative = 0\n            arr1_val_prev = -1\n            arr2_val_prev = float('inf')\n            for arr1_val in range(nums[i] + 1):\n                arr2_val = nums[i] - arr1_val\n                if arr2_val < 0:\n                    continue\n                # Ensure arr1 is non-decreasing\n                if arr1_val < arr1_val_prev:\n                    continue\n                # Update cumulative count for arr1_val\n                while arr1_val_prev < arr1_val:\n                    arr1_val_prev += 1\n                    cumulative = (cumulative + prev[arr1_val_prev]) % MOD\n                # Ensure arr2 is non-increasing\n                if arr2_val > arr2_val_prev:\n                    continue\n                arr2_val_prev = arr2_val\n                curr[arr1_val] = cumulative\n            prev = curr\n            total = (total + sum(curr)) % MOD\n        return total",
+    "class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                max_num = max(nums)\n                \n                # Initialize the previous frequency array for arr1 values\n                prev = [0] * (max_num + 1)\n                for val in range(nums[0] + 1):\n                    arr1_val = val\n                    arr2_val = nums[0] - val\n                    if arr2_val >= 0:\n                        prev[arr1_val] = 1\n                total = sum(prev) % MOD\n\n                for i in range(1, n):\n                    curr = [0] * (max_num + 1)\n                    cumulative = 0\n                    arr1_val_prev = -1\n                    arr2_val_prev = float('inf')\n                    for arr1_val in range(nums[i] + 1):\n                        arr2_val = nums[i] - arr1_val\n                        if arr2_val < 0:\n                            continue\n                        # Ensure arr1 is non-decreasing\n                        if arr1_val < arr1_val_prev:\n                            continue\n                        # Update cumulative count for arr1_val\n                        while arr1_val_prev < arr1_val:\n                            arr1_val_prev += 1\n                            cumulative = (cumulative + prev[arr1_val_prev]) % MOD\n                        # Ensure arr2 is non-increasing\n                        if arr2_val > arr2_val_prev:\n                            continue\n                        arr2_val_prev = arr2_val\n                        curr[arr1_val] = cumulative\n                    prev = curr\n                    total = (total + sum(curr)) % MOD\n                return total",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_num = max(nums)\n        \n        # Initialize the previous frequency array for arr1 values\n        prev = [0] * (max_num + 1)\n        for val in range(nums[0] + 1):\n            arr1_val = val\n            arr2_val = nums[0] - val\n            if arr2_val >= 0:\n                prev[arr1_val] = 1\n        total = sum(prev) % MOD\n\n        for i in range(1, n):\n            curr = [0] * (max_num + 1)\n            cumulative = 0\n            arr1_val_prev_max = -1\n            arr2_val_prev_min = float('inf')\n            for arr1_val in range(max_num + 1):\n                arr2_val = nums[i] - arr1_val\n                if arr2_val < 0:\n                    continue\n                # Ensure arr1 is non-decreasing\n                if arr1_val < arr1_val_prev_max:\n                    continue\n                # Update cumulative count for arr1_val\n                while arr1_val_prev_max < arr1_val:\n                    arr1_val_prev_max += 1\n                    cumulative = (cumulative + prev[arr1_val_prev_max]) % MOD\n                # Ensure arr2 is non-increasing\n                if arr2_val > arr2_val_prev_min:\n                    continue\n                arr2_val_prev_min = arr2_val\n                curr[arr1_val] = cumulative\n            prev = curr\n            total = (total + sum(curr)) % MOD\n        return total",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums) + 1\n        prev_dp = [0] * max_val\n        for j in range(nums[0] + 1):\n            prev_dp[j] = 1\n        prev_prefix = list(accumulate(prev_dp))\n        \n        for i in range(1, n):\n            curr_dp = [0] * max_val\n            curr_prefix = [0] * max_val\n            for j in range(max_val):\n                if j > nums[i]:\n                    break\n                arr1_val = j\n                arr2_val = nums[i] - j\n                # Find the range for prev_arr1 and prev_arr2\n                prev_arr1_max = arr1_val\n                prev_arr2_min = arr2_val\n                # The condition is prev_arr1 <= arr1_val and prev_arr2 >= arr2_val\n                # Which translates to prev_arr1 <= arr1_val and prev_arr2 >= arr2_val\n                # Since prev_arr2 = nums[i-1] - prev_arr1\n                # So, nums[i-1] - prev_arr1 >= arr2_val => prev_arr1 <= nums[i-1] - arr2_val\n                # Therefore, prev_arr1 <= min(arr1_val, nums[i-1] - arr2_val)\n                upper_limit = min(prev_arr1_max, nums[i-1] - prev_arr2_min)\n                if upper_limit < 0:\n                    continue\n                curr_dp[j] = prev_prefix[upper_limit + 1] if upper_limit + 1 < max_val else prev_prefix[-1]\n                curr_dp[j] %= MOD\n            curr_prefix[0] = curr_dp[0]\n            for k in range(1, max_val):\n                curr_prefix[k] = curr_prefix[k-1] + curr_dp[k]\n                curr_prefix[k] %= MOD\n            prev_dp = curr_dp\n            prev_prefix = curr_prefix\n        return sum(prev_dp) % MOD",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums) + 1\n        prev_dp = [0] * max_val\n        for j in range(nums[0] + 1):\n            prev_dp[j] = 1\n        prev_prefix = list(accumulate(prev_dp))\n        \n        for i in range(1, n):\n            curr_dp = [0] * max_val\n            curr_prefix = [0] * max_val\n            for j in range(max_val):\n                if j > nums[i]:\n                    break\n                arr1_val = j\n                arr2_val = nums[i] - j\n                # Find the range for prev_arr1 and prev_arr2\n                prev_arr1_max = arr1_val  # prev_arr1 <= arr1_val\n                prev_arr2_min = arr2_val  # prev_arr2 >= arr2_val\n                # Since prev_arr2 = nums[i-1] - prev_arr1\n                # So, nums[i-1] - prev_arr1 >= arr2_val => prev_arr1 <= nums[i-1] - arr2_val\n                upper_limit = min(prev_arr1_max, nums[i-1] - prev_arr2_min)\n                if upper_limit < 0:\n                    continue\n                curr_dp[j] = prev_prefix[upper_limit + 1] if upper_limit + 1 < max_val else prev_prefix[-1]\n                curr_dp[j] %= MOD\n            curr_prefix[0] = curr_dp[0]\n            for k in range(1, max_val):\n                curr_prefix[k] = curr_prefix[k-1] + curr_dp[k]\n                curr_prefix[k] %= MOD\n            prev_dp = curr_dp\n            prev_prefix = curr_prefix\n        return sum(prev_dp) % MOD",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums) + 1\n        prev_dp = [0] * max_val\n        for j in range(nums[0] + 1):\n            prev_dp[j] = 1\n        prev_prefix = list(accumulate(prev_dp))\n        \n        for i in range(1, n):\n            curr_dp = [0] * max_val\n            curr_prefix = [0] * max_val\n            for j in range(max_val):\n                if j > nums[i]:\n                    break\n                arr1_val = j\n                arr2_val = nums[i] - j\n                # Find the range for prev_arr1 and prev_arr2\n                prev_arr1_max = arr1_val  # prev_arr1 <= arr1_val\n                prev_arr2_min = arr2_val  # prev_arr2 >= arr2_val\n                # Since prev_arr2 = nums[i-1] - prev_arr1\n                # So, nums[i-1] - prev_arr1 >= arr2_val => prev_arr1 <= nums[i-1] - arr2_val\n                upper_limit = min(prev_arr1_max, nums[i-1] - prev_arr2_min)\n                if upper_limit < 0:\n                    continue\n                curr_dp[j] = prev_prefix[upper_limit + 1] if upper_limit + 1 < max_val else prev_prefix[-1]\n                curr_dp[j] %= MOD\n            curr_prefix[0] = curr_dp[0]\n            for k in range(1, max_val):\n                curr_prefix[k] = curr_prefix[k-1] + curr_dp[k]\n                curr_prefix[k] %= MOD\n            prev_dp = curr_dp\n            prev_prefix = curr_prefix\n        return sum(prev_dp) % MOD",
+    "class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                max_val = max(nums) + 1\n                dp = [0] * max_val\n                for j in range(nums[0] + 1):\n                    dp[j] = 1\n                prefix = list(accumulate(dp))\n                \n                for i in range(1, n):\n                    curr_dp = [0] * max_val\n                    curr_prefix = [0] * max_val\n                    for j in range(max_val):\n                        if j > nums[i]:\n                            break\n                        arr1_val = j\n                        arr2_val = nums[i] - j\n                        # Find the range for prev_arr1 and prev_arr2\n                        prev_arr1_max = arr1_val  # prev_arr1 <= arr1_val\n                        prev_arr2_min = arr2_val  # prev_arr2 >= arr2_val\n                        # Since prev_arr2 = nums[i-1] - prev_arr1\n                        # So, nums[i-1] - prev_arr1 >= arr2_val => prev_arr1 <= nums[i-1] - arr2_val\n                        upper_limit = min(prev_arr1_max, nums[i-1] - prev_arr2_min)\n                        if upper_limit < 0:\n                            continue\n                        curr_dp[j] = prefix[upper_limit + 1] if upper_limit + 1 < max_val else prefix[-1]\n                        curr_dp[j] %= MOD\n                    curr_prefix[0] = curr_dp[0]\n                    for k in range(1, max_val):\n                        curr_prefix[k] = curr_prefix[k-1] + curr_dp[k]\n                        curr_prefix[k] %= MOD\n                    dp = curr_dp\n                    prefix = curr_prefix\n                return sum(dp) % MOD",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums) + 1\n        prev_dp = [0] * max_val\n        for j in range(nums[0] + 1):\n            prev_dp[j] = 1\n        prev_prefix = list(accumulate(prev_dp))\n        \n        for i in range(1, n):\n            curr_dp = [0] * max_val\n            curr_prefix = [0] * max_val\n            for j in range(max_val):\n                if j > nums[i]:\n                    break\n                arr1_val = j\n                arr2_val = nums[i] - j\n                # Find the range for prev_arr1 and prev_arr2\n                prev_arr1_max = arr1_val  # prev_arr1 <= arr1_val\n                prev_arr2_min = arr2_val  # prev_arr2 >= arr2_val\n                # Since prev_arr2 = nums[i-1] - prev_arr1\n                # So, nums[i-1] - prev_arr1 >= arr2_val => prev_arr1 <= nums[i-1] - arr2_val\n                upper_limit = min(prev_arr1_max, nums[i-1] - prev_arr2_min)\n                if upper_limit < 0:\n                    continue\n                curr_dp[j] = prev_prefix[upper_limit + 1] if upper_limit + 1 < max_val else prev_prefix[-1]\n                curr_dp[j] %= MOD\n            curr_prefix[0] = curr_dp[0]\n            for k in range(1, max_val):\n                curr_prefix[k] = curr_prefix[k-1] + curr_dp[k]\n                curr_prefix[k] %= MOD\n            prev_dp = curr_dp\n            prev_prefix = curr_prefix\n        return sum(prev_dp) % MOD",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums) + 1\n        prev_dp = [0] * max_val\n        for j in range(nums[0] + 1):\n            prev_dp[j] = 1\n        prev_prefix = list(accumulate(prev_dp))\n        \n        for i in range(1, n):\n            curr_dp = [0] * max_val\n            curr_prefix = [0] * max_val\n            for j in range(max_val):\n                if j > nums[i]:\n                    break\n                arr1_val = j\n                arr2_val = nums[i] - j\n                # Find the range for prev_arr1 and prev_arr2\n                prev_arr1_max = arr1_val\n                prev_arr2_min = arr2_val\n                # The condition is prev_arr1 <= arr1_val and prev_arr2 >= arr2_val\n                # Which translates to prev_arr1 <= arr1_val and nums[i-1] - prev_arr1 >= arr2_val\n                # So, prev_arr1 <= min(arr1_val, nums[i-1] - arr2_val)\n                upper_limit = min(arr1_val, nums[i-1] - arr2_val)\n                if upper_limit < 0:\n                    continue\n                curr_dp[j] = prev_prefix[upper_limit + 1] if upper_limit + 1 < max_val else prev_prefix[-1]\n                curr_dp[j] %= MOD\n            curr_prefix[0] = curr_dp[0]\n            for k in range(1, max_val):\n                curr_prefix[k] = curr_prefix[k-1] + curr_dp[k]\n                curr_prefix[k] %= MOD\n            prev_dp = curr_dp\n            prev_prefix = curr_prefix\n        return sum(prev_dp) % MOD",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums) + 1\n        prev_dp = [0] * max_val\n        for j in range(nums[0] + 1):\n            prev_dp[j] = 1\n        prev_prefix = list(accumulate(prev_dp))\n        \n        for i in range(1, n):\n            curr_dp = [0] * max_val\n            curr_prefix = [0] * max_val\n            for j in range(max_val):\n                if j > nums[i]:\n                    break\n                arr1_val = j\n                arr2_val = nums[i] - j\n                # Find the range for prev_arr1 and prev_arr2\n                prev_arr1_max = arr1_val\n                prev_arr2_min = arr2_val\n                # The condition is prev_arr1 <= arr1_val and prev_arr2 >= arr2_val\n                # Which translates to prev_arr1 <= arr1_val and nums[i-1] - prev_arr1 >= arr2_val\n                # So, prev_arr1 <= min(arr1_val, nums[i-1] - arr2_val)\n                upper_limit = min(arr1_val, nums[i-1] - arr2_val)\n                if upper_limit < 0:\n                    continue\n                curr_dp[j] = prev_prefix[upper_limit + 1] if upper_limit + 1 < max_val else prev_prefix[-1]\n                curr_dp[j] %= MOD\n            curr_prefix[0] = curr_dp[0]\n            for k in range(1, max_val):\n                curr_prefix[k] = curr_prefix[k-1] + curr_dp[k]\n                curr_prefix[k] %= MOD\n            prev_dp = curr_dp\n            prev_prefix = curr_prefix\n        return sum(prev_dp) % MOD",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums) + 1\n        prev_dp = [0] * max_val\n        for j in range(nums[0] + 1):\n            prev_dp[j] = 1\n        prev_prefix = list(accumulate(prev_dp))\n        \n        for i in range(1, n):\n            curr_dp = [0] * max_val\n            curr_prefix = [0] * max_val\n            for j in range(max_val):\n                if j > nums[i]:\n                    break\n                arr1_val = j\n                arr2_val = nums[i] - j\n                # Find the range for prev_arr1 and prev_arr2\n                prev_arr1_max = arr1_val\n                prev_arr2_min = arr2_val\n                # The condition is prev_arr1 <= arr1_val and prev_arr2 >= arr2_val\n                # Which translates to prev_arr1 <= arr1_val and nums[i-1] - prev_arr1 >= arr2_val\n                # So, prev_arr1 <= min(arr1_val, nums[i-1] - arr2_val)\n                upper_limit = min(arr1_val, nums[i-1] - arr2_val)\n                if upper_limit < 0:\n                    continue\n                curr_dp[j] = prev_prefix[upper_limit + 1] if upper_limit + 1 < max_val else prev_prefix[-1]\n                curr_dp[j] %= MOD\n            curr_prefix[0] = curr_dp[0]\n            for k in range(1, max_val):\n                curr_prefix[k] = curr_prefix[k-1] + curr_dp[k]\n                curr_prefix[k] %= MOD\n            prev_dp = curr_dp\n            prev_prefix = curr_prefix\n        return sum(prev_dp) % MOD",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums) + 1\n        prev_dp = [0] * max_val\n        for j in range(nums[0] + 1):\n            prev_dp[j] = 1\n        prev_prefix = list(accumulate(prev_dp))\n        \n        for i in range(1, n):\n            curr_dp = [0] * max_val\n            curr_prefix = [0] * max_val\n            for j in range(max_val):\n                if j > nums[i]:\n                    break\n                arr1_val = j\n                arr2_val = nums[i] - j\n                # Find the range for prev_arr1 and prev_arr2\n                prev_arr1_max = arr1_val  # prev_arr1 <= arr1_val\n                prev_arr2_min = arr2_val  # prev_arr2 >= arr2_val\n                # Since prev_arr2 = nums[i-1] - prev_arr1\n                # So, nums[i-1] - prev_arr1 >= arr2_val => prev_arr1 <= nums[i-1] - arr2_val\n                upper_limit = min(prev_arr1_max, nums[i-1] - prev_arr2_min)\n                if upper_limit < 0:\n                    continue\n                curr_dp[j] = prev_prefix[upper_limit + 1] if upper_limit + 1 < max_val else prev_prefix[-1]\n                curr_dp[j] %= MOD\n            curr_prefix[0] = curr_dp[0]\n            for k in range(1, max_val):\n                curr_prefix[k] = curr_prefix[k-1] + curr_dp[k]\n                curr_prefix[k] %= MOD\n            prev_dp = curr_dp\n            prev_prefix = curr_prefix\n        return sum(prev_dp) % MOD",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums) + 1\n        prev_dp = [0] * max_val\n        for j in range(nums[0] + 1):\n            prev_dp[j] = 1\n        prev_prefix = list(accumulate(prev_dp))\n        \n        for i in range(1, n):\n            curr_dp = [0] * max_val\n            curr_prefix = [0] * max_val\n            for j in range(max_val):\n                if j > nums[i]:\n                    break\n                arr1_val = j\n                arr2_val = nums[i] - j\n                # Find the range for prev_arr1 and prev_arr2\n                prev_arr1_max = arr1_val  # prev_arr1 <= arr1_val\n                prev_arr2_min = arr2_val  # prev_arr2 >= arr2_val\n                # Since prev_arr2 = nums[i-1] - prev_arr1\n                # So, nums[i-1] - prev_arr1 >= arr2_val => prev_arr1 <= nums[i-1] - arr2_val\n                upper_limit = min(prev_arr1_max, nums[i-1] - prev_arr2_min)\n                if upper_limit < 0:\n                    continue\n                curr_dp[j] = prev_prefix[upper_limit + 1] if upper_limit + 1 < max_val else prev_prefix[-1]\n                curr_dp[j] %= MOD\n            curr_prefix[0] = curr_dp[0]\n            for k in range(1, max_val):\n                curr_prefix[k] = curr_prefix[k-1] + curr_dp[k]\n                curr_prefix[k] %= MOD\n            prev_dp = curr_dp\n            prev_prefix = curr_prefix\n        return sum(prev_dp) % MOD",
+    "class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                max_val = max(nums) + 1\n                prev_dp = [0] * max_val\n                for j in range(nums[0] + 1):\n                    prev_dp[j] = 1\n                prev_prefix = list(accumulate(prev_dp))\n                \n                for i in range(1, n):\n                    curr_dp = [0] * max_val\n                    curr_prefix = [0] * max_val\n                    for j in range(max_val):\n                        if j > nums[i]:\n                            break\n                        arr1_val = j\n                        arr2_val = nums[i] - j\n                        # Find the range for prev_arr1 and prev_arr2\n                        prev_arr1_max = arr1_val  # prev_arr1 <= arr1_val\n                        prev_arr2_min = arr2_val  # prev_arr2 >= arr2_val\n                        # Since prev_arr2 = nums[i-1] - prev_arr1\n                        # So, nums[i-1] - prev_arr1 >= arr2_val => prev_arr1 <= nums[i-1] - arr2_val\n                        upper_limit = min(prev_arr1_max, nums[i-1] - prev_arr2_min)\n                        if upper_limit < 0:\n                            continue\n                        curr_dp[j] = prev_prefix[upper_limit + 1] if upper_limit + 1 < max_val else prev_prefix[-1]\n                        curr_dp[j] %= MOD\n                    curr_prefix[0] = curr_dp[0]\n                    for k in range(1, max_val):\n                        curr_prefix[k] = curr_prefix[k-1] + curr_dp[k]\n                        curr_prefix[k] %= MOD\n                    prev_dp = curr_dp\n                    prev_prefix = curr_prefix\n                return sum(prev_dp) % MOD",
+    "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums) + 1\n        prev_dp = [0] * max_val\n        for j in range(nums[0] + 1):\n            prev_dp[j] = 1\n        prev_prefix = list(accumulate(prev_dp))\n        \n        for i in range(1, n):\n            curr_dp = [0] * max_val\n            curr_prefix = [0] * max_val\n            for j in range(max_val):\n                if j > nums[i]:\n                    break\n                arr1_val = j\n                arr2_val = nums[i] - j\n                # Find the range for prev_arr1 and prev_arr2\n                prev_arr1_max = arr1_val  # prev_arr1 <= arr1_val\n                prev_arr2_min = arr2_val  # prev_arr2 >= arr2_val\n                # Since prev_arr2 = nums[i-1] - prev_arr1\n                # So, nums[i-1] - prev_arr1 >= arr2_val => prev_arr1 <= nums[i-1] - arr2_val\n                upper_limit = min(prev_arr1_max, nums[i-1] - prev_arr2_min)\n                if upper_limit < 0:\n                    continue\n                # Ensure upper_limit is within bounds\n                upper_limit = min(upper_limit, max_val - 1)\n                curr_dp[j] = prev_prefix[upper_limit + 1] if upper_limit + 1 < max_val else prev_prefix[-1]\n                curr_dp[j] %= MOD\n            curr_prefix[0] = curr_dp[0]\n            for k in range(1, max_val):\n                curr_prefix[k] = curr_prefix[k-1] + curr_dp[k]\n                curr_prefix[k] %= MOD\n            prev_dp = curr_dp\n            prev_prefix = curr_prefix\n        return sum(prev_dp) % MOD"
+  ],
+  "total_candidates": 21,
+  "nodes_explored": 21,
+  "tree_depth": 0,
+  "solution_tree": [
+    {
+      "node_id": "0_0",
+      "solution": "class Solution:\n            def countOfPairs(self, nums: List[int]) -> int:\n                MOD = 10**9 + 7\n                n = len(nums)\n                max_num = max(nums)\n                prev = [0] * (max_num + 1)\n                for val in range(nums[0] + 1):\n                    arr1_val = val\n                    arr2_val = nums[0] - val\n                    if arr2_val >= 0:\n                        prev[arr1_val] = 1\n                total = sum(prev) % MOD\n\n                for i in range(1, n):\n                    curr = [0] * (max_num + 1)\n                    cumulative = 0\n                    for arr1_val in range(nums[i] + 1):\n                        arr2_val = nums[i] - arr1_val\n                        if arr2_val < 0:\n                            continue\n                        if arr1_val < arr1_val_prev:\n                            continue\n                        arr1_val_prev = arr1_val\n                        cumulative = (cumulative + prev[arr1_val_prev]) % MOD\n                        if arr2_val <= arr2_val_prev:\n                            curr[arr1_val] = cumulative\n                            arr2_val_prev = arr2_val\n                    prev = curr\n                    total = (total + sum(curr)) % MOD\n                return total",
+      "solution_hash": "6be902d7a0bbd5d18d435c601e4d127d4b2cdcce069658ed3eb415976ae1cc22",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmpuih6_emt.py\", line 223, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/22242033/tmpuih6_emt.py\", line 114, in check\n    assert candidate(nums = [50, 1, 50, 1, 50]) == 0\n  File \"/scratch/local/22242033/tmpuih6_emt.py\", line 101, in countOfPairs\n    if arr1_val < arr1_val_prev:\nUnboundLocalError: local variable 'arr1_val_prev' referenced before assignment\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmpuih6_emt.py` failed. (See above for error)\n",
+        "execution_time": 13.361356258392334,
+        "failed_tests": [
+          {
+            "input": "nums = [50, 1, 50, 1, 50]",
+            "expected": "0",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmpuih6_emt.py\", line 223, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/22242033/tmpuih6_emt.py\", line 114, in check\n    assert candidate(nums = [50, 1, 50, 1, 50]) == 0\n  File \"/scratch/local/22242033/tmpuih6_emt.py\", line 101, in countOfPairs\n    if arr1_val < arr1_val_prev:\nUnboundLocalError: local variable 'arr1_val_prev' referenced before assignment\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmpuih6_emt.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_1",
+        "1_5"
+      ],
+      "passed": false
+    },
+    {
+      "node_id": "0_1",
+      "solution": "class Solution:\n    def countOfPairs(self, nums: List[int]) -> int:\n        MOD = 10**9 + 7\n        n = len(nums)\n        max_val = max(nums) + 1\n        prev_dp = [0] * max_val\n        for j in range(nums[0] + 1):\n            prev_dp[j] = 1\n        prev_prefix = list(accumulate(prev_dp))\n        \n        for i in range(1, n):\n            curr_dp = [0] * max_val\n            curr_prefix = [0] * max_val\n            for j in range(max_val):\n                if j > nums[i]:\n                    break\n                arr1_val = j\n                arr2_val = nums[i] - j\n                # Find the range for prev_arr1 and prev_arr2\n                prev_arr1_max = arr1_val\n                prev_arr2_min = arr2_val\n                # The condition is prev_arr1 <= arr1_val and prev_arr2 >= arr2_val\n                # Which translates to prev_arr1 <= arr1_val and prev_arr2 >= arr2_val\n                # Since prev_arr2 = nums[i-1] - prev_arr1\n                # So, nums[i-1] - prev_arr1 >= arr2_val => prev_arr1 <= nums[i-1] - arr2_val\n                # Therefore, prev_arr1 <= min(arr1_val, nums[i-1] - arr2_val)\n                upper_limit = min(prev_arr1_max, nums[i-1] - prev_arr2_min)\n                if upper_limit < 0:\n                    continue\n                curr_dp[j] = prev_prefix[upper_limit + 1] if upper_limit + 1 < max_val else prev_prefix[-1]\n                curr_dp[j] %= MOD\n            curr_prefix[0] = curr_dp[0]\n            for k in range(1, max_val):\n                curr_prefix[k] = curr_prefix[k-1] + curr_dp[k]\n                curr_prefix[k] %= MOD\n            prev_dp = curr_dp\n            prev_prefix = curr_prefix\n        return sum(prev_dp) % MOD",
+      "solution_hash": "4545cec4e7ed59a43697490e6c7fdb1d3e8a0aa81e8c9225de2d9d7a5cb89081",
+      "test_result": {
+        "status": "fail",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmpp841gkqx.py\", line 231, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/22242033/tmpp841gkqx.py\", line 123, in check\n    assert candidate(nums = [3, 3, 3, 3, 3, 3]) == 84\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmpp841gkqx.py` failed. (See above for error)\n",
+        "execution_time": 13.314172267913818,
+        "failed_tests": [
+          {
+            "input": "nums = [3, 3, 3, 3, 3, 3]",
+            "expected": "84",
+            "actual": "unknown"
+          }
+        ],
+        "error_message": "Traceback (most recent call last):\n  File \"/scratch/local/22242033/tmpp841gkqx.py\", line 231, in <module>\n    check(Solution().countOfPairs)\n  File \"/scratch/local/22242033/tmpp841gkqx.py\", line 123, in check\n    assert candidate(nums = [3, 3, 3, 3, 3, 3]) == 84\nAssertionError\n\nERROR conda.cli.main_run:execute(125): `conda run python /scratch/local/22242033/tmpp841gkqx.py` failed. (See above for error)"
+      },
+      "depth": 0,
+      "parent_id": null,
+      "children": [
+        "1_10",
+        "1_14",
+        "1_17"
+      ],
+      "passed": false
+    }
+  ],
+  "stats": {
+    "nodes_explored": 21,
+    "candidates_generated": 21,
+    "tests_passed": 0,
+    "tests_failed": 21,
+    "test_timeouts": 0,
+    "test_errors": 0,
+    "import_errors": 0,
+    "import_terminated_branches": 0,
+    "unique_import_failures": [],
+    "execution_times": [
+      13.361356258392334,
+      13.330267190933228,
+      13.33971118927002,
+      13.330267190933228,
+      13.358184576034546,
+      13.360862970352173,
+      13.360862970352173,
+      13.360862970352173,
+      13.360837697982788,
+      13.314172267913818,
+      13.314172267913818,
+      13.314172267913818,
+      13.349357604980469,
+      13.314172267913818,
+      13.342406272888184,
+      13.342406272888184,
+      13.342406272888184,
+      13.314172267913818,
+      13.314172267913818,
+      13.314172267913818,
+      13.360144853591919
+    ],
+    "tree_depth": 0,
+    "termination_reasons": {
+      "depth_limit": 0,
+      "adaptive_threshold": 0,
+      "import_failures": 0,
+      "early_stopping": 0,
+      "iteration_limit": 1
+    },
+    "solution_diversity": {
+      "unique_solutions": 10,
+      "unique_ratio": 0.47619047619047616,
+      "similarity_score": 0.8909230920608818,
+      "solution_lengths": {
+        "min": 1268,
+        "max": 1749,
+        "avg": 1503.6666666666667
+      },
+      "algorithm_approaches": {
+        "dynamic_programming": 12,
+        "other": 9
+      },
+      "feature_diversity": 0.6666666666666666,
+      "features_analysis": {
+        "boolean_features": {
+          "has_recursion": {
+            "true_ratio": 1.0,
+            "count": 21
+          },
+          "uses_list": {
+            "true_ratio": 0.5714285714285714,
+            "count": 12
+          },
+          "uses_dict": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_set": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_heap": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_queue": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_stack": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dp": {
+            "true_ratio": 0.5714285714285714,
+            "count": 12
+          },
+          "uses_bfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_dfs": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "uses_binary_search": {
+            "true_ratio": 0.0,
+            "count": 0
+          },
+          "nested_loops": {
+            "true_ratio": 0.9523809523809523,
+            "count": 20
+          }
+        },
+        "numeric_features": {
+          "loop_count": {
+            "min": 1,
+            "max": 4,
+            "avg": 3.6666666666666665,
+            "variance": 0.5079365079365076
+          },
+          "if_count": {
+            "min": 2,
+            "max": 5,
+            "avg": 3.380952380952381,
+            "variance": 0.4263038548752836
+          },
+          "else_count": {
+            "min": 0,
+            "max": 1,
+            "avg": 0.5714285714285714,
+            "variance": 0.24489795918367344
+          },
+          "return_count": {
+            "min": 1,
+            "max": 3,
+            "avg": 1.0952380952380953,
+            "variance": 0.1814058956916101
+          },
+          "assignment_count": {
+            "min": 16,
+            "max": 21,
+            "avg": 19.80952380952381,
+            "variance": 0.8208616780045345
+          },
+          "class_method_count": {
+            "min": 1,
+            "max": 1,
+            "avg": 1.0,
+            "variance": 0.0
+          },
+          "line_count": {
+            "min": 30,
+            "max": 39,
+            "avg": 35.76190476190476,
+            "variance": 4.8480725623582765
+          },
+          "char_count": {
+            "min": 1268,
+            "max": 1749,
+            "avg": 1503.6666666666667,
+            "variance": 15002.793650793654
+          },
+          "max_indent": {
+            "min": 20,
+            "max": 28,
+            "avg": 22.476190476190474,
+            "variance": 12.916099773242633
+          }
+        }
+      },
+      "complexity_diversity": {
+        "complexity_distribution": {
+          "exponential": 21
+        },
+        "avg_complexity_metrics": {
+          "avg_line_count": 35.76190476190476,
+          "avg_loop_count": 3.6666666666666665,
+          "avg_condition_count": 3.9523809523809526,
+          "avg_method_count": 1.0,
+          "avg_assignment_count": 19.80952380952381,
+          "avg_max_loop_nesting": 1.0
+        },
+        "complexity_diversity_ratio": 0.16666666666666666
+      }
+    },
+    "test_case_analysis": {
+      "hardest_cases": {
+        "nums = [50, 1, 50, 1, 50]": 8,
+        "nums = [3, 3, 3, 3, 3, 3]": 13
+      },
+      "first_failing_tests": {
+        "nums = [50, 1, 50, 1, 50]": 8,
+        "nums = [3, 3, 3, 3, 3, 3]": 13
+      }
+    },
+    "feedback_impact": {
+      "depths": {
+        "1": {
+          "attempts": 5,
+          "improvements": 0,
+          "solved": 0
+        },
+        "2": {
+          "attempts": 14,
+          "improvements": 0,
+          "solved": 0
+        }
+      },
+      "error_types": {
+        "other_error": {
+          "attempts": 1,
+          "improvements": 0
+        },
+        "assertion_failure": {
+          "attempts": 6,
+          "improvements": 0
+        }
+      },
+      "test_case_improvements": {},
+      "error_transitions": {
+        "other_error->assertion_failure": 2,
+        "assertion_failure->assertion_failure": 17
+      }
+    },
+    "code_eval_metrics": {
+      "depth_statistics": {
+        "min_depth": 0,
+        "max_depth": 2,
+        "avg_depth": 1.5714285714285714,
+        "solutions_per_depth": {
+          "0": 2,
+          "1": 5,
+          "2": 14
+        },
+        "passing_solutions_per_depth": {
+          "0": 0,
+          "1": 0,
+          "2": 0
+        }
+      },
+      "pass_at_k": {
+        "pass@1": 0.045454545454545414,
+        "pass@3": 0.13636363636363635,
+        "pass@5": 0.2272727272727273,
+        "pass@10": 0.4545454545454546
+      },
+      "solutions_evaluated": 22
+    },
+    "summary": {
+      "efficiency": {
+        "solving_rate": 0.0,
+        "branch_success_rate": 0.0,
+        "test_success_rate": 0.0
+      },
+      "test_results": {
+        "total": 21,
+        "passed": 0,
+        "failed": 21,
+        "timeouts": 0,
+        "import_errors": 0,
+        "other_errors": 0,
+        "unique_import_failures": []
+      },
+      "error_recovery": {
+        "total_attempts": 7,
+        "total_improvements": 0,
+        "recovery_rate": 0.0
+      },
+      "top_errors": [
+        [
+          "assertion_failure",
+          6
+        ],
+        [
+          "other_error",
+          1
+        ]
+      ],
+      "hardest_test_cases": [
+        [
+          "nums = [3, 3, 3, 3, 3, 3]",
+          13
+        ],
+        [
+          "nums = [50, 1, 50, 1, 50]",
+          8
+        ]
+      ],
+      "termination_reasons": {
+        "depth_limit": 0,
+        "adaptive_threshold": 0,
+        "import_failures": 0,
+        "early_stopping": 0,
+        "iteration_limit": 1
+      }
+    }
+  },
+  "processing_time": 1523.176764011383,
+  "code_eval_results": {
+    "pass_at_k": {
+      "pass@1": 0.045454545454545414,
+      "pass@3": 0.13636363636363635,
+      "pass@5": 0.2272727272727273,
+      "pass@10": 0.4545454545454546
+    },
+    "detailed_results": {
+      "0": [
+        [
+          0,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: local variable 'arr1_val_prev' referenced before assignment",
+            "completion_id": 0
+          }
+        ],
+        [
+          1,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 1
+          }
+        ],
+        [
+          2,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 2
+          }
+        ],
+        [
+          3,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 3
+          }
+        ],
+        [
+          4,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 4
+          }
+        ],
+        [
+          5,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 5
+          }
+        ],
+        [
+          6,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 6
+          }
+        ],
+        [
+          7,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 7
+          }
+        ],
+        [
+          8,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 8
+          }
+        ],
+        [
+          9,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 9
+          }
+        ],
+        [
+          10,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 10
+          }
+        ],
+        [
+          11,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 11
+          }
+        ],
+        [
+          12,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 12
+          }
+        ],
+        [
+          13,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 13
+          }
+        ],
+        [
+          14,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 14
+          }
+        ],
+        [
+          15,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 15
+          }
+        ],
+        [
+          16,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 16
+          }
+        ],
+        [
+          17,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 17
+          }
+        ],
+        [
+          18,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 18
+          }
+        ],
+        [
+          19,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 19
+          }
+        ],
+        [
+          20,
+          {
+            "task_id": 0,
+            "passed": false,
+            "result": "failed: ",
+            "completion_id": 20
+          }
+        ],
+        [
+          21,
+          {
+            "task_id": 0,
+            "passed": true,
+            "result": "passed",
+            "completion_id": 21
+          }
+        ]
+      ]
+    },
+    "solutions_evaluated": 22,
+    "test_cases": 1
+  }
+}
